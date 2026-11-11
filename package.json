@@ -1,0 +1,9 @@
+{
+  "name": "manual-10ano",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "validar": "node tools/validar-conteudos.js",
+    "cache": "node tools/gerar-lista-cache.js"
+  }
+}
