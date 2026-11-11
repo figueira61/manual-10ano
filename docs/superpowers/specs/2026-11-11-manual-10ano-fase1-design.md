@@ -62,7 +62,7 @@ manual-10ano/
 ```
 
 Regras:
-- JavaScript moderno (módulos ES), sem frameworks, sem dependências de runtime além de KaTeX vendorizado.
+- JavaScript moderno em **scripts clássicos** (não módulos ES — os browsers bloqueiam módulos e `import()` em `file://`). Cada ficheiro regista-se no namespace global `Manual`; o carregamento preguiçoso faz-se injetando `<script>`. Sem frameworks, sem dependências de runtime além de KaTeX vendorizado.
 - Nenhum recurso externo carregado em runtime (requisito do offline e do Artifact).
 - Service worker só ativo quando servido por http(s); em `file://` o site funciona sem cache offline.
 
@@ -82,7 +82,7 @@ Regras:
 }
 ```
 
-Tipos de bloco em `essencial`: `texto`, `definicao`, `exemplo` (enunciado + `resolucao` em passos), `erro-frequente`, `formula`, `quadro` (tabela estática), `esquema` (`{ tipo: "esquema", id: "parabola", opcoes: {...}, legenda: "Mexe em a, h e k…" }`).
+Tipos de bloco em `essencial`: `texto`, `definicao`, `exemplo` (enunciado + `resolucao` em passos), `erro-frequente`, `formula`, `quadro` (tabela estática), `codigo` (Python ilustrativo, só leitura), `esquema` (`{ tipo: "esquema", id: "parabola", opcoes: {...}, legenda: "Mexe em a, h e k…" }`).
 
 ### 5.2 Página de subtema (ordem fixa)
 
@@ -136,11 +136,11 @@ Pensamento computacional: subtemas com cálculo incluem, quando útil, um pequen
 
 ## 7. Esquemas interativos
 
-- Interface comum: `export function montar(el, opcoes) → { destruir() }`.
+- Interface comum: `Manual.esquemas.registar(id, { montar(el, opcoes) → { destruir() } })`.
 - Biblioteca `esquemas/nucleo/`: referencial 2D com zoom/arrasto, pontos arrastáveis (rato e toque), sliders, desenho de funções, vetores, projeção 3D simples.
 - Lógica de cálculo separada do desenho (módulos puros testáveis).
 - Acessibilidade: controlos acessíveis por teclado; valores sempre também em texto; cores com contraste adequado em claro e escuro.
-- Desempenho: carregamento por `import()` dinâmico ao abrir o subtema.
+- Desempenho: carregamento preguiçoso (injeção de `<script>`) ao abrir o subtema.
 
 ## 8. Qualidade e testes
 
