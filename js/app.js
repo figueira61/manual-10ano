@@ -118,23 +118,6 @@ globalThis.Manual = globalThis.Manual || {};
     destaque.appendChild(criar('p', 'subtitulo',
       'Explicações curtas, esquemas interativos e mini-quizzes com resolução passo a passo para as disciplinas do 10.º ano.'));
 
-    const form = criar('form', 'caixa-pesquisa');
-    form.setAttribute('role', 'search');
-    form.appendChild(icone('procurar'));
-    const campo = criar('input');
-    campo.type = 'search';
-    campo.placeholder = 'Tema, conceito ou palavra-chave';
-    campo.setAttribute('aria-label', 'Pesquisar no manual');
-    campo.autocomplete = 'off';
-    form.appendChild(campo);
-    const procurar = criar('button', 'botao botao-acento', 'Procurar');
-    procurar.type = 'submit';
-    form.appendChild(procurar);
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      window.location.hash = hashDe('pesquisa', { termo: campo.value.trim() });
-    });
-    destaque.appendChild(form);
 
     const acoes = criar('div', 'acoes');
     const primeira = Manual.indice.find(function (d) { return d.disponivel; });
@@ -395,13 +378,6 @@ globalThis.Manual = globalThis.Manual || {};
 
     const formPesquisa = document.getElementById('form-pesquisa');
     formPesquisa.insertBefore(icone('procurar'), formPesquisa.firstChild);
-    document.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-        e.preventDefault();
-        campoPesquisa.focus();
-        campoPesquisa.select();
-      }
-    });
 
     formPesquisa.addEventListener('submit', function (e) {
       e.preventDefault();
