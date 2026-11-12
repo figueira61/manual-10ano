@@ -4,6 +4,8 @@ Manual.calc = Manual.calc || {};
 Manual.calc.funcoes = (function () {
   // Evita -0 nos resultados.
   const n0 = (x) => x + 0;
+  // Arredonda a 1e-9 (elimina ruído de vírgula flutuante) e evita -0.
+  const r9 = (x) => Math.round(x * 1e9) / 1e9 + 0;
 
   function afim(m, b) {
     return {
@@ -14,16 +16,19 @@ Manual.calc.funcoes = (function () {
 
   function quadratica(a, b, c) {
     if (a === 0) throw new Error('quadratica: a não pode ser 0');
-    const delta = b * b - 4 * a * c;
+    let delta = b * b - 4 * a * c;
+    // Δ dentro do ruído de arredondamento conta como 0
+    if (Math.abs(delta) <= 1e-9 * Math.max(1, b * b, Math.abs(4 * a * c))) delta = 0;
+    delta = r9(delta);
     let zeros = [];
     if (delta === 0) {
-      zeros = [n0(-b / (2 * a))];
+      zeros = [r9(-b / (2 * a))];
     } else if (delta > 0) {
       const raiz = Math.sqrt(delta);
-      zeros = [(-b - raiz) / (2 * a), (-b + raiz) / (2 * a)].map(n0).sort((x, y) => x - y);
+      zeros = [(-b - raiz) / (2 * a), (-b + raiz) / (2 * a)].map(r9).sort((x, y) => x - y);
     }
-    const h = n0(-b / (2 * a));
-    const k = n0(c - (b * b) / (4 * a));
+    const h = r9(-b / (2 * a));
+    const k = r9(c - (b * b) / (4 * a));
     return {
       delta,
       zeros,

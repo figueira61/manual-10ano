@@ -71,3 +71,19 @@ test('funções definidas por ramos', () => {
   assert.equal(F.avaliarRamos(ramos, 3), 9);
   assert.equal(F.avaliarRamos([ramos[1]], -1), undefined);
 });
+
+test('quadratica tolera ruído de vírgula flutuante em Δ', () => {
+  const q = F.quadratica(0.1, -0.2, 0.1);
+  assert.equal(q.delta, 0);
+  assert.deepEqual(q.zeros, [1]);
+  assert.deepEqual(q.vertice, [1, 0]);
+  for (let ai = 1; ai <= 30; ai++) {
+    for (let hi = -20; hi <= 20; hi++) {
+      const a = ai / 10, h = hi / 2;
+      const g = F.canonicaParaGeral(a, h, 0);
+      const r = F.quadratica(g.a, g.b, g.c);
+      assert.equal(r.delta, 0, `a=${a} h=${h}`);
+      assert.equal(r.zeros.length, 1, `a=${a} h=${h}`);
+    }
+  }
+});

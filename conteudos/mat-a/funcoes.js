@@ -90,6 +90,9 @@ Manual.registarTema('mat-a', {
         { tipo: 'esquema', id: 'histograma', opcoes: { dados: [12,15,17,18,21,22,22,24,25,27,28,31,33,34,38,41,45,47], amplitudeClasse: 10 }, legenda: 'Demo histograma.' },
         { tipo: 'esquema', id: 'medidas', opcoes: { dados: [2,4,4,4,5,5,7,9] }, legenda: 'Demo medidas.' },
         { tipo: 'esquema', id: 'regressao', opcoes: { pares: [[1,2],[2,3],[3,4]] }, legenda: 'Demo regressao.' },
+        { tipo: 'esquema', id: 'afim', opcoes: { m: 2, b: -1 }, legenda: 'Demo afim.' },
+        { tipo: 'esquema', id: 'parabola', opcoes: { a: 1, h: 1, k: -4, mostrarBase: true }, legenda: 'Demo parabola.' },
+        { tipo: 'esquema', id: 'ramos', opcoes: { ramos: 'modulo' }, legenda: 'Demo ramos.' },
       ],
       resumo: ['Página provisória para verificar os esquemas.'],
       quiz: [
