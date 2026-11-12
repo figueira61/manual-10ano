@@ -230,7 +230,7 @@ vendor/katex/                   katex.min.js, katex.min.css, fonts/*.woff2, LICE
 - [ ] **Step 1: Testes falhados**:
   - `maioria([270,153,201])` → `total 624`, `limiarAbsoluta 313`, `simples 0`, `absoluta null`; `maioria([5,5,1]).simples === null`.
   - `borda` com 3 candidatos, boletins `[{ordem:[0,1,2],quantidade:4},{ordem:[1,2,0],quantidade:3},{ordem:[2,1,0],quantidade:2}]` → pontos `[17, 21, 16]`, vencedor 1.
-  - `hondt([10000,6000,3500,1500], 6).mandatos` → `[3,2,1,0]`; `stLague([10000,6000,3500,1500], 6).mandatos` → `[2,2,1,1]` (os dois métodos divergem); `hondt([12000,7500,4500,3000], 8).mandatos` → `[4,2,1,1]`.
+  - `hondt([10000,6000,3500,1500], 7).mandatos` → `[4,2,1,0]`; `stLague([10000,6000,3500,1500], 7).mandatos` → `[3,2,1,1]` (os dois métodos divergem); `hondt([12000,7500,4500,3000], 8).mandatos` → `[4,2,1,1]`.
   - Empate na fronteira: `hondt([100,50],2)` → 1.º mandato A (100); o 2.º empata 50 (A÷2) vs 50 (B÷1) e vai para B (menos votos) → `mandatos [1,1]`, `atribuicoes[1].partido === 1`.
   - `hondt([10,0],2).mandatos` → `[2,0]`; `hondt([10,5],0).mandatos` → `[0,0]`.
   - `jurosSimples(1000,0.05,2)` → juro 100, montante 1100; `jurosCompostos(1000,0.03,1,1).montante` → 1030 (exemplo das AE); `jurosCompostos(1000,0.05,2,1).montante` → 1102.5; `jurosCompostos(300,0.03,10/12,12).passos.length === 10`.
@@ -267,7 +267,7 @@ vendor/katex/                   katex.min.js, katex.min.css, fonts/*.woff2, LICE
 - Todos mostram os valores intermédios em texto (`painelValores`/`tabela`), não só no desenho.
 
 - [ ] **Step 1:** Implementar os 4 esquemas.
-- [ ] **Step 2:** Verificar no browser numa página de subtema provisória (bloco `esquema` com cada id em `conteudos/mat-a/funcoes.js` de demonstração): `hondt` com `[10000,6000,3500,1500]`, 6 mandatos → `3,2,1,0`, St. Laguë → `2,2,1,1`; empate `[100,50]`, 2 mandatos → `1,1`; editar votos atualiza; teclado e 375 px ok; modo escuro legível.
+- [ ] **Step 2:** Verificar no browser numa página de subtema provisória (bloco `esquema` com cada id em `conteudos/mat-a/funcoes.js` de demonstração): `hondt` com `[10000,6000,3500,1500]`, 7 mandatos → `4,2,1,0`, St. Laguë → `3,2,1,1`; empate `[100,50]`, 2 mandatos → `1,1`; editar votos atualiza; teclado e 375 px ok; modo escuro legível.
 - [ ] **Step 3:** Commit `feat: esquemas de eleições e finanças`.
 
 ### Task 12: Esquemas — Estatística (`histograma`, `medidas`, `regressao`)
