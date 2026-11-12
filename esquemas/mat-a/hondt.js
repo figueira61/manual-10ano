@@ -128,6 +128,7 @@ Manual.esquemas.registar('hondt', {
         campo.addEventListener('input', () => {
           if (campo.value.trim() === '') return;
           definirVotos(i, campo.value);
+          if (inteiro(campo.value, 0, 1e9, 0) !== partidos[i].votos) campo.value = String(partidos[i].votos);
           atualizar();
         });
         campo.addEventListener('change', () => { campo.value = String(partidos[i].votos); });

@@ -129,17 +129,19 @@ Manual.esquemas.registar('borda', {
         ['Borda (mais pontos)', vBor],
       ]);
 
-      const vencedores = new Set([mai.simples, mai.absoluta, bor.vencedor].filter((v) => v !== null));
-      const nomes = [];
-      if (mai.simples !== null) nomes.push('maioria simples: ' + candidatos[mai.simples]);
-      if (mai.absoluta !== null) nomes.push('maioria absoluta: ' + candidatos[mai.absoluta]);
-      if (bor.vencedor !== null) nomes.push('Borda: ' + candidatos[bor.vencedor]);
-      if (vencedores.size > 1) {
-        zonaResultado.appendChild(criar('p', 'esq-aviso', 'Os métodos divergem (' + nomes.join('; ') + '): o vencedor depende do sistema de votação.'));
+      const sTxt = mai.simples !== null ? candidatos[mai.simples] : 'empate';
+      const aTxt = mai.absoluta !== null ? candidatos[mai.absoluta] : 'sem maioria absoluta';
+      const bTxt = bor.vencedor !== null ? candidatos[bor.vencedor] : 'empate';
+      const resumo = 'maioria simples: ' + sTxt + '; maioria absoluta: ' + aTxt + '; Borda: ' + bTxt;
+      const comparaveis = mai.simples !== null && bor.vencedor !== null;
+      const coincidem = comparaveis && mai.simples === bor.vencedor
+        && (mai.absoluta === null || mai.absoluta === mai.simples);
+      if (!coincidem) {
+        zonaResultado.appendChild(criar('p', 'esq-aviso', 'Os métodos não coincidem (' + resumo + '): o resultado depende do sistema de votação.'));
       } else if (mai.absoluta === null) {
-        zonaResultado.appendChild(criar('p', null, 'Não há maioria absoluta; os restantes métodos coincidem.'));
+        zonaResultado.appendChild(criar('p', null, 'Maioria simples e Borda coincidem em ' + sTxt + ', mas não há maioria absoluta.'));
       } else {
-        zonaResultado.appendChild(criar('p', null, 'Os métodos coincidem no vencedor.'));
+        zonaResultado.appendChild(criar('p', null, 'Os três métodos coincidem no vencedor: ' + sTxt + '.'));
       }
 
       const col = criar('div', 'esq-colunas');
