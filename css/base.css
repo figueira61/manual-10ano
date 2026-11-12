@@ -245,9 +245,9 @@ a.cartao:hover { border-color: var(--destaque); }
 .resumo { padding: 12px 14px; background: var(--superficie); border: 1px solid var(--borda); border-radius: 10px; }
 .resumo h2 { margin-bottom: 6px; }
 
-.math-bloco { display: block; overflow-x: auto; overflow-y: hidden; }
-.katex-display { overflow-x: auto; overflow-y: hidden; }
-.quadro-envolvente { overflow-x: auto; margin: 14px 0; }
+.math-bloco { position: relative; display: block; overflow-x: auto; overflow-y: hidden; }
+.katex-display { position: relative; overflow-x: auto; overflow-y: hidden; }
+.quadro-envolvente { position: relative; overflow-x: auto; margin: 14px 0; }
 .quadro { border-collapse: collapse; }
 .quadro th, .quadro td { border: 1px solid var(--borda); padding: 6px 10px; text-align: left; }
 .codigo { overflow-x: auto; padding: 12px; background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px; font-size: 0.9rem; }

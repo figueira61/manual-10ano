@@ -116,12 +116,12 @@ Manual.registarIndice([
           {
             id: 'transformacoes',
             titulo: 'Transformações do gráfico de y = x²',
-            palavras: ['translação', 'vetor', 'dilatação vertical', 'contração vertical', 'reflexão', 'forma canónica', 'transformações geométricas', 'expressão analítica'],
+            palavras: ['parábola', 'translação', 'vetor', 'dilatação vertical', 'contração vertical', 'reflexão', 'forma canónica', 'transformações geométricas', 'expressão analítica'],
           },
           {
             id: 'equacoes-inequacoes',
             titulo: 'Equações e inequações do 2.º grau',
-            palavras: ['fórmula resolvente', 'equação do 2.º grau', 'inequação', 'binómio discriminante', 'conjunto-solução', 'intervalos', 'Python', 'completar o quadrado'],
+            palavras: ['parábola', 'fórmula resolvente', 'equação do 2.º grau', 'inequação', 'binómio discriminante', 'conjunto-solução', 'intervalos', 'Python', 'completar o quadrado'],
           },
           {
             id: 'ramos-modulo',
