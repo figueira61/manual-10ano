@@ -2,7 +2,6 @@ globalThis.Manual = globalThis.Manual || {};
 Manual.ae = Manual.ae || {};
 
 Manual.ae['mat-a'] = [
-  'Estudar gráfica e analiticamente a função afim em termos de zeros, sinal e monotonia.',
   'Reconhecer o papel da matemática na escolha de representantes em sistemas políticos e sociais.',
   'Perceber que existem modelos matemáticos que permitem criar procedimentos para transformar as preferências individuais numa decisão coletiva.',
   'Identificar o vencedor de um processo eleitoral através de maioria simples e maioria absoluta.',
@@ -52,4 +51,14 @@ Manual.ae['mat-a'] = [
   'Localizar os pontos notáveis em triângulos equiláteros, isósceles e escalenos e em triângulos acutângulos, retângulos e obtusângulos.',
   'Verificar a existência da reta de Euler e da circunferência dos nove pontos.',
   'Resolver problemas envolvendo relações métricas entre os pontos notáveis.',
+  'Analisar elementos da evolução histórica do conceito de função e as diversas formas de representação: diagramas, tabelas, gráficos e expressões analíticas.',
+  'Identificar domínio, conjunto de chegada, contradomínio, objeto e imagem de uma função em contextos históricos, de modelação, ou abstratos, com recurso a vários tipos de representações (tabelas, gráficos e expressões analíticas).',
+  'Estudar gráfica e analiticamente a função afim em termos de zeros, sinal e monotonia.',
+  'Estudar famílias de funções quadráticas relativamente ao sentido das concavidades do seu gráfico, eixo de simetria, contradomínio, zeros, sinal, monotonia e extremos, gráfica e analiticamente.',
+  'Interpretar e prever as alterações no gráfico de uma função f(x − a), f(x) + b, c . f(x), com a, b e c números reais, c não nulo, a partir do gráfico da função de domínio ℝ, definida por f(x) = x², e descrever o resultado com recurso à linguagem das transformações geométricas.',
+  'Resolver equações e inequações do 2.º grau, em contextos de resolução de problemas.',
+  'Determinar expressões analíticas de funções representadas graficamente.',
+  'Estudar gráfica e analiticamente funções definidas por ramos e utilizá-las em contextos de modelação.',
+  'Estudar funções definidas por ramos relativamente ao domínio, contradomínio, coordenadas dos pontos de interseção com os eixos coordenados e sinal, em casos simples.',
+  'Reconhecer a função módulo como um caso particular de uma função definida por ramos.',
 ];

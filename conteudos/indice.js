@@ -99,11 +99,35 @@ Manual.registarIndice([
         titulo: 'Funções',
         subtemas: [
           {
+            id: 'generalidades',
+            titulo: 'Generalidades acerca de funções',
+            palavras: ['função', 'domínio', 'conjunto de chegada', 'contradomínio', 'objeto', 'imagem', 'variável independente', 'variável dependente', 'diagrama de setas', 'tabela', 'gráfico', 'expressão analítica', 'história'],
+          },
+          {
             id: 'afim',
             titulo: 'Função afim',
-            palavras: ['reta', 'declive', 'ordenada na origem', 'zeros', 'monotonia'],
+            palavras: ['reta', 'declive', 'ordenada na origem', 'zeros', 'sinal', 'monotonia', 'crescente', 'decrescente', 'função linear', 'função constante'],
           },
-          { id: 'demo-esquemas', titulo: 'Demo de esquemas', palavras: ['demo'] }, // DEMO provisória (Task 18)
+          {
+            id: 'quadratica',
+            titulo: 'Função quadrática',
+            palavras: ['parábola', 'concavidade', 'vértice', 'eixo de simetria', 'binómio discriminante', 'delta', 'zeros', 'sinal', 'extremos', 'máximo', 'mínimo', 'contradomínio', 'monotonia'],
+          },
+          {
+            id: 'transformacoes',
+            titulo: 'Transformações do gráfico de y = x²',
+            palavras: ['translação', 'vetor', 'dilatação vertical', 'contração vertical', 'reflexão', 'forma canónica', 'transformações geométricas', 'expressão analítica'],
+          },
+          {
+            id: 'equacoes-inequacoes',
+            titulo: 'Equações e inequações do 2.º grau',
+            palavras: ['fórmula resolvente', 'equação do 2.º grau', 'inequação', 'binómio discriminante', 'conjunto-solução', 'intervalos', 'Python', 'completar o quadrado'],
+          },
+          {
+            id: 'ramos-modulo',
+            titulo: 'Funções definidas por ramos e módulo',
+            palavras: ['ramos', 'função por ramos', 'módulo', 'valor absoluto', 'tarifas', 'quadro de sinal', 'contradomínio', 'zeros', 'Python'],
+          },
         ],
       },
     ],
