@@ -39,3 +39,132 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
 
   return { valida, certa, respostaCorreta, resolucao, explicacao };
 };
+
+// Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total) no fim.
+Manual.quiz.montar = function (el, perguntas, aoTerminar) {
+  const R = Manual.render;
+  let indice = 0;
+  let certas = 0;
+
+  function novaPergunta() {
+    el.textContent = '';
+    const pergunta = perguntas[indice];
+    const cartao = R.criar('div', 'pergunta');
+    cartao.appendChild(R.criar('p', 'pergunta-n', 'Pergunta ' + (indice + 1) + ' de ' + perguntas.length));
+    R.paragrafo(cartao, pergunta.enunciado, 'enunciado');
+
+    const nomeGrupo = 'q' + Math.random().toString(36).slice(2);
+    const opcoes = [];
+    let campo = null;
+    const grupo = R.criar('div', 'opcoes');
+
+    function opcao(rotulo, valor) {
+      const label = R.criar('label', 'opcao');
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = nomeGrupo;
+      label.appendChild(radio);
+      const span = document.createElement('span');
+      R.texto(span, rotulo);
+      label.appendChild(span);
+      grupo.appendChild(label);
+      opcoes.push({ radio: radio, valor: valor });
+    }
+
+    if (pergunta.tipo === 'escolha') {
+      pergunta.opcoes.forEach(function (o, i) { opcao(o, i); });
+    } else if (pergunta.tipo === 'vf') {
+      opcao('Verdadeiro', true);
+      opcao('Falso', false);
+    } else {
+      campo = document.createElement('input');
+      campo.type = 'text';
+      campo.inputMode = 'decimal';
+      campo.className = 'campo-numero';
+      campo.autocomplete = 'off';
+      campo.setAttribute('aria-label', 'Resposta');
+      grupo.appendChild(campo);
+      if (pergunta.unidade) grupo.appendChild(R.criar('span', 'unidade', ' ' + pergunta.unidade));
+    }
+    cartao.appendChild(grupo);
+
+    const mensagem = R.criar('p', 'aviso-erro');
+    mensagem.setAttribute('role', 'alert');
+    mensagem.hidden = true;
+    cartao.appendChild(mensagem);
+
+    const botao = R.criar('button', 'botao botao-principal', 'Verificar');
+    botao.type = 'button';
+    cartao.appendChild(botao);
+    const feedback = R.criar('div', 'feedback');
+    feedback.setAttribute('aria-live', 'polite');
+    cartao.appendChild(feedback);
+    el.appendChild(cartao);
+
+    function lerResposta() {
+      if (campo) return campo.value;
+      const escolhida = opcoes.find(function (o) { return o.radio.checked; });
+      return escolhida ? escolhida.valor : undefined;
+    }
+
+    function verificar() {
+      const r = Manual.quiz.corrigir(pergunta, lerResposta());
+      if (!r.valida) {
+        mensagem.textContent = campo ? 'Escreve um número' : 'Escolhe uma opção';
+        mensagem.hidden = false;
+        return;
+      }
+      mensagem.hidden = true;
+      if (r.certa) certas += 1;
+      opcoes.forEach(function (o) { o.radio.disabled = true; });
+      if (campo) campo.disabled = true;
+
+      feedback.className = 'feedback ' + (r.certa ? 'certo' : 'errado');
+      feedback.appendChild(R.criar('p', 'veredicto', r.certa ? '✔ Certo!' : '✘ Errado.'));
+      const correta = R.criar('p', 'resposta-correta');
+      correta.appendChild(document.createTextNode('Resposta correta: '));
+      const valor = document.createElement('span');
+      R.texto(valor, r.respostaCorreta);
+      correta.appendChild(valor);
+      feedback.appendChild(correta);
+      if (r.resolucao.length) {
+        feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
+        R.passos(feedback, r.resolucao);
+      }
+      if (r.explicacao) R.paragrafo(feedback, r.explicacao, 'explicacao');
+
+      const ultima = indice === perguntas.length - 1;
+      botao.textContent = ultima ? 'Ver resultado' : 'Seguinte';
+      botao.onclick = function () {
+        indice += 1;
+        if (ultima) fim();
+        else novaPergunta();
+      };
+    }
+
+    botao.onclick = verificar;
+    if (campo) {
+      campo.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') botao.click();
+      });
+    }
+  }
+
+  function fim() {
+    el.textContent = '';
+    const cartao = R.criar('div', 'pergunta resultado');
+    cartao.appendChild(R.criar('p', 'pontuacao', 'Acertaste ' + certas + ' de ' + perguntas.length + '.'));
+    const repetir = R.criar('button', 'botao botao-principal', 'Repetir');
+    repetir.type = 'button';
+    repetir.addEventListener('click', function () {
+      indice = 0;
+      certas = 0;
+      novaPergunta();
+    });
+    cartao.appendChild(repetir);
+    el.appendChild(cartao);
+    if (typeof aoTerminar === 'function') aoTerminar(certas, perguntas.length);
+  }
+
+  novaPergunta();
+};
