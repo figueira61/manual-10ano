@@ -52,16 +52,39 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
   return { valida, certa, respostaCorreta, resolucao, explicacao };
 };
 
+// Tentativa a registar quando a aluna verifica uma pergunta do mini-quiz. Função pura.
+Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId) {
+  return {
+    disciplina: contexto.disciplina,
+    tema: contexto.tema,
+    subtema: contexto.subtema,
+    tipo: contexto.subtema + '#q' + indice,
+    semente: null,
+    formato: pergunta.tipo,
+    modo: 'quiz',
+    nivel_ajuda: 2,
+    resultado: resultado,
+    primeira_tentativa: true,
+    viu_resolucao: false,
+    usou_pista: false,
+    erro_tipico: null,
+    duracao_ms: duracaoMs,
+    sessao_id: sessaoId,
+  };
+};
+
 // Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total) no fim.
-Manual.quiz.montar = function (el, perguntas, aoTerminar) {
+Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
   const R = Manual.render;
   let indice = 0;
   let certas = 0;
+  let inicio = Date.now();
 
   function novaPergunta(focar) {
     el.textContent = '';
     const pergunta = perguntas[indice];
     const cartao = R.criar('div', 'pergunta');
+    inicio = Date.now();
     const numero = R.criar('p', 'pergunta-n', 'Pergunta ' + (indice + 1) + ' de ' + perguntas.length);
     numero.tabIndex = -1;
     cartao.appendChild(numero);
@@ -130,6 +153,18 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
       }
       mensagem.hidden = true;
       if (r.certa) certas += 1;
+      if (typeof aoResponder === 'function') {
+        try {
+          aoResponder({
+            indice: indice,
+            pergunta: pergunta,
+            resultado: r.certa ? 'certa' : 'errada',
+            duracaoMs: Date.now() - inicio,
+          });
+        } catch (e) {
+          // o registo nunca impede o estudo
+        }
+      }
       opcoes.forEach(function (o) { o.radio.disabled = true; });
       if (campo) campo.disabled = true;
 

@@ -208,6 +208,13 @@ globalThis.Manual = globalThis.Manual || {};
     return nav;
   }
 
+  // Um identificador por carregamento de página.
+  let sessaoId = null;
+  function idSessao() {
+    if (!sessaoId) sessaoId = Manual.uuid();
+    return sessaoId;
+  }
+
   Manual.render = {
     criar: criar,
     texto: texto,
@@ -273,6 +280,11 @@ globalThis.Manual = globalThis.Manual || {};
       artigo.appendChild(seccaoQuiz);
       Manual.quiz.montar(areaQuiz, subtema.quiz, function (certas, total) {
         progresso.registarQuiz(chave, certas, total);
+      }, function (r) {
+        if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return;
+        const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
+        const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao());
+        Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});
       });
 
       const nav = criar('nav', 'nav-subtemas');

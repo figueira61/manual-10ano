@@ -146,3 +146,26 @@ test('ordemOpcoes é determinística com aleatorio injetado e embaralha', () => 
   assert.deepEqual(Manual.quiz.ordemOpcoes(0), []);
   assert.deepEqual(Manual.quiz.ordemOpcoes(1), [0]);
 });
+
+test('construirTentativa devolve a tentativa do mini-quiz com os valores exatos', () => {
+  const contexto = { disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' };
+  const pergunta = { tipo: 'numerica', enunciado: '?', resposta: 1 };
+  const t = Manual.quiz.construirTentativa(contexto, pergunta, 2, 'certa', 4321, 'sessao-1');
+  assert.deepEqual(t, {
+    disciplina: 'mat-a',
+    tema: 'funcoes',
+    subtema: 'afim',
+    tipo: 'afim#q2',
+    semente: null,
+    formato: 'numerica',
+    modo: 'quiz',
+    nivel_ajuda: 2,
+    resultado: 'certa',
+    primeira_tentativa: true,
+    viu_resolucao: false,
+    usou_pista: false,
+    erro_tipico: null,
+    duracao_ms: 4321,
+    sessao_id: 'sessao-1',
+  });
+});

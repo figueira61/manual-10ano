@@ -353,6 +353,16 @@ globalThis.Manual = globalThis.Manual || {};
       case 'pesquisa':
         vistaPesquisa(rota);
         break;
+      case 'entrar':
+      case 'registar':
+      case 'conta':
+      case 'privacidade':
+      case 'progresso':
+      case 'treino':
+      case 'teste':
+      case 'encarregado':
+        vistaAtual = Manual.vistasConta.montar(rota.vista, principal, rota);
+        break;
       default:
         vistaNaoEncontrado();
     }
@@ -361,6 +371,8 @@ globalThis.Manual = globalThis.Manual || {};
 
   function arrancar() {
     construirLateral();
+    Manual.conta.iniciar().catch(function () {});
+    Manual.vistasConta.montarTopo(document.getElementById('zona-conta'));
     Manual.tema.ligar(document.getElementById('botao-tema'));
 
     const botaoMenu = document.getElementById('botao-menu');

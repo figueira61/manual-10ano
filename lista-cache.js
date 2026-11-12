@@ -47,6 +47,7 @@ self.LISTA_CACHE = [
   "js/router.js",
   "js/tema.js",
   "js/texto.js",
+  "js/vistas-conta.js",
   "manifest.webmanifest",
   "vendor/katex/LICENSE.txt",
   "vendor/katex/fonts/KaTeX_AMS-Regular.woff2",
@@ -74,4 +75,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '76cba00619';
+self.VERSAO_CACHE = 'd7a811d0eb';
