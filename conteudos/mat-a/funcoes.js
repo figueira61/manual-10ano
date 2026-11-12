@@ -76,5 +76,25 @@ Manual.registarTema('mat-a', {
         },
       ],
     },
+    // DEMO provisória (remover na Task 18)
+    {
+      id: 'demo-esquemas',
+      titulo: 'Demo de esquemas',
+      ae: ['Estudar gráfica e analiticamente a função afim em termos de zeros, sinal e monotonia.'],
+      minutos: 4,
+      essencial: [
+        { tipo: 'esquema', id: 'hondt', opcoes: { partidos: [{nome:'A',votos:10000},{nome:'B',votos:6000},{nome:'C',votos:3500},{nome:'D',votos:1500}], mandatos: 7 }, legenda: 'Demo hondt.' },
+        { tipo: 'esquema', id: 'borda', opcoes: {}, legenda: 'Demo borda.' },
+        { tipo: 'esquema', id: 'juros', opcoes: { capital: 1000, taxa: 4, anos: 10, periodosPorAno: 4 }, legenda: 'Demo juros.' },
+        { tipo: 'esquema', id: 'salario', opcoes: { bruto: 1200 }, legenda: 'Demo salario.' },
+      ],
+      resumo: ['Página provisória para verificar os esquemas.'],
+      quiz: [
+        { tipo: 'vf', enunciado: 'Pergunta 1.', correta: true, explicacao: 'Demo.' },
+        { tipo: 'vf', enunciado: 'Pergunta 2.', correta: true, explicacao: 'Demo.' },
+        { tipo: 'vf', enunciado: 'Pergunta 3.', correta: true, explicacao: 'Demo.' },
+        { tipo: 'vf', enunciado: 'Pergunta 4.', correta: true, explicacao: 'Demo.' },
+      ],
+    },
   ],
 });

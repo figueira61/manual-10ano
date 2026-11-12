@@ -15,6 +15,7 @@ Manual.registarIndice([
             titulo: 'Função afim',
             palavras: ['reta', 'declive', 'ordenada na origem', 'zeros', 'monotonia'],
           },
+          { id: 'demo-esquemas', titulo: 'Demo de esquemas', palavras: ['demo'] }, // DEMO provisória (Task 18)
         ],
       },
     ],
