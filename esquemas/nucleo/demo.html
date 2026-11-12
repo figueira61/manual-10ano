@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo do núcleo de esquemas</title>
+  <link rel="stylesheet" href="../../css/base.css">
+</head>
+<body>
+  <main class="principal" style="padding:16px;max-width:640px">
+    <h1>Demo: núcleo de esquemas</h1>
+    <p>Arrasta o ponto P, usa as setas (Shift = passo fino) e o slider a de y = a·x².</p>
+    <div id="esquema"></div>
+    <div id="controlos"></div>
+    <div id="valores"></div>
+  </main>
+  <script src="../../js/nucleo.js"></script>
+  <script src="referencial.js"></script>
+  <script src="ponto.js"></script>
+  <script src="controlos.js"></script>
+  <script src="desenho.js"></script>
+  <script src="proj3d.js"></script>
+  <script>
+    const N = Manual.nucleo;
+    const ref = N.criarReferencial(document.getElementById('esquema'), { caixa: { xmin: -6, xmax: 6, ymin: -4, ymax: 8 } });
+    const painel = N.painelValores(document.getElementById('valores'));
+    const curva = ref.camada('curva');
+    let a = 1;
+    let p;
+    function atualizarPainel() {
+      painel.definir([['x', String(p.x())], ['y', String(p.y())], ['a·x²', String(a * p.x() * p.x())]]);
+    }
+    function desenhar() {
+      N.limpar(curva);
+      N.desenharFuncao(ref, curva, (x) => a * x * x, { cor: 'var(--cor-1)' });
+    }
+    p = N.pontoArrastavel(ref, { x: 2, y: 3, cor: 'var(--cor-2)', rotulo: 'P', aoMover: atualizarPainel });
+    N.slider(document.getElementById('controlos'), {
+      rotulo: 'a', min: -2, max: 2, passo: 0.1, valor: 1,
+      aoMudar: (v) => { a = v; desenhar(); atualizarPainel(); },
+    });
+    desenhar();
+    atualizarPainel();
+  </script>
+</body>
+</html>
