@@ -13,7 +13,13 @@ globalThis.Manual = globalThis.Manual || {};
   // Identificador v4. Usa crypto.randomUUID quando existe; senão, getRandomValues.
   Manual.uuid = function () {
     const cripto = globalThis.crypto;
+    if (!cripto) {
+      throw new Error('Manual.uuid: globalThis.crypto não está disponível');
+    }
     if (typeof cripto.randomUUID === 'function') return cripto.randomUUID();
+    if (typeof cripto.getRandomValues !== 'function') {
+      throw new Error('Manual.uuid: crypto sem randomUUID nem getRandomValues');
+    }
     const bytes = new Uint8Array(16);
     cripto.getRandomValues(bytes);
     bytes[6] = (bytes[6] & 0x0f) | 0x40;
@@ -25,31 +31,52 @@ globalThis.Manual = globalThis.Manual || {};
     );
   };
 
-  // Lê a fila guardada. Qualquer falha devolve uma fila vazia.
-  function lerItens(armazenamento, chave) {
-    if (!armazenamento) return [];
+  // Converte o texto guardado numa lista de itens com id único (fica a primeira ocorrência).
+  // JSON inválido ou que não é lista devolve lista vazia.
+  function analisar(bruto) {
+    if (!bruto) return [];
+    let lido;
     try {
-      const bruto = armazenamento.getItem(chave);
-      if (!bruto) return [];
-      const lido = JSON.parse(bruto);
-      if (!Array.isArray(lido)) return [];
-      return lido.filter((i) => ehObjeto(i) && typeof i.id === 'string');
+      lido = JSON.parse(bruto);
     } catch (erro) {
       return [];
     }
+    if (!Array.isArray(lido)) return [];
+    const vistos = new Set();
+    const itens = [];
+    for (const i of lido) {
+      if (!ehObjeto(i) || typeof i.id !== 'string' || vistos.has(i.id)) continue;
+      vistos.add(i.id);
+      itens.push(i);
+    }
+    return itens;
   }
 
-  // Fila de envios pendentes (ex.: tentativas de quiz). Nunca lança erro:
-  // se o armazenamento falhar, a fila fica só em memória.
+  // Fila de envios pendentes (ex.: tentativas de quiz). Nunca lança erro.
+  // Cada operação relê o armazenamento, para que duas abas partilhadas não se apaguem.
+  // Se o armazenamento falhar (ausente, a lançar exceções), a fila passa a viver em memória.
   Manual.criarFila = function (armazenamento, chave = CHAVE_PADRAO) {
-    const itens = lerItens(armazenamento, chave);
+    let falhou = !armazenamento;
+    let memoria = [];
 
-    function guardar() {
-      if (!armazenamento) return;
+    function ler() {
+      if (!falhou) {
+        try {
+          memoria = analisar(armazenamento.getItem(chave));
+        } catch (erro) {
+          falhou = true;
+        }
+      }
+      return memoria.slice();
+    }
+
+    function guardar(itens) {
+      memoria = itens;
+      if (falhou) return;
       try {
         armazenamento.setItem(chave, JSON.stringify(itens));
       } catch (erro) {
-        // Sem persistência: mantém-se a fila em memória.
+        falhou = true;
       }
     }
 
@@ -57,35 +84,39 @@ globalThis.Manual = globalThis.Manual || {};
       // Ignora um item cujo id já está na fila.
       juntar: function (item) {
         if (!ehObjeto(item) || typeof item.id !== 'string') return;
+        const itens = ler();
         if (itens.some((i) => i.id === item.id)) return;
         itens.push(item);
-        guardar();
+        guardar(itens);
       },
 
       pendentes: function () {
-        return itens.slice();
+        return ler();
       },
 
       marcarEnviados: function (ids) {
         const conjunto = new Set(ids);
-        const restantes = itens.filter((i) => !conjunto.has(i.id));
-        itens.length = 0;
-        itens.push(...restantes);
-        guardar();
+        guardar(ler().filter((i) => !conjunto.has(i.id)));
       },
 
       tamanho: function () {
-        return itens.length;
+        return ler().length;
       },
     };
   };
 
   // Envia os pendentes em lotes de 50. `enviar(lote)` devolve os ids aceites.
-  // Em erro, ou quando nada é aceite, para: os itens não aceites ficam na fila.
+  // Só os ids aceites saem da fila. Um lote com itens rejeitados não bloqueia os seguintes:
+  // os rejeitados ficam pendentes e não são reenviados nesta chamada.
+  // Um erro de envio (lança ou rejeita) para a chamada; nada se perde.
   Manual.enviarFila = async function (fila, enviar) {
-    let enviados = 0;
+    const aceitesTotal = new Set();
+    const saltados = new Set();
     for (;;) {
-      const lote = fila.pendentes().slice(0, TAMANHO_LOTE);
+      const lote = fila
+        .pendentes()
+        .filter((i) => !saltados.has(i.id))
+        .slice(0, TAMANHO_LOTE);
       if (lote.length === 0) break;
       let aceites;
       try {
@@ -95,11 +126,15 @@ globalThis.Manual = globalThis.Manual || {};
       }
       if (!Array.isArray(aceites)) break;
       const presentes = new Set(lote.map((i) => i.id));
-      const validos = aceites.filter((id) => presentes.has(id));
-      if (validos.length === 0) break;
-      fila.marcarEnviados(validos);
-      enviados += validos.length;
+      const validos = [...new Set(aceites)].filter((id) => presentes.has(id));
+      if (validos.length > 0) {
+        fila.marcarEnviados(validos);
+        validos.forEach((id) => aceitesTotal.add(id));
+      }
+      lote.forEach((i) => {
+        if (!validos.includes(i.id)) saltados.add(i.id);
+      });
     }
-    return { enviados: enviados, restantes: fila.tamanho() };
+    return { enviados: aceitesTotal.size, restantes: fila.tamanho() };
   };
 })();

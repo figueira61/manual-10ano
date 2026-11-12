@@ -164,12 +164,90 @@ test('enviarFila que aceita só parte: só os aceites saem', async () => {
   let chamadas = 0;
   const r = await Manual.enviarFila(f, async (lote) => {
     chamadas++;
-    // Aceita 'a' e 'c' na primeira ronda; 'b' fica por enviar e não há mais progresso.
     return lote.map((i) => i.id).filter((id) => id !== 'b');
   });
-  assert.equal(chamadas, 2);
+  assert.equal(chamadas, 1);
   assert.deepEqual(r, { enviados: 2, restantes: 1 });
   assert.deepEqual(ids(f.pendentes()), ['b']);
+});
+
+test('enviarFila com 60 itens e os 50 primeiros sempre rejeitados: os últimos 10 saem, os 50 ficam', async () => {
+  const f = Manual.criarFila(armazenamentoFalso());
+  for (let n = 0; n < 60; n++) f.juntar(item('i' + n));
+  const rejeitados = new Set(Array.from({ length: 50 }, (_, n) => 'i' + n));
+  const tamanhos = [];
+  const r = await Manual.enviarFila(f, async (lote) => {
+    tamanhos.push(lote.length);
+    return lote.map((i) => i.id).filter((id) => !rejeitados.has(id));
+  });
+  assert.deepEqual(tamanhos, [50, 10]);
+  assert.deepEqual(r, { enviados: 10, restantes: 50 });
+  assert.deepEqual(ids(f.pendentes()), Array.from({ length: 50 }, (_, n) => 'i' + n));
+});
+
+test('enviarFila conta ids aceites repetidos uma só vez', async () => {
+  const f = Manual.criarFila(armazenamentoFalso());
+  f.juntar(item('a'));
+  f.juntar(item('b'));
+  const r = await Manual.enviarFila(f, async () => ['a', 'a', 'b', 'b']);
+  assert.deepEqual(r, { enviados: 2, restantes: 0 });
+});
+
+test('enviarFila com erro a meio: os lotes já aceites ficam enviados, o resto fica', async () => {
+  const f = Manual.criarFila(armazenamentoFalso());
+  for (let n = 0; n < 120; n++) f.juntar(item('i' + n));
+  let chamada = 0;
+  const r = await Manual.enviarFila(f, async (lote) => {
+    chamada++;
+    if (chamada === 2) throw new Error('rede');
+    return lote.map((i) => i.id);
+  });
+  assert.deepEqual(r, { enviados: 50, restantes: 70 });
+});
+
+test('marcarEnviados persiste: uma nova fila no mesmo armazenamento vê a lista reduzida', () => {
+  const arm = armazenamentoFalso();
+  const f = Manual.criarFila(arm);
+  f.juntar(item('a'));
+  f.juntar(item('b'));
+  f.marcarEnviados(['a']);
+  assert.deepEqual(ids(Manual.criarFila(arm).pendentes()), ['b']);
+});
+
+test('enviarFila persiste: uma nova fila no mesmo armazenamento vê os restantes', async () => {
+  const arm = armazenamentoFalso();
+  const f = Manual.criarFila(arm);
+  f.juntar(item('a'));
+  f.juntar(item('b'));
+  await Manual.enviarFila(f, async () => ['a']);
+  assert.deepEqual(ids(Manual.criarFila(arm).pendentes()), ['b']);
+});
+
+test('duas filas no mesmo armazenamento partilhado não perdem itens', () => {
+  const arm = armazenamentoFalso();
+  const a = Manual.criarFila(arm);
+  const b = Manual.criarFila(arm);
+  a.juntar(item('X'));
+  b.juntar(item('Y'));
+  assert.deepEqual(ids(JSON.parse(arm.dados.get(CHAVE))), ['X', 'Y']);
+  a.marcarEnviados(['X']);
+  assert.deepEqual(ids(JSON.parse(arm.dados.get(CHAVE))), ['Y']);
+  assert.deepEqual(ids(b.pendentes()), ['Y']);
+});
+
+test('leitura de JSON com ids repetidos devolve cada id uma vez', () => {
+  const arm = armazenamentoFalso(JSON.stringify([item('a'), item('a'), item('b')]));
+  assert.deepEqual(ids(Manual.criarFila(arm).pendentes()), ['a', 'b']);
+});
+
+test('uuid sem crypto lança um erro claro', () => {
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+  Object.defineProperty(globalThis, 'crypto', { value: undefined, configurable: true, writable: true });
+  try {
+    assert.throws(() => Manual.uuid(), /crypto/);
+  } finally {
+    Object.defineProperty(globalThis, 'crypto', original);
+  }
 });
 
 test('enviarFila ignora ids devolvidos que não estavam no lote', async () => {
