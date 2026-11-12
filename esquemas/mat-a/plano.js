@@ -36,7 +36,6 @@ Manual.esquemas.registar('plano', {
     // número entre parênteses se for negativo, para substituir em fórmulas
     const sub = (v) => (T.arred(v) < 0 ? '(' + num(v) + ')' : num(v));
     // "x − a" substituído: x − 3, x + 3, ou x se a = 0
-    const fator = (v, a) => (T.arred(a) === 0 ? v : '(' + v + (T.arred(a) < 0 ? ' + ' : ' − ') + num(Math.abs(a)) + ')');
 
     const est = {
       A: ponto(opcoes.A, [1, 1]),
@@ -138,7 +137,7 @@ Manual.esquemas.registar('plano', {
         if (r > 1e-9) N.desenharCirculo(ref, gDesenho, A, r, { cor: 'var(--cor-3)', largura: 2.5 });
         linhas.push(['Equação geral', '(x − a)² + (y − b)² = r²']);
         linhas.push(['Raio', 'r = |AB| ' + (Math.abs(r - Math.round(r)) < 1e-9 ? '= ' + num(r) : '= √' + num(r2) + ' ' + igual(r).trim() + ' ' + num(r))]);
-        linhas.push(['Equação', fator('x', A[0]) + '² + ' + fator('y', A[1]) + '² = ' + num(r2)]);
+        linhas.push(['Equação', T.fator('x', A[0]) + ' + ' + T.fator('y', A[1]) + ' = ' + num(r2)]);
       }
       painel.definir(linhas);
     }

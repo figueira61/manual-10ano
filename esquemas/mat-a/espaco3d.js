@@ -169,7 +169,7 @@ Manual.esquemas.registar('espaco3d', {
         const c = proj(P);
         N.criarElementoSvg('circle', { cx: f2(c[0]), cy: f2(c[1]), r: f2(raio * ESC), style: 'fill:var(--cor-4);fill-opacity:0.10;stroke:var(--cor-4);stroke-width:2' }, gObjetos);
         bolinha(gObjetos, P, 'var(--cor-4)', 3.5);
-        linhas.push(['Superfície esférica', '(x − ' + num(P[0]) + ')² + (y − ' + num(P[1]) + ')² + (z − ' + num(P[2]) + ')² = ' + num(raio * raio)]);
+        linhas.push(['Superfície esférica', T.fator('x', P[0]) + ' + ' + T.fator('y', P[1]) + ' + ' + T.fator('z', P[2]) + ' = ' + num(raio * raio)]);
         linhas.push(['Centro e raio', 'P' + trio(P) + ' · r = ' + num(raio)]);
       }
 
@@ -195,7 +195,7 @@ Manual.esquemas.registar('espaco3d', {
         texto(gObjetos, Q, 'Q', 'var(--cor-2)', 8, -8);
         if (!on('ponto')) { bolinha(gObjetos, P, 'var(--cor-5)', 4.5); texto(gObjetos, P, 'P', 'var(--cor-5)', 8, -8); }
         linhas.push(['Equação vetorial', '(x ; y ; z) = ' + trio(P) + ' + λ' + trio(v)]);
-        linhas.push(['Ponto para λ = ' + num(lambda), 'Q ' + '= ' + trio(P) + ' + ' + (lambda < 0 ? '(' + num(lambda) + ')' : num(lambda)) + ' × ' + trio(v) + ' = ' + trio(Q)]);
+        linhas.push(['Ponto para λ = ' + num(lambda), 'Q = ' + trio(P) + ' + ' + (lambda < 0 ? '(' + num(lambda) + ')' : num(lambda)) + ' × ' + trio(v) + ' = ' + trio(Q)]);
       }
 
       zonaSlider.style.display = on('reta') ? '' : 'none';

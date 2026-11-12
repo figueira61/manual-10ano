@@ -34,5 +34,12 @@ Manual.formatar = (function () {
     return rk === 0 ? parte : parte + (rk < 0 ? ' − ' : ' + ') + num(Math.abs(rk));
   }
 
-  return { arred, num, soma, polinomio, canonica };
+  // (x − a)², (x + a)² ou x² (se a = 0); termo é o nome da variável
+  function fator(termo, a) {
+    const ra = arred(a);
+    if (ra === 0) return termo + '²';
+    return '(' + termo + (ra < 0 ? ' + ' : ' − ') + num(Math.abs(ra)) + ')²';
+  }
+
+  return { arred, num, soma, polinomio, canonica, fator };
 })();
