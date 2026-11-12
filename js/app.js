@@ -152,20 +152,19 @@ globalThis.Manual = globalThis.Manual || {};
     if (!s) return vistaNaoEncontrado();
     titulo(s.titulo);
     principal.appendChild(criar('p', 'a-carregar', 'A carregar…'));
-    garantirTema(d.id, t.id).then(
-      function (tema) {
+    garantirTema(d.id, t.id)
+      .then(function (tema) {
         if (minhaGeracao !== geracao) return;
         const dados = tema.subtemas.find(function (x) { return x.id === s.id; });
         if (!dados) throw new Error('Subtema em falta');
         vistaAtual = R.subtema(principal, d.id, t.id, dados, progresso);
-      },
-      function () {
+      })
+      .catch(function () {
         if (minhaGeracao !== geracao) return;
         principal.textContent = '';
         principal.appendChild(criar('p', 'aviso-erro', 'Não foi possível carregar este tema.'));
         principal.appendChild(ligacao('#/', 'Voltar ao início', 'botao'));
-      }
-    );
+      });
     return undefined;
   }
 
@@ -178,8 +177,8 @@ globalThis.Manual = globalThis.Manual || {};
     const zona = criar('div');
     principal.appendChild(zona);
     zona.appendChild(criar('p', 'a-carregar', 'A carregar…'));
-    Promise.all(d.temas.map(function (t) { return garantirTema(d.id, t.id); })).then(
-      function (temas) {
+    Promise.all(d.temas.map(function (t) { return garantirTema(d.id, t.id); }))
+      .then(function (temas) {
         if (minhaGeracao !== geracao) return;
         zona.textContent = '';
         temas.forEach(function (tema) {
@@ -199,13 +198,13 @@ globalThis.Manual = globalThis.Manual || {};
             zona.appendChild(cartao);
           });
         });
-      },
-      function () {
+      })
+      .catch(function () {
         if (minhaGeracao !== geracao) return;
         zona.textContent = '';
         zona.appendChild(criar('p', 'aviso-erro', 'Não foi possível carregar os resumos.'));
-      }
-    );
+        zona.appendChild(ligacao('#/', 'Voltar ao início', 'botao'));
+      });
     return undefined;
   }
 

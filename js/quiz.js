@@ -46,11 +46,13 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
   let indice = 0;
   let certas = 0;
 
-  function novaPergunta() {
+  function novaPergunta(focar) {
     el.textContent = '';
     const pergunta = perguntas[indice];
     const cartao = R.criar('div', 'pergunta');
-    cartao.appendChild(R.criar('p', 'pergunta-n', 'Pergunta ' + (indice + 1) + ' de ' + perguntas.length));
+    const numero = R.criar('p', 'pergunta-n', 'Pergunta ' + (indice + 1) + ' de ' + perguntas.length);
+    numero.tabIndex = -1;
+    cartao.appendChild(numero);
     R.paragrafo(cartao, pergunta.enunciado, 'enunciado');
 
     const nomeGrupo = 'q' + Math.random().toString(36).slice(2);
@@ -100,6 +102,7 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
     feedback.setAttribute('aria-live', 'polite');
     cartao.appendChild(feedback);
     el.appendChild(cartao);
+    if (focar) numero.focus();
 
     function lerResposta() {
       if (campo) return campo.value;
@@ -138,7 +141,7 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
       botao.onclick = function () {
         indice += 1;
         if (ultima) fim();
-        else novaPergunta();
+        else novaPergunta(true);
       };
     }
 
@@ -159,10 +162,11 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
     repetir.addEventListener('click', function () {
       indice = 0;
       certas = 0;
-      novaPergunta();
+      novaPergunta(true);
     });
     cartao.appendChild(repetir);
     el.appendChild(cartao);
+    repetir.focus();
     if (typeof aoTerminar === 'function') aoTerminar(certas, perguntas.length);
   }
 
