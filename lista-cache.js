@@ -36,6 +36,7 @@ self.LISTA_CACHE = [
   "index.html",
   "js/app.js",
   "js/config.js",
+  "js/conta.js",
   "js/fila.js",
   "js/icones.js",
   "js/nucleo.js",
@@ -69,6 +70,8 @@ self.LISTA_CACHE = [
   "vendor/katex/fonts/KaTeX_Size4-Regular.woff2",
   "vendor/katex/fonts/KaTeX_Typewriter-Regular.woff2",
   "vendor/katex/katex.min.css",
-  "vendor/katex/katex.min.js"
+  "vendor/katex/katex.min.js",
+  "vendor/supabase/LICENSE.txt",
+  "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '06ccfc3636';
+self.VERSAO_CACHE = 'e95a5193f7';

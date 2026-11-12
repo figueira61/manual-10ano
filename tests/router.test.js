@@ -74,3 +74,12 @@ test('caminho codifica o termo de pesquisa', () => {
     '#/pesquisa?q=parab%C3%B3la'
   );
 });
+
+test('nomes reservados são vistas de um só segmento', () => {
+  for (const nome of ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado']) {
+    assert.deepEqual(Manual.router.analisar('#/' + nome), { vista: nome });
+    assert.equal(Manual.router.caminho({ vista: nome }), '#/' + nome);
+  }
+  assert.deepEqual(Manual.router.analisar('#/mat-a'), { vista: 'disciplina', disciplina: 'mat-a' });
+  assert.deepEqual(Manual.router.analisar('#/conta/x'), { vista: 'tema', disciplina: 'conta', tema: 'x' });
+});

@@ -79,10 +79,15 @@ function validarSubtema(s, d, t, existeFicheiro, erros) {
   quiz.forEach((p, i) => validarPergunta(p, i, ctx, erros));
 }
 
+const RESERVADOS = ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado'];
+
 function validar({ indice, temas, ae, existeFicheiro }) {
   const erros = [];
   for (const disc of indice) {
     const d = disc.id;
+    if (RESERVADOS.indexOf(d) !== -1) {
+      erros.push(d + ': id de disciplina reservado (rota da aplicação)');
+    }
     const ficheiros = (temas && temas[d]) || [];
     const cobertos = new Set();
     const idsTema = new Set();

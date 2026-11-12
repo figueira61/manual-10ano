@@ -212,3 +212,12 @@ test('regra 8: objetivo AE não coberto', () => {
   const erros = esperaErro(c, /AE2/);
   assert.ok(erros.some((e) => e.includes('mat')));
 });
+
+test('id de disciplina reservado (rota) falha', () => {
+  const c = base();
+  c.indice[0].id = 'entrar';
+  c.temas.entrar = c.temas.mat;
+  c.ae.entrar = c.ae.mat;
+  const erros = validar(c);
+  assert.ok(erros.some((e) => /entrar.*reservad/.test(e)), erros.join('\n'));
+});

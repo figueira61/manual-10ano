@@ -5,9 +5,13 @@ globalThis.Manual = globalThis.Manual || {};
 
   const SEGMENTO = /^[a-z0-9-]+$/;
   const NAO_ENCONTRADO = { vista: 'naoEncontrado' };
+  // Nomes de um só segmento que são vistas próprias (não podem ser ids de disciplina).
+  const RESERVADOS = ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado'];
 
   // Converte um hash (#/mat-a/funcoes/quadratica?...) numa rota. Não verifica se a rota existe.
   Manual.router = {
+    reservados: RESERVADOS.slice(),
+
     analisar: function (hash) {
       let texto = String(hash || '');
       if (texto.charAt(0) === '#') texto = texto.slice(1);
@@ -27,6 +31,8 @@ globalThis.Manual = globalThis.Manual || {};
         const termo = new URLSearchParams(query).get('q') || '';
         return { vista: 'pesquisa', termo: termo };
       }
+
+      if (partes.length === 1 && RESERVADOS.indexOf(partes[0]) !== -1) return { vista: partes[0] };
 
       const [disciplina, segundo, terceiro] = partes;
       if (partes.length === 1) return { vista: 'disciplina', disciplina: disciplina };
@@ -53,6 +59,7 @@ globalThis.Manual = globalThis.Manual || {};
         case 'pesquisa':
           return '#/pesquisa?q=' + encodeURIComponent(rota.termo || '');
         default:
+          if (RESERVADOS.indexOf(rota.vista) !== -1) return '#/' + rota.vista;
           return '#/';
       }
     },
