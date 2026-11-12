@@ -82,7 +82,7 @@ Manual.esquemas.registar('regressao', {
       }
 
       const r = E.correlacao(pares);
-      const rr = Math.round(r * 1e9) / 1e9;
+      const rr = Math.round(r * 1000) / 1000;
       const linhas = [['Número de pontos', String(pares.length)]];
       if (Number.isNaN(r)) {
         linhas.push(['Coeficiente de correlação', 'r indefinido (variância nula)']);

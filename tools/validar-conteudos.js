@@ -193,4 +193,4 @@ function principal() {
 
 module.exports = { validar };
 
-if (require.main === module) process.exit(principal());
+if (require.main === module) process.exitCode = principal();

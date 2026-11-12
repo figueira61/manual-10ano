@@ -138,17 +138,20 @@ Manual.esquemas.registar('parabola', {
       const concav = a > 0 ? 'voltada para cima (a > 0)' : 'voltada para baixo (a < 0)';
       const contra = a > 0 ? '[' + T.num(vk) + ', +∞[' : ']−∞, ' + T.num(vk) + ']';
       const extremo = (a > 0 ? 'mínimo ' : 'máximo ') + T.num(vk) + ' em x = ' + T.num(vh);
+      const eq = (v) => (T.aprox(v) ? ' ≈ ' : ' = ');
       const zerosTxt = zeros.length === 0 ? 'não tem zeros (Δ < 0)'
-        : zeros.length === 1 ? 'x = ' + T.num(zeros[0]) + ' (zero duplo, Δ = 0)'
-        : 'x = ' + T.num(zeros[0]) + ' e x = ' + T.num(zeros[1]) + ' (Δ > 0)';
+        : zeros.length === 1 ? 'x' + eq(q.zeros[0]) + T.num(zeros[0]) + ' (zero duplo, Δ = 0)'
+        : 'x' + eq(q.zeros[0]) + T.num(zeros[0]) + ' e x' + eq(q.zeros[1]) + T.num(zeros[1]) + ' (Δ > 0)';
 
       const passos = [];
-      if (Math.abs(a) !== 1) passos.push('dilatação vertical de fator |a| = ' + T.num(Math.abs(a)));
+      if (Math.abs(a) > 1) passos.push('dilatação vertical de coeficiente |a| = ' + T.num(Math.abs(a)));
+      else if (Math.abs(a) < 1) passos.push('contração vertical de coeficiente |a| = ' + T.num(Math.abs(a)));
       if (a < 0) passos.push('reflexão no eixo Ox');
-      passos.push('translação de vetor (' + T.num(h) + '; ' + T.num(k) + ')');
-      const frase = 'Obtém-se de y = x² por ' + (passos.length > 1
-        ? passos.slice(0, -1).join(', ') + ' e ' + passos[passos.length - 1]
-        : passos[0]) + '.';
+      if (h !== 0 || k !== 0) passos.push('translação de vetor (' + T.num(h) + '; ' + T.num(k) + ')');
+      const frase = passos.length === 0 ? 'É o gráfico de y = x².'
+        : 'Obtém-se de y = x² por ' + (passos.length > 1
+          ? passos.slice(0, -1).join(', ') + ' e ' + passos[passos.length - 1]
+          : passos[0]) + '.';
 
       zonaPainel.textContent = '';
       N.painelValores(zonaPainel).definir([

@@ -165,7 +165,7 @@ Manual.esquemas.registar('medidas', {
       tabelaDesvios();
       const novos = dados.map((x) => a * x + b);
       zonaAntesDepois.textContent = '';
-      N.tabela(zonaAntesDepois, ['', 'Antes (x)', 'Depois (' + fmt(a) + '·x + ' + fmt(b) + ')'], [
+      N.tabela(zonaAntesDepois, ['', 'Antes (x)', 'Depois (' + Manual.formatar.soma([[a, '·x'], [b, '']]) + ')'], [
         ['Média', fmt(E.media(dados)), fmt(E.media(novos))],
         ['Desvio padrão', fmt(E.desvioPadrao(dados)), fmt(E.desvioPadrao(novos))],
       ]);

@@ -301,6 +301,12 @@ globalThis.Manual = globalThis.Manual || {};
       botaoMenu.setAttribute('aria-expanded', String(aberta));
     });
     document.getElementById('cortina').addEventListener('click', fecharGaveta);
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.body.classList.contains('gaveta-aberta')) {
+        fecharGaveta();
+        botaoMenu.focus();
+      }
+    });
 
     document.getElementById('form-pesquisa').addEventListener('submit', function (e) {
       e.preventDefault();

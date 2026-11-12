@@ -35,6 +35,7 @@ Manual.esquemas.registar('salario', {
     });
 
     raiz.appendChild(criar('p', 'esq-aviso', 'Valores ilustrativos: consulta as tabelas oficiais do ano no Portal das Finanças.'));
+    raiz.appendChild(criar('p', 'esq-aviso', 'Nesta tabela simplificada, passar para o escalão seguinte pode baixar o salário líquido; as tabelas oficiais evitam isto com a parcela a abater.'));
 
     const zonaResultado = criar('div');
     zonaResultado.setAttribute('aria-live', 'polite');

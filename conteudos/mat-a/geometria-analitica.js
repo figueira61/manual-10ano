@@ -318,7 +318,7 @@ Manual.registarTema('mat-a', {
           enunciado: 'Qual das condições define o conjunto vazio?',
           opcoes: ['$(x - 1)^2 + y^2 = 0$', '$(x - 1)^2 + y^2 = -4$', '$x > 2 \\vee x < 1$', '$y \\leq 0 \\wedge x \\geq 0$'],
           correta: 1,
-          explicacao: 'Uma soma de quadrados nunca é negativa, logo $(x - 1)^2 + y^2 = -4$ não tem soluções. A primeira define só o ponto $(1, 0)$.',
+          explicacao: 'Uma soma de quadrados nunca é negativa, logo $(x - 1)^2 + y^2 = -4$ não tem soluções. A condição $(x - 1)^2 + y^2 = 0$ define só o ponto $(1, 0)$.',
         },
       ],
     },

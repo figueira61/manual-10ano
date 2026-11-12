@@ -424,7 +424,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'texto',
-          texto: 'O trabalhador desconta **11 %** do salário bruto para a **Segurança Social** (a entidade empregadora também contribui). Além disso, todos os meses é retida uma parte para o IRS: a **retenção na fonte**. Na tabela ilustrativa abaixo, a taxa aplica-se a **todo** o salário bruto; nas tabelas oficiais há também uma parcela a abater, e as taxas dependem da situação familiar.',
+          texto: 'O trabalhador desconta **11 %** do salário bruto para a **Segurança Social** (a entidade empregadora também contribui). Além disso, todos os meses é retida uma parte para o IRS: a **retenção na fonte**. Na tabela ilustrativa abaixo, a taxa aplica-se a **todo** o salário bruto; nas tabelas oficiais há também uma parcela a abater, e as taxas dependem da situação familiar. Por isso, nesta tabela simplificada, subir de escalão pode até baixar o salário líquido; com a parcela a abater, as tabelas oficiais evitam isso.',
         },
         {
           tipo: 'quadro',

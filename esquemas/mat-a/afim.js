@@ -94,8 +94,9 @@ Manual.esquemas.registar('afim', {
           const t = N.desenharTexto(ref, gSinal, [z, -1.1], 'x = ' + T.num(z));
           t.setAttribute('text-anchor', 'middle');
         }
-        const zs = T.num(z);
-        linhas.push(['Zero', 'x = ' + zs]);
+        const ap = T.aprox(z);
+        const zs = ap ? 'x₀' : T.num(z);
+        linhas.push(['Zero', ap ? 'x₀ ≈ ' + T.num(z) : 'x = ' + zs]);
         const pos = m > 0 ? 'x > ' + zs : 'x < ' + zs;
         const neg = m > 0 ? 'x < ' + zs : 'x > ' + zs;
         linhas.push(['Sinal', 'f(x) > 0 se ' + pos + '; f(x) < 0 se ' + neg + '; f(' + zs + ') = 0']);

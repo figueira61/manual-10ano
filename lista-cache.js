@@ -44,7 +44,7 @@ self.LISTA_CACHE = [
   "js/tema.js",
   "js/texto.js",
   "manifest.webmanifest",
-  "vendor/katex/LICENSE",
+  "vendor/katex/LICENSE.txt",
   "vendor/katex/fonts/KaTeX_AMS-Regular.woff2",
   "vendor/katex/fonts/KaTeX_Caligraphic-Bold.woff2",
   "vendor/katex/fonts/KaTeX_Caligraphic-Regular.woff2",
@@ -68,4 +68,4 @@ self.LISTA_CACHE = [
   "vendor/katex/katex.min.css",
   "vendor/katex/katex.min.js"
 ];
-self.VERSAO_CACHE = '5b01da587c';
+self.VERSAO_CACHE = 'd76c94e2bd';

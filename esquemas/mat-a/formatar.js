@@ -41,5 +41,8 @@ Manual.formatar = (function () {
     return '(' + termo + (ra < 0 ? ' + ' : ' − ') + num(Math.abs(ra)) + ')²';
   }
 
-  return { arred, num, soma, polinomio, canonica, fator };
+  // "≈ " quando o valor mostrado (3 casas decimais) difere do valor real
+  const aprox = (v) => (Math.abs(Math.round(v * 1000) / 1000 - v) > 1e-9 ? '≈ ' : '');
+
+  return { arred, num, soma, polinomio, canonica, fator, aprox };
 })();

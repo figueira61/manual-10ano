@@ -7,9 +7,21 @@ Manual.quiz = Manual.quiz || {};
 // Aceita sinal inicial e um único separador decimal (vírgula ou ponto); espaços são ignorados.
 Manual.quiz.lerNumero = function (texto) {
   if (typeof texto !== 'string') return NaN;
-  const limpo = texto.replace(/\s/g, '');
+  const limpo = texto.replace(/−/g, '-').replace(/\s/g, '');
   if (!/^[+-]?(\d+[.,]?\d*|[.,]\d+)$/.test(limpo)) return NaN;
   return Number(limpo.replace(',', '.'));
+};
+
+// Permutação aleatória de 0..n-1 (Fisher–Yates). `aleatorio` devolve um número em [0,1).
+Manual.quiz.ordemOpcoes = function (n, aleatorio) {
+  const rnd = aleatorio || Math.random;
+  const ordem = [];
+  for (let i = 0; i < n; i++) ordem.push(i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    const t = ordem[i]; ordem[i] = ordem[j]; ordem[j] = t;
+  }
+  return ordem;
 };
 
 // Corrige uma pergunta com a resposta dada. Nunca lança erro.
@@ -30,11 +42,11 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
     certa = valida && resposta === pergunta.correta;
   } else if (pergunta.tipo === 'numerica') {
     const tolerancia = pergunta.tolerancia === undefined ? 1e-9 : pergunta.tolerancia;
-    respostaCorreta = String(pergunta.resposta).replace('.', ',');
+    respostaCorreta = String(pergunta.resposta).replace('.', ',').replace('-', '−');
     if (pergunta.unidade) respostaCorreta += ' ' + pergunta.unidade;
     const x = Manual.quiz.lerNumero(resposta);
     valida = !Number.isNaN(x);
-    certa = valida && Math.abs(x - pergunta.resposta) <= tolerancia;
+    certa = valida && Math.abs(x - pergunta.resposta) <= tolerancia + 1e-12;
   }
 
   return { valida, certa, respostaCorreta, resolucao, explicacao };
@@ -74,14 +86,13 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar) {
     }
 
     if (pergunta.tipo === 'escolha') {
-      pergunta.opcoes.forEach(function (o, i) { opcao(o, i); });
+      Manual.quiz.ordemOpcoes(pergunta.opcoes.length).forEach(function (i) { opcao(pergunta.opcoes[i], i); });
     } else if (pergunta.tipo === 'vf') {
       opcao('Verdadeiro', true);
       opcao('Falso', false);
     } else {
       campo = document.createElement('input');
       campo.type = 'text';
-      campo.inputMode = 'decimal';
       campo.className = 'campo-numero';
       campo.autocomplete = 'off';
       campo.setAttribute('aria-label', 'Resposta');

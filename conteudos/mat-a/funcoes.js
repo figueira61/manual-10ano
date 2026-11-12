@@ -87,7 +87,7 @@ Manual.registarTema('mat-a', {
             '$\\{(1, 6), (2, 5), (3, 4)\\}$',
           ],
           correta: 2,
-          explicacao: 'O objeto 1 tem duas imagens (4 e 5), logo não é função. Objetos diferentes com a mesma imagem (segunda opção) são permitidos.',
+          explicacao: 'O objeto 1 tem duas imagens (4 e 5), logo não é função. Objetos diferentes com a mesma imagem, como em $\\{(1, 4), (2, 4), (3, 4)\\}$, são permitidos.',
         },
         {
           tipo: 'vf',

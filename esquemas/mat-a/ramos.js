@@ -89,7 +89,6 @@ Manual.esquemas.registar('ramos', {
     const rotX = criar('label', null, 'x = ');
     const campo = criar('input', 'campo-numero');
     campo.type = 'text';
-    campo.inputMode = 'decimal';
     campo.value = T.num(est.x).replace('−', '-');
     campo.setAttribute('aria-label', 'Valor de x');
     rotX.appendChild(campo);
@@ -119,8 +118,8 @@ Manual.esquemas.registar('ramos', {
     raiz.appendChild(zonaPainel);
 
     function lerX() {
-      const v = Number(campo.value.trim().replace(',', '.').replace('−', '-'));
-      return campo.value.trim() !== '' && Number.isFinite(v) ? v : null;
+      const v = Manual.quiz.lerNumero(campo.value);
+      return Number.isNaN(v) ? null : v;
     }
 
     function atualizar() {
@@ -161,7 +160,7 @@ Manual.esquemas.registar('ramos', {
       const x = lerX();
       let resultado;
       if (x === null) {
-        resultado = 'indica um número válido para x';
+        resultado = 'Escreve um número';
       } else {
         const idx = ramos.findIndex((r) => dentro(r, x));
         const y = F.avaliarRamos(ramos, x);

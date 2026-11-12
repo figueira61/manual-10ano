@@ -115,3 +115,34 @@ test('corrigir vf devolve Verdadeiro/Falso como respostaCorreta', () => {
   assert.equal(Manual.quiz.corrigir(vf, true).respostaCorreta, 'Falso');
   assert.equal(Manual.quiz.corrigir({ ...vf, correta: true }, true).respostaCorreta, 'Verdadeiro');
 });
+
+test('lerNumero aceita o sinal menos tipográfico (U+2212)', () => {
+  assert.equal(Manual.quiz.lerNumero('\u22123,5'), -3.5);
+  assert.equal(Manual.quiz.lerNumero(' \u22122 '), -2);
+});
+
+test('corrigir numerica na fronteira da tolerância está certa', () => {
+  assert.equal(Manual.quiz.corrigir(numerica, '307,59').certa, true);
+  assert.equal(Manual.quiz.corrigir(numerica, '307,57').certa, true);
+  assert.equal(Manual.quiz.corrigir(numerica, '307,60').certa, false);
+});
+
+test('corrigir numerica formata a resposta negativa com o sinal menos tipográfico', () => {
+  const p = { tipo: 'numerica', enunciado: 'x', resposta: -1.5, verificar: () => -1.5 };
+  assert.equal(Manual.quiz.corrigir(p, '-1,5').respostaCorreta, '\u22121,5');
+  assert.equal(Manual.quiz.corrigir(p, '\u22121,5').certa, true);
+});
+
+test('ordemOpcoes devolve uma permutação de 0..n-1', () => {
+  let s = 0;
+  const aleatorio = () => { s = (s * 7 + 3) % 10; return s / 10; };
+  const o = Manual.quiz.ordemOpcoes(5, aleatorio);
+  assert.deepEqual([...o].sort(), [0, 1, 2, 3, 4]);
+});
+
+test('ordemOpcoes é determinística com aleatorio injetado e embaralha', () => {
+  assert.deepEqual(Manual.quiz.ordemOpcoes(4, () => 0), [1, 2, 3, 0]);
+  assert.deepEqual(Manual.quiz.ordemOpcoes(4, () => 0.999), [0, 1, 2, 3]);
+  assert.deepEqual(Manual.quiz.ordemOpcoes(0), []);
+  assert.deepEqual(Manual.quiz.ordemOpcoes(1), [0]);
+});

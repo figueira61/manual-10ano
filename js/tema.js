@@ -48,6 +48,10 @@ globalThis.Manual = globalThis.Manual || {};
         atualizar();
       });
       atualizar();
+      if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq.addEventListener) mq.addEventListener('change', atualizar);
+      }
     },
   };
 })();
