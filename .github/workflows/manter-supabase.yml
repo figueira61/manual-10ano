@@ -3,16 +3,40 @@ on:
   schedule:
     - cron: "0 6 */3 * *"
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   ping:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Chamar ping()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          codigo=$(curl -s -o resposta.txt -w "%{http_code}" -X POST \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/ping" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          codigo=$(curl -s --max-time 30 -o resposta.txt -w "%{http_code}" -X POST \
+            "$SUPABASE_URL/rest/v1/rpc/ping" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
             -H "Content-Type: application/json" -d '{}')
           echo "HTTP $codigo: $(cat resposta.txt)"
           test "$codigo" = "200"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Manter o repositório ativo (regra dos 60 dias)
+        run: |
+          ultimo=$(git log -1 --format=%ct)
+          agora=$(date +%s)
+          dias=$(( (agora - ultimo) / 86400 ))
+          echo "Último commit há $dias dias."
+          if [ "$dias" -gt 45 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: manter repositório ativo"
+            git push
+          else
+            echo "Atividade recente; nada a fazer."
+          fi

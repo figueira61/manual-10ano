@@ -22,9 +22,12 @@ A Fase 1 cobre **Matemática A** (25 subtemas em 5 temas: Modelos Matemáticos p
 
 - **Projeto Supabase:** "manual-10ano" (região UE, plano gratuito), em `https://dhflcwqwmhbyxqcsxvlh.supabase.co`. O site só usa a chave pública ("anon") de `js/config.js`; a proteção dos dados é feita por RLS. Nunca guardar a chave de serviço no repositório.
 - **Migrações:** em `supabase/migracoes/` (SQL por ordem numérica) e testes SQL em `supabase/testes/`.
-- **Anti-pausa:** o workflow `.github/workflows/manter-supabase.yml` chama `rpc/ping` de 3 em 3 dias (e manualmente em *Actions* → *Manter Supabase ativo* → *Run workflow*). Usa os secrets do repositório `SUPABASE_URL` e `SUPABASE_ANON_KEY`; falha se a resposta não for HTTP 200.
+- **Anti-pausa:** o workflow `.github/workflows/manter-supabase.yml` chama `rpc/ping` aproximadamente de 3 em 3 dias (dias 1, 4, 7… de cada mês, às 06:00 UTC) e também manualmente em *Actions* → *Manter Supabase ativo* → *Run workflow*. Usa os secrets do repositório `SUPABASE_URL` e `SUPABASE_ANON_KEY`; falha se a resposta não for HTTP 200.
+- **Regra dos 60 dias:** o GitHub desativa workflows agendados em repositórios públicos sem atividade durante 60 dias. Por isso o workflow, depois do ping, verifica o último commit e, se tiver mais de 45 dias, cria um commit vazio ("chore: manter repositório ativo") e faz push (permissão `contents: write`).
+- **Se o workflow for desativado:** abrir o separador *Actions* do repositório, escolher *Manter Supabase ativo* e carregar em *Enable workflow*; depois *Run workflow* para confirmar.
 - **Se o projeto pausar:** entrar em <https://supabase.com/dashboard>, abrir o projeto "manual-10ano" e carregar em *Restore project*; depois lançar o workflow manualmente para confirmar `HTTP 200`.
-- **Site URL:** em Supabase → Authentication → URL Configuration, definir *Site URL* e *Redirect URLs* com o endereço do GitHub Pages.
+- **Endereço do site (GitHub Pages):** <https://figueira61.github.io/manual-10ano/>
+- **Auth (Supabase → Authentication → URL Configuration):** *Site URL* = `https://figueira61.github.io/manual-10ano/`; *Redirect URLs* = `https://figueira61.github.io/manual-10ano/**` (e `http://localhost:8080/**` para testes locais).
 
 ## Publicação como Artifact
 
