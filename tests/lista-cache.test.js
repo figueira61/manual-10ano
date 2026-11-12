@@ -37,6 +37,16 @@ test('a lista exclui o que não é do site', () => {
 });
 
 test('lista-cache.js em disco está atualizado (corra npm run cache)', () => {
-  const emDisco = fs.readFileSync(path.join(RAIZ, 'lista-cache.js'), 'utf8');
+  const emDisco = fs.readFileSync(path.join(RAIZ, 'lista-cache.js'), 'utf8').replace(/\r\n/g, '\n');
   assert.strictEqual(emDisco, gerarConteudo(RAIZ));
+});
+
+test('só entram ficheiros da raiz permitidos e das pastas do site', () => {
+  const dir = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'lc-'));
+  for (const f of ['index.html', 'segredo.txt', 'js/a.js', 'outra/b.js', 'esquemas/nucleo/demo.html', 'css/.oculto']) {
+    fs.mkdirSync(path.dirname(path.join(dir, f)), { recursive: true });
+    fs.writeFileSync(path.join(dir, f), 'x');
+  }
+  assert.deepStrictEqual(listarFicheiros(dir), ['index.html', 'js/a.js']);
+  fs.rmSync(dir, { recursive: true });
 });

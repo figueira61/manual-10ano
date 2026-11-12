@@ -316,7 +316,7 @@ globalThis.Manual = globalThis.Manual || {};
   if ((location.protocol === 'http:' || location.protocol === 'https:') && 'serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       try {
-        navigator.serviceWorker.register('sw.js').catch(function () {});
+        navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});
       } catch (e) { /* sem modo offline */ }
     });
   }

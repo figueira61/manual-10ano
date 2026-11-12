@@ -4,27 +4,25 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const PASTAS_EXCLUIDAS = new Set(['.superpowers', '.git', '.claude', 'node_modules', 'docs', 'tests', 'tools']);
-const FICHEIROS_EXCLUIDOS = new Set([
-  'sw.js', 'lista-cache.js', 'package.json', 'package-lock.json', 'README.md', 'esquemas/nucleo/demo.html',
-]);
+const FICHEIROS_RAIZ = ['index.html', 'manifest.webmanifest', 'icone.svg'];
+const PASTAS_INCLUIDAS = ['css', 'js', 'conteudos', 'esquemas', 'vendor'];
+const FICHEIROS_EXCLUIDOS = new Set(['esquemas/nucleo/demo.html']);
 
 const EXTENSOES_TEXTO = /\.(html|js|css|svg|webmanifest|json|md|txt)$/;
 
 function listarFicheiros(raiz) {
-  const resultado = [];
+  const resultado = FICHEIROS_RAIZ.filter((f) => fs.existsSync(path.join(raiz, f)));
   function percorrer(relativo) {
-    const abs = path.join(raiz, relativo);
-    for (const entrada of fs.readdirSync(abs, { withFileTypes: true })) {
-      const rel = relativo ? relativo + '/' + entrada.name : entrada.name;
-      if (entrada.isDirectory()) {
-        if (!PASTAS_EXCLUIDAS.has(entrada.name)) percorrer(rel);
-      } else if (!FICHEIROS_EXCLUIDOS.has(rel) && !entrada.name.startsWith('.')) {
-        resultado.push(rel);
-      }
+    for (const entrada of fs.readdirSync(path.join(raiz, relativo), { withFileTypes: true })) {
+      if (entrada.name.startsWith('.')) continue;
+      const rel = relativo + '/' + entrada.name;
+      if (entrada.isDirectory()) percorrer(rel);
+      else if (!FICHEIROS_EXCLUIDOS.has(rel)) resultado.push(rel);
     }
   }
-  percorrer('');
+  for (const pasta of PASTAS_INCLUIDAS) {
+    if (fs.existsSync(path.join(raiz, pasta))) percorrer(pasta);
+  }
   return resultado.sort();
 }
 

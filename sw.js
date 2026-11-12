@@ -8,7 +8,7 @@ self.addEventListener('install', function (evento) {
     caches.open(NOME_CACHE)
       .then(function (cache) {
         // cache: 'reload' ignora a cache HTTP, para não pré-carregar ficheiros antigos.
-        return cache.addAll(self.LISTA_CACHE.concat(['./']).map(function (u) {
+        return cache.addAll(self.LISTA_CACHE.map(function (u) {
           return new Request(u, { cache: 'reload' });
         }));
       })
