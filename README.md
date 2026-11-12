@@ -18,6 +18,14 @@ A Fase 1 cobre **Matemática A** (25 subtemas em 5 temas: Modelos Matemáticos p
 
 É só copiar o repositório tal como está: nas definições do repositório, *Pages* → ramo principal, pasta raiz. Não há compilação. Se publicares uma alteração, regenera antes a lista de cache (ver abaixo) para os utilizadores receberem a versão nova.
 
+## Contas e base de dados
+
+- **Projeto Supabase:** "manual-10ano" (região UE, plano gratuito), em `https://dhflcwqwmhbyxqcsxvlh.supabase.co`. O site só usa a chave pública ("anon") de `js/config.js`; a proteção dos dados é feita por RLS. Nunca guardar a chave de serviço no repositório.
+- **Migrações:** em `supabase/migracoes/` (SQL por ordem numérica) e testes SQL em `supabase/testes/`.
+- **Anti-pausa:** o workflow `.github/workflows/manter-supabase.yml` chama `rpc/ping` de 3 em 3 dias (e manualmente em *Actions* → *Manter Supabase ativo* → *Run workflow*). Usa os secrets do repositório `SUPABASE_URL` e `SUPABASE_ANON_KEY`; falha se a resposta não for HTTP 200.
+- **Se o projeto pausar:** entrar em <https://supabase.com/dashboard>, abrir o projeto "manual-10ano" e carregar em *Restore project*; depois lançar o workflow manualmente para confirmar `HTTP 200`.
+- **Site URL:** em Supabase → Authentication → URL Configuration, definir *Site URL* e *Redirect URLs* com o endereço do GitHub Pages.
+
 ## Publicação como Artifact
 
 O `index.html` pode ser publicado como Artifact, com o parâmetro `files` a mapear **todos** os caminhos listados em `lista-cache.js` (css, js, conteudos, esquemas, vendor, manifest e ícone), sem alterar código. Nota: o service worker pode não correr dentro do Artifact, por isso não há modo offline e o progresso é guardado por browser.
