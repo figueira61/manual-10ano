@@ -165,7 +165,7 @@ Manual.registarTema('mat-a', {
           cabecalho: ['$x$', '$]-\\infty, 3[$', '$3$', '$]3, +\\infty[$'],
           linhas: [
             ['Sinal de $f(x) = -2x + 6$', '$+$', '$0$', '$-$'],
-            ['Monotonia', 'decrescente', '', 'decrescente'],
+            ['Monotonia', 'decrescente', 'decrescente', 'decrescente'],
           ],
         },
         {
@@ -393,7 +393,7 @@ Manual.registarTema('mat-a', {
       essencial: [
         {
           tipo: 'texto',
-          texto: 'Parte do gráfico de $f(x) = x^2$, de vértice $(0, 0)$. Aqui usamos $h$, $k$ e $a$ (nas AE: $a$, $b$ e $c$), as mesmas letras da forma canónica $a(x - h)^2 + k$.',
+          texto: 'Em todo este subtema partimos do gráfico de $f(x) = x^2$, uma parábola de vértice $(0, 0)$. Usamos as letras da forma canónica $a(x - h)^2 + k$; nas AE, que escrevem $f(x - a)$, $f(x) + b$ e $c \\cdot f(x)$, o nosso $h$ é o $a$ das AE, o nosso $k$ é o $b$ e o nosso $a$ é o $c$.',
         },
         {
           tipo: 'quadro',
@@ -543,7 +543,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'texto',
-          texto: 'O programa em Python das AE aplica a fórmula resolvente. Com $a = 2$, $b = 1$ e $c = -3$ (o exemplo acima), escreve as duas soluções, $-1{,}5$ e $1$.',
+          texto: 'O programa em Python das AE aplica a fórmula resolvente. Com $a = 2$, $b = 1$ e $c = -3$ (o exemplo acima), o programa imprime «Tem 2 soluções: -1.5 e 1.0», ou seja, as soluções $-1{,}5$ e $1$ (o Python usa ponto decimal).',
         },
         {
           tipo: 'codigo',
@@ -778,7 +778,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'erro-frequente',
-          texto: 'O ramo escolhe-se pela **condição** sobre $x$, e num extremo só conta o ramo que o inclui: na função do primeiro exemplo, $f(2) = 3$ e não $2^2 = 4$. E $|-x|$ não é $-x$: $|-x| = |x|$, que nunca é negativo.',
+          texto: 'O ramo escolhe-se pela **condição** sobre $x$, e num extremo só conta o ramo que o inclui: na função do primeiro exemplo, $f(2) = 3$ e não $2^2 = 4$. E $|-x| = |x|$, que não é sempre igual a $-x$: só coincide com $-x$ quando $x \\leq 0$ (para $x = 3$: $|-3| = 3 \\neq -3$).',
         },
       ],
       resumo: [
