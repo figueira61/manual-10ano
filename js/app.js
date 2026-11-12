@@ -116,6 +116,7 @@ globalThis.Manual = globalThis.Manual || {};
     const d = disciplina(rota.disciplina);
     if (!d) return vistaNaoEncontrado();
     titulo(d.nome);
+    principal.appendChild(R.trilho([{ texto: 'Início', href: '#/' }, { texto: d.nome }]));
     principal.appendChild(criar('h1', '', d.nome));
     if (!d.disponivel) {
       principal.appendChild(criar('p', '', 'Em breve.'));
@@ -139,7 +140,11 @@ globalThis.Manual = globalThis.Manual || {};
     const t = d && d.temas.find(function (x) { return x.id === rota.tema; });
     if (!d || !t) return vistaNaoEncontrado();
     titulo(t.titulo);
-    principal.appendChild(ligacao(hashDe('disciplina', { disciplina: d.id }), '← ' + d.nome, 'migalha'));
+    principal.appendChild(R.trilho([
+      { texto: 'Início', href: '#/' },
+      { texto: d.nome, href: hashDe('disciplina', { disciplina: d.id }) },
+      { texto: t.titulo },
+    ]));
     principal.appendChild(criar('h1', '', t.titulo));
     principal.appendChild(listaSubtemas(d, t));
     return undefined;
@@ -172,7 +177,11 @@ globalThis.Manual = globalThis.Manual || {};
     const d = disciplina(rota.disciplina);
     if (!d || !d.disponivel) return vistaNaoEncontrado();
     titulo('Resumos · ' + d.nome);
-    principal.appendChild(ligacao(hashDe('disciplina', { disciplina: d.id }), '← ' + d.nome, 'migalha'));
+    principal.appendChild(R.trilho([
+      { texto: 'Início', href: '#/' },
+      { texto: d.nome, href: hashDe('disciplina', { disciplina: d.id }) },
+      { texto: 'Resumos' },
+    ]));
     principal.appendChild(criar('h1', '', 'Resumos · ' + d.nome));
     const zona = criar('div');
     principal.appendChild(zona);

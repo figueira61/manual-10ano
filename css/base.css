@@ -187,6 +187,11 @@ p { margin: 0 0 0.9rem; }
 /* ---------- vistas ---------- */
 .subtitulo { color: var(--texto-suave); }
 .migalha { display: inline-block; margin-bottom: 8px; }
+.trilho { margin-bottom: 10px; font-size: 0.9rem; }
+.trilho ol { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.trilho li { display: inline-flex; align-items: center; gap: 4px; color: var(--texto-suave); }
+.trilho li + li::before { content: '›'; color: var(--texto-suave); }
+.trilho a { color: var(--destaque); }
 .cartoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-top: 20px; }
 .cartao {
   display: flex;
@@ -285,7 +290,7 @@ a.cartao:hover { border-color: var(--destaque); }
 
 /* ---------- navegação anterior/seguinte ---------- */
 .nav-subtemas { display: flex; justify-content: space-between; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
-.nav-anterior, .nav-seguinte {
+.nav-anterior, .nav-seguinte, .nav-tema {
   display: flex;
   flex-direction: column;
   padding: 10px 14px;
@@ -296,7 +301,14 @@ a.cartao:hover { border-color: var(--destaque); }
   color: var(--texto);
   max-width: 100%;
 }
-.nav-seguinte { margin-left: auto; text-align: right; }
+.nav-tema { text-align: center; }
+.nav-anterior + .nav-tema { margin-left: auto; }
+.nav-tema + .nav-seguinte { margin-left: auto; }
+.nav-seguinte { text-align: right; }
+@media (max-width: 600px) {
+  .nav-subtemas { flex-direction: column; }
+  .nav-subtemas > a { margin-left: 0 !important; width: 100%; }
+}
 .nav-rotulo { font-size: 0.8rem; color: var(--texto-suave); }
 .a-carregar { color: var(--texto-suave); }
 

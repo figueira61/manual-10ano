@@ -186,11 +186,34 @@ globalThis.Manual = globalThis.Manual || {};
     return a;
   }
 
+  // Trilho de navegação: itens [{ texto, href }]; o último é a página atual (sem href).
+  function trilho(itens) {
+    const nav = criar('nav', 'trilho');
+    nav.setAttribute('aria-label', 'Localização');
+    const ol = criar('ol');
+    itens.forEach(function (item) {
+      const li = document.createElement('li');
+      if (item.href) {
+        const a = criar('a', '', item.texto);
+        a.href = item.href;
+        li.appendChild(a);
+      } else {
+        const atual = criar('span', '', item.texto);
+        atual.setAttribute('aria-current', 'page');
+        li.appendChild(atual);
+      }
+      ol.appendChild(li);
+    });
+    nav.appendChild(ol);
+    return nav;
+  }
+
   Manual.render = {
     criar: criar,
     texto: texto,
     paragrafo: paragrafo,
     passos: passos,
+    trilho: trilho,
 
     subtema: function (el, disciplinaId, temaId, subtema, progresso) {
       const montados = [];
@@ -201,6 +224,17 @@ globalThis.Manual = globalThis.Manual || {};
 
       el.textContent = '';
       const artigo = criar('article', 'subtema');
+
+      const temaIndice = disciplina && disciplina.temas.find(function (t) { return t.id === temaId; });
+      const tituloTema = temaIndice ? temaIndice.titulo : (tema && tema.titulo) || temaId;
+      const hrefDisciplina = Manual.router.caminho({ vista: 'disciplina', disciplina: disciplinaId });
+      const hrefTema = Manual.router.caminho({ vista: 'tema', disciplina: disciplinaId, tema: temaId });
+      artigo.appendChild(trilho([
+        { texto: 'Início', href: '#/' },
+        { texto: disciplina ? disciplina.nome : disciplinaId, href: hrefDisciplina },
+        { texto: tituloTema, href: hrefTema },
+        { texto: subtema.titulo },
+      ]));
 
       const cab = criar('header', 'subtema-cab');
       cab.appendChild(criar('h1', '', subtema.titulo));
@@ -243,6 +277,11 @@ globalThis.Manual = globalThis.Manual || {};
       nav.setAttribute('aria-label', 'Subtemas');
       const v = vizinhos(disciplinaId, temaId, subtema.id);
       if (v.anterior) nav.appendChild(ligacaoNav(disciplinaId, v.anterior, '← Anterior', 'anterior'));
+      const voltar = criar('a', 'nav-tema');
+      voltar.href = hrefTema;
+      voltar.appendChild(criar('span', 'nav-rotulo', '↑ Voltar ao tema'));
+      voltar.appendChild(criar('span', 'nav-titulo', tituloTema));
+      nav.appendChild(voltar);
       if (v.seguinte) nav.appendChild(ligacaoNav(disciplinaId, v.seguinte, 'Seguinte →', 'seguinte'));
       artigo.appendChild(nav);
 
