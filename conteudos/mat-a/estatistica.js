@@ -284,7 +284,7 @@ Manual.registarTema('mat-a', {
       id: 'localizacao',
       titulo: 'Medidas de localização',
       ae: [
-        'Interpretar as medidas de localização: média (x̄), mediana (x̃), moda(s) (Mo) e percentis (quartis como caso especial) na caraterização da distribuição dos dados, relacionando-as com as representações gráficas obtidas.',
+        'Interpretar as medidas de localização: média (x̄), mediana (Me), moda(s) (Mo) e percentis (quartis como caso especial) na caraterização da distribuição dos dados, relacionando-as com as representações gráficas obtidas.',
       ],
       minutos: 7,
       essencial: [
@@ -294,7 +294,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'definicao',
-          texto: '**Mediana** ($\\tilde{x}$): com os dados ordenados, é o valor do meio (n ímpar) ou a média dos dois do meio (n par). Pelo menos 50 % dos dados são $\\le \\tilde{x}$ e pelo menos 50 % são $\\ge \\tilde{x}$.',
+          texto: '**Mediana** ($\\mathrm{Me}$): com os dados ordenados, é o valor do meio (n ímpar) ou a média dos dois do meio (n par). Pelo menos 50 % dos dados são $\\le \\mathrm{Me}$ e pelo menos 50 % são $\\ge \\mathrm{Me}$.',
         },
         {
           tipo: 'definicao',
@@ -307,7 +307,7 @@ Manual.registarTema('mat-a', {
             'Ordenar: 8, 10, 11, 12, 12, 13, 14, 15, 17, 18 ($n = 10$).',
             'Soma: $8 + 10 + 11 + 12 + 12 + 13 + 14 + 15 + 17 + 18 = 130$.',
             'Média: $\\bar{x} = \\dfrac{130}{10} = 13$.',
-            'Mediana: $n$ é par; os dois do meio são o 5.º e o 6.º: $\\tilde{x} = \\dfrac{12 + 13}{2} = 12{,}5$.',
+            'Mediana: $n$ é par; os dois do meio são o 5.º e o 6.º: $\\mathrm{Me} = \\dfrac{12 + 13}{2} = 12{,}5$.',
             'Moda: 12 (aparece duas vezes).',
           ],
           resultado: 12.5,
@@ -315,7 +315,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'definicao',
-          texto: '**Percentil** de ordem $k$ ($P_k$): valor que deixa (aproximadamente) $k$ % dos dados abaixo ou iguais a ele. Os **quartis** são casos especiais: $Q_1 = P_{25}$, $Q_2 = P_{50} = \\tilde{x}$ e $Q_3 = P_{75}$.',
+          texto: '**Percentil** de ordem $k$ ($P_k$): valor que deixa (aproximadamente) $k$ % dos dados abaixo ou iguais a ele. Os **quartis** são casos especiais: $Q_1 = P_{25}$, $Q_2 = P_{50} = \\mathrm{Me}$ e $Q_3 = P_{75}$.',
         },
         {
           tipo: 'formula',
@@ -345,7 +345,7 @@ Manual.registarTema('mat-a', {
           tipo: 'esquema',
           id: 'medidas',
           opcoes: { dados: [8, 10, 11, 12, 12, 13, 14, 15, 17, 18] },
-          legenda: 'Experimenta: arrasta o ponto com a nota 18 até 30. A média sobe, mas a mediana e os quartis quase não mudam.',
+          legenda: 'Experimenta: arrasta o ponto com a nota 18 (o ponto 10) até 30. A média sobe, mas a mediana e os quartis não mudam.',
         },
         {
           tipo: 'texto',
@@ -374,10 +374,10 @@ Manual.registarTema('mat-a', {
       ],
       resumo: [
         'Média: $\\bar{x} = \\frac{\\sum x_i}{n}$.',
-        'Mediana $\\tilde{x}$: valor do meio dos dados ordenados (média dos dois do meio se $n$ par).',
+        'Mediana $\\mathrm{Me}$: valor do meio dos dados ordenados (média dos dois do meio se $n$ par).',
         'Moda $Mo$: valor mais frequente (pode haver várias ou nenhuma).',
         'Percentil $P_k$: $p = \\frac{nk}{100}$; inteiro → $\\frac{x_p + x_{p+1}}{2}$; não inteiro → $x_{\\lceil p \\rceil}$.',
-        '$Q_1 = P_{25}$, $Q_2 = \\tilde{x}$, $Q_3 = P_{75}$.',
+        '$Q_1 = P_{25}$, $Q_2 = \\mathrm{Me}$, $Q_3 = P_{75}$.',
         'Cauda longa à direita: média > mediana.',
       ],
       quiz: [
@@ -400,7 +400,7 @@ Manual.registarTema('mat-a', {
           resolucao: [
             'Ordenar: 7, 9, 10, 10, 10, 12, 13, 15, 16 ($n = 9$).',
             '$p = \\dfrac{9 \\times 50}{100} = 4{,}5$, não inteiro → posição 5.',
-            '$\\tilde{x} = x_5 = 10$.',
+            '$\\mathrm{Me} = x_5 = 10$.',
           ],
           verificar: () => Manual.calc.estatistica.mediana([12, 7, 10, 16, 10, 13, 9, 15, 10]),
         },
@@ -597,7 +597,7 @@ Manual.registarTema('mat-a', {
       id: 'propriedades',
       titulo: 'Propriedades das medidas',
       ae: [
-        'Interpretar e mostrar analiticamente as alterações provocadas na média por transformação dos dados pela multiplicação de cada um por uma constante "a" e pela adição de uma constante "b".',
+        'Interpretar e mostrar analiticamente as alterações provocadas na média por transformação dos dados pela multiplicação de cada um por uma constante “a” e pela adição de uma constante “b”.',
         'Compreender os conceitos e as seguintes propriedades das medidas: - Pouca resistência da média e do desvio padrão; - Soma dos desvios dos dados relativamente à média é igual a zero; - Desvio padrão é igual a zero se e só se todos os dados forem iguais; - Amplitude interquartil igual a zero, não implica a não existência de variabilidade;',
         'Conhecer que se os dados forem fornecidos já agrupados em classes, na forma de intervalos, torna-se necessário adequar as fórmulas ou os procedimentos existentes para dados não agrupados, para obter valores aproximados da média e do desvio padrão.',
         'Reconhecer que existem situações em que é preferível utilizar, como medida de localização do centro da distribuição dos dados, a mediana em vez da média, e como medida de dispersão a amplitude interquartil em vez do desvio padrão, apresentando exemplos simples.',
@@ -650,8 +650,8 @@ Manual.registarTema('mat-a', {
           tipo: 'exemplo',
           enunciado: 'Nos dados 3, 4, 5, 5, 6, 7, 8 troca-se o 8 por 30 (um outlier). Compara a média, a mediana, o desvio padrão e a $AIQ$ antes e depois.',
           resolucao: [
-            'Antes: $\\bar{x} = \\dfrac{38}{7} \\approx 5{,}43$; $\\tilde{x} = 5$; $s \\approx 1{,}72$; $AIQ = 7 - 4 = 3$.',
-            'Depois: $\\bar{x} = \\dfrac{60}{7} \\approx 8{,}57$; $\\tilde{x} = 5$; $s \\approx 9{,}54$; $AIQ = 7 - 4 = 3$.',
+            'Antes: $\\bar{x} = \\dfrac{38}{7} \\approx 5{,}43$; $\\mathrm{Me} = 5$; $s \\approx 1{,}72$; $AIQ = 7 - 4 = 3$.',
+            'Depois: $\\bar{x} = \\dfrac{60}{7} \\approx 8{,}57$; $\\mathrm{Me} = 5$; $s \\approx 9{,}54$; $AIQ = 7 - 4 = 3$.',
             'A média passa a ser maior do que 6 dos 7 dados; a mediana e a $AIQ$ não mudaram.',
           ],
           resultado: 8.57,
@@ -661,7 +661,7 @@ Manual.registarTema('mat-a', {
           tipo: 'esquema',
           id: 'medidas',
           opcoes: { dados: [3, 4, 5, 5, 6, 7, 8] },
-          legenda: 'Experimenta: arrasta o ponto 7 até 30 e compara média/mediana e desvio padrão/AIQ; depois escreve a = 2 e b = 3 e vê a média e o desvio padrão a mudar.',
+          legenda: 'Experimenta: arrasta o ponto com o valor 8 (o ponto 7) até 30, como no exemplo, e compara média/mediana e desvio padrão/AIQ; depois escreve a = 2 e b = 3 e vê a média e o desvio padrão a mudar.',
         },
         {
           tipo: 'texto',
@@ -775,12 +775,12 @@ Manual.registarTema('mat-a', {
       ae: [
         'Reconhecer que, para estudar a associação entre duas variáveis quantitativas de uma população, se observam essas variáveis sobre cada unidade estatística, obtendo-se uma amostra de pares de dados.',
         'Reconhecer a importância da representação dos dados no diagrama de dispersão, nuvem de pontos, para interpretar a forma, direção e força da associação (linear) entre as duas variáveis.',
-        'Identificar o coeficiente de correlação linear r, como medida dessa direção e grau de associação (linear), e saber que assume valores pertencentes a [-1, 1], dizendo-se com base nesse valor que a correlação é positiva, negativa ou nula. Recorrer à tecnologia para proceder ao cálculo do coeficiente de correlação linear.',
+        'Identificar o coeficiente de correlação linear r, como medida dessa direção e grau de associação (linear), e saber que assume valores pertencentes a [−1, 1], dizendo-se com base nesse valor que a correlação é positiva, negativa ou nula. Recorrer à tecnologia para proceder ao cálculo do coeficiente de correlação linear.',
         'Compreender que no caso do diagrama de dispersão mostrar uma forte associação linear entre as variáveis, essa associação pode ser descrita pela reta de regressão ou reta dos mínimos quadrados. Utilizar a tecnologia para determinar uma equação da reta de regressão.',
         'Compreender que na construção da reta de regressão não é indiferente qual das variáveis é que se considera como variável independente ou explanatória.',
         'Compreender que a existência de outliers influencia estes procedimentos.',
         'Utilizar a reta de regressão para inferir o valor da variável dependente ou resposta, para um dado valor da variável independente ou explanatória, quando existe uma forte associação linear entre as variáveis, quer positiva, quer negativa, e desde que este esteja no domínio dos dados considerados.',
-        'Compreender que não se pode confundir correlação com relação causa-efeito, pois podem existir variáveis "perturbadoras" que podem provocar uma aparente associação entre as variáveis em estudo.',
+        'Compreender que não se pode confundir correlação com relação causa-efeito, pois podem existir variáveis “perturbadoras” que podem provocar uma aparente associação entre as variáveis em estudo.',
         'Entender que um gráfico de linhas é um caso particular de um diagrama de dispersão, em que se pretende estudar a evolução de uma das variáveis relativamente a outra variável, de um modo geral o tempo, e em que se unem, por linhas, os pontos representados.',
       ],
       minutos: 8,
