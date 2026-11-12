@@ -62,7 +62,6 @@ Manual.nucleo = Manual.nucleo || {};
     svg.style.maxWidth = '100%';
     svg.style.height = 'auto';
     svg.style.display = 'block';
-    svg.style.touchAction = 'none';
 
     const camadas = {};
     function camada(nome) {
@@ -118,6 +117,7 @@ Manual.nucleo = Manual.nucleo || {};
     return {
       svg,
       t,
+      caixa,
       camada,
       redesenhar,
       destruir() { if (svg.parentNode) svg.parentNode.removeChild(svg); },

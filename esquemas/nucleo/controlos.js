@@ -28,16 +28,21 @@ Manual.nucleo = Manual.nucleo || {};
     caixa.appendChild(lab);
     caixa.appendChild(input);
     el.appendChild(caixa);
-    input.addEventListener('input', () => {
+    const aoInput = () => {
       saida.textContent = fmt(input.value);
       if (opcoes.aoMudar) opcoes.aoMudar(Number(input.value));
-    });
+    };
+    input.addEventListener('input', aoInput);
     return {
       valor: () => Number(input.value),
       definir(v) {
         input.value = String(v);
         saida.textContent = fmt(input.value);
         if (opcoes.aoMudar) opcoes.aoMudar(Number(input.value));
+      },
+      destruir() {
+        input.removeEventListener('input', aoInput);
+        if (caixa.parentNode) caixa.parentNode.removeChild(caixa);
       },
     };
   }

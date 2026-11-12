@@ -68,10 +68,25 @@ test('amostrarFuncao: valores não finitos quebram o traçado', () => {
   assert.equal(seg.length, 2);
 });
 
-test('amostrarFuncao: aceita intervalo de y explícito', () => {
+test('amostrarFuncao: o intervalo de y explícito altera o resultado', () => {
   const { amostrarFuncao } = carregar(...FICHEIROS).nucleo;
-  const seg = amostrarFuncao((x) => (x < 0.5 ? 0 : 100), 0, 1, 10, { ymin: 0, ymax: 100 });
-  assert.equal(seg.length, 1);
+  const f = (x) => (x < 0.5 ? 0 : 1000);
+  assert.equal(amostrarFuncao(f, 0, 1, 10).length, 1);
+  assert.equal(amostrarFuncao(f, 0, 1, 10, { ymin: 0, ymax: 10 }).length, 2);
+});
+
+test('amostrarFuncao: salto grande parte o traçado sem amostras não finitas', () => {
+  const { amostrarFuncao } = carregar(...FICHEIROS).nucleo;
+  const f = (x) => 1 / x;
+  const n = 399; // x=0 não é amostrado
+  for (let i = 0; i <= n; i++) assert.ok(Number.isFinite(f(-1 + (2 * i) / n)));
+  assert.ok(amostrarFuncao(f, -1, 1, n).length >= 2);
+});
+
+test('arredondar remove ruído de vírgula flutuante', () => {
+  const { arredondar } = carregar(...FICHEIROS).nucleo;
+  assert.equal(arredondar(0.1 + 0.2), 0.3);
+  assert.equal(arredondar(2.5), 2.5);
 });
 
 test('projetar: eixos com azimute e elevação 0', () => {
