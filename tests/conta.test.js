@@ -285,3 +285,31 @@ test('sair offline remove a sessão guardada (chave derivada do URL)', async () 
   await Manual.conta.sair();
   assert.equal(arm.getItem(chave), null);
 });
+
+test('encarregado com sessão: item de visitante não é reclamado nem enviado', async () => {
+  const f = falso();
+  f.tabelas.perfis = [{ id: 'u1', papel: 'encarregado', nome: 'Rui' }];
+  const arm = memoria();
+  Manual.criarFila(arm).juntar({ id: 'v1', disciplina: 'd' });
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(f.chamadas.filter((c) => c[0] === 'upsert').length, 0);
+  const pend = Manual.criarFila(arm).pendentes();
+  assert.equal(pend.length, 1);
+  assert.equal(pend[0].aluna_id, undefined);
+});
+
+test('apagarConta limpa da fila local os itens da conta e de visitante, não os de outras', async () => {
+  const f = falso();
+  const arm = memoria();
+  const q = Manual.criarFila(arm);
+  q.juntar({ id: 'a', aluna_id: 'u1' });
+  q.juntar({ id: 'b' });
+  q.juntar({ id: 'c', aluna_id: 'u2' });
+  f.falhaUpsert = true;
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(Manual.criarFila(arm).pendentes().length, 3);
+  await Manual.conta.apagarConta();
+  assert.deepEqual(Manual.criarFila(arm).pendentes().map((i) => i.id), ['c']);
+});

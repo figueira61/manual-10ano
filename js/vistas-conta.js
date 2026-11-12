@@ -15,7 +15,7 @@ globalThis.Manual = globalThis.Manual || {};
     papel_invalido: 'Este código só pode ser usado por uma conta de encarregado de educação.',
     sem_sessao: 'A tua sessão terminou. Entra outra vez.',
     ja_registado: 'Já existe uma conta com este email. Tenta entrar.',
-    palavra_passe_fraca: 'A palavra-passe é demasiado fraca. Usa pelo menos 8 caracteres, com letras e números.',
+    palavra_passe_fraca: 'A palavra-passe é demasiado fraca. Usa pelo menos 8 caracteres.',
     demasiados_pedidos: 'Demasiadas tentativas num curto espaço de tempo. Espera um pouco e tenta outra vez.',
     desconhecido: 'Algo correu mal. Tenta outra vez dentro de instantes.',
   };
@@ -70,13 +70,26 @@ globalThis.Manual = globalThis.Manual || {};
     const p = criar('p', 'aviso-form');
     p.id = id;
     p.setAttribute('aria-live', 'polite');
-    p.hidden = true;
+    p.tabIndex = -1;
+    p.className = 'aviso-form so-leitores';
     pai.appendChild(p);
-    return function (texto, tipo) {
+    // A região está sempre no DOM (para os leitores de ecrã a anunciarem); vazia, fica só visualmente oculta.
+    return function (texto, tipo, focar) {
       p.textContent = texto || '';
-      p.hidden = !texto;
-      p.className = 'aviso-form ' + (tipo === 'ok' ? 'aviso-ok' : 'aviso-erro');
+      p.className = 'aviso-form ' + (!texto ? 'so-leitores' : tipo === 'ok' ? 'aviso-ok' : 'aviso-erro');
+      if (texto && focar) p.focus();
     };
+  }
+
+  // Marca o campo como inválido, mostra o erro e dá-lhe o foco.
+  function invalido(input, mostrar, texto) {
+    input.setAttribute('aria-invalid', 'true');
+    mostrar(texto);
+    input.focus();
+  }
+
+  function limparInvalidos(form) {
+    form.querySelectorAll('[aria-invalid]').forEach(function (i) { i.removeAttribute('aria-invalid'); });
   }
 
   function cartao(pai, titulo) {
@@ -124,10 +137,9 @@ globalThis.Manual = globalThis.Manual || {};
     form.appendChild(botao);
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!email.value.trim() || !senha.value) {
-        mostrar('Preenche o email e a palavra-passe.');
-        return;
-      }
+      limparInvalidos(form);
+      if (!email.value.trim()) { invalido(email, mostrar, 'Preenche o email.'); return; }
+      if (!senha.value) { invalido(senha, mostrar, 'Preenche a palavra-passe.'); return; }
       comEspera(botao, mostrar, function () {
         return Manual.conta.entrar(email.value.trim(), senha.value).then(function () { irPara('#/conta'); });
       });
@@ -193,19 +205,22 @@ globalThis.Manual = globalThis.Manual || {};
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      limparInvalidos(form);
       const endereco = email.value.trim();
-      if (!endereco || endereco.indexOf('@') < 1) { mostrar('Escreve um email válido.'); return; }
-      if (senha.value.length < 8) { mostrar('A palavra-passe tem de ter pelo menos 8 caracteres.'); return; }
-      if (!nome.value.trim()) { mostrar('Escreve o nome a mostrar.'); return; }
-      if (!caixa.checked) { mostrar('Tens de confirmar que leste a informação de privacidade.'); return; }
+      if (!endereco || endereco.indexOf('@') < 1) { invalido(email, mostrar, 'Escreve um email válido.'); return; }
+      if (senha.value.length < 8) { invalido(senha, mostrar, 'A palavra-passe tem de ter pelo menos 8 caracteres.'); return; }
+      if (!nome.value.trim()) { invalido(nome, mostrar, 'Escreve o nome a mostrar.'); return; }
+      if (!caixa.checked) { invalido(caixa, mostrar, 'Tens de confirmar que leste a informação de privacidade.'); return; }
       const papel = radios.find(function (r) { return r.checked; }).value;
       comEspera(botao, mostrar, function () {
         return Manual.conta.registar(endereco, senha.value, papel, nome.value.trim()).then(function (r) {
           if (r && r.precisaConfirmar) {
             form.hidden = true;
-            const ok = criar('p', 'aviso-form aviso-ok', 'Enviámos um email de confirmação para ' + endereco + '. Abre a mensagem e clica na ligação para ativar a conta.');
+            const ok = criar('p', 'aviso-form aviso-ok', 'Se este email ainda não tiver conta, enviámos um email de confirmação para ' + endereco + '. Abre a mensagem e clica na ligação para ativar a conta.');
             ok.setAttribute('role', 'status');
+            ok.tabIndex = -1;
             c.appendChild(ok);
+            ok.focus();
             c.appendChild(ligacao('#/entrar', 'Ir para Entrar', 'botao'));
           } else {
             irPara('#/conta');
@@ -220,11 +235,15 @@ globalThis.Manual = globalThis.Manual || {};
     cabecalho(principal, 'Privacidade');
     const c = cartao(principal);
     const itens = [
+      ['Quem é responsável', 'O manual é um projeto familiar. O responsável pelo tratamento dos dados é o administrador do manual, que pertence à família; o contacto faz-se através do encarregado de educação.'],
       ['Que dados guardamos', 'Só o mínimo: o teu email, o nome a mostrar, o tipo de conta (aluna ou encarregado de educação) e as tuas tentativas e estados de estudo (que perguntas respondeste, se acertaste e quanto tempo demoraste).'],
       ['Para quê', 'Para guardar o teu progresso, adaptar o treino ao que ainda não dominas e, se quiseres, permitir que o teu encarregado de educação o acompanhe. Não usamos os dados para publicidade nem os partilhamos com terceiros.'],
+      ['Onde ficam guardados', 'Os dados são guardados no Supabase (servidores na União Europeia, em Frankfurt), que também envia o email de confirmação da conta. O Supabase atua como subcontratante, isto é, trata os dados apenas por conta do projeto.'],
+      ['Quanto tempo', 'Os dados ficam guardados até apagares a conta.'],
       ['Quem tem acesso', 'Tu; o encarregado de educação que ligares à tua conta com um código (podes revogar a ligação quando quiseres); e a administração do projeto, apenas a pedido e para resolver um problema.'],
-      ['Exportar e apagar', 'Em "A minha conta" podes descarregar todos os teus dados (JSON) e apagar a conta. Ao apagar, os dados são removidos definitivamente.'],
+      ['Exportar e apagar', 'Em "A minha conta" podes descarregar todos os teus dados (JSON) e apagar a conta. Ao apagar, os dados são removidos definitivamente e a fila de respostas pendentes deste dispositivo também é limpa.'],
       ['Idade de consentimento', 'Em Portugal, o consentimento próprio para serviços online é válido a partir dos 13 anos (Lei n.º 58/2019). Abaixo dessa idade é necessária a autorização dos pais ou do representante legal.'],
+      ['Reclamações', 'Tens o direito de apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), em www.cnpd.pt.'],
       ['Sem conta', 'Podes estudar sem criar conta. Nesse caso, o progresso fica só guardado neste dispositivo.'],
     ];
     itens.forEach(function (i) {
@@ -298,6 +317,7 @@ globalThis.Manual = globalThis.Manual || {};
         });
       });
     });
+    c.appendChild(criar('p', 'campo-ajuda', 'As respostas dadas neste dispositivo antes de entrares são adicionadas à conta que entrar a seguir.'));
     c.appendChild(criar('h3', '', 'Encarregados ligados'));
     listaLigacoes(c, vivo, 'Encarregado ligado', true);
   }
@@ -321,7 +341,8 @@ globalThis.Manual = globalThis.Manual || {};
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       const valor = codigo.value.trim().toUpperCase();
-      if (!valor) { mostrar('Escreve o código.'); return; }
+      limparInvalidos(form);
+      if (!valor) { invalido(codigo, mostrar, 'Escreve o código.'); return; }
       comEspera(botao, mostrar, function () {
         return Manual.conta.ligarEncarregado(valor).then(function () {
           if (!vivo()) return;
@@ -358,8 +379,9 @@ globalThis.Manual = globalThis.Manual || {};
     form.appendChild(apagar);
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      limparInvalidos(form);
       if (confirmacao.value.trim() !== 'APAGAR') {
-        mostrarApagar('Para apagar, escreve APAGAR (em maiúsculas).');
+        invalido(confirmacao, mostrarApagar, 'Para apagar, escreve APAGAR (em maiúsculas).');
         return;
       }
       comEspera(apagar, mostrarApagar, function () {

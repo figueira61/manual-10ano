@@ -542,6 +542,8 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .esq-subtitulo { font-weight: 700; margin: 12px 0 4px; }
 
 /* ---------- contas ---------- */
+.so-leitores { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0 !important; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.campo-texto[aria-invalid="true"] { border-color: var(--errado); }
 .zona-conta { position: relative; flex: none; }
 .botao-topo { white-space: nowrap; padding: 7px 12px; }
 .botao-conta { max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; display: inline-block; }

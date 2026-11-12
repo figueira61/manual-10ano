@@ -264,6 +264,8 @@ globalThis.Manual = globalThis.Manual || {};
   // Só envia itens desta conta (ou sem dono, que passam a ser dela); os outros ficam pendentes.
   async function enviarLote(lote) {
     const uid = sessao.user.id;
+    // Só uma conta de aluna envia (e reclama itens de visitante); um encarregado nunca.
+    if (papel !== 'aluna') return [];
     const meus = lote.filter((i) => !i.aluna_id || i.aluna_id === uid);
     if (meus.length === 0) return [];
     // Itens de visitante passam a ser desta conta; gravar já na fila impede reatribuição posterior.
@@ -348,8 +350,15 @@ globalThis.Manual = globalThis.Manual || {};
   }
 
   async function apagarConta() {
-    exigirSessao();
+    const uid = exigirSessao();
     await chamar(() => cliente.rpc('apagar_conta'));
+    // Limpa desta máquina os itens pendentes da conta apagada e os de visitante.
+    try {
+      const meus = fila.pendentes().filter((i) => !i.aluna_id || i.aluna_id === uid).map((i) => i.id);
+      if (meus.length) fila.marcarEnviados(meus);
+    } catch (e) {
+      // a fila nunca impede o apagamento
+    }
     try {
       await cliente.auth.signOut();
     } catch (e) {
