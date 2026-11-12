@@ -87,6 +87,9 @@ Manual.registarTema('mat-a', {
         { tipo: 'esquema', id: 'borda', opcoes: {}, legenda: 'Demo borda.' },
         { tipo: 'esquema', id: 'juros', opcoes: { capital: 1000, taxa: 4, anos: 10, periodosPorAno: 4 }, legenda: 'Demo juros.' },
         { tipo: 'esquema', id: 'salario', opcoes: { bruto: 1200 }, legenda: 'Demo salario.' },
+        { tipo: 'esquema', id: 'histograma', opcoes: { dados: [12,15,17,18,21,22,22,24,25,27,28,31,33,34,38,41,45,47], amplitudeClasse: 10 }, legenda: 'Demo histograma.' },
+        { tipo: 'esquema', id: 'medidas', opcoes: { dados: [2,4,4,4,5,5,7,9] }, legenda: 'Demo medidas.' },
+        { tipo: 'esquema', id: 'regressao', opcoes: { pares: [[1,2],[2,3],[3,4]] }, legenda: 'Demo regressao.' },
       ],
       resumo: ['Página provisória para verificar os esquemas.'],
       quiz: [
