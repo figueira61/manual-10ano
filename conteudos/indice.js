@@ -38,6 +38,42 @@ Manual.registarIndice([
         ],
       },
       {
+        id: 'estatistica',
+        titulo: 'Estatística',
+        subtemas: [
+          {
+            id: 'conceitos',
+            titulo: 'Problema estatístico, população e amostra',
+            palavras: ['problema estatístico', 'variabilidade', 'população', 'amostra', 'variável', 'recenseamento', 'sondagem', 'amostra enviesada', 'dados discretos', 'dados contínuos'],
+          },
+          {
+            id: 'frequencias-histograma',
+            titulo: 'Tabelas de frequências e histograma',
+            palavras: ['frequência absoluta', 'frequência relativa', 'frequência acumulada', 'histograma', 'classes', 'gráfico de barras', 'caule-e-folhas'],
+          },
+          {
+            id: 'localizacao',
+            titulo: 'Medidas de localização',
+            palavras: ['média', 'mediana', 'moda', 'percentis', 'quartis', 'medidas de localização'],
+          },
+          {
+            id: 'dispersao',
+            titulo: 'Medidas de dispersão',
+            palavras: ['amplitude', 'amplitude interquartil', 'AIQ', 'desvio padrão', 'variância', 'desvios', 'medidas de dispersão'],
+          },
+          {
+            id: 'propriedades',
+            titulo: 'Propriedades das medidas',
+            palavras: ['transformação linear', 'resistência', 'outliers', 'soma dos desvios', 'dados agrupados', 'diagrama de extremos e quartis', 'mediana ou média'],
+          },
+          {
+            id: 'bivariada',
+            titulo: 'Dados bivariados e regressão linear',
+            palavras: ['diagrama de dispersão', 'correlação', 'coeficiente de correlação', 'reta de regressão', 'mínimos quadrados', 'variável explanatória', 'variável resposta', 'causalidade', 'extrapolação', 'gráfico de linhas'],
+          },
+        ],
+      },
+      {
         id: 'funcoes',
         titulo: 'Funções',
         subtemas: [
