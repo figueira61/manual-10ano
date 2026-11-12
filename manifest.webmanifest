@@ -1,0 +1,13 @@
+{
+  "name": "Manual 10.º Ano",
+  "short_name": "Manual 10.º",
+  "lang": "pt-PT",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#2457c5",
+  "background_color": "#fafaf7",
+  "icons": [
+    { "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

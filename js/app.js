@@ -312,4 +312,12 @@ globalThis.Manual = globalThis.Manual || {};
   }
 
   arrancar();
+
+  if ((location.protocol === 'http:' || location.protocol === 'https:') && 'serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      try {
+        navigator.serviceWorker.register('sw.js').catch(function () {});
+      } catch (e) { /* sem modo offline */ }
+    });
+  }
 })();
