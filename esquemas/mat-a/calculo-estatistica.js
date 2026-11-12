@@ -3,6 +3,7 @@ Manual.calc = Manual.calc || {};
 
 Manual.calc.estatistica = (function () {
   const soma = (xs) => xs.reduce((s, x) => s + x, 0);
+  const limpo = (x) => Math.round(x * 1e9) / 1e9;
   const ordenar = (xs) => xs.slice().sort((a, b) => a - b);
 
   function media(xs) {
@@ -16,11 +17,10 @@ Manual.calc.estatistica = (function () {
     if (!n) return NaN;
     const o = ordenar(xs);
     const p = (n * k) / 100;
+    if (p <= 0) return o[0];
+    if (p >= n) return o[n - 1];
     const arred = Math.round(p);
-    if (Math.abs(p - arred) < 1e-9) {
-      const i = Math.min(Math.max(arred, 1), n - 1);
-      return n === 1 ? o[0] : (o[i - 1] + o[i]) / 2;
-    }
+    if (Math.abs(p - arred) < 1e-9) return (o[arred - 1] + o[arred]) / 2;
     return o[Math.min(Math.max(Math.ceil(p), 1), n) - 1];
   }
 
@@ -89,13 +89,13 @@ Manual.calc.estatistica = (function () {
     const n = Math.max(1, Math.ceil((max - min) / amplitudeClasse - 1e-9));
     const res = [];
     for (let i = 0; i < n; i++) {
-      const de = min + i * amplitudeClasse;
-      const ate = de + amplitudeClasse;
-      res.push({ de, ate, absoluta: 0, marca: (de + ate) / 2 });
+      const de = limpo(min + i * amplitudeClasse);
+      const ate = limpo(min + (i + 1) * amplitudeClasse);
+      res.push({ de, ate, absoluta: 0, marca: limpo((de + ate) / 2) });
     }
     for (const x of xs) {
       if (x < min) continue;
-      const i = Math.min(Math.floor((x - min) / amplitudeClasse), n - 1);
+      const i = Math.min(Math.floor((x - min) / amplitudeClasse + 1e-9), n - 1);
       res[i].absoluta++;
     }
     return res;

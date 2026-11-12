@@ -41,6 +41,28 @@ test('percentis e quartis (método português)', () => {
   assert.equal(E.percentil([5, 1, 3], 50), 3);
 });
 
+test('percentis nos extremos', () => {
+  const xs = [4, 1, 3, 2];
+  assert.equal(E.percentil(xs, 0), 1);
+  assert.equal(E.percentil(xs, 100), 4);
+  assert.equal(E.percentil([7], 50), 7);
+});
+
+test('classes com amplitudes decimais e início explícito', () => {
+  const c = E.classes([0, 0.3, 0.5], 0.1);
+  assert.deepEqual(c.map((k) => k.absoluta), [1, 0, 0, 1, 1]);
+  assert.deepEqual(c.map((k) => k.de), [0, 0.1, 0.2, 0.3, 0.4]);
+  assert.deepEqual(c.map((k) => k.ate), [0.1, 0.2, 0.3, 0.4, 0.5]);
+  assert.equal(c[3].marca, 0.35);
+  const d = E.classes([2, 3, 7], 2, 0);
+  assert.deepEqual(d.map(({ de, ate, absoluta }) => ({ de, ate, absoluta })), [
+    { de: 0, ate: 2, absoluta: 0 },
+    { de: 2, ate: 4, absoluta: 2 },
+    { de: 4, ate: 6, absoluta: 0 },
+    { de: 6, ate: 8, absoluta: 1 },
+  ]);
+});
+
 test('listas vazias', () => {
   assert.ok(Number.isNaN(E.media([])));
   assert.ok(Number.isNaN(E.mediana([])));
