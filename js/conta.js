@@ -13,6 +13,7 @@ globalThis.Manual = globalThis.Manual || {};
   const ouvintes = new Set();
   let emCurso = null;
   let ligadoOnline = false;
+  let armazenamento = null;
 
   function erro(codigo, causa) {
     const e = new Error(codigo + (causa && causa.message ? ': ' + causa.message : ''));
@@ -157,7 +158,8 @@ globalThis.Manual = globalThis.Manual || {};
   async function iniciar(opcoes) {
     const o = opcoes || {};
     cliente = o.cliente || criarClientePadrao();
-    fila = Manual.criarFila(o.armazenamento || armazenamentoPadrao());
+    armazenamento = o.armazenamento || armazenamentoPadrao();
+    fila = Manual.criarFila(armazenamento);
     sessao = null;
     perfil = null;
     papel = null;
@@ -221,15 +223,29 @@ globalThis.Manual = globalThis.Manual || {};
     return estado();
   }
 
+  // Chave usada pelo supabase-js: sb-<ref do projeto>-auth-token (ref = subdomínio do URL).
+  function removerSessaoGuardada() {
+    try {
+      const ref = new URL(Manual.config.supabaseUrl).hostname.split('.')[0];
+      if (armazenamento) armazenamento.removeItem('sb-' + ref + '-auth-token');
+    } catch (e) {
+      // armazenamento indisponível: nada a remover
+    }
+  }
+
   async function sair() {
-    // Limpa sempre o estado local; se o signOut falhar (offline) resolve na mesma,
-    // porque a sessão local já foi descartada.
+    // Limpa sempre o estado local e resolve mesmo offline. No supabase-js 2.x, se o pedido de
+    // logout falha por rede, signOut devolve/lança o erro ANTES de apagar a sessão guardada;
+    // por isso, nesse caso removemos nós a chave da sessão, para não voltar a entrar ao recarregar.
     if (cliente) {
+      let falhou = false;
       try {
-        await cliente.auth.signOut();
+        const r = await cliente.auth.signOut();
+        falhou = !!(r && r.error);
       } catch (e) {
-        // ignorado de propósito
+        falhou = true;
       }
+      if (falhou) removerSessaoGuardada();
     }
     await definirSessao(null);
   }

@@ -10,7 +10,12 @@ beforeEach(() => {
 
 function memoria() {
   const d = {};
-  return { getItem: (k) => (k in d ? d[k] : null), setItem: (k, v) => { d[k] = String(v); } };
+  return {
+    d,
+    getItem: (k) => (k in d ? d[k] : null),
+    setItem: (k, v) => { d[k] = String(v); },
+    removeItem: (k) => { delete d[k]; },
+  };
 }
 
 // Cliente falso com a mesma forma do supabase-js usada pelo adaptador.
@@ -261,4 +266,22 @@ test('sair limpa o estado mesmo que signOut falhe offline', async () => {
   f.auth.signOut = async () => { throw new TypeError('Failed to fetch'); };
   await Manual.conta.sair();
   assert.equal(Manual.conta.estado().autenticado, false);
+});
+
+test('sair offline remove a sessão guardada (chave derivada do URL)', async () => {
+  const f = falso();
+  const arm = memoria();
+  const chave = 'sb-dhflcwqwmhbyxqcsxvlh-auth-token';
+  arm.setItem(chave, '{"access_token":"x"}');
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  f.auth.signOut = async () => { throw new TypeError('Failed to fetch'); };
+  await Manual.conta.sair();
+  assert.equal(arm.getItem(chave), null);
+  assert.equal(Manual.conta.estado().autenticado, false);
+  // também quando devolve {error}
+  arm.setItem(chave, 'y');
+  f.auth.signOut = async () => ({ error: { message: 'Failed to fetch' } });
+  await Manual.conta.sair();
+  assert.equal(arm.getItem(chave), null);
 });
