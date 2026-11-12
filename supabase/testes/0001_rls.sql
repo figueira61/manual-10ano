@@ -63,8 +63,8 @@ end $$;
 do $$
 begin
   begin
-    insert into public.tentativas (aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
-    values ('00000000-0000-4000-8000-0000000000b1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
+    insert into public.tentativas (id, aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
+    values (gen_random_uuid(), '00000000-0000-4000-8000-0000000000b1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
     raise exception 'FALHA: A conseguiu inserir tentativa com aluna_id de B';
   exception when insufficient_privilege then null; -- esperado (RLS 42501)
   end;
@@ -233,14 +233,14 @@ end $$;
 do $$
 begin
   begin
-    insert into public.tentativas (aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
-    values ('00000000-0000-4000-8000-0000000000a1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
+    insert into public.tentativas (id, aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
+    values (gen_random_uuid(), '00000000-0000-4000-8000-0000000000a1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
     raise exception 'FALHA: E inseriu tentativa de A';
   exception when insufficient_privilege then null;
   end;
   begin
-    insert into public.tentativas (aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
-    values ('00000000-0000-4000-8000-0000000000e1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
+    insert into public.tentativas (id, aluna_id, disciplina, tema, subtema, tipo, modo, resultado)
+    values (gen_random_uuid(), '00000000-0000-4000-8000-0000000000e1', 'mat-a', 'funcoes', 'afim', 'afim#q0', 'quiz', 'certa');
     raise exception 'FALHA: E inseriu tentativa própria (encarregado só lê)';
   exception when insufficient_privilege then null;
   end;
