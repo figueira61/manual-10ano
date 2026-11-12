@@ -75,3 +75,16 @@ test('triângulo degenerado', () => {
   assert.equal(G.baricentro(P, Q, R), null);
   assert.equal(G.circunferenciaNovePontos(P, Q, R), null);
 });
+
+test('peAltura: pé da perpendicular de P sobre a reta AB', () => {
+  pontoPerto(G.peAltura([2, 5], [0, 0], [4, 0]), [2, 0]);
+  // altura de A(0,0) sobre BC, com B(4,0), C(0,3): pé em (36/25, 48/25)
+  pontoPerto(G.peAltura(A, B, C), [1.44, 1.92]);
+  assert.equal(G.peAltura([1, 1], [2, 2], [2, 2]), null);
+});
+
+test('peBissetriz: pé da bissetriz de A sobre BC', () => {
+  // |AB| = 4, |AC| = 3 => divide BC na razão 4:3 a partir de B: D = (3B + 4C)/7
+  pontoPerto(G.peBissetriz(A, B, C), [12 / 7, 12 / 7]);
+  assert.equal(G.peBissetriz([0, 0], [1, 1], [2, 2]), null);
+});

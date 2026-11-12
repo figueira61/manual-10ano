@@ -88,8 +88,25 @@ Manual.calc.geometria = (function () {
     return { centro: pontoMedio(o.centro, h), raio: o.raio / 2 };
   }
 
+  // Pé da perpendicular baixada de P para a reta AB (null se A = B).
+  function peAltura(P, A, B) {
+    const d = vetor(A, B);
+    const n2 = d.reduce((s, x) => s + x * x, 0);
+    if (n2 < EPS * EPS) return null;
+    const t = vetor(A, P).reduce((s, x, i) => s + x * d[i], 0) / n2;
+    return somar(A, escalar(t, d));
+  }
+
+  // Pé da bissetriz do ângulo em A sobre o lado [BC]: divide BC na razão |AB| : |AC|.
+  function peBissetriz(A, B, C) {
+    if (degenerado(A, B, C)) return null;
+    const b = distancia(C, A);
+    const c = distancia(A, B);
+    return B.map((x, i) => (b * x + c * C[i]) / (b + c));
+  }
+
   return {
-    distancia, pontoMedio, vetor, somar, subtrair, escalar, norma, colineares,
+    peAltura, peBissetriz, distancia, pontoMedio, vetor, somar, subtrair, escalar, norma, colineares,
     pontoMaisVetor, retaVetorial, equacaoReduzida, mediatriz, baricentro,
     circuncentro, incentro, ortocentro, circunferenciaNovePontos, degenerado,
   };

@@ -93,6 +93,10 @@ Manual.registarTema('mat-a', {
         { tipo: 'esquema', id: 'afim', opcoes: { m: 2, b: -1 }, legenda: 'Demo afim.' },
         { tipo: 'esquema', id: 'parabola', opcoes: { a: 1, h: 1, k: -4, mostrarBase: true }, legenda: 'Demo parabola.' },
         { tipo: 'esquema', id: 'ramos', opcoes: { ramos: 'modulo' }, legenda: 'Demo ramos.' },
+        { tipo: 'esquema', id: 'pontos-notaveis', opcoes: { A: [0,0], B: [4,0], C: [0,3], camadas: ['incentro','circuncentro','ortocentro','baricentro','euler','novePontos'] }, legenda: 'Demo pontos-notaveis.' },
+        { tipo: 'esquema', id: 'plano', opcoes: { A: [1,1], B: [4,5], modo: 'distancia' }, legenda: 'Demo plano.' },
+        { tipo: 'esquema', id: 'vetores', opcoes: { u: [3,1], v: [1,3], k: 2, operacao: 'soma' }, legenda: 'Demo vetores.' },
+        { tipo: 'esquema', id: 'espaco3d', opcoes: { P: [1,2,3], v: [2,1,1], raio: 2, mostrar: ['ponto','reta','esfera','planos'] }, legenda: 'Demo espaco3d.' },
       ],
       resumo: ['Página provisória para verificar os esquemas.'],
       quiz: [
