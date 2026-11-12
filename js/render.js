@@ -277,12 +277,12 @@ globalThis.Manual = globalThis.Manual || {};
       nav.setAttribute('aria-label', 'Subtemas');
       const v = vizinhos(disciplinaId, temaId, subtema.id);
       if (v.anterior) nav.appendChild(ligacaoNav(disciplinaId, v.anterior, '← Anterior', 'anterior'));
+      if (v.seguinte) nav.appendChild(ligacaoNav(disciplinaId, v.seguinte, 'Seguinte →', 'seguinte'));
       const voltar = criar('a', 'nav-tema');
       voltar.href = hrefTema;
       voltar.appendChild(criar('span', 'nav-rotulo', '↑ Voltar ao tema'));
       voltar.appendChild(criar('span', 'nav-titulo', tituloTema));
       nav.appendChild(voltar);
-      if (v.seguinte) nav.appendChild(ligacaoNav(disciplinaId, v.seguinte, 'Seguinte →', 'seguinte'));
       artigo.appendChild(nav);
 
       el.appendChild(artigo);
