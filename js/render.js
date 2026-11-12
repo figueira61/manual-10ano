@@ -239,9 +239,11 @@ globalThis.Manual = globalThis.Manual || {};
       const cab = criar('header', 'subtema-cab');
       cab.appendChild(criar('h1', '', subtema.titulo));
       const meta = criar('p', 'meta');
-      meta.appendChild(
-        criar('span', 'etiqueta', 'AE ' + (disciplina ? disciplina.nome : disciplinaId) + ' 10.º · ' + (tema ? tema.titulo : temaId))
-      );
+      const etiqueta = criar('span', 'emblema etiqueta d-' + disciplinaId);
+      const simbolo = Manual.icones && Manual.icones.svg(disciplinaId);
+      if (simbolo) etiqueta.appendChild(simbolo);
+      etiqueta.appendChild(criar('span', '', 'AE ' + (disciplina ? disciplina.nome : disciplinaId) + ' 10.º · ' + tituloTema));
+      meta.appendChild(etiqueta);
       meta.appendChild(criar('span', 'minutos', '~' + subtema.minutos + ' min'));
       cab.appendChild(meta);
       artigo.appendChild(cab);

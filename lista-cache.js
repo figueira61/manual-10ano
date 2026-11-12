@@ -35,6 +35,7 @@ self.LISTA_CACHE = [
   "icone.svg",
   "index.html",
   "js/app.js",
+  "js/icones.js",
   "js/nucleo.js",
   "js/pesquisa.js",
   "js/progresso.js",
@@ -68,4 +69,4 @@ self.LISTA_CACHE = [
   "vendor/katex/katex.min.css",
   "vendor/katex/katex.min.js"
 ];
-self.VERSAO_CACHE = '35e67d6060';
+self.VERSAO_CACHE = 'ae8d994b73';

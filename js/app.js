@@ -83,17 +83,81 @@ globalThis.Manual = globalThis.Manual || {};
     principal.appendChild(ligacao('#/', 'Voltar ao início', 'botao botao-principal'));
   }
 
+  function icone(id, classe) {
+    return Manual.icones.svg(id, classe) || document.createTextNode('');
+  }
+
+  // Mosaico com o símbolo da disciplina.
+  function mosaico(d, pequeno) {
+    const m = criar('span', 'mosaico' + (pequeno ? ' mosaico-pequeno' : ''));
+    m.appendChild(icone(d.id));
+    return m;
+  }
+
+  function emblema(textoEmblema, idIcone) {
+    const e = criar('span', 'emblema');
+    e.appendChild(icone(idIcone));
+    e.appendChild(criar('span', '', textoEmblema));
+    return e;
+  }
+
+  function emblemaDisciplina(d) {
+    const e = emblema(d.nome, d.id);
+    e.classList.add('d-' + d.id);
+    return e;
+  }
+
   function vistaInicio() {
     titulo('');
-    principal.appendChild(criar('h1', '', 'Manual 10.º Ano'));
-    principal.appendChild(criar('p', 'subtitulo', 'Resumos, esquemas interativos e mini-quizzes para estudar.'));
+    const destaque = criar('section', 'destaque-inicio');
+    destaque.appendChild(emblema('Aprendizagens Essenciais em vigor · 2026/2027', 'escudo'));
+    const h1 = criar('h1');
+    h1.appendChild(document.createTextNode('Estuda o essencial. '));
+    h1.appendChild(criar('span', 'realce', 'Experimenta e testa-te.'));
+    destaque.appendChild(h1);
+    destaque.appendChild(criar('p', 'subtitulo',
+      'Explicações curtas, esquemas interativos e mini-quizzes com resolução passo a passo para as disciplinas do 10.º ano.'));
+
+    const form = criar('form', 'caixa-pesquisa');
+    form.setAttribute('role', 'search');
+    form.appendChild(icone('procurar'));
+    const campo = criar('input');
+    campo.type = 'search';
+    campo.placeholder = 'Tema, conceito ou palavra-chave';
+    campo.setAttribute('aria-label', 'Pesquisar no manual');
+    campo.autocomplete = 'off';
+    form.appendChild(campo);
+    const procurar = criar('button', 'botao botao-acento', 'Procurar');
+    procurar.type = 'submit';
+    form.appendChild(procurar);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      window.location.hash = hashDe('pesquisa', { termo: campo.value.trim() });
+    });
+    destaque.appendChild(form);
+
+    const acoes = criar('div', 'acoes');
+    const primeira = Manual.indice.find(function (d) { return d.disponivel; });
+    if (primeira) {
+      const comecar = ligacao(hashDe('disciplina', { disciplina: primeira.id }), '', 'botao botao-principal botao-grande');
+      comecar.appendChild(criar('span', '', 'Começar por ' + primeira.nome));
+      comecar.appendChild(icone('seta'));
+      acoes.appendChild(comecar);
+      acoes.appendChild(ligacao(hashDe('resumos', { disciplina: primeira.id }), 'Resumos', 'botao botao-grande'));
+    }
+    destaque.appendChild(acoes);
+    principal.appendChild(destaque);
+
     const grelha = criar('div', 'cartoes');
     Manual.indice.forEach(function (d) {
       const cartao = d.disponivel
-        ? ligacao(hashDe('disciplina', { disciplina: d.id }), '', 'cartao')
-        : criar('div', 'cartao cartao-indisponivel');
+        ? ligacao(hashDe('disciplina', { disciplina: d.id }), '', 'cartao d-' + d.id)
+        : criar('div', 'cartao cartao-indisponivel d-' + d.id);
+      cartao.appendChild(mosaico(d));
       cartao.appendChild(criar('span', 'cartao-nome', d.nome));
-      cartao.appendChild(criar('span', 'cartao-estado', d.disponivel ? 'Abrir' : 'Em breve'));
+      const estado = criar('span', 'cartao-estado', d.disponivel ? d.temas.length + ' temas · Abrir' : 'Em breve');
+      if (d.disponivel) estado.appendChild(icone('seta'));
+      cartao.appendChild(estado);
       grelha.appendChild(cartao);
     });
     principal.appendChild(grelha);
@@ -117,7 +181,10 @@ globalThis.Manual = globalThis.Manual || {};
     if (!d) return vistaNaoEncontrado();
     titulo(d.nome);
     principal.appendChild(R.trilho([{ texto: 'Início', href: '#/' }, { texto: d.nome }]));
-    principal.appendChild(criar('h1', '', d.nome));
+    const cab = criar('div', 'cabecalho-disciplina d-' + d.id);
+    cab.appendChild(mosaico(d));
+    cab.appendChild(criar('h1', '', d.nome));
+    principal.appendChild(cab);
     if (!d.disponivel) {
       principal.appendChild(criar('p', '', 'Em breve.'));
       principal.appendChild(ligacao('#/', 'Voltar ao início', 'botao'));
@@ -145,6 +212,7 @@ globalThis.Manual = globalThis.Manual || {};
       { texto: d.nome, href: hashDe('disciplina', { disciplina: d.id }) },
       { texto: t.titulo },
     ]));
+    principal.appendChild(emblemaDisciplina(d));
     principal.appendChild(criar('h1', '', t.titulo));
     principal.appendChild(listaSubtemas(d, t));
     return undefined;
@@ -249,13 +317,20 @@ globalThis.Manual = globalThis.Manual || {};
     lateral.appendChild(ligacao('#/', 'Início', 'lateral-inicio'));
     Manual.indice.forEach(function (d) {
       const bloco = criar('div', 'lateral-disciplina');
+      bloco.classList.add('d-' + d.id);
       if (d.disponivel) {
-        bloco.appendChild(ligacao(hashDe('disciplina', { disciplina: d.id }), d.nome, 'lateral-nome'));
+        const nome = ligacao(hashDe('disciplina', { disciplina: d.id }), '', 'lateral-nome');
+        nome.appendChild(mosaico(d, true));
+        nome.appendChild(criar('span', '', d.nome));
+        bloco.appendChild(nome);
         d.temas.forEach(function (t) {
           bloco.appendChild(ligacao(hashDe('tema', { disciplina: d.id, tema: t.id }), t.titulo, 'lateral-tema'));
         });
       } else {
-        bloco.appendChild(criar('span', 'lateral-nome desativado', d.nome + ' (em breve)'));
+        const nome = criar('span', 'lateral-nome desativado');
+        nome.appendChild(mosaico(d, true));
+        nome.appendChild(criar('span', '', d.nome + ' (em breve)'));
+        bloco.appendChild(nome);
       }
       lateral.appendChild(bloco);
     });
@@ -275,6 +350,7 @@ globalThis.Manual = globalThis.Manual || {};
     fecharGaveta();
     const rota = Manual.router.analisar(window.location.hash);
     if (rota.vista !== 'pesquisa') campoPesquisa.value = '';
+    principal.className = 'principal' + (rota.disciplina ? ' d-' + rota.disciplina : '');
     switch (rota.vista) {
       case 'inicio':
         vistaInicio();
@@ -317,7 +393,17 @@ globalThis.Manual = globalThis.Manual || {};
       }
     });
 
-    document.getElementById('form-pesquisa').addEventListener('submit', function (e) {
+    const formPesquisa = document.getElementById('form-pesquisa');
+    formPesquisa.insertBefore(icone('procurar'), formPesquisa.firstChild);
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        campoPesquisa.focus();
+        campoPesquisa.select();
+      }
+    });
+
+    formPesquisa.addEventListener('submit', function (e) {
       e.preventDefault();
       window.location.hash = hashDe('pesquisa', { termo: campoPesquisa.value.trim() });
     });
