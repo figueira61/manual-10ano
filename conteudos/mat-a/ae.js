@@ -47,4 +47,9 @@ Manual.ae['mat-a'] = [
   'Utilizar a reta de regressão para inferir o valor da variável dependente ou resposta, para um dado valor da variável independente ou explanatória, quando existe uma forte associação linear entre as variáveis, quer positiva, quer negativa, e desde que este esteja no domínio dos dados considerados.',
   'Compreender que não se pode confundir correlação com relação causa-efeito, pois podem existir variáveis “perturbadoras” que podem provocar uma aparente associação entre as variáveis em estudo.',
   'Entender que um gráfico de linhas é um caso particular de um diagrama de dispersão, em que se pretende estudar a evolução de uma das variáveis relativamente a outra variável, de um modo geral o tempo, e em que se unem, por linhas, os pontos representados.',
+  'Definir e caracterizar: - incentro e circunferência inscrita (com demonstração); - circuncentro e circunferência circunscrita (com demonstração); - ortocentro; - baricentro.',
+  'Conhecer propriedades das medianas e do baricentro: - as três medianas dividem o triângulo em seis triângulos equivalentes (com demonstração); - a distância do baricentro a qualquer dos vértices é 2/3 da mediana respetiva (com demonstração); - o baricentro é o centro de massa (gravidade, geométrico) de um triângulo.',
+  'Localizar os pontos notáveis em triângulos equiláteros, isósceles e escalenos e em triângulos acutângulos, retângulos e obtusângulos.',
+  'Verificar a existência da reta de Euler e da circunferência dos nove pontos.',
+  'Resolver problemas envolvendo relações métricas entre os pontos notáveis.',
 ];

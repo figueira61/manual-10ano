@@ -74,6 +74,27 @@ Manual.registarIndice([
         ],
       },
       {
+        id: 'geometria-sintetica',
+        titulo: 'Geometria sintética no plano',
+        subtemas: [
+          {
+            id: 'incentro-circuncentro',
+            titulo: 'Incentro e circuncentro',
+            palavras: ['incentro', 'circuncentro', 'bissetriz', 'mediatriz', 'circunferência inscrita', 'circunferência circunscrita', 'pontos notáveis', 'triângulo'],
+          },
+          {
+            id: 'ortocentro-baricentro',
+            titulo: 'Ortocentro, baricentro e medianas',
+            palavras: ['ortocentro', 'baricentro', 'alturas', 'medianas', 'centro de massa', '2/3 da mediana', 'triângulos equivalentes', 'pontos notáveis', 'acutângulo', 'obtusângulo'],
+          },
+          {
+            id: 'euler-nove-pontos',
+            titulo: 'Reta de Euler e circunferência dos nove pontos',
+            palavras: ['reta de Euler', 'circunferência dos nove pontos', 'relações métricas', 'pontos notáveis', 'triângulo medial'],
+          },
+        ],
+      },
+      {
         id: 'funcoes',
         titulo: 'Funções',
         subtemas: [
