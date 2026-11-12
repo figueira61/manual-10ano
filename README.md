@@ -22,7 +22,9 @@ A Fase 1 cobre **Matemática A** (25 subtemas em 5 temas: Modelos Matemáticos p
 
 O `index.html` pode ser publicado como Artifact, com o parâmetro `files` a mapear **todos** os caminhos listados em `lista-cache.js` (css, js, conteudos, esquemas, vendor, manifest e ícone), sem alterar código. Nota: o service worker pode não correr dentro do Artifact, por isso não há modo offline e o progresso é guardado por browser.
 
-URL: (a preencher)
+URL: https://claude.ai/artifact/UjrxtUhRG7eQK7N8Ee4nUv (privado; partilhar pelo menu Partilhar da página)
+
+A página publicada é gerada a partir do `index.html` sem as etiquetas `<html>`, `<head>` e `<body>` (a plataforma acrescenta-as), com `files` a mapear todos os caminhos de `lista-cache.js`.
 
 ## Testes e ferramentas
 

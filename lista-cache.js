@@ -69,4 +69,4 @@ self.LISTA_CACHE = [
   "vendor/katex/katex.min.css",
   "vendor/katex/katex.min.js"
 ];
-self.VERSAO_CACHE = '0fe7fd6d0d';
+self.VERSAO_CACHE = '671358317e';

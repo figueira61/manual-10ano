@@ -85,6 +85,7 @@
     --d-port: #f472b6;
     --d-fil: #f0c060;
     --d-ing: #4fd1c5;
+    color-scheme: dark;
   }
 }
 
@@ -128,6 +129,7 @@
   --d-port: #f472b6;
   --d-fil: #f0c060;
   --d-ing: #4fd1c5;
+  color-scheme: dark;
 }
 
 /* cor da disciplina ativa (usada por ícones, emblemas e cartões) */
