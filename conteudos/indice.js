@@ -130,6 +130,37 @@ Manual.registarIndice([
           },
         ],
       },
+      {
+        id: 'geometria-analitica',
+        titulo: 'Geometria analítica',
+        subtemas: [
+          {
+            id: 'plano-referencial',
+            titulo: 'Referencial, ponto médio e distância no plano',
+            palavras: ['referencial ortonormado', 'coordenadas', 'abcissa', 'ordenada', 'quadrantes', 'reflexão', 'meia-volta', 'ponto médio', 'distância entre dois pontos'],
+          },
+          {
+            id: 'plano-condicoes',
+            titulo: 'Conjuntos de pontos no plano',
+            palavras: ['condições', 'reta vertical', 'equação reduzida', 'declive', 'semiplano', 'fronteira', 'mediatriz', 'circunferência', 'círculo', 'conjunção', 'disjunção', 'conjunto vazio'],
+          },
+          {
+            id: 'espaco',
+            titulo: 'Geometria analítica no espaço',
+            palavras: ['referencial no espaço', 'cota', 'planos coordenados', 'planos paralelos', 'retas paralelas aos eixos', 'plano mediador', 'superfície esférica', 'esfera', 'distância', 'ponto médio'],
+          },
+          {
+            id: 'vetores',
+            titulo: 'Vetores no plano e no espaço',
+            palavras: ['vetor', 'coordenadas de um vetor', 'norma', 'soma de vetores', 'diferença', 'produto por um escalar', 'simétrico', 'colineares', 'ponto mais vetor', 'paralelogramo'],
+          },
+          {
+            id: 'reta-vetorial',
+            titulo: 'Equação vetorial da reta',
+            palavras: ['equação vetorial', 'vetor diretor', 'declive', 'equação reduzida', 'retas paralelas', 'reta no espaço', 'reta vertical', 'Python'],
+          },
+        ],
+      },
     ],
   },
   { id: 'fqa', nome: 'Física e Química A', disponivel: false, temas: [] },

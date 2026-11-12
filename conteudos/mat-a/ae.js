@@ -61,4 +61,12 @@ Manual.ae['mat-a'] = [
   'Estudar gráfica e analiticamente funções definidas por ramos e utilizá-las em contextos de modelação.',
   'Estudar funções definidas por ramos relativamente ao domínio, contradomínio, coordenadas dos pontos de interseção com os eixos coordenados e sinal, em casos simples.',
   'Reconhecer a função módulo como um caso particular de uma função definida por ramos.',
+  'Identificar coordenadas de pontos do plano num referencial cartesiano, ortogonal e monométrico.',
+  'Reconhecer, analisar e aplicar na resolução de problemas: - transformados de pontos, por uma reflexão de eixo vertical ou horizontal, ou por uma meia-volta de centro na origem; - coordenadas do ponto médio de um segmento de reta; - fórmula da distância entre dois pontos; - condições que definem conjuntos de pontos: - equações de retas verticais e não verticais; - semiplanos; - mediatriz de um segmento de reta; - circunferência e círculo; - outros conjuntos definidos por conjunções e disjunções, em casos simples.',
+  'Identificar coordenadas de pontos do espaço num referencial cartesiano ortogonal e monométrico.',
+  'Reconhecer, analisar e aplicar na resolução de problemas: - coordenadas do ponto médio de um segmento de reta; - fórmula da distância entre dois pontos; - condições que definem conjuntos de pontos: - planos paralelos aos planos coordenados; - retas paralelas a um dos eixos; - planos mediadores; - superfície esférica e esfera.',
+  'Reconhecer, analisar e aplicar na resolução de problemas: - norma de um vetor; - propriedades algébricas das operações com vetores; - coordenadas de um vetor; - coordenadas da soma e da diferença de vetores; - coordenadas do produto de um escalar por um vetor e do simétrico de um vetor; - relação entre as coordenadas de vetores colineares; - vetor definido por dois pontos e cálculo das respetivas coordenadas; - coordenadas do ponto resultante da soma de um ponto com um vetor; - cálculo da norma de um vetor por meio das suas coordenadas.',
+  'Reconhecer que uma reta fica definida se for conhecido um ponto da reta e um vetor diretor.',
+  'Escrever uma equação vetorial de uma reta.',
+  'Estabelecer a relação entre: - as coordenadas de um vetor diretor e o declive da reta. - paralelismo de retas, igualdade do declive e colinearidade de vetores diretores das retas; - equação reduzida e equação vetorial de uma reta.',
 ];
