@@ -217,7 +217,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'escolha',
-          enunciado: 'Na eleição da pergunta anterior, os pontos são A 45, B 69, C 58 e D 38. Que conclusão é correta?',
+          enunciado: 'Numa eleição com 21 eleitores e quatro candidatos houve 8 boletins A > B > C > D, 6 boletins B > C > D > A, 5 boletins C > B > D > A e 2 boletins D > B > C > A. Os pontos de Borda são A 45, B 69, C 58 e D 38. Que conclusão é correta?',
           opcoes: [
             'A vence por maioria simples, mas B vence pelo método de Borda.',
             'A vence pelos dois métodos.',
@@ -332,7 +332,7 @@ Manual.registarTema('mat-a', {
       quiz: [
         {
           tipo: 'numerica',
-          enunciado: 'Numa junta de freguesia elegem-se 5 mandatos. A lista A teve 4200 votos, B 2700 e C 1500. Quantos mandatos tem A pelo método de Hondt?',
+          enunciado: 'Numa pequena assembleia de freguesia (exemplo simplificado) elegem-se 5 mandatos. A lista A teve 4200 votos, B 2700 e C 1500. Quantos mandatos tem A pelo método de Hondt?',
           resposta: 3,
           tolerancia: 0,
           resolucao: [
@@ -424,17 +424,17 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'texto',
-          texto: 'O trabalhador desconta **11 %** do salário bruto para a **Segurança Social** (a entidade empregadora também contribui). Além disso, todos os meses é retida uma parte para o IRS: a **retenção na fonte**, que se obtém aplicando a taxa da tabela a **todo** o salário bruto.',
+          texto: 'O trabalhador desconta **11 %** do salário bruto para a **Segurança Social** (a entidade empregadora também contribui). Além disso, todos os meses é retida uma parte para o IRS: a **retenção na fonte**. Na tabela ilustrativa abaixo, a taxa aplica-se a **todo** o salário bruto; nas tabelas oficiais há também uma parcela a abater, e as taxas dependem da situação familiar.',
         },
         {
           tipo: 'quadro',
           cabecalho: ['Salário bruto mensal (ilustrativo)', 'Taxa de retenção'],
           linhas: [
-            ['até 900 €', '0 %'],
-            ['de 900 € a 1200 €', '10 %'],
-            ['de 1200 € a 1800 €', '20 %'],
-            ['de 1800 € a 3000 €', '25 %'],
-            ['acima de 3000 €', '30 %'],
+            ['até 900 € (inclusive)', '0 %'],
+            ['mais de 900 € até 1200 €', '10 %'],
+            ['mais de 1200 € até 1800 €', '20 %'],
+            ['mais de 1800 € até 3000 €', '25 %'],
+            ['mais de 3000 €', '30 %'],
           ],
         },
         {
@@ -442,7 +442,7 @@ Manual.registarTema('mat-a', {
           enunciado: 'Com a tabela ilustrativa, calcula o salário líquido mensal correspondente a 1050 € brutos.',
           resolucao: [
             'Segurança Social: $1050 \\times 0{,}11 = 115{,}50$ €.',
-            '1050 € está no escalão de 900 € a 1200 €: taxa de 10 %. Retenção: $1050 \\times 0{,}10 = 105$ €.',
+            '1050 € está no escalão de mais de 900 € até 1200 €: taxa de 10 %. Retenção: $1050 \\times 0{,}10 = 105$ €.',
             'Líquido: $1050 - 115{,}50 - 105 = 829{,}50$ €.',
           ],
           resultado: 829.5,
@@ -460,11 +460,11 @@ Manual.registarTema('mat-a', {
           tipo: 'quadro',
           cabecalho: ['Rendimento coletável anual (ilustrativo)', 'Taxa'],
           linhas: [
-            ['até 8000 €', '13 %'],
-            ['de 8000 € a 20 000 €', '20 %'],
-            ['de 20 000 € a 40 000 €', '30 %'],
-            ['de 40 000 € a 80 000 €', '40 %'],
-            ['acima de 80 000 €', '48 %'],
+            ['até 8000 € (inclusive)', '13 %'],
+            ['mais de 8000 € até 20 000 €', '20 %'],
+            ['mais de 20 000 € até 40 000 €', '30 %'],
+            ['mais de 40 000 € até 80 000 €', '40 %'],
+            ['mais de 80 000 €', '48 %'],
           ],
         },
         {
@@ -494,7 +494,7 @@ Manual.registarTema('mat-a', {
       resumo: [
         'Líquido = bruto − Segurança Social (11 %) − retenção na fonte.',
         'Anual: 14 meses; por hora: $\\dfrac{R_m \\times 12}{52 \\times h}$.',
-        'Retenção na fonte: taxa da tabela aplicada a todo o bruto; é provisória.',
+        'Retenção na fonte: na tabela ilustrativa, taxa aplicada a todo o bruto (nas oficiais há parcela a abater); é provisória.',
         'IRS anual: taxas por escalões, cada uma só sobre a parte do rendimento no escalão.',
         'IRS progressivo: a taxa média cresce com o rendimento.',
         'Tabelas reais mudam todos os anos: consulta o Portal das Finanças.',
@@ -508,7 +508,7 @@ Manual.registarTema('mat-a', {
           unidade: '€',
           resolucao: [
             'Segurança Social: $1500 \\times 0{,}11 = 165$ €.',
-            '1500 € está no escalão de 1200 € a 1800 €: taxa de 20 %. Retenção: $1500 \\times 0{,}20 = 300$ €.',
+            '1500 € está no escalão de mais de 1200 € até 1800 €: taxa de 20 %. Retenção: $1500 \\times 0{,}20 = 300$ €.',
             'Líquido: $1500 - 165 - 300 = 1035$ €.',
           ],
           verificar: () => Manual.calc.cidadania.salario(1500).liquido,
