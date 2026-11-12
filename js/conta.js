@@ -25,6 +25,17 @@ globalThis.Manual = globalThis.Manual || {};
   function traduzir(causa) {
     if (causa && causa.codigo) return causa;
     const texto = String((causa && causa.message) || causa || '').toLowerCase();
+    const cod = String((causa && causa.code) || '').toLowerCase();
+    const estado = causa && causa.status;
+    if (estado === 429 || cod.includes('rate_limit') || texto.includes('rate limit') || texto.includes('too many requests')) {
+      return erro('demasiados_pedidos', causa);
+    }
+    if (cod === 'user_already_exists' || cod === 'email_exists' || texto.includes('already registered') || texto.includes('already been registered')) {
+      return erro('ja_registado', causa);
+    }
+    if (cod === 'weak_password' || texto.includes('weak password') || texto.includes('at least 6 characters') || texto.includes('password should be')) {
+      return erro('palavra_passe_fraca', causa);
+    }
     if (texto.includes('invalid login credentials')) return erro('credenciais', causa);
     if (texto.includes('email not confirmed')) return erro('email_por_confirmar', causa);
     if (texto.includes('codigo_invalido')) return erro('codigo_invalido', causa);
@@ -79,11 +90,13 @@ globalThis.Manual = globalThis.Manual || {};
     perfil = null;
     papel = null;
     if (!sessao || !sessao.user) return;
-    const meta = sessao.user.user_metadata || {};
+    const u = sessao.user; // capturado antes do await: sair() pode limpar a sessão entretanto
+    const meta = u.user_metadata || {};
     try {
       const linhas = await chamar(() =>
-        cliente.from('perfis').select('*').eq('id', sessao.user.id).limit(1)
+        cliente.from('perfis').select('*').eq('id', u.id).limit(1)
       );
+      if (!sessao || !sessao.user || sessao.user.id !== u.id) return;
       const p = Array.isArray(linhas) ? linhas[0] : null;
       if (p) {
         perfil = { id: p.id, nome: p.nome == null ? null : p.nome };
@@ -93,7 +106,8 @@ globalThis.Manual = globalThis.Manual || {};
     } catch (e) {
       // sem rede: usa os metadados do registo
     }
-    perfil = { id: sessao.user.id, nome: meta.nome == null ? null : meta.nome };
+    if (!sessao || !sessao.user || sessao.user.id !== u.id) return;
+    perfil = { id: u.id, nome: meta.nome == null ? null : meta.nome };
     papel = meta.papel || null;
   }
 
@@ -208,7 +222,15 @@ globalThis.Manual = globalThis.Manual || {};
   }
 
   async function sair() {
-    if (cliente) await chamar(() => cliente.auth.signOut());
+    // Limpa sempre o estado local; se o signOut falhar (offline) resolve na mesma,
+    // porque a sessão local já foi descartada.
+    if (cliente) {
+      try {
+        await cliente.auth.signOut();
+      } catch (e) {
+        // ignorado de propósito
+      }
+    }
     await definirSessao(null);
   }
 
@@ -228,6 +250,10 @@ globalThis.Manual = globalThis.Manual || {};
     const uid = sessao.user.id;
     const meus = lote.filter((i) => !i.aluna_id || i.aluna_id === uid);
     if (meus.length === 0) return [];
+    // Itens de visitante passam a ser desta conta; gravar já na fila impede reatribuição posterior.
+    meus.forEach((i) => {
+      if (!i.aluna_id) fila.atualizar(i.id, { aluna_id: uid });
+    });
     const linhas = meus.map((i) => Object.assign({}, i, { aluna_id: uid }));
     await chamar(() =>
       cliente.from('tentativas').upsert(linhas, { onConflict: 'id', ignoreDuplicates: true })

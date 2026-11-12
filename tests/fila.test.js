@@ -306,3 +306,13 @@ test('uuid sem randomUUID com bytes a zero: formato válido', () => {
     Object.defineProperty(globalThis, 'crypto', original);
   }
 });
+
+test('atualizar junta campos ao item e ignora ids desconhecidos', () => {
+  const arm = armazenamentoFalso();
+  const f = Manual.criarFila(arm);
+  f.juntar(item('a'));
+  f.atualizar('a', { aluna_id: 'u1', id: 'outro' });
+  f.atualizar('zz', { x: 1 });
+  assert.deepEqual(f.pendentes(), [{ id: 'a', tentativa: { enunciado: 'x' }, aluna_id: 'u1' }]);
+  assert.equal(Manual.criarFila(arm).pendentes()[0].aluna_id, 'u1');
+});

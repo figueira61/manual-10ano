@@ -99,6 +99,15 @@ globalThis.Manual = globalThis.Manual || {};
         guardar(ler().filter((i) => !conjunto.has(i.id)));
       },
 
+      // Junta `campos` ao item com este id (relê o armazenamento). Sem esse id, não faz nada.
+      atualizar: function (id, campos) {
+        const itens = ler();
+        const i = itens.findIndex((x) => x.id === id);
+        if (i === -1 || !ehObjeto(campos)) return;
+        itens[i] = Object.assign({}, itens[i], campos, { id: id });
+        guardar(itens);
+      },
+
       tamanho: function () {
         return ler().length;
       },

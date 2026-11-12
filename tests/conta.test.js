@@ -205,3 +205,60 @@ test('exportar agrega as quatro coleções; apagarConta chama o RPC', async () =
 test('carregar em Node sem window não lança', () => {
   assert.equal(typeof Manual.conta.iniciar, 'function');
 });
+
+test('importação: tentativa de visitante recebe o aluna_id ao entrar', async () => {
+  const f = falso();
+  const arm = memoria();
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.guardarTentativa(tentativa());
+  await Manual.conta.entrar('a@b.pt', 'x');
+  const up = f.chamadas.filter((c) => c[0] === 'upsert' && c[1] === 'tentativas');
+  assert.equal(up.length, 1);
+  assert.equal(up[0][2][0].aluna_id, 'u1');
+});
+
+test('item de outra conta nunca é enviado e fica na fila', async () => {
+  const f = falso();
+  const arm = memoria();
+  Manual.criarFila(arm).juntar({ id: 'x1', aluna_id: 'u2', disciplina: 'd' });
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(f.chamadas.filter((c) => c[0] === 'upsert').length, 0);
+  assert.deepEqual(await Manual.conta.sincronizar(), { enviados: 0, restantes: 1 });
+});
+
+test('atribuição persistida: envio falhado não permite reatribuir a outra conta', async () => {
+  const f = falso();
+  const arm = memoria();
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.guardarTentativa(tentativa());
+  f.falhaUpsert = true;
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(Manual.criarFila(arm).pendentes()[0].aluna_id, 'u1');
+});
+
+test('erros de autenticação: já registado, palavra-passe fraca, limite de pedidos', async () => {
+  const f = falso();
+  await Manual.conta.iniciar({ cliente: f, armazenamento: memoria() });
+  const casos = [
+    [{ message: 'User already registered' }, 'ja_registado'],
+    [{ code: 'user_already_exists', message: 'x' }, 'ja_registado'],
+    [{ message: 'Password should be at least 6 characters' }, 'palavra_passe_fraca'],
+    [{ code: 'weak_password', message: 'x' }, 'palavra_passe_fraca'],
+    [{ status: 429, message: 'x' }, 'demasiados_pedidos'],
+    [{ message: 'email rate limit exceeded' }, 'demasiados_pedidos'],
+  ];
+  for (const [e, codigo] of casos) {
+    f.auth.signUp = async () => ({ data: null, error: e });
+    await assert.rejects(Manual.conta.registar('a@b.pt', 'x', 'aluna', 'A'), { codigo });
+  }
+});
+
+test('sair limpa o estado mesmo que signOut falhe offline', async () => {
+  const f = falso();
+  await Manual.conta.iniciar({ cliente: f, armazenamento: memoria() });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  f.auth.signOut = async () => { throw new TypeError('Failed to fetch'); };
+  await Manual.conta.sair();
+  assert.equal(Manual.conta.estado().autenticado, false);
+});
