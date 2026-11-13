@@ -14,4 +14,4 @@ As alterações ao esquema estão em `supabase/migracoes/`, numeradas (`0001_…
 
 ## Pausa por inatividade
 
-O plano gratuito pausa a base de dados após ~1 semana sem atividade. O workflow `.github/workflows/manter-supabase.yml` chama a função `ping()` de 3 em 3 dias para o evitar. Se mesmo assim pausar: painel do Supabase → projeto → **Restore**.
+O plano gratuito pausa a base de dados após ~1 semana sem atividade. O workflow `.github/workflows/manter-supabase.yml` chama a função `ping()` todos os dias para o evitar. Se mesmo assim pausar: painel do Supabase → projeto → **Restore**.

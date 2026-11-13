@@ -18,7 +18,7 @@ Requisitos transversais (inegociáveis):
 1. **Correção garantida** — todo o exercício apresentado é gerado e verificado por código (secção 6); nenhum é publicado sem passar a verificação.
 2. **Resoluções pedagógicas** — cada passo diz o que se faz, porquê e o cálculo com valores intermédios; termina com verificação.
 3. **Transversal a todas as disciplinas** — motor, contrato de gerador e páginas são comuns; cada disciplina fornece geradores ou bancos.
-4. **Base de dados nunca pausa por inatividade** — pedido automático de 3 em 3 dias (secção 4.5).
+4. **Base de dados nunca pausa por inatividade** — pedido automático diário (secção 4.5).
 
 ## 2. Âmbito e decomposição
 
@@ -49,7 +49,7 @@ Fora do âmbito: conteúdos das outras disciplinas (fases próprias, que reutili
 ## 4. Bloco 2A — Contas, dados e manutenção
 
 ### 4.1 Papéis
-- **Aluna:** cria conta e estuda. Idade de consentimento digital em Portugal: 13 anos (Lei n.º 58/2019, art. 16.º) — a aluna (15 anos) pode criar conta; o manual pede-lhe que ligue o encarregado.
+- **Aluna:** cria conta e estuda. Idade de consentimento digital em Portugal: 13 anos (Lei n.º 58/2019, art. 16.º) — a aluna pode criar conta; o manual pede-lhe que ligue o encarregado.
 - **Encarregado:** conta própria, **só leitura** do progresso das alunas ligadas.
 - **Administração (Claude):** acesso via conector Supabase, usado apenas a pedido do utilizador (análise, manutenção, migrações).
 
@@ -78,7 +78,7 @@ Fora do âmbito: conteúdos das outras disciplinas (fases próprias, que reutili
 
 ### 4.5 Manutenção anti-pausa (obrigatória)
 - Função SQL `public.ping()` (`select now()`), executável por `anon`.
-- Workflow `.github/workflows/manter-supabase.yml`: `on: schedule: - cron: "0 6 */3 * *"` e `workflow_dispatch`; faz `POST {SUPABASE_URL}/rest/v1/rpc/ping` com a chave pública (secrets do repositório `SUPABASE_URL`, `SUPABASE_ANON_KEY`); falha (exit ≠ 0) se a resposta não for 200 → o GitHub notifica por email o dono do repositório.
+- Workflow `.github/workflows/manter-supabase.yml`: `on: schedule: - cron: "0 6 * * *"` (diário) e `workflow_dispatch`; faz `POST {SUPABASE_URL}/rest/v1/rpc/ping` com a chave pública (secrets do repositório `SUPABASE_URL`, `SUPABASE_ANON_KEY`); falha (exit ≠ 0) se a resposta não for 200 → o GitHub notifica por email o dono do repositório.
 - Verificação na implementação: execução manual (`workflow_dispatch`) com resposta 200 registada.
 
 ### 4.6 Alojamento
@@ -189,6 +189,6 @@ Corre em `npm test` e num passo de verificação obrigatório antes de publicar.
 
 ## 9. Riscos e decisões
 
-- **Inatividade do Supabase (plano gratuito):** mitigada pelo workflow de 3 em 3 dias; se mesmo assim for problema, migração para Firebase reescrevendo `js/conta.js` (+ migração de dados), mantendo GitHub Pages.
+- **Inatividade do Supabase (plano gratuito):** mitigada pelo workflow diário; se mesmo assim for problema, migração para Firebase reescrevendo `js/conta.js` (+ migração de dados), mantendo GitHub Pages.
 - **Chave pública no site:** é a chave `anon` do Supabase, pública por desenho; a proteção é feita por RLS. Nenhuma chave de serviço no cliente nem no repositório.
 - **Dados de menor:** dados mínimos, RLS, exportar/apagar, página de privacidade; acesso de administração só a pedido do utilizador.

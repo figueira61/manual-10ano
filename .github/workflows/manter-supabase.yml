@@ -1,14 +1,16 @@
 name: Manter Supabase ativo
 on:
   schedule:
-    - cron: "0 6 */3 * *"
+    - cron: "0 6 * * *"
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
 jobs:
   ping:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - name: Chamar ping()
         env:
@@ -22,6 +24,13 @@ jobs:
             -H "Content-Type: application/json" -d '{}')
           echo "HTTP $codigo: $(cat resposta.txt)"
           test "$codigo" = "200"
+  manter-ativo:
+    needs: ping
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
