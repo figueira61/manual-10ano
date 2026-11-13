@@ -29,7 +29,7 @@ function defSoma(extra = {}) {
         { codigo: 'multiplicou', valor: a * b === s ? s + 200 : a * b, explicacao: 'Multiplicaste em vez de somar.' },
         { codigo: 'mais_um', valor: s + 1, explicacao: 'Contaste uma unidade a mais.' },
         { codigo: 'menos_um', valor: s - 1, explicacao: 'Contaste uma unidade a menos.' },
-      ];
+      ].filter((x, i, l) => l.findIndex((y) => y.valor === x.valor) === i);
       const ex = {
         enunciado: 'Calcula $' + a + ' + ' + b + '$.',
         resolucao: [{ passo: 'Somar', porque: 'Juntam-se as duas parcelas.', calculo: a + ' + ' + b + ' = ' + s }],
@@ -180,7 +180,7 @@ test('regra 3: opções repetidas, erro típico igual à resposta ou opção sem
     if (o.formato === 'numerica') ex.errosTipicos = [...ex.errosTipicos, { codigo: 'igual', valor: ex.resposta, explicacao: 'x' }];
     else {
       ex.opcoes = ex.opcoes.slice();
-      const errada = ex.correta === 0 ? 1 : 0;
+      const errada = (ex.correta + 2) % 4; // não é a opção usada pela mutação da regra 1
       ex.opcoes[errada] = ex.opcoes[ex.correta];
     }
     return ex;
@@ -291,8 +291,7 @@ test('escolhaDeErros: 4 opções distintas, a certa no índice registado, erros 
       assert.ok(!('texto' in e));
     }
   }
-  const poucas = A.escolhaDeErros(M.aleatorio.criar(1), '5', [{ codigo: 'a', texto: '5', explicacao: 'a' }]);
-  assert.equal(poucas.opcoes.length, 1);
+  assert.throws(() => A.escolhaDeErros(M.aleatorio.criar(1), '5', [{ codigo: 'a', texto: '5', explicacao: 'a' }]), /escolhaDeErros/);
 });
 
 test('vfDe, entre, diferenteDe e fmt', () => {
@@ -322,4 +321,151 @@ test('vfDe, entre, diferenteDe e fmt', () => {
   assert.equal(A.fmt(1 / 3, 2), '0,33');
   assert.equal(A.fmt(12.5, 2), '12,5');
   assert.equal(A.fmt(-0.001, 2), '0');
+});
+
+// ——— Ronda de correções 1: harness mais exigente ———
+
+function comAlteracao(def, alterar) {
+  const gerar = def.gerar;
+  def.gerar = function (s, o) {
+    const ex = gerar(s, o);
+    alterar(ex, o);
+    return ex;
+  };
+  return def;
+}
+
+test('tex: números para LaTeX ({,} decimal, \\, milhares, menos ASCII)', () => {
+  const A = G.ajudas;
+  assert.equal(A.tex(12345.5), '12\\,345{,}5');
+  assert.equal(A.tex(-1.5), '-1{,}5');
+  assert.equal(A.tex(1234), '1234');
+  assert.equal(A.tex(1234567), '1\\,234\\,567');
+  assert.equal(A.tex(100, 0), '100');
+  assert.equal(A.tex(1 / 3, 2), '0{,}33');
+  assert.equal(A.tex(-0.001, 2), '0');
+});
+
+test('regra 4: vírgula decimal sem {,} e espaços não ASCII dentro de fórmulas', () => {
+  const virgula = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.enunciado = 'Calcula $2,5 + ' + ex.dados.a + '$.'; });
+  assert.deepEqual(regras(verificar(virgula, { sementes: 10 })), ['4']);
+  const nbsp = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].calculo = '12 345 + ' + ex.dados.a; });
+  assert.deepEqual(regras(verificar(nbsp, { sementes: 10 })), ['4']);
+  const estreito = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.verificacao.calculo = '12 345'; });
+  assert.deepEqual(regras(verificar(estreito, { sementes: 10 })), ['4']);
+  // fora das fórmulas, a vírgula decimal é a norma
+  const texto = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.enunciado += ' (2,5 não entra.)'; });
+  assert.deepEqual(verificar(texto, { sementes: 10 }), []);
+});
+
+test('regra 4: + +, − +, −0 isolado, ∞ e Infinity', () => {
+  for (const mau of ['x + +2', 'x − +2', 'vale −0.', 'tende para ∞', 'é Infinity']) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Aqui ' + mau; });
+    assert.deepEqual(regras(verificar(d, { sementes: 5 })), ['4'], mau);
+  }
+  const bom = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Vale −0,5 e $x \\to +\\infty$; 10 − 3.'; });
+  assert.deepEqual(verificar(bom, { sementes: 5 }), []);
+});
+
+test('regra 1: verificarIndependente que aceita tudo falha a mutação', () => {
+  for (const def of [defSoma({ verificarIndependente: () => true }), defVf({ verificarIndependente: () => true })]) {
+    const e = verificar(def, { sementes: 20 });
+    assert.deepEqual(regras(e), ['1']);
+    assert.ok(e.some((x) => /mutação/.test(x)));
+  }
+});
+
+test('verificarIndependente e limites recebem cópias (não alteram a pergunta)', () => {
+  const def = defSoma();
+  const vi = def.verificarIndependente;
+  def.verificarIndependente = (p) => { const r = vi(p); p.enunciado = 'NaN'; p.resposta = 0; return r; };
+  def.limites = (p) => { p.opcoes = ['NaN']; return true; };
+  assert.deepEqual(verificar(def, { sementes: 20 }), []);
+});
+
+test('chave canónica: opções iguais escritas de formas diferentes', () => {
+  const A = G.ajudas;
+  const k = A.chave('$-1{,}5$');
+  for (const t of ['−1,5', '-1.5', ' −1,50 ', '$-1{,}50$']) assert.equal(A.chave(t), k, t);
+  assert.notEqual(A.chave('1,5'), k);
+  assert.equal(A.chave('$12\\,345$'), A.chave('12345'));
+  assert.notEqual(A.chave('x + 1'), A.chave('x − 1'));
+  assert.throws(() => A.escolhaDeErros(M.aleatorio.criar(1), '−3', [
+    { codigo: 'a', texto: '$-3$', explicacao: 'a' }, { codigo: 'b', texto: '4', explicacao: 'b' }, { codigo: 'c', texto: '5', explicacao: 'c' },
+  ]), /escolhaDeErros/);
+  const mau = comAlteracao(defSoma({ formatos: ['escolha'] }), (ex) => {
+    const i = (ex.correta + 2) % 4;
+    ex.opcoes[i] = '$' + ex.opcoes[ex.correta].replace('−', '-') + '{,}0$';
+  });
+  assert.deepEqual(regras(verificar(mau, { sementes: 10 })), ['3']);
+});
+
+test('regra 3: número de opções = def.nOpcoes || 4', () => {
+  const tres = defSoma({ formatos: ['escolha'] });
+  tres.gerar = function (s, o) {
+    const ex = defSoma().gerar(s, { ...o, formato: 'numerica' });
+    const A = G.ajudas;
+    const e = A.escolhaDeErros(o.rng, A.fmt(ex.resposta), ex.errosTipicos.map((x) => ({ ...x, texto: A.fmt(x.valor) })), 3);
+    delete ex.resposta; delete ex.tolerancia;
+    return { ...ex, ...e, verificacao: { ...ex.verificacao, valor: e.correta } };
+  };
+  assert.deepEqual(regras(verificar(tres, { sementes: 20 })), ['3']);
+  assert.deepEqual(verificar({ ...tres, nOpcoes: 3 }, { sementes: 20 }), []);
+});
+
+test('regra 3: numérica sem erros típicos ou com dois erros do mesmo valor', () => {
+  const sem = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.errosTipicos = []; });
+  assert.deepEqual(regras(verificar(sem, { sementes: 5 })), ['3']);
+  const iguais = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => {
+    ex.errosTipicos = [...ex.errosTipicos, { ...ex.errosTipicos[0], codigo: 'outro' }];
+  });
+  assert.deepEqual(regras(verificar(iguais, { sementes: 5 })), ['3']);
+});
+
+test('regra 3: vf falsa sem erro típico, ou sempre a mesma resposta', () => {
+  const semErro = comAlteracao(defVf(), (ex) => { ex.errosTipicos = []; });
+  assert.deepEqual(regras(verificar(semErro, { sementes: 50 })), ['3']);
+  const sempre = defVf();
+  sempre.gerar = function (s, o) {
+    const n = 2 * G.ajudas.entre(o.rng, 1, 30);
+    return {
+      enunciado: 'O número ' + n + ' é par.', correta: true, errosTipicos: [],
+      resolucao: [{ passo: 'Dividir por 2', porque: 'O resto é 0.' }],
+      verificacao: { passo: 'Resto', calculo: n + ' \\bmod 2 = 0', valor: true },
+      dados: { n },
+    };
+  };
+  const e = verificar(sempre, { sementes: 50 });
+  assert.deepEqual(regras(e), ['3']);
+  assert.ok(e.some((x) => /sempre true/.test(x)));
+  // com poucas sementes não se exige a distribuição
+  assert.deepEqual(verificar(sempre, { sementes: 5 }), []);
+});
+
+test('niveis: o harness verifica cada nível declarado (por omissão só o 2)', () => {
+  const porNivel = () => comAlteracao(defSoma({ formatos: ['numerica'] }), (ex, o) => { if (o.nivel === 0) ex.enunciado = 'undefined'; });
+  assert.deepEqual(verificar(porNivel(), { sementes: 5 }), []);
+  const e = verificar({ ...porNivel(), niveis: [0, 2] }, { sementes: 5 });
+  assert.deepEqual(regras(e), ['4']);
+  assert.ok(e.every((x) => /nivel 0/.test(x)));
+});
+
+test('registar valida disciplina/subtema/tipo/nome, niveis e nOpcoes; ids especiais não colidem', () => {
+  for (const campo of ['disciplina', 'subtema', 'tipo', 'nome']) {
+    assert.throws(() => G.registar({ ...defSoma(), id: 'x-' + campo, [campo]: '' }), new RegExp(campo));
+  }
+  assert.throws(() => G.registar({ ...defSoma(), id: 'x-niveis', niveis: [3] }), /niveis/);
+  assert.throws(() => G.registar({ ...defSoma(), id: 'x-nopcoes', nOpcoes: 1 }), /nOpcoes/);
+  assert.equal(G.obter('toString'), undefined);
+  G.registar({ ...defSoma(), id: 'constructor' });
+  assert.equal(G.obter('constructor').id, 'constructor');
+});
+
+test('CLI: --min N falha quando há menos geradores', () => {
+  const { spawnSync } = require('node:child_process');
+  const correr = (...args) => spawnSync(process.execPath, [CAMINHO_HARNESS, '--sementes', '1', ...args], { encoding: 'utf8' });
+  assert.equal(correr().status, 0);
+  const r = correr('--min', '100000');
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /pelo menos 100000/);
 });

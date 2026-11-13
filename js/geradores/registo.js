@@ -4,16 +4,27 @@ globalThis.Manual = globalThis.Manual || {};
 Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
   const FORMATOS = ['numerica', 'escolha', 'vf'];
   const defs = [];
-  const porId = {};
+  const porId = Object.create(null);
+  const textoValido = (v) => typeof v === 'string' && v.trim() !== '';
 
+  // def.niveis (opcional, subconjunto de [0, 1, 2]): o harness verifica cada nível declarado; sem niveis, só o 2.
   function registar(def) {
-    if (!def || typeof def.id !== 'string' || def.id === '') throw new Error('gerador sem id');
+    if (!def || !textoValido(def.id)) throw new Error('gerador sem id');
     if (porId[def.id]) throw new Error('gerador com id repetido: ' + def.id);
+    for (const f of ['disciplina', 'subtema', 'tipo', 'nome']) {
+      if (!textoValido(def[f])) throw new Error('gerador ' + def.id + ' sem ' + f);
+    }
     for (const f of ['gerar', 'verificarIndependente', 'limites']) {
       if (typeof def[f] !== 'function') throw new Error('gerador ' + def.id + ' sem ' + f);
     }
     if (!Array.isArray(def.formatos) || def.formatos.length === 0 || def.formatos.some((f) => !FORMATOS.includes(f))) {
       throw new Error('gerador ' + def.id + ' com formatos inválidos (use ' + FORMATOS.join('/') + ')');
+    }
+    if (def.niveis !== undefined && (!Array.isArray(def.niveis) || def.niveis.length === 0 || def.niveis.some((n) => ![0, 1, 2].includes(n)))) {
+      throw new Error('gerador ' + def.id + ' com niveis inválidos (subconjunto de 0, 1, 2)');
+    }
+    if (def.nOpcoes !== undefined && !(Number.isInteger(def.nOpcoes) && def.nOpcoes >= 2)) {
+      throw new Error('gerador ' + def.id + ' com nOpcoes inválido');
     }
     defs.push(def);
     porId[def.id] = def;
@@ -30,6 +41,10 @@ Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
 
   function doSubtema(disciplina, subtema) {
     return defs.filter((d) => d.disciplina === disciplina && d.subtema === subtema);
+  }
+
+  function niveisDe(def) {
+    return Array.isArray(def.niveis) && def.niveis.length ? def.niveis : [2];
   }
 
   function contextosDe(def) {
@@ -78,5 +93,5 @@ Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
     return gerarDe(def, semente, opcoes);
   }
 
-  return { FORMATOS, registar, obter, todos, doSubtema, contextosDe, gerarDe, gerar };
+  return { FORMATOS, registar, obter, todos, doSubtema, contextosDe, niveisDe, gerarDe, gerar };
 })());

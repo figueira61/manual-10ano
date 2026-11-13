@@ -5,13 +5,36 @@ Manual.geradores = Manual.geradores || {};
 Manual.geradores.ajudas = (function () {
   const arred = (v) => Math.round(v * 1e9) / 1e9 + 0;
   const igual = (a, b) => (typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) < 1e-9 : a === b);
-  const normalizar = (t) => String(t).replace(/\s+/g, ' ').trim();
 
   // Número formatado para texto (vírgula decimal, menos tipográfico). Sem casas: Manual.formatar.num (até 3).
   function fmt(n, casas) {
     if (casas === undefined) return Manual.formatar.num(n);
     const f = Math.pow(10, casas);
     return (arred(Math.round(n * f) / f) + 0).toLocaleString('pt-PT', { maximumFractionDigits: casas }).replace(/-/g, '−');
+  }
+
+  // Número para dentro de uma fórmula LaTeX: menos "-", decimal "{,}", milhares "\," (como o pt-PT: a partir de 5 algarismos).
+  function tex(n, casas = 3) {
+    const f = Math.pow(10, casas);
+    const v = arred(Math.round(n * f) / f) + 0;
+    const [inteira, resto] = Math.abs(v).toFixed(casas).split('.');
+    const decimal = (resto || '').replace(/0+$/, '');
+    const agrupada = inteira.length >= 5 ? inteira.replace(/\B(?=(\d{3})+$)/g, '\\,') : inteira;
+    return (v < 0 ? '-' : '') + agrupada + (decimal ? '{,}' + decimal : '');
+  }
+
+  // Chave canónica de uma opção, para detetar opções iguais escritas de formas diferentes
+  // ("$-1{,}5$", "−1,5", "-1.5" → mesmo número).
+  function chave(texto) {
+    const t = String(texto)
+      .replace(/\$/g, '')
+      .replace(/\\,/g, '')
+      .replace(/\{,\}/g, ',')
+      .replace(/\s+/g, '')
+      .replace(/−/g, '-')
+      .replace(/\./g, ',');
+    if (/^[-+]?\d+(,\d+)?$/.test(t)) return 'n:' + arred(Number(t.replace(',', '.')));
+    return 't:' + t;
   }
 
   // Valor em {min, min + passo, …} ≤ max, uniforme.
@@ -29,18 +52,21 @@ Manual.geradores.ajudas = (function () {
     throw new Error('diferenteDe: sem valor permitido após 1000 tentativas');
   }
 
-  // Escolha múltipla: certa (texto) + até n − 1 distratores, um por erro típico ({ codigo, texto, explicacao, valor? }),
-  // pela ordem dada, descartando os que repetem a certa ou outro distrator. Se faltarem distratores devolve menos
-  // opções: o gerador deve re-sortear.
+  // Escolha múltipla: certa (texto) + n − 1 distratores, um por erro típico ({ codigo, texto, explicacao, valor? }),
+  // pela ordem dada, descartando os que repetem (chave canónica) a certa ou outro distrator.
+  // Lança se não houver n opções distintas: o gerador deve dar distratores suficientes ou re-sortear.
   function escolhaDeErros(rng, certa, errosTipicos, n = 4) {
-    const vistos = [normalizar(certa)];
+    const vistos = [chave(certa)];
     const escolhidos = [];
     for (const e of errosTipicos) {
       if (escolhidos.length >= n - 1) break;
-      const t = normalizar(e.texto);
-      if (vistos.includes(t)) continue;
-      vistos.push(t);
+      const k = chave(e.texto);
+      if (vistos.includes(k)) continue;
+      vistos.push(k);
       escolhidos.push(e);
+    }
+    if (escolhidos.length < n - 1) {
+      throw new Error('escolhaDeErros: só ' + (escolhidos.length + 1) + ' opções distintas de ' + n);
     }
     const itens = Manual.aleatorio.baralhar(rng, [{ certa: true, texto: certa }].concat(escolhidos.map((e) => ({ erro: e, texto: e.texto }))));
     const opcoes = itens.map((i) => i.texto);
@@ -63,5 +89,5 @@ Manual.geradores.ajudas = (function () {
       : { enunciado: afirmacaoFalsa, correta: false, errosTipicos: [erroFalsa] };
   }
 
-  return { fmt, entre, diferenteDe, escolhaDeErros, vfDe };
+  return { fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe };
 })();
