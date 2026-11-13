@@ -396,6 +396,21 @@ test('regra 4: barras invertidas perdidas (caracteres de controlo e comandos LaT
   assert.deepEqual(verificar(bom, { sementes: 5 }), []);
 });
 
+test('regra 4: \\n perdido (mudança de linha numa fórmula ou antes do resto de um comando)', () => {
+  // Como sairiam '\neq', '\nabla' e '\nu' numa string JS de aspas simples.
+  const maus = [['porque', 'Fica $x \neq 2$.'], ['calculo', 'x \nabla y'], ['porque', 'Fora de fórmula,\nu é uma letra.'], ['calculo', '2 +\n3']];
+  for (const [campo, t] of maus) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => {
+      if (campo === 'porque') ex.resolucao[0].porque = t;
+      else ex.resolucao[0].calculo = t;
+    });
+    assert.deepEqual(regras(verificar(d, { sementes: 5 })), ['4'], JSON.stringify(t));
+  }
+  // Uma mudança de linha em texto corrido, fora de fórmulas, continua permitida.
+  const bom = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Primeira linha.\nSegunda linha com $x \\neq 2$.'; });
+  assert.deepEqual(verificar(bom, { sementes: 5 }), []);
+});
+
 test('regra 4: coeficiente 1 escrito numa fórmula', () => {
   for (const mau of ['$1x + 3 = 0$', '$y = -1x^2$', '$2 + 1t$']) {
     const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Fica ' + mau; });

@@ -287,6 +287,37 @@ test('coeficiente 1 omitido, sem divisões por 1 e sem igualdades repetidas («A
   }
 });
 
+test('explicações de erro descrevem a conta que dá o valor da opção', () => {
+  // dividiu_ao_contrario: «dividiste $p$ por $q$» com p/q igual ao valor da opção.
+  for (const id of ['afim-zero', 'quadratica-zeros']) {
+    let n = 0;
+    for (const p of amostras(id, 80).filter((q) => q.formato === 'escolha')) {
+      const e = erro(p, 'dividiu_ao_contrario');
+      if (!e) continue;
+      const m = e.explicacao.match(/dividiste \$([^$]+)\$ por \$([^$]+)\$/);
+      assert.ok(m, e.explicacao);
+      const v = lerNumero('$' + m[1] + '$') / lerNumero('$' + m[2] + '$');
+      const opcao = id === 'afim-zero' ? [lerNumero(p.opcoes[e.opcao])] : lerConjunto(p.opcoes[e.opcao]).filter((x) => x !== 0);
+      assert.ok(proximo(v, opcao[0]), e.explicacao + ' vs ' + p.opcoes[e.opcao]);
+      n++;
+    }
+    assert.ok(n > 5, id + ': ' + n);
+  }
+  // sinal_de_x_esquecido e ordem_das_operacoes: «obtiveste … = v» / sem coeficiente ±1.
+  let n = 0;
+  for (const p of amostras('ramos-modulo-avaliar-ramos', 80).filter((q) => q.formato === 'escolha' && q.dados.contexto === 'abstrato')) {
+    const e = erro(p, 'sinal_de_x_esquecido');
+    if (e) {
+      const m = e.explicacao.match(/obtiveste \$[^$]*= (-?\d+)\$/);
+      assert.ok(m, e.explicacao);
+      assert.equal(Number(m[1]), lerNumero(p.opcoes[e.opcao]));
+      n++;
+    }
+    if (erro(p, 'ordem_das_operacoes')) assert.ok(Math.abs(p.dados.m) !== 1);
+  }
+  assert.ok(n > 3, 'sinal_de_x_esquecido: ' + n);
+});
+
 test('número de soluções escrito por extenso', () => {
   for (const p of amostras('equacoes-inequacoes-numero-solucoes', 30)) {
     const t = textosDoItem(p).join(' ');

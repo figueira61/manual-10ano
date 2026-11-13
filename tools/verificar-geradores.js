@@ -17,6 +17,9 @@ const ESPACO_NAO_ASCII = /(?![ \t\n\r\f\v])\s/;
 // e comandos LaTeX sem a barra. As palavras só contam isoladas (não precedidas de \ nem de letra), para que
 // palavras portuguesas (p. ex. «legenda», «texto», «quadro») não disparem.
 const CONTROLO = /[\t\r\f\v\b]/;
+// '\neq', '\nabla', '\nu', '\not', '\neg', '\newline' perdidos numa string JS: mudança de linha seguida do resto do comando.
+// (Dentro de $…$ qualquer mudança de linha conta; ver regra4.)
+const NOVA_LINHA_PERDIDA = /\n(?:eq|abla|ot|eg|ewline|ewcommand|u)(?![A-Za-zÀ-ÖØ-öø-ÿ])/;
 // Coeficiente 1 escrito numa fórmula ("1x", "-1x^2"): escreve-se x, -x, x^2.
 const COEFICIENTE_UM = /(?<![\d,.{}A-Za-z_\\])1[a-z](?![A-Za-z])/;
 const LETRA = 'A-Za-zÀ-ÖØ-öø-ÿ';
@@ -151,6 +154,7 @@ function regra4(p, katex) {
     if (typeof texto !== 'string') { e.push(rotulo + ' não é texto'); continue; }
     const m = texto.match(PROIBIDO);
     if (m) e.push(rotulo + ' contém "' + m[0] + '": ' + texto);
+    if (NOVA_LINHA_PERDIDA.test(texto)) e.push(rotulo + ' contém uma mudança de linha seguida de um comando LaTeX (barra invertida perdida em \\n…?): ' + JSON.stringify(texto));
     if (CONTROLO.test(texto)) e.push(rotulo + ' contém um carácter de controlo (barra invertida perdida?): ' + JSON.stringify(texto));
     const sb = texto.match(COMANDO_SEM_BARRA);
     if (sb) e.push(rotulo + ' contém o comando LaTeX "' + sb[0] + '" sem a barra invertida: ' + texto);
@@ -162,6 +166,7 @@ function regra4(p, katex) {
       formulas = x.formulas;
     }
     for (const f of formulas) {
+      if (/\n/.test(f)) e.push(rotulo + ' com mudança de linha dentro de uma fórmula (barra invertida perdida em \\n…?): ' + JSON.stringify(f));
       if (COEFICIENTE_UM.test(f)) e.push(rotulo + ' com coeficiente 1 escrito (escreve-se x, não 1x): ' + f);
       if (VIRGULA_TEX.test(f)) e.push(rotulo + ' com vírgula decimal sem {,} (usa ajudas.tex): ' + f);
       if (ESPACO_NAO_ASCII.test(f)) e.push(rotulo + ' com espaço não ASCII numa fórmula (usa ajudas.tex): ' + JSON.stringify(f));
