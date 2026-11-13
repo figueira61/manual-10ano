@@ -56,7 +56,11 @@ globalThis.Manual = globalThis.Manual || {};
     });
   }
 
+  let desligarSelos = [];
+
   function limparVista() {
+    desligarSelos.forEach(function (d) { d(); });
+    desligarSelos = [];
     if (vistaAtual && typeof vistaAtual.destruir === 'function') vistaAtual.destruir();
     vistaAtual = null;
     principal.textContent = '';
@@ -152,6 +156,9 @@ globalThis.Manual = globalThis.Manual || {};
       const li = document.createElement('li');
       const a = ligacao(hashDe('subtema', { disciplina: d.id, tema: tema.id, subtema: s.id }), '');
       a.appendChild(criar('span', 'subtema-titulo', s.titulo));
+      const suporteEstado = criar('span', 'suporte-estado');
+      desligarSelos.push(R.ligarSeloEstado(suporteEstado, chaveSubtema(d.id, tema.id, s.id)));
+      a.appendChild(suporteEstado);
       a.appendChild(selo(chaveSubtema(d.id, tema.id, s.id)));
       li.appendChild(a);
       ul.appendChild(li);
@@ -406,9 +413,20 @@ globalThis.Manual = globalThis.Manual || {};
     principal.focus({ preventScroll: true });
   }
 
+  function armazenamentoLocal() {
+    try {
+      return globalThis.localStorage || null;
+    } catch (erro) {
+      return null;
+    }
+  }
+
   function arrancar() {
     construirLateral();
     Manual.conta.iniciar().catch(function () {});
+    Manual.motor = Manual.criarMotor({ conta: Manual.conta, armazenamento: armazenamentoLocal() });
+    Manual.motor.carregar();
+    Manual.conta.aoMudar(function () { Manual.motor.carregar(); });
     Manual.vistasConta.montarTopo(document.getElementById('zona-conta'));
     Manual.tema.ligar(document.getElementById('botao-tema'));
 

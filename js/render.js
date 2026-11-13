@@ -215,7 +215,37 @@ globalThis.Manual = globalThis.Manual || {};
     return sessaoId;
   }
 
+  const ROTULOS_ESTADO = {
+    domina: 'Domina',
+    dificuldade: 'Com dificuldade',
+    nao_resolvido: 'Não conseguiu resolver',
+  };
+
+  // Selo de estado de um subtema (texto + cor); null quando não há estado.
+  function seloEstado(estado) {
+    const rotulo = ROTULOS_ESTADO[estado];
+    if (!rotulo) return null;
+    const el = criar('span', 'selo-estado e-' + estado, rotulo);
+    el.setAttribute('aria-label', 'Estado: ' + rotulo);
+    return el;
+  }
+
+  // Mantém dentro de `suporte` o selo do estado de `chave`, atualizado por Manual.motor.aoMudar.
+  // Devolve a função que desliga a atualização.
+  function ligarSeloEstado(suporte, chave) {
+    function desenhar() {
+      suporte.textContent = '';
+      const e = Manual.motor && Manual.motor.estadoDe(chave);
+      const s = seloEstado(e && e.estado);
+      if (s) suporte.appendChild(s);
+    }
+    desenhar();
+    return Manual.motor ? Manual.motor.aoMudar(desenhar) : function () {};
+  }
+
   Manual.render = {
+    seloEstado: seloEstado,
+    ligarSeloEstado: ligarSeloEstado,
     criar: criar,
     texto: texto,
     paragrafo: paragrafo,
@@ -251,6 +281,9 @@ globalThis.Manual = globalThis.Manual || {};
       if (simbolo) etiqueta.appendChild(simbolo);
       etiqueta.appendChild(criar('span', '', 'AE ' + (disciplina ? disciplina.nome : disciplinaId) + ' 10.º · ' + tituloTema));
       meta.appendChild(etiqueta);
+      const suporteEstado = criar('span', 'suporte-estado');
+      const desligarEstado = ligarSeloEstado(suporteEstado, chave);
+      meta.appendChild(suporteEstado);
       meta.appendChild(criar('span', 'minutos', '~' + subtema.minutos + ' min'));
       cab.appendChild(meta);
       artigo.appendChild(cab);
@@ -288,6 +321,7 @@ globalThis.Manual = globalThis.Manual || {};
         const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
         const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico);
         Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});
+        if (Manual.motor) Manual.motor.registar(tentativa);
       });
 
       const nav = criar('nav', 'nav-subtemas');
@@ -308,6 +342,7 @@ globalThis.Manual = globalThis.Manual || {};
       return {
         destruir: function () {
           estado.destruido = true;
+          desligarEstado();
           montados.forEach(function (m) {
             if (m && typeof m.destruir === 'function') {
               try {

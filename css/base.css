@@ -405,6 +405,17 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .lista-subtemas li a:hover { border-color: color-mix(in srgb, var(--d, var(--destaque)) 45%, transparent); box-shadow: var(--sombra); }
+.selo-estado {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 14%, var(--fundo));
+  border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+}
+.selo-estado.e-domina { --c: var(--certo); }
+.selo-estado.e-dificuldade { --c: var(--cor-5); }
+.selo-estado.e-nao_resolvido { --c: var(--errado); }
+.suporte-estado:empty { display: none; }
 .selo { display: inline-flex; gap: 8px; color: var(--texto-suave); font-size: 0.9rem; }
 .selo .lido { color: var(--certo); font-weight: 700; }
 
