@@ -36,59 +36,9 @@ globalThis.Manual = globalThis.Manual || {};
     G.registar(Object.assign({ disciplina: 'mat-a', tema: 'estatistica', id: def.subtema + '-' + def.tipo }, def));
   }
 
-  // Repete construir() até devolver um exercício (null = re-sortear; escolhaDeErros sem opções também re-sorteia).
-  function tentar(construir) {
-    for (let i = 0; i < 500; i++) {
-      try {
-        const r = construir();
-        if (r) return r;
-      } catch (err) {
-        if (!/^escolhaDeErros/.test(err.message)) throw err;
-      }
-    }
-    throw new Error('estatística: sem parâmetros válidos ao fim de 500 tentativas');
-  }
-
-  // Erros numéricos utilizáveis: valor finito, fora da tolerância da resposta e distinto dos anteriores.
-  function filtrarErros(resposta, tol, lista) {
-    const r = [];
-    for (const e of lista) {
-      if (!e || typeof e.valor !== 'number' || !Number.isFinite(e.valor)) continue;
-      if (Math.abs(e.valor - resposta) <= tol + 1e-9) continue;
-      if (r.some((x) => Math.abs(x.valor - e.valor) <= tol + 1e-9)) continue;
-      r.push(e);
-    }
-    return r;
-  }
-
-  // Fecha um exercício numérico ou de escolha múltipla.
-  // o: { resposta, tolerancia, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
-  function fechar(rng, formato, ex, o) {
-    const erros = filtrarErros(o.resposta, o.tolerancia, o.erros);
-    if (formato === 'numerica') {
-      if (!erros.length) return null;
-      Object.assign(ex, { resposta: o.resposta, tolerancia: o.tolerancia, errosTipicos: erros, verificacao: o.verificacao });
-      if (o.unidade) ex.unidade = o.unidade;
-    } else {
-      const e = A.escolhaDeErros(rng, o.texto(o.resposta), erros.map((x) => Object.assign({}, x, { texto: o.texto(x.valor) })));
-      const alvo = A.chave(o.texto(o.verificacao.valor));
-      Object.assign(ex, e, { verificacao: Object.assign({}, o.verificacao, { valor: e.opcoes.findIndex((t) => A.chave(t) === alvo) }) });
-    }
-    if (o.arredondamento) ex.arredondamento = o.arredondamento;
-    return ex;
-  }
-
-  // Escolha múltipla com opções de texto: certa + erros com texto próprio.
-  function fecharTexto(rng, ex, certa, erros, valorTexto) {
-    const e = A.escolhaDeErros(rng, certa, erros);
-    return Object.assign(ex, e, { verificacao: Object.assign({}, ex.verificacao, { valor: e.opcoes.findIndex((t) => A.chave(t) === A.chave(valorTexto)) }) });
-  }
-
-  // Confere a resposta de um exercício numérico/escolha com o valor obtido por outro método.
-  function confere(p, valor, texto) {
-    if (p.formato === 'numerica') return Math.abs(p.resposta - valor) <= p.tolerancia + 1e-9;
-    return A.chave(p.opcoes[p.correta]) === A.chave(texto(valor));
-  }
+  // Utilitários partilhados (Manual.geradores.ajudas).
+  const tentar = (construir) => A.tentar(construir, 'estatística');
+  const { fechar, fecharTexto, confere } = A;
 
   // ---------------------------------------------------------------- métodos independentes (sem Manual.calc)
   // j-ésimo menor valor (j a partir de 1), por contagem, sem ordenar.
@@ -365,15 +315,15 @@ globalThis.Manual = globalThis.Manual || {};
     { nome: 'Clube de futebol preferido', tipo: 'qualitativa', razao: 'os valores são nomes de clubes' },
     { nome: 'Grupo sanguíneo', tipo: 'qualitativa', razao: 'os valores são categorias (A, B, AB, O)' },
     { nome: 'Distrito onde nasceu', tipo: 'qualitativa', razao: 'os valores são nomes de distritos' },
-    { nome: 'Número da camisola de cada jogador', tipo: 'qualitativa', codigo: true, razao: 'o número só identifica o jogador: não faz sentido somá-lo nem calcular a média' },
-    { nome: 'Código postal da residência', tipo: 'qualitativa', codigo: true, razao: 'o código só identifica uma zona: não faz sentido fazer contas com ele' },
-    { nome: 'Número de aluno na pauta', tipo: 'qualitativa', codigo: true, razao: 'o número só identifica o aluno: não mede nem conta nada' },
+    { nome: 'Número da camisola de cada jogador', tipo: 'qualitativa', codigo: true, razao: 'o número só identifica o jogador, e não faz sentido somá-lo nem calcular a média' },
+    { nome: 'Código postal da residência', tipo: 'qualitativa', codigo: true, razao: 'o código só identifica uma zona, e não faz sentido fazer contas com ele' },
+    { nome: 'Número de aluno na pauta', tipo: 'qualitativa', codigo: true, razao: 'o número só identifica o aluno e não mede nem conta nada' },
     { nome: 'Número de irmãos', tipo: 'discreta', poucos: true, razao: 'resulta de uma contagem (0, 1, 2, …)' },
     { nome: 'Número de golos marcados num jogo', tipo: 'discreta', poucos: true, razao: 'resulta de uma contagem (0, 1, 2, …)' },
     { nome: 'Número de pessoas do agregado familiar', tipo: 'discreta', poucos: true, razao: 'resulta de uma contagem (1, 2, 3, …)' },
-    { nome: 'Número de livros lidos num ano', tipo: 'discreta', razao: 'resulta de uma contagem: só toma valores inteiros isolados' },
-    { nome: 'Número de mensagens enviadas num dia', tipo: 'discreta', razao: 'resulta de uma contagem: só toma valores inteiros isolados' },
-    { nome: 'Número de visitantes de um museu por dia', tipo: 'discreta', razao: 'resulta de uma contagem: só toma valores inteiros isolados' },
+    { nome: 'Número de livros lidos num ano', tipo: 'discreta', razao: 'resulta de uma contagem e só toma valores inteiros isolados' },
+    { nome: 'Número de mensagens enviadas num dia', tipo: 'discreta', razao: 'resulta de uma contagem e só toma valores inteiros isolados' },
+    { nome: 'Número de visitantes de um museu por dia', tipo: 'discreta', razao: 'resulta de uma contagem e só toma valores inteiros isolados' },
     { nome: 'Altura, em centímetros', tipo: 'continua', razao: 'resulta de uma medição e pode tomar qualquer valor de um intervalo' },
     { nome: 'Tempo, em segundos, para correr 100 m', tipo: 'continua', razao: 'resulta de uma medição e pode tomar qualquer valor de um intervalo' },
     { nome: 'Massa, em quilogramas', tipo: 'continua', razao: 'resulta de uma medição e pode tomar qualquer valor de um intervalo' },
@@ -383,7 +333,7 @@ globalThis.Manual = globalThis.Manual || {};
   ];
   const NOME_TIPO = { qualitativa: 'qualitativa', discreta: 'quantitativa discreta', continua: 'quantitativa contínua' };
   const variavelPorNome = (nome) => VARIAVEIS.find((v) => v.nome === nome);
-  const descreverVariavel = (v) => '«' + v.nome + '» é ' + NOME_TIPO[v.tipo] + ': ' + v.razao + '.';
+  const descreverVariavel = (v) => '«' + v.nome + '» é ' + NOME_TIPO[v.tipo] + ', pois ' + v.razao + '.';
 
   registar({
     subtema: 'conceitos', tipo: 'tipo-variavel', nome: 'Tipo de variável',
@@ -410,14 +360,14 @@ globalThis.Manual = globalThis.Manual || {};
           const cod = de((v) => v.codigo);
           erros = [
             alvo === 'continua'
-              ? { codigo: 'discreta_como_continua', texto: outra.nome, explicacao: '«' + outra.nome + '» é quantitativa discreta, não contínua: ' + outra.razao + '.' }
-              : { codigo: 'continua_como_discreta', texto: outra.nome, explicacao: '«' + outra.nome + '» é quantitativa contínua, não discreta: ' + outra.razao + ' (mesmo que se arredonde).' },
+              ? { codigo: 'discreta_como_continua', texto: outra.nome, explicacao: '«' + outra.nome + '» é quantitativa discreta, não contínua, pois ' + outra.razao + '.' }
+              : { codigo: 'continua_como_discreta', texto: outra.nome, explicacao: '«' + outra.nome + '» é quantitativa contínua, não discreta, pois ' + outra.razao + ' (mesmo que se arredonde).' },
             { codigo: 'qualitativa_como_quantitativa', texto: qual.nome, explicacao: descreverVariavel(qual) },
-            { codigo: 'codigo_numerico_como_quantitativa', texto: cod.nome, explicacao: '«' + cod.nome + '» escreve-se com algarismos, mas é qualitativa: ' + cod.razao + '.' },
+            { codigo: 'codigo_numerico_como_quantitativa', texto: cod.nome, explicacao: '«' + cod.nome + '» escreve-se com algarismos, mas é qualitativa, pois ' + cod.razao + '.' },
           ];
         }
         const resolucao = [
-          { passo: 'Distinguir os tipos de variável', porque: 'Qualitativa: os valores são categorias (mesmo que escritas com algarismos); quantitativa discreta: os valores resultam de contagens; quantitativa contínua: os valores resultam de medições.' },
+          { passo: 'Distinguir os tipos de variável', porque: 'Uma variável é qualitativa quando os valores são categorias (mesmo que escritas com algarismos). É quantitativa discreta quando os valores resultam de contagens e quantitativa contínua quando resultam de medições.' },
           { passo: 'Classificar cada opção', porque: descreverVariavel(certa) },
         ];
         const verificacao = {
@@ -725,6 +675,8 @@ globalThis.Manual = globalThis.Manual || {};
       errado[j]++;
     }
     const mFront = unicoMaximo(errado);
+    const distintos = Array.from({ length: k }, (_, j) => new Set(xs.filter((x) => classeDe(x) === j)).size);
+    const jDist = unicoMaximo(distintos);
     const ordem = baralhar(rng, xs);
     return {
       t, k, h, a, xs: ordem, counts, modal,
@@ -732,7 +684,7 @@ globalThis.Manual = globalThis.Manual || {};
         { codigo: 'fronteira_na_classe_anterior', j: mFront, explicacao: 'Contaste os valores iguais ao limite inferior de uma classe (como ' + fmt(a + m * h) + ') na classe anterior; numa classe [a, b[ o valor b já pertence à classe seguinte.' },
         { codigo: 'classe_da_mediana', j: classeDe(me), explicacao: 'Essa é a classe onde fica a mediana (' + fmt(me) + '); a classe modal é a que tem maior frequência.' },
         { codigo: 'classe_do_valor_mais_frequente', j: classeDe(vt), explicacao: 'O valor que mais se repete (' + fmt(vt) + ') está nessa classe, mas a classe modal é a que tem mais valores no total.' },
-        { codigo: 'contou_valores_diferentes', j: unicoMaximo(Array.from({ length: k }, (_, j) => new Set(xs.filter((x) => classeDe(x) === j)).size)), explicacao: 'Contaste os valores diferentes de cada classe; os valores repetidos também contam: a frequência é o número de observações.' },
+        { codigo: 'contou_valores_diferentes', j: jDist, explicacao: jDist < 0 ? '' : 'Contaste os valores diferentes de cada classe. A classe ' + classeTxt(a, h, jDist) + ' tem ' + fmt(distintos[jDist]) + ' valores diferentes, mas ' + fmt(counts[jDist]) + ' observações, porque os repetidos também contam; a classe ' + classeTxt(a, h, m) + ' tem ' + fmt(counts[m]) + ' observações.' },
       ],
     };
   }
@@ -780,7 +732,9 @@ globalThis.Manual = globalThis.Manual || {};
         const { t, k, h, a, xs, counts, modal } = r;
         const vistos = [modal];
         const erros = [];
-        for (const e of r.erros) {
+        // Lista: quatro erros candidatos, por ordem aleatória (ficam os três primeiros que dão classes diferentes).
+        const candidatos = contexto === 'lista' ? baralhar(rng, r.erros) : r.erros;
+        for (const e of candidatos) {
           if (e.j < 0 || vistos.includes(e.j)) continue;
           vistos.push(e.j);
           erros.push({ codigo: e.codigo, texto: classeTxt(a, h, e.j), explicacao: e.explicacao });
@@ -908,10 +862,11 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ================================================================ medidas de localização
   const NUMERICOS = [
-    { id: 'notas', intro: (n) => 'As classificações, em valores, de um aluno em ' + fmt(n) + ' testes foram', lim: [6, 20], unidade: 'valores' },
-    { id: 'pontos', intro: (n) => 'Os pontos marcados por um jogador de basquetebol em ' + fmt(n) + ' jogos foram', lim: [4, 30], unidade: 'pontos' },
-    { id: 'visitantes', intro: (n) => 'O número de visitantes de uma exposição em ' + fmt(n) + ' dias foi', lim: [40, 190], unidade: 'visitantes' },
-    { id: 'tempos', intro: (n) => 'Os tempos, em minutos, que um aluno demorou a chegar à escola em ' + fmt(n) + ' dias foram', lim: [8, 30], unidade: 'minutos' },
+    // atipico: valores possíveis para um valor atípico (as classificações não passam de 20, por isso não há atípicos acima).
+    { id: 'notas', intro: (n) => 'As classificações, em valores, de um aluno em ' + fmt(n) + ' testes foram', lim: [6, 20], unidade: 'valores', atipico: [0, 20] },
+    { id: 'pontos', intro: (n) => 'Os pontos marcados por um jogador de basquetebol em ' + fmt(n) + ' jogos foram', lim: [4, 30], unidade: 'pontos', atipico: [0, 60] },
+    { id: 'visitantes', intro: (n) => 'O número de visitantes de uma exposição em ' + fmt(n) + ' dias foi', lim: [40, 190], unidade: 'visitantes', atipico: [0, 400] },
+    { id: 'tempos', intro: (n) => 'Os tempos, em minutos, que um aluno demorou a chegar à escola em ' + fmt(n) + ' dias foram', lim: [8, 30], unidade: 'minutos', atipico: [2, 90] },
   ];
   const numerico = (id) => NUMERICOS.find((t) => t.id === id);
   const sortearDados = (rng, t, n) => Array.from({ length: n }, () => inteiro(rng, t.lim[0], t.lim[1]));
@@ -1273,7 +1228,7 @@ globalThis.Manual = globalThis.Manual || {};
         const nomeMedida = medida === 'desvio-padrao' ? 'pelo desvio padrão' : 'pela amplitude interquartil';
         const oMedida = medida === 'desvio-padrao' ? 'o desvio padrão' : 'a amplitude interquartil';
         const simb = medida === 'desvio-padrao' ? 's' : 'AIQ';
-        const enunciado = 'Considera os conjuntos de dados A: ' + listaTxt(cA) + ' e B: ' + listaTxt(cB) + '. Qual dos conjuntos tem maior dispersão, medida ' + nomeMedida + '?';
+        const enunciado = 'Considera o conjunto de dados A, com os valores ' + listaTxt(cA) + ', e o conjunto B, com os valores ' + listaTxt(cB) + '. Qual dos conjuntos tem maior dispersão, medida ' + nomeMedida + '?';
         const certa = 'O conjunto ' + X + '.';
         const erros = [
           { codigo: 'maior_media_maior_dispersao', texto: 'O conjunto ' + Y + '.', explicacao: 'O conjunto ' + Y + ' tem valores maiores (média ' + (exato(xc, 2) ? '' : '≈ ') + fmt(xc, 2) + '), mas a dispersão mede quão afastados estão os valores entre si, não o seu tamanho.' },
@@ -1481,19 +1436,28 @@ globalThis.Manual = globalThis.Manual || {};
     gerar(semente, { contexto, rng }) {
       return tentar(() => {
         const C = calc();
-        const t = escolher(rng, NUMERICOS);
+        const maximo = contexto === 'maximo';
+        const t = escolher(rng, NUMERICOS.filter((x) => (maximo ? x.atipico[1] > x.lim[1] : true)));
         const n = inteiro(rng, 5, 9);
-        const xs = sortearDados(rng, t, n);
+        // Dados na metade de baixo (máximo) ou de cima (mínimo) da escala, para haver espaço para um atípico.
+        const meio = Math.round((t.lim[0] + t.lim[1]) / 2);
+        const xs = Array.from({ length: n }, () => (maximo ? inteiro(rng, t.lim[0], meio) : inteiro(rng, meio, t.lim[1])));
         if ((soma(xs) * 10) % n !== 0) return null;
         const o = ordenar(xs);
-        const maximo = contexto === 'maximo';
         if (maximo ? o[n - 1] === o[n - 2] : o[0] === o[1]) return null;
         const velho = maximo ? o[n - 1] : o[0];
         const i = xs.indexOf(velho);
-        const d = inteiro(rng, 2, 6);
+        // O valor corrigido fica bem para lá da barreira dos atípicos (pelo menos mais uma AIQ além de 1,5 × AIQ).
+        const q1 = C.percentil(xs, 25);
+        const q3 = C.percentil(xs, 75);
+        const aiq = q3 - q1;
+        if (aiq < 2) return null;
+        const barreira = maximo ? q3 + 1.5 * aiq : q1 - 1.5 * aiq;
+        const alvo = maximo ? q3 + 2.5 * aiq : q1 - 2.5 * aiq;
+        const d = Math.max(2, Math.ceil((maximo ? alvo - velho : velho - alvo) / n)) + inteiro(rng, 0, 2);
         const D = n * d;
         const novo = maximo ? velho + D : velho - D;
-        if (novo < 0) return null;
+        if (novo < t.atipico[0] || novo > t.atipico[1]) return null;
         const ys = xs.slice();
         ys[i] = novo;
         const m1 = C.media(xs);
@@ -1516,6 +1480,13 @@ globalThis.Manual = globalThis.Manual || {};
         const afirmacao = v.correta ? certa : falsa;
         const enunciado = t.intro(n) + ': ' + listaTxt(xs) + '. Verificou-se depois que o valor ' + fmt(velho) + ' estava errado: o valor correto é ' + fmt(novo) + '. Afirmação: «' + v.enunciado + '»';
         const resolucao = [
+          {
+            passo: 'Ver que o valor corrigido é atípico',
+            porque: 'Um valor é atípico quando fica ' + (maximo ? 'acima de $Q_3 + 1{,}5 \\times AIQ$' : 'abaixo de $Q_1 - 1{,}5 \\times AIQ$') + '; ' + fmt(novo) + ' fica muito para lá dessa barreira.',
+            calculo: maximo
+              ? 'Q_3 + 1{,}5 \\times AIQ = ' + tex(q3) + ' + 1{,}5 \\times ' + tex(aiq) + ' = ' + tex(barreira) + ' < ' + tex(novo)
+              : 'Q_1 - 1{,}5 \\times AIQ = ' + tex(q1) + ' - 1{,}5 \\times ' + tex(aiq) + ' = ' + tex(barreira) + ' > ' + tex(novo),
+          },
           { passo: 'Calcular a variação da média', porque: 'A soma varia ' + fmt(novo - velho) + ' e divide-se pelos ' + fmt(n) + ' valores.', calculo: '\\Delta\\bar{x} = \\dfrac{' + tex(novo - velho) + '}{' + tex(n) + '} = ' + tex(sg * d) },
           { passo: 'Ver a mediana', porque: 'O valor corrigido continua a ser o ' + extremo + ' de todos, por isso os valores do meio dos dados ordenados não mudam.', calculo: '\\mathrm{Me} = ' + tex(me1) + ' \\to ' + tex(me2) },
           { passo: 'Comparar com a afirmação', porque: v.correta ? 'A afirmação descreve exatamente estas variações.' : 'A afirmação não corresponde a estas variações.' },
@@ -1545,7 +1516,8 @@ globalThis.Manual = globalThis.Manual || {};
     },
     limites(p) {
       const { xs, novo } = p.dados;
-      return xs.length >= 5 && xs.length <= 9 && dentro(numerico(p.dados.tema), xs) && novo >= 0 && novo <= 250;
+      const t = numerico(p.dados.tema);
+      return xs.length >= 5 && xs.length <= 9 && dentro(t, xs) && novo >= t.atipico[0] && novo <= t.atipico[1];
     },
   });
 
@@ -1562,7 +1534,7 @@ globalThis.Manual = globalThis.Manual || {};
       pergunta: (x) => 'Que classificação prevês para um aluno que estude ' + fmt(x) + ' horas por semana?', unidade: 'valores',
     },
     temperatura: {
-      x0: 18, passo: 2, m: [4, 5, 6], b: [10, 20, 30], e: 3, yLim: [0, 300],
+      x0: 18, passo: 2, m: [4, 5, 6], b: [10, 20, 30], e: 3, yLim: [0, 300], contagem: true,
       xNome: 'a temperatura máxima do dia (em °C)', yNome: 'o número de gelados vendidos nesse dia',
       incX: 'por cada grau a mais de temperatura máxima', yPrev: 'o número previsto de gelados vendidos', yUnid: (v) => singular(v, ' gelado', ' gelados'),
       incY: 'por cada gelado a mais vendido', xPrev: 'a temperatura máxima prevista', xUnid: (v) => singular(v, ' grau', ' graus'),
@@ -1571,7 +1543,7 @@ globalThis.Manual = globalThis.Manual || {};
       pergunta: (x) => 'Quantos gelados prevês vender num dia com temperatura máxima de ' + fmt(x) + ' °C?', unidade: 'gelados',
     },
     preco: {
-      x0: 2, passo: 1, m: [-8, -10, -12], b: [150, 180, 200], e: 2, yLim: [0, 300],
+      x0: 2, passo: 1, m: [-8, -10, -12], b: [150, 180, 200], e: 2, yLim: [0, 300], contagem: true,
       xNome: 'o preço do bilhete (em euros)', yNome: 'o número de bilhetes vendidos por dia',
       incX: 'por cada euro a mais no preço do bilhete', yPrev: 'o número previsto de bilhetes vendidos por dia', yUnid: (v) => singular(v, ' bilhete', ' bilhetes'),
       incY: 'por cada bilhete a mais vendido por dia', xPrev: 'o preço previsto do bilhete', xUnid: (v) => singular(v, ' euro', ' euros'),
@@ -1643,10 +1615,19 @@ globalThis.Manual = globalThis.Manual || {};
           { codigo: 'resolveu_para_x', valor: r2((x0 - b) / m), explicacao: 'Substituíste ' + fmt(x0) + ' em y e resolveste para x; o valor dado é o de x, e pede-se o y previsto.' },
         ];
         if (m < 0) erros.push({ codigo: 'sinal_do_declive', valor: r2(-m * x0 + b), explicacao: 'O declive é negativo (' + fmt(m) + '): quando x aumenta, y diminui. Não ignores o sinal.' });
+        let errosFinais = erros;
+        if (formato === 'escolha') {
+          // Na escolha só ficam valores possíveis no contexto (dentro da escala; contagens inteiras): um valor
+          // impossível eliminava-se sem pensar. Juntam-se mais dois erros reais para haver opções suficientes.
+          errosFinais = erros.concat([
+            { codigo: 'esqueceu_multiplicar_por_x', valor: r2(m + b), explicacao: 'Somaste o declive à ordenada na origem sem o multiplicar por ' + fmt(x0) + '; isso é a previsão para x = 1.' },
+            { codigo: 'ordenada_como_previsao', valor: b, explicacao: fmt(b) + ' é a ordenada na origem, o valor previsto para x = 0; para x = ' + fmt(x0) + ' falta somar ' + fmt(m) + ' × ' + fmt(x0) + '.' },
+          ]).filter((e) => e.valor > ctx.yLim[0] && e.valor <= ctx.yLim[1] && (!ctx.contagem || Number.isInteger(e.valor)));
+        }
         const { mx, my } = somasPares(pares);
         const val = r2(my + m * (x0 - mx));
         return fechar(rng, formato, { enunciado, resolucao, dados: { pares, m, b, x0 }, esquema: { id: 'regressao', opcoes: { pares: pares.map((p) => p.slice()) } } }, {
-          resposta: resp, tolerancia: 0.005, unidade: ctx.unidade, texto: (v) => fmt(v, 2) + ' ' + ctx.unidade, erros,
+          resposta: resp, tolerancia: 0.005, unidade: ctx.unidade, texto: (v) => fmt(v, 2) + ' ' + ctx.unidade, erros: errosFinais,
           verificacao: {
             passo: 'Confirmar com a reta que passa pelo ponto médio $(\\bar{x}, \\bar{y})$',
             calculo: '\\hat{y} = \\bar{y} + m(x - \\bar{x}) = ' + tex(my, 2) + ' + (' + tex(m) + ') \\times (' + tex(x0) + ' - ' + tex(mx, 2) + ') = ' + tex(val, 2),
@@ -1703,7 +1684,7 @@ globalThis.Manual = globalThis.Manual || {};
         const xs = pares.map((p) => p[0]);
         const ys = pares.map((p) => p[1]);
         const enunciado = contexto === 'dados'
-          ? 'Num estudo, x é ' + ctx.xNome + ' e y é ' + ctx.yNome + '. Observaram-se os valores x: ' + listaTxt(xs) + ' e, respetivamente, y: ' + listaTxt(ys) + '. A reta de regressão é $y = ' + retaTex(m, b) + '$. Qual é o coeficiente de correlação linear, arredondado às centésimas?'
+          ? 'Num estudo, x é ' + ctx.xNome + ' e y é ' + ctx.yNome + '. Os valores observados de x foram ' + listaTxt(xs) + ' e os valores de y correspondentes foram ' + listaTxt(ys) + '. A reta de regressão é $y = ' + retaTex(m, b) + '$. Qual é o coeficiente de correlação linear, arredondado às centésimas?'
           : 'Num diagrama de dispersão em que x é ' + ctx.xNome + ' e y é ' + ctx.yNome + ', os pontos estão ' + (forte ? 'muito próximos de uma reta ' : 'bastante espalhados, mas com uma tendência ') + (cresce ? 'crescente' : 'decrescente') + ' (sem estarem todos alinhados). Qual dos valores seguintes pode ser o coeficiente de correlação linear?';
         const resolucao = [
           { passo: 'Ver a direção da associação', porque: 'Quando x aumenta, y tende a ' + (cresce ? 'aumentar: a associação é positiva e r > 0.' : 'diminuir: a associação é negativa e r < 0.') },

@@ -477,3 +477,34 @@ test('CLI: --min N falha quando há menos geradores', () => {
   assert.equal(r.status, 1);
   assert.match(r.stderr, /pelo menos 100000/);
 });
+
+test('ajudas.tentar: re-sorteia com null e com escolhaDeErros; outras exceções passam; esgotado lança com o tema', () => {
+  const A = G.ajudas;
+  let n = 0;
+  assert.equal(A.tentar(() => (++n < 3 ? null : 'ok'), 'teste'), 'ok');
+  let k = 0;
+  assert.equal(A.tentar(() => { if (++k < 2) throw new Error('escolhaDeErros: só 2 opções'); return 'ok'; }, 'teste'), 'ok');
+  assert.throws(() => A.tentar(() => { throw new Error('outro'); }, 'teste'), /^Error: outro$/);
+  assert.throws(() => A.tentar(() => null, 'estatística'), /^Error: estatística: sem parâmetros válidos ao fim de 500 tentativas$/);
+});
+
+test('ajudas.fechar: numérica filtra erros (iguais à resposta ou repetidos) e devolve null sem erros; escolha aponta a verificação', () => {
+  const A = G.ajudas;
+  const rng = M.aleatorio.criar(3);
+  const verificacao = { passo: 'p', calculo: 'c', valor: 10 };
+  const erros = [
+    { codigo: 'igual', valor: 10, explicacao: 'a' },
+    { codigo: 'um', valor: 11, explicacao: 'b' },
+    { codigo: 'repetido', valor: 11, explicacao: 'c' },
+    { codigo: 'dois', valor: 12, explicacao: 'd' },
+    { codigo: 'tres', valor: 13, explicacao: 'e' },
+  ];
+  const num = A.fechar(rng, 'numerica', {}, { resposta: 10, tolerancia: 0, unidade: 'u', texto: String, erros, verificacao });
+  assert.deepEqual(num.errosTipicos.map((e) => e.codigo), ['um', 'dois', 'tres']);
+  assert.equal(A.fechar(rng, 'numerica', {}, { resposta: 10, tolerancia: 0, texto: String, erros: [erros[0]], verificacao }), null);
+  const esc = A.fechar(rng, 'escolha', {}, { resposta: 10, tolerancia: 0, texto: String, erros, verificacao });
+  assert.equal(esc.opcoes[esc.correta], '10');
+  assert.equal(esc.verificacao.valor, esc.correta);
+  assert.ok(A.confere({ formato: 'escolha', opcoes: esc.opcoes, correta: esc.correta }, 10, String));
+  assert.ok(!A.confere({ formato: 'numerica', resposta: 10, tolerancia: 0 }, 10.5, String));
+});

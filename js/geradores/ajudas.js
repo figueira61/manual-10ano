@@ -89,5 +89,60 @@ Manual.geradores.ajudas = (function () {
       : { enunciado: afirmacaoFalsa, correta: false, errosTipicos: [erroFalsa] };
   }
 
-  return { fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe };
+  // Repete construir() até devolver um exercício (null = re-sortear; escolhaDeErros sem opções também re-sorteia).
+  // tema: prefixo da mensagem de erro (p. ex. 'cidadania').
+  function tentar(construir, tema) {
+    for (let i = 0; i < 500; i++) {
+      try {
+        const r = construir();
+        if (r) return r;
+      } catch (err) {
+        if (!/^escolhaDeErros/.test(err.message)) throw err;
+      }
+    }
+    throw new Error(tema + ': sem parâmetros válidos ao fim de 500 tentativas');
+  }
+
+  // Erros numéricos utilizáveis: valor finito, fora da tolerância da resposta e distinto dos anteriores.
+  function filtrarErros(resposta, tol, lista) {
+    const r = [];
+    for (const e of lista) {
+      if (!e || typeof e.valor !== 'number' || !Number.isFinite(e.valor)) continue;
+      if (Math.abs(e.valor - resposta) <= tol + 1e-9) continue;
+      if (r.some((x) => Math.abs(x.valor - e.valor) <= tol + 1e-9)) continue;
+      r.push(e);
+    }
+    return r;
+  }
+
+  // Fecha um exercício numérico ou de escolha múltipla (null = re-sortear: numérica sem erros típicos utilizáveis).
+  // o: { resposta, tolerancia, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
+  function fechar(rng, formato, ex, o) {
+    const erros = filtrarErros(o.resposta, o.tolerancia, o.erros);
+    if (formato === 'numerica') {
+      if (!erros.length) return null;
+      Object.assign(ex, { resposta: o.resposta, tolerancia: o.tolerancia, unidade: o.unidade, errosTipicos: erros, verificacao: o.verificacao });
+    } else {
+      const e = escolhaDeErros(rng, o.texto(o.resposta), erros.map((x) => Object.assign({}, x, { texto: o.texto(x.valor) })));
+      const alvo = chave(o.texto(o.verificacao.valor));
+      Object.assign(ex, e, { verificacao: Object.assign({}, o.verificacao, { valor: e.opcoes.findIndex((t) => chave(t) === alvo) }) });
+    }
+    if (o.arredondamento) ex.arredondamento = o.arredondamento;
+    return ex;
+  }
+
+  // Escolha múltipla com opções de texto (nomes, afirmações): certa + erros com texto próprio.
+  // valorTexto: a opção a que chega a verificação (vira o índice em verificacao.valor).
+  function fecharTexto(rng, ex, certa, erros, valorTexto) {
+    const e = escolhaDeErros(rng, certa, erros);
+    return Object.assign(ex, e, { verificacao: Object.assign({}, ex.verificacao, { valor: e.opcoes.findIndex((t) => chave(t) === chave(valorTexto)) }) });
+  }
+
+  // Confere a resposta de um exercício numérico/escolha com o valor obtido por outro método.
+  function confere(p, valor, texto) {
+    if (p.formato === 'numerica') return Math.abs(p.resposta - valor) <= p.tolerancia + 1e-9;
+    return chave(p.opcoes[p.correta]) === chave(texto(valor));
+  }
+
+  return { fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere };
 })();

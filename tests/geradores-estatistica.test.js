@@ -97,3 +97,63 @@ test('escolha: cada opção errada tem um código próprio (sem distratores gen�
     }
   }
 });
+
+test('previsão (escolha): todas as opções são valores possíveis no contexto', () => {
+  const LIM = { estudo: [0, 20], temperatura: [0, 300], preco: [0, 300], carro: [0, 40] };
+  for (const contexto of Object.keys(LIM)) {
+    for (let s = 1; s <= 100; s++) {
+      const p = G.gerar('bivariada-previsao', s, { formato: 'escolha', contexto });
+      for (const o of p.opcoes) {
+        const v = Number(o.split(' ')[0].replace(',', '.'));
+        assert.ok(v > LIM[contexto][0] && v <= LIM[contexto][1], contexto + ' ' + s + ': ' + o);
+        if (contexto === 'temperatura' || contexto === 'preco') assert.ok(Number.isInteger(v), contexto + ' ' + s + ': ' + o);
+      }
+    }
+  }
+});
+
+test('outlier: o valor corrigido fica para lá de Q3 + 1,5·AIQ (ou abaixo de Q1 − 1,5·AIQ) por pelo menos uma AIQ', () => {
+  const C = M.calc.estatistica;
+  for (const contexto of ['maximo', 'minimo']) {
+    for (let s = 1; s <= 100; s++) {
+      const { xs, novo } = G.gerar('propriedades-outlier', s, { contexto }).dados;
+      const q1 = C.percentil(xs, 25);
+      const q3 = C.percentil(xs, 75);
+      const aiq = q3 - q1;
+      if (contexto === 'maximo') assert.ok(novo >= q3 + 2.5 * aiq, s + '');
+      else assert.ok(novo <= q1 - 2.5 * aiq, s + '');
+    }
+  }
+});
+
+test('classe modal: o erro «valores diferentes» aparece e traz os números da classe', () => {
+  let visto = 0;
+  for (let s = 1; s <= 100; s++) {
+    const p = G.gerar('frequencias-histograma-classe-modal', s, { contexto: 'lista' });
+    const e = p.errosTipicos.find((x) => x.codigo === 'contou_valores_diferentes');
+    if (!e) continue;
+    visto++;
+    assert.match(e.explicacao, /tem \d+ valores diferentes, mas \d+ observações/);
+  }
+  assert.ok(visto > 0);
+});
+
+test('sem frases com dois «dois pontos» seguidos nas explicações e passos', () => {
+  const semFormulas = (t) => String(t).replace(/\$\$[\s\S]*?\$\$/g, 'F').replace(/\$[^$]*\$/g, 'F');
+  for (const id of IDS) {
+    const d = G.obter(id);
+    for (const formato of d.formatos) {
+      for (const contexto of G.contextosDe(d)) {
+        for (let s = 1; s <= 20; s++) {
+          const p = G.gerar(id, s, { formato, contexto });
+          const textos = [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.map((r) => r.porque), p.errosTipicos.map((e) => e.explicacao));
+          for (const t of textos) {
+            for (const frase of semFormulas(t).split(/(?<=[.?!])\s+/)) {
+              assert.ok((frase.match(/:\s/g) || []).length < 2, id + ': ' + frase);
+            }
+          }
+        }
+      }
+    }
+  }
+});
