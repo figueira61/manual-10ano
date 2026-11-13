@@ -101,6 +101,14 @@ test('capital inicial (inverso do juro simples e do composto)', () => {
   perto(C.capitalInicialComposto(m, 0.06, 2, 12), 1500);
 });
 
+test('restosMaiores (Hamilton): quota, parte inteira e restos maiores', () => {
+  // quotas 7 × v / 21 000: 3,333; 2; 1,1667; 0,5 → partes inteiras 3+2+1+0 = 6; falta 1 → maior resto (D: 0,5)
+  const r = C.restosMaiores([10000, 6000, 3500, 1500], 7);
+  assert.deepEqual(r.mandatos, [3, 2, 1, 1]);
+  perto(r.quotas[0], 70000 / 21000);
+  assert.deepEqual(C.restosMaiores([10, 0], 3).mandatos, [3, 0]);
+});
+
 test('constantes ilustrativas exportadas', () => {
   assert.ok(C.ESCALOES_IRS_ILUSTRATIVOS.length >= 4);
   assert.equal(C.ESCALOES_IRS_ILUSTRATIVOS.at(-1).ate, Infinity);

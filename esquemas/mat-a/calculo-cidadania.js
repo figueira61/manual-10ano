@@ -92,6 +92,23 @@ Manual.calc.cidadania = (function () {
     return { juro: montante - capital, montante, passos };
   }
 
+  // Método dos restos maiores (Hamilton): quota = mandatos × votos / total; parte inteira a cada partido;
+  // os mandatos que faltam vão para os maiores restos (empate: mais votos, depois menor índice).
+  function restosMaiores(votos, mandatos) {
+    const total = votos.reduce((s, v) => s + v, 0);
+    const quotas = votos.map((v) => (total > 0 ? (mandatos * v) / total : 0));
+    const obtidos = quotas.map((q) => Math.floor(q + EPS));
+    const faltam = mandatos - obtidos.reduce((s, v) => s + v, 0);
+    const ordem = votos.map((_, i) => i).sort((a, b) => {
+      const ra = quotas[a] - obtidos[a];
+      const rb = quotas[b] - obtidos[b];
+      if (Math.abs(ra - rb) > EPS) return rb - ra;
+      return votos[b] - votos[a] || a - b;
+    });
+    for (let k = 0; k < faltam; k++) obtidos[ordem[k % ordem.length]] += 1;
+    return { mandatos: obtidos, quotas };
+  }
+
   // Capital inicial que, com juro simples, dá o montante indicado: C = M / (1 + r·t).
   function capitalInicialSimples(montante, taxaAnual, anos) {
     return montante / (1 + taxaAnual * anos);
@@ -139,7 +156,7 @@ Manual.calc.cidadania = (function () {
   }
 
   return {
-    maioria, borda, hondt, stLague, jurosSimples, jurosCompostos, capitalInicialSimples, capitalInicialComposto,
+    maioria, borda, hondt, stLague, restosMaiores, jurosSimples, jurosCompostos, capitalInicialSimples, capitalInicialComposto,
     irsAnual, salario, salarioAnual, salarioHora,
     ESCALOES_IRS_ILUSTRATIVOS, TABELA_RETENCAO_ILUSTRATIVA,
   };

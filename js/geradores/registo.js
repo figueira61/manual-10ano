@@ -51,8 +51,10 @@ Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
     return Array.isArray(def.contextos) && def.contextos.length ? def.contextos : [null];
   }
 
+  // bloco: true → o cálculo vai em matemática de bloco ($$…$$, com scroll horizontal), p. ex. tabelas em array.
   function textoPasso(p) {
-    return '**' + p.passo + '** — ' + p.porque + (p.calculo ? ' $' + p.calculo + '$' : '');
+    const d = p.bloco ? '$$' : '$';
+    return '**' + p.passo + '** — ' + p.porque + (p.calculo ? ' ' + d + p.calculo + d : '');
   }
 
   // Gera e normaliza um exercício a partir de uma definição (registada ou não).
@@ -67,6 +69,7 @@ Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
     const detalhada = (ex.resolucao || []).map((p) => {
       const passo = { passo: p.passo, porque: p.porque };
       if (p.calculo) passo.calculo = p.calculo;
+      if (p.calculo && p.bloco) passo.bloco = true;
       return passo;
     });
     const pergunta = {

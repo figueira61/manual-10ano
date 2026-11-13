@@ -413,6 +413,14 @@ test('regra 3: número de opções = def.nOpcoes || 4', () => {
   assert.deepEqual(verificar({ ...tres, nOpcoes: 3 }, { sementes: 20 }), []);
 });
 
+test('regra 3: escolha com explicações repetidas nas opções erradas (ruído genérico)', () => {
+  const repetidas = comAlteracao(defSoma({ formatos: ['escolha'] }), (ex) => {
+    ex.errosTipicos = ex.errosTipicos.map((e) => ({ ...e, explicacao: 'Conta outra vez.' }));
+  });
+  assert.deepEqual(regras(verificar(repetidas, { sementes: 5 })), ['3']);
+  assert.deepEqual(verificar(defSoma({ formatos: ['escolha'] }), { sementes: 20 }), []);
+});
+
 test('regra 3: numérica sem erros típicos ou com dois erros do mesmo valor', () => {
   const sem = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.errosTipicos = []; });
   assert.deepEqual(regras(verificar(sem, { sementes: 5 })), ['3']);

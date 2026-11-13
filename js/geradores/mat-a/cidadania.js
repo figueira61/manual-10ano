@@ -455,6 +455,20 @@ globalThis.Manual = globalThis.Manual || {};
     };
   }
 
+  // Verificação do vencedor pelo método "pontos dos outros": os pontos do vencedor são o total menos os
+  // dos adversários (contados por comparações dois a dois) e têm de ser mais do que os de cada um.
+  function verificacaoVencedorBorda(d, an, pares) {
+    const Wv = unicoMaximo(pares);
+    const outros = pares.filter((_, i) => i !== Wv);
+    return {
+      Wv,
+      verificacao: {
+        passo: 'Confirmar o vencedor pelo total: os pontos de ' + d.nomes[Wv] + ' são o total (' + an.V + ' boletins × ' + an.total / an.V + ' pontos) menos os dos adversários, e são mais do que os de cada um',
+        calculo: tex(an.total) + ' - (' + outros.map((v) => tex(v)).join(' + ') + ') = ' + tex(an.total - soma(outros)) + ' > ' + tex(Math.max(...outros)),
+      },
+    };
+  }
+
   const ESQUEMA_BORDA = (d) => ({ id: 'borda', opcoes: { candidatos: d.nomes.slice(), boletins: d.boletins.map((b) => ({ ordem: b.ordem.slice(), quantidade: b.quantidade })) } });
   const contextoN = (contexto) => (contexto === 'quatro-candidatos' ? 4 : 3);
   const limitesBorda = (p) => p.dados.boletins.every((b) => b.quantidade >= 2 && b.quantidade <= 12) && [3, 4].includes(p.dados.n);
@@ -486,8 +500,11 @@ globalThis.Manual = globalThis.Manual || {};
           { codigo: 'nao_multiplicou_boletins', valor: soma(parc.map((x) => x.p)), explicacao: 'Contaste cada tipo de boletim uma só vez; é preciso multiplicar os pontos da posição pelo número de boletins.' },
           { codigo: 'pontos_desde_zero', valor: pts - an.V, explicacao: 'Deste ' + (n - 1) + ' pontos ao 1.º lugar e 0 ao último; aqui o 1.º lugar vale ' + n + ' pontos e o último vale 1.' },
           { codigo: 'ordem_invertida', valor: (n + 1) * an.V - pts, explicacao: 'Deste 1 ponto ao 1.º lugar e ' + n + ' ao último: a ordem dos pontos está ao contrário.' },
-          { codigo: 'so_primeiros_lugares', valor: n * an.primeiros[c], explicacao: 'Contaste só os 1.ºs lugares; no método de Borda todas as posições dão pontos.' },
+          { codigo: 'so_primeiros_lugares', valor: an.primeiros[c], explicacao: 'Contaste só os boletins em que ' + d.nomes[c] + ' fica em 1.º lugar; no método de Borda todas as posições dão pontos.' },
         ];
+        // O erro dos 1.ºs lugares tem de ser um número próprio: se coincidir com a resposta ou com outro erro, re-sorteia.
+        const vPrim = an.primeiros[c];
+        if (vPrim === pts || erros.slice(0, 3).some((e) => e.valor === vPrim)) return null;
         return fechar(rng, formato, { enunciado, resolucao, dados: { n, nomes: d.nomes, boletins: d.boletins, candidato: c }, esquema: ESQUEMA_BORDA(d) }, {
           resposta: pts, tolerancia: 0, unidade: 'pontos', texto: pontosTxt, erros, verificacao: ver,
         });
@@ -530,8 +547,7 @@ globalThis.Manual = globalThis.Manual || {};
         const ordem = d.nomes.map((_, i) => i).sort((a, b) => p[b] - p[a]);
         resolucao.push({ passo: 'Comparar os totais', porque: 'Vence quem tiver mais pontos de Borda.', calculo: ordem.map((i) => txt(nome(i)) + ' = ' + tex(p[i])).join(' > ') });
         const pares = bordaPorPares(d.boletins, n);
-        const verificacao = verificacaoTotalBorda(d, an, pares);
-        const Wv = unicoMaximo(pares);
+        const { Wv, verificacao } = verificacaoVencedorBorda(d, an, pares);
         const intro = introBorda(rng, d, an);
         const dados = { n, nomes: d.nomes, boletins: d.boletins };
         const esquema = ESQUEMA_BORDA(d);
@@ -595,8 +611,10 @@ globalThis.Manual = globalThis.Manual || {};
         });
         const pares = bordaPorPares(d.boletins, n);
         const prim = primeirosPorContagem(d.boletins, n);
-        const verificacao = verificacaoTotalBorda(d, an, pares);
-        const coincide = unicoMaximo(prim) === unicoMaximo(pares);
+        const { Wv, verificacao } = verificacaoVencedorBorda(d, an, pares);
+        const Pv = unicoMaximo(prim);
+        verificacao.passo += '; ' + d.nomes[Pv] + ' continua a ser quem tem mais 1.ºs lugares (' + prim[Pv] + ')';
+        const coincide = Pv === Wv;
         verificacao.valor = (diz === 'coincide') === coincide;
         return {
           enunciado: introBorda(rng, d, an) + ' ' + afirmacao, correta, errosTipicos, resolucao, verificacao,
@@ -653,94 +671,134 @@ globalThis.Manual = globalThis.Manual || {};
     return metodo === 'hondt' ? Math.floor(x + 1e-9) : Math.floor((x + 1) / 2 + 1e-9);
   }
 
-  const trunc2 = (x) => Math.floor(x * 100 + 1e-7) / 100;
+  // Número em LaTeX precedido de "=" se for exato com as casas mostradas, ou de "\approx" se foi arredondado.
+  const igualOuAprox = (x, casas) => (Math.abs(x - Math.round(x * Math.pow(10, casas)) / Math.pow(10, casas)) < 1e-9 ? ' = ' : ' \\approx ') + tex(x, casas);
+
+  const distTxt = (m) => PARTIDOS.map((p, i) => p + ' ' + m[i]).join(' – ');
 
   function enunciadoProporcional(rng, votos, M, metodo) {
     const orgao = escolher(rng, ['assembleia municipal', 'assembleia de freguesia', 'assembleia da associação de pais']);
     return 'Numa eleição para a ' + orgao + ', os partidos A, B, C e D tiveram, respetivamente, ' + listaPt(votos.map((v) => fmt(v))) + ' votos. Distribuem-se ' + M + ' mandatos pelo ' + NOME_METODO[metodo] + '.';
   }
 
+  // Quadro de quocientes (matemática de bloco): linhas = partidos, colunas = divisores; os M maiores a negrito.
   function passosProporcional(votos, M, metodo, dist, seguinte) {
     const div = divisorDe(metodo);
-    const passos = votos.map((v, i) => {
-      const qs = [];
-      for (let k = 0; k <= dist.mandatos[i]; k++) qs.push(tex(v / div(k), 2));
-      return {
-        passo: 'Quocientes de ' + PARTIDOS[i],
-        porque: i === 0
-          ? (metodo === 'hondt' ? 'No método de Hondt dividem-se os votos de cada partido por 1, 2, 3, …' : 'No método de St. Laguë dividem-se os votos de cada partido pelos ímpares 1, 3, 5, …')
-          : 'Faz-se o mesmo para cada partido, até ao primeiro quociente que já não elege.',
-        calculo: txt(PARTIDOS[i]) + ':\\ ' + qs.join(';\\ '),
-      };
-    });
-    passos.push({
-      passo: 'Ordenar os ' + M + ' maiores quocientes',
-      porque: 'Os mandatos são atribuídos, um a um, aos maiores quocientes.',
-      calculo: dist.atribuicoes.map((a) => tex(a.quociente, 2) + '\\ (' + txt(PARTIDOS[a.partido]) + ')').join(' > '),
-    });
+    const colunas = Math.max(...dist.mandatos) + 1;
+    const cab = Array.from({ length: colunas }, (_, k) => '\\div ' + div(k)).join(' & ');
+    const linhas = votos.map((v, i) => txt(PARTIDOS[i]) + ' & ' + Array.from({ length: colunas }, (_, k) => {
+      const q = tex(v / div(k), 2);
+      return k < dist.mandatos[i] ? '\\mathbf{' + q + '}' : q;
+    }).join(' & '));
     const ult = dist.atribuicoes[M - 1];
-    passos.push({
-      passo: 'Ver onde fica o corte',
-      porque: 'O quociente seguinte já fica de fora e não elege ninguém.',
-      calculo: 'q_{' + M + '} = ' + tex(ult.quociente, 2) + '\\ (' + txt(PARTIDOS[ult.partido]) + ') > q_{' + (M + 1) + '} = ' + tex(seguinte.quociente, 2) + '\\ (' + txt(PARTIDOS[seguinte.partido]) + ')',
-    });
-    return passos;
+    return [
+      {
+        passo: 'Calcular os quocientes',
+        porque: metodo === 'hondt'
+          ? 'No método de Hondt dividem-se os votos de cada partido por 1, 2, 3, …; a negrito estão os ' + M + ' maiores quocientes.'
+          : 'No método de St. Laguë dividem-se os votos de cada partido pelos ímpares 1, 3, 5, …; a negrito estão os ' + M + ' maiores quocientes.',
+        calculo: '\\begin{array}{c|' + 'c'.repeat(colunas) + '} & ' + cab + ' \\\\ \\hline ' + linhas.join(' \\\\ ') + ' \\end{array}',
+        bloco: true,
+      },
+      {
+        passo: 'Ver onde fica o corte',
+        porque: 'Os mandatos vão, um a um, para os ' + M + ' maiores quocientes; o seguinte já não elege ninguém.',
+        calculo: 'q_{' + M + '}' + igualOuAprox(ult.quociente, 2) + '\\ (' + txt(PARTIDOS[ult.partido]) + ') > q_{' + (M + 1) + '}' + igualOuAprox(seguinte.quociente, 2) + '\\ (' + txt(PARTIDOS[seguinte.partido]) + ')',
+      },
+    ];
   }
 
+  // Parcela do método do divisor para um partido: Hondt ⌊v/q⌋, St. Laguë ⌊(v/q + 1)/2⌋.
+  function parcelaDivisor(v, M, metodo) {
+    const fr = '\\tfrac{' + tex(v) + '}{q_{' + M + '}}';
+    return metodo === 'hondt' ? '\\left\\lfloor ' + fr + ' \\right\\rfloor' : '\\left\\lfloor \\tfrac{1}{2}\\left(' + fr + ' + 1\\right) \\right\\rfloor';
+  }
+
+  // q_M escrito como divisão exata (votos do dono do último mandato ÷ divisor usado), com o valor aproximado.
+  function definicaoQ(votos, M, metodo, r) {
+    const d = divisorDe(metodo)(r.mandatos[r.ultimo] - 1);
+    return 'q_{' + M + '} = \\tfrac{' + tex(votos[r.ultimo]) + '}{' + d + '}' + igualOuAprox(r.qM, 2);
+  }
+
+  // Verificação pelo método do divisor (q_M): mostra a divisão de um partido (i) ou de todos (i = null).
   function verificacaoDivisor(votos, M, metodo, i) {
     const r = mandatosPorLimiar(votos, M, metodo);
-    const x = trunc2(votos[i] / r.qM);
-    const formula = metodo === 'hondt'
-      ? '\\left\\lfloor \\dfrac{' + tex(votos[i]) + '}{' + tex(r.qM, 2) + '} \\right\\rfloor = \\left\\lfloor ' + tex(x, 2) + ' \\right\\rfloor = ' + r.mandatos[i]
-      : '\\left\\lfloor \\dfrac{' + tex(x, 2) + ' + 1}{2} \\right\\rfloor = ' + r.mandatos[i];
+    const regra = metodo === 'hondt' ? 'a parte inteira de votos ÷ divisor' : 'a parte inteira de (votos ÷ divisor + 1) ÷ 2, ou seja, os ímpares até votos ÷ divisor';
+    let calculo;
+    if (i === null) {
+      calculo = definicaoQ(votos, M, metodo, r) + ';\\quad ' + votos.map((v) => parcelaDivisor(v, M, metodo)).join(' + ') + ' = ' + r.mandatos.join(' + ') + ' = ' + soma(r.mandatos);
+    } else {
+      const x = votos[i] / r.qM;
+      const dentro = metodo === 'hondt' ? x : (x + 1) / 2;
+      calculo = definicaoQ(votos, M, metodo, r) + ';\\ \\dfrac{' + tex(votos[i]) + '}{q_{' + M + '}}' + igualOuAprox(x, 3) +
+        (metodo === 'hondt' ? '' : ';\\ \\dfrac{' + tex(x, 3) + ' + 1}{2}' + igualOuAprox(dentro, 3)) +
+        ';\\ \\lfloor ' + tex(dentro, 3) + ' \\rfloor = ' + r.mandatos[i] + ';\\quad ' + r.mandatos.join(' + ') + ' = ' + soma(r.mandatos);
+    }
     return {
       r,
       verificacao: {
-        passo: 'Confirmar pelo método do divisor: com o divisor ' + fmt(r.qM, 2) + ' (o ' + M + '.º quociente), cada partido elege ' + (metodo === 'hondt' ? 'a parte inteira de votos ÷ divisor' : 'tantos mandatos quantos os ímpares até votos ÷ divisor') + ', e os mandatos somam ' + M,
-        calculo: formula + ';\\quad ' + r.mandatos.map((m) => String(m)).join(' + ') + ' = ' + soma(r.mandatos),
+        passo: 'Confirmar pelo método do divisor: com o divisor ' + (Math.abs(r.qM * 100 - Math.round(r.qM * 100)) < 1e-6 ? '' : '≈ ') + fmt(r.qM, 2) + ' (o ' + M + '.º quociente), cada partido elege ' + regra + ', e os mandatos somam ' + M,
+        calculo,
       },
     };
+  }
+
+  // Erros reais de distribuição (escolha: distribuição inteira; numérica: mandatos do partido i).
+  function errosDistribuicao(votos, M, metodo, outro) {
+    const menor = votos.indexOf(Math.min(...votos));
+    const semMenor = votos.map((v, j) => (j === menor ? 0 : v));
+    const lista = [
+      metodo === 'hondt'
+        ? { codigo: 'divisores_impares', m: distribuir(outro, votos, M).mandatos, explicacao: 'Usaste os divisores 1, 3, 5, … (St. Laguë); no método de Hondt os divisores são 1, 2, 3, 4, …' }
+        : { codigo: 'divisores_hondt', m: distribuir(outro, votos, M).mandatos, explicacao: 'Usaste os divisores 1, 2, 3, … (Hondt); no método de St. Laguë os divisores são os ímpares 1, 3, 5, 7, …' },
+      { codigo: 'parou_um_antes', m: distribuir(metodo, votos, M - 1).mandatos, explicacao: 'Paraste um quociente antes: assim só se distribuem ' + (M - 1) + ' mandatos, e são ' + M + '.' },
+      { codigo: 'incluiu_quociente_seguinte', m: distribuir(metodo, votos, M + 1).mandatos, explicacao: 'Incluíste o ' + (M + 1) + '.º quociente, que já fica de fora: isso daria ' + (M + 1) + ' mandatos.' },
+      { codigo: 'proporcional_restos_maiores', m: calc().restosMaiores(votos, M).mandatos, explicacao: 'Repartiste em proporção direta (quota ' + M + ' × votos ÷ total, com os restos maiores): é o método de Hamilton, não o ' + NOME_METODO[metodo] + '.' },
+      { codigo: 'um_por_partido', m: distribuir(metodo, votos, M - 4).mandatos.map((x) => x + 1), explicacao: 'Não se dá primeiro um mandato a cada partido: cada mandato vai para o maior quociente, mesmo que o partido já tenha mandatos.' },
+      { codigo: 'esqueceu_partido_menor', m: distribuir(metodo, semMenor, M).mandatos, explicacao: 'Esqueceste os quocientes do partido ' + PARTIDOS[menor] + ' (o menos votado); também entram na comparação.' },
+    ];
+    return lista;
+  }
+
+  function esquemaHondt(votos, M, metodo) {
+    return { id: 'hondt', opcoes: { partidos: votos.map((v, j) => ({ nome: PARTIDOS[j], votos: v })), mandatos: M, metodo } };
   }
 
   function geradorMandatos(metodo) {
     const outro = metodo === 'hondt' ? 'stlague' : 'hondt';
     return {
-      subtema: 'hondt-stlague', tipo: metodo + '-mandatos', nome: 'Mandatos de um partido (' + NOME_METODO[metodo] + ')',
+      subtema: 'hondt-stlague', tipo: metodo + '-mandatos', nome: 'Mandatos pelo ' + NOME_METODO[metodo],
       formatos: ['numerica', 'escolha'],
       gerar(semente, { formato, rng }) {
         return tentar(() => {
           const dp = dadosProporcional(rng, metodo);
           if (!dp) return null;
           const { votos, M, dist, seguinte } = dp;
-          const T = soma(votos);
-          const doOutro = distribuir(outro, votos, M).mandatos;
-          const diferentes = votos.map((_, i) => i).filter((i) => doOutro[i] !== dist.mandatos[i]);
-          const i = diferentes.length && rng() < 0.6 ? escolher(rng, diferentes) : inteiro(rng, 0, 3);
+          const lista = errosDistribuicao(votos, M, metodo, outro);
+          const resolucao = passosProporcional(votos, M, metodo, dist, seguinte);
+          const esquema = esquemaHondt(votos, M, metodo);
+          if (formato === 'escolha') {
+            resolucao.push({ passo: 'Contar os mandatos de cada partido', porque: 'Cada quociente a negrito vale um mandato para o partido dessa linha.', calculo: PARTIDOS.map((p, j) => txt(p) + ' = ' + dist.mandatos[j]).join(',\\ ') });
+            const { r, verificacao } = verificacaoDivisor(votos, M, metodo, null);
+            const erros = lista.map((e) => ({ codigo: e.codigo, texto: distTxt(e.m), explicacao: e.explicacao }));
+            return fecharTexto(rng, {
+              enunciado: enunciadoProporcional(rng, votos, M, metodo) + ' Como ficam distribuídos os ' + M + ' mandatos (A – B – C – D)?',
+              resolucao, verificacao, dados: { votos, M }, esquema,
+            }, distTxt(dist.mandatos), erros, distTxt(r.mandatos));
+          }
+          // Numérica: um partido em que pelo menos um erro real dá outro número de mandatos.
+          const comErro = votos.map((_, j) => j).filter((j) => lista.some((e) => e.m[j] !== dist.mandatos[j]));
+          if (!comErro.length) return null;
+          const i = escolher(rng, comErro);
           const k = dist.mandatos[i];
           const P = PARTIDOS[i];
-          const enunciado = enunciadoProporcional(rng, votos, M, metodo) + ' Quantos mandatos obtém o partido ' + P + '?';
-          const resolucao = passosProporcional(votos, M, metodo, dist, seguinte);
-          resolucao.push({ passo: 'Contar os mandatos de ' + P, porque: 'Cada quociente de ' + P + ' entre os ' + M + ' maiores vale um mandato.', calculo: '\\text{mandatos de ' + P + '} = ' + k });
+          resolucao.push({ passo: 'Contar os mandatos de ' + P, porque: 'Cada quociente de ' + P + ' a negrito vale um mandato.', calculo: '\\text{mandatos de ' + P + '} = ' + k });
           const { r, verificacao } = verificacaoDivisor(votos, M, metodo, i);
           verificacao.valor = r.mandatos[i];
-          const erros = [
-            metodo === 'hondt'
-              ? { codigo: 'divisores_impares', valor: doOutro[i], explicacao: 'Usaste os divisores 1, 3, 5, … (St. Laguë); no método de Hondt os divisores são 1, 2, 3, 4, …' }
-              : { codigo: 'divisores_hondt', valor: doOutro[i], explicacao: 'Usaste os divisores 1, 2, 3, … (Hondt); no método de St. Laguë os divisores são os ímpares 1, 3, 5, 7, …' },
-            { codigo: 'proporcional_direto', valor: Math.round((M * votos[i]) / T), explicacao: 'Arredondaste a proporção direta (' + M + ' × ' + fmt(votos[i]) + ' ÷ ' + fmt(T) + '); os mandatos vão para os maiores quocientes, e isso não coincide sempre com o arredondamento.' },
-            M > 4 ? { codigo: 'um_por_partido', valor: 1 + distribuir(metodo, votos, M - 4).mandatos[i], explicacao: 'Não se dá um mandato a cada partido primeiro: cada mandato vai para o maior quociente, mesmo que o partido já tenha mandatos.' } : null,
-            { codigo: 'incluiu_quociente_seguinte', valor: distribuir(metodo, votos, M + 1).mandatos[i], explicacao: 'Contaste ' + (M + 1) + ' quocientes; o ' + (M + 1) + '.º quociente já fica de fora.' },
-            { codigo: 'contou_menos_um', valor: distribuir(metodo, votos, M - 1).mandatos[i], explicacao: 'Contaste só ' + (M - 1) + ' quocientes; distribuem-se ' + M + ' mandatos.' },
-            { codigo: 'contagem_a_mais', valor: k + 1, explicacao: 'Conta outra vez: só ' + k + ' dos ' + M + ' maiores quocientes são do partido ' + P + '.' },
-            k > 0 ? { codigo: 'contagem_a_menos', valor: k - 1, explicacao: 'Conta outra vez: ' + k + ' dos ' + M + ' maiores quocientes são do partido ' + P + '.' } : null,
-            // Reserva: garante 3 distratores distintos quando os erros acima coincidem com k ou k ± 1.
-            { codigo: 'contagem_dois_a_mais', valor: k + 2, explicacao: k > 0 ? 'Conta outra vez: só ' + k + ' dos ' + M + ' maiores quocientes são do partido ' + P + '.' : 'O partido ' + P + ' não tem nenhum quociente entre os ' + M + ' maiores.' },
-            k > 1 ? { codigo: 'contagem_dois_a_menos', valor: k - 2, explicacao: 'Conta outra vez: ' + k + ' dos ' + M + ' maiores quocientes são do partido ' + P + '.' } : null,
-            { codigo: 'contagem_tres_a_mais', valor: k + 3, explicacao: k > 0 ? 'Conta outra vez: só ' + k + ' dos ' + M + ' maiores quocientes são do partido ' + P + '.' : 'O partido ' + P + ' não tem nenhum quociente entre os ' + M + ' maiores.' },
-          ];
+          const erros = lista.map((e) => ({ codigo: e.codigo, valor: e.m[i], explicacao: e.explicacao }));
           return fechar(rng, formato, {
-            enunciado, resolucao, dados: { votos, M, partido: i },
-            esquema: { id: 'hondt', opcoes: { partidos: votos.map((v, j) => ({ nome: PARTIDOS[j], votos: v })), mandatos: M, metodo } },
+            enunciado: enunciadoProporcional(rng, votos, M, metodo) + ' Quantos mandatos obtém o partido ' + P + '?',
+            resolucao, dados: { votos, M, partido: i }, esquema,
           }, { resposta: k, tolerancia: 0, unidade: 'mandatos', texto: mandatosTxt, erros, verificacao });
         });
       },
@@ -748,7 +806,8 @@ globalThis.Manual = globalThis.Manual || {};
         const { votos, M, partido } = p.dados;
         const r = mandatosPorLimiar(votos, M, metodo);
         if (soma(r.mandatos) !== M) return false;
-        if (mandatosPorDivisor(votos[partido], r.qM, metodo) !== r.mandatos[partido]) return false;
+        if (votos.some((v, j) => mandatosPorDivisor(v, r.qM, metodo) !== r.mandatos[j])) return false;
+        if (p.formato === 'escolha') return p.opcoes[p.correta] === distTxt(r.mandatos);
         return confere(p, r.mandatos[partido], mandatosTxt);
       },
       limites(p) {
@@ -786,24 +845,31 @@ globalThis.Manual = globalThis.Manual || {};
           dar(i, { codigo: 'quociente_menor', explicacao: 'O maior quociente de ' + PARTIDOS[i] + ' ainda por usar é ' + q2(votos[i] / div(dist.mandatos[i])) + ', menor do que ' + q2(ult.quociente) + ' de ' + PARTIDOS[L] + '.' });
         }
         const resolucao = passosProporcional(votos, M, metodo, dist, seguinte);
-        resolucao.push({ passo: 'Identificar o ' + M + '.º quociente', porque: 'O último mandato vai para o partido dono do ' + M + '.º maior quociente.', calculo: 'q_{' + M + '} = ' + tex(ult.quociente, 2) + ' \\to ' + txt(PARTIDOS[L]) });
+        resolucao.push({ passo: 'Identificar o ' + M + '.º quociente', porque: 'O último mandato vai para o partido dono do ' + M + '.º maior quociente.', calculo: 'q_{' + M + '}' + igualOuAprox(ult.quociente, 2) + ' \\to ' + txt(PARTIDOS[L]) });
+        // Método do divisor: com o divisor q_M os mandatos somam M, e só o dono do último mandato
+        // tem votos ÷ q_M exatamente igual a um divisor do método (o que usou no último mandato).
         const r = mandatosPorLimiar(votos, M, metodo);
+        const dono = r.ultimo;
         const ver = {
-          passo: 'Confirmar ordenando todos os quocientes: o ' + M + '.º maior fica entre o anterior e o seguinte, e os mandatos somam ' + M,
-          calculo: 'q_{' + (M - 1) + '} = ' + tex(pen.quociente, 2) + ' > q_{' + M + '} = ' + tex(r.qM, 2) + ' > q_{' + (M + 1) + '} = ' + tex(seguinte.quociente, 2) + ';\\quad ' + r.mandatos.join(' + ') + ' = ' + soma(r.mandatos),
+          passo: 'Confirmar pelo método do divisor: com o divisor ' + (Math.abs(r.qM * 100 - Math.round(r.qM * 100)) < 1e-6 ? '' : '≈ ') + fmt(r.qM, 2) + ' os mandatos somam ' + M + ', e só ' + PARTIDOS[dono] + ' tem votos ÷ divisor exatamente igual a um divisor do método (o do último mandato)',
+          calculo: definicaoQ(votos, M, metodo, r) + ';\\ \\dfrac{' + tex(votos[dono]) + '}{q_{' + M + '}} = ' + tex(votos[dono] / r.qM, 3) + ';\\quad ' + votos.map((v) => parcelaDivisor(v, M, metodo)).join(' + ') + ' = ' + r.mandatos.join(' + ') + ' = ' + soma(r.mandatos),
         };
         const texto = (i) => 'Partido ' + PARTIDOS[i];
         const erros = Object.keys(papel).map((i) => Object.assign({ texto: texto(Number(i)) }, papel[i]));
         return fecharTexto(rng, {
           enunciado: enunciadoProporcional(rng, votos, M, metodo) + ' Que partido recebe o último (' + M + '.º) mandato?',
-          resolucao, verificacao: ver, dados: { votos, M },
-          esquema: { id: 'hondt', opcoes: { partidos: votos.map((v, j) => ({ nome: PARTIDOS[j], votos: v })), mandatos: M, metodo } },
-        }, texto(L), erros, texto(r.ultimo));
+          resolucao, verificacao: ver, dados: { votos, M }, esquema: esquemaHondt(votos, M, metodo),
+        }, texto(L), erros, texto(dono));
       });
     },
     verificarIndependente(p) {
-      const r = mandatosPorLimiar(p.dados.votos, p.dados.M, p.contexto);
-      return soma(r.mandatos) === p.dados.M && p.opcoes[p.correta] === 'Partido ' + PARTIDOS[r.ultimo];
+      const { votos, M } = p.dados;
+      const r = mandatosPorLimiar(votos, M, p.contexto);
+      if (soma(r.mandatos) !== M) return false;
+      // O dono do último mandato é o único partido cujo votos ÷ q_M é exatamente um divisor usado.
+      const div = divisorDe(p.contexto);
+      const exatos = votos.map((v, i) => i).filter((i) => r.mandatos[i] > 0 && Math.abs(votos[i] / r.qM - div(r.mandatos[i] - 1)) < 1e-9);
+      return exatos.length === 1 && p.opcoes[p.correta] === 'Partido ' + PARTIDOS[exatos[0]];
     },
     limites(p) {
       return p.dados.M >= 5 && p.dados.M <= 10 && p.dados.votos.every((v) => v >= 300 && v <= 12000);
@@ -863,7 +929,6 @@ globalThis.Manual = globalThis.Manual || {};
           { codigo: 'taxa_1_1', valor: cent(base * 0.011), explicacao: '11 % escreve-se 0,11, não 0,011.' },
           { codigo: 'deu_o_restante', valor: cent(base * 0.89), explicacao: 'Esse é o valor que sobra depois do desconto (89 %); a contribuição é 11 % do bruto.' },
           { codigo: 'taxa_da_entidade', valor: cent(base * 0.2375), explicacao: '23,75 % é a taxa paga pela entidade empregadora; o trabalhador desconta 11 %.' },
-          { codigo: 'ss_depois_irs', valor: cent((base - (anual ? meses : 1) * s.retencao) * TAXA_SS), explicacao: 'A contribuição para a Segurança Social calcula-se sobre o bruto, não sobre o que sobra depois da retenção de IRS.' },
         ];
         if (anual) {
           erros.unshift(
@@ -945,11 +1010,13 @@ globalThis.Manual = globalThis.Manual || {};
     if (j < 0) j = escaloes.length - 1;
     let abater = 0;
     let de = 0;
+    const termos = [];
     for (let i = 0; i < j; i++) {
+      termos.push({ largura: escaloes[i].ate - de, taxa: escaloes[i].taxa });
       abater += (escaloes[i].ate - de) * (escaloes[j].taxa - escaloes[i].taxa);
       de = escaloes[i].ate;
     }
-    return { j, taxa: escaloes[j].taxa, abater, imposto: R * escaloes[j].taxa - abater };
+    return { j, taxa: escaloes[j].taxa, abater, termos, imposto: R * escaloes[j].taxa - abater };
   }
 
   registar({
@@ -981,8 +1048,12 @@ globalThis.Manual = globalThis.Manual || {};
         return fechar(rng, formato, { enunciado, resolucao, dados: { R } }, {
           resposta: imposto, tolerancia: TOL_EUR, unidade: '€', texto: eur, erros, arredondamento: ARRED_EUR,
           verificacao: {
-            passo: 'Confirmar com a parcela a abater: taxa do escalão sobre todo o rendimento, menos o que se cobrou a mais nos escalões abaixo',
-            calculo: tex(R) + ' \\times ' + tex(alt.taxa, 2) + (alt.abater > 0 ? ' - ' + texEur(alt.abater) : '') + ' = ' + texEur(alt.imposto),
+            passo: alt.abater > 0
+              ? 'Confirmar com a parcela a abater: aplica-se a taxa do escalão (' + pct(alt.taxa) + ') a todo o rendimento e abate-se D, o que assim se cobraria a mais em cada escalão abaixo (largura do escalão × diferença de taxas)'
+              : 'Confirmar: o rendimento fica todo no 1.º escalão, por isso é só a taxa vezes o rendimento',
+            calculo: (alt.abater > 0
+              ? 'D = ' + alt.termos.map((t) => tex(t.largura) + ' \\times (' + tex(alt.taxa, 2) + ' - ' + tex(t.taxa, 2) + ')').join(' + ') + ' = ' + texEur(alt.abater) + ';\\quad ' + tex(R) + ' \\times ' + tex(alt.taxa, 2) + ' - ' + texEur(alt.abater)
+              : tex(R) + ' \\times ' + tex(alt.taxa, 2)) + ' = ' + texEur(alt.imposto),
             valor: cent(alt.imposto),
           },
         });
@@ -1010,11 +1081,11 @@ globalThis.Manual = globalThis.Manual || {};
         const nome = escolher(rng, NOMES);
         const enunciado = (anual
           ? 'O contrato de ' + nome + ' prevê um salário bruto anual de ' + fmt(An) + ' €, pago em 14 meses (12 meses e os subsídios de férias e de Natal), e um horário de ' + h + ' horas por semana.'
-          : 'O contrato de ' + nome + ' prevê ' + fmt(Rm) + ' € brutos por mês e um horário de ' + h + ' horas por semana.') + ' Qual é o valor por hora? Arredonda às centésimas.';
+          : 'O contrato de ' + nome + ' prevê ' + fmt(Rm) + ' € brutos por mês e um horário de ' + h + ' horas por semana.') + ' Usa a fórmula do manual: valor por hora = (Rm × 12) ÷ (52 × h), sendo Rm o salário mensal e h as horas semanais. Qual é o valor por hora? Arredonda às centésimas.';
         const resolucao = [];
         if (anual) resolucao.push({ passo: 'Calcular o salário mensal', porque: 'O salário anual corresponde a 14 pagamentos iguais.', calculo: '\\dfrac{' + tex(An) + '}{14} = ' + tex(Rm) });
         resolucao.push(
-          { passo: 'Salário dos 12 meses de trabalho', porque: 'Os subsídios não correspondem a horas trabalhadas, por isso conta-se o salário de 12 meses.', calculo: tex(Rm) + ' \\times 12 = ' + tex(Rm * 12) },
+          { passo: 'Salário dos 12 meses de trabalho', porque: 'É a convenção da lei e do manual: o salário de 12 meses a dividir pelas horas de 52 semanas (os subsídios ficam de fora).', calculo: tex(Rm) + ' \\times 12 = ' + tex(Rm * 12) },
           { passo: 'Horas trabalhadas num ano', porque: 'Um ano tem 52 semanas.', calculo: '52 \\times ' + h + ' = ' + tex(52 * h) },
           { passo: 'Dividir o salário pelas horas', porque: 'O valor por hora é o que se recebe por cada hora de trabalho.', calculo: '\\dfrac{' + tex(Rm * 12) + '}{' + tex(52 * h) + '} \\approx ' + texEur(valor) },
         );

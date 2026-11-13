@@ -70,3 +70,22 @@ test('snapshot: juros-composto-montante (mensal), semente 7', () => {
   assert.deepEqual(p.dados, { C0: 600, r: 0.01, t: 6, n: 12 });
   assert.equal(p.resposta, 637.09); // 600 × (1 + 0,01/12)^72
 });
+
+test('snapshot: hondt-stlague-stlague-mandatos (escolha: distribuição), semente 7', () => {
+  const p = G.gerar('hondt-stlague-stlague-mandatos', 7, { formato: 'escolha' });
+  assert.match(p.enunciado, /Como ficam distribuídos os 8 mandatos/);
+  assert.equal(p.opcoes[p.correta], 'A 0 – B 0 – C 5 – D 3'); // ímpares: C 11 730/1, /3, /5, /7, /9; D 8480/1, /3, /5
+  assert.ok(p.resolucaoDetalhada[0].bloco && p.resolucaoDetalhada[0].calculo.startsWith('\\begin{array}'));
+  assert.ok(p.resolucao[0].includes('$$\\begin{array}'));
+});
+
+test('mandatos: só erros reais (sem códigos contagem_*), em numérica e escolha', () => {
+  for (const id of ['hondt-stlague-hondt-mandatos', 'hondt-stlague-stlague-mandatos']) {
+    for (const formato of ['numerica', 'escolha']) {
+      for (let s = 1; s <= 100; s++) {
+        const p = G.gerar(id, s, { formato });
+        assert.ok(p.errosTipicos.every((e) => !/^contagem_/.test(e.codigo)), id + ' ' + formato + ' ' + s);
+      }
+    }
+  }
+});

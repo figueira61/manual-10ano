@@ -123,6 +123,9 @@ function regra3(p, def, chave) {
     p.opcoes.forEach((o, i) => {
       if (i !== p.correta && !p.errosTipicos.some((t) => t.opcao === i)) e.push('opção ' + i + ' sem erro típico');
     });
+    // Cada opção errada tem de ter uma explicação própria (apanha distratores genéricos do tipo "conta outra vez").
+    const explicacoes = p.errosTipicos.map((t) => String(t.explicacao).replace(/\s+/g, ' ').trim());
+    if (new Set(explicacoes).size !== explicacoes.length) e.push('opções erradas com explicações repetidas');
   } else if (p.formato === 'vf') {
     if (p.correta === false && p.errosTipicos.length === 0) e.push('afirmação falsa sem erro típico');
   }
