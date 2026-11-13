@@ -126,16 +126,33 @@ test('outlier: o valor corrigido fica para lá de Q3 + 1,5·AIQ (ou abaixo de Q1
   }
 });
 
-test('classe modal: o erro «valores diferentes» aparece e traz os números da classe', () => {
+test('classe modal: o erro «valores diferentes» só aparece numa classe com repetidos e com os números certos', () => {
   let visto = 0;
-  for (let s = 1; s <= 100; s++) {
+  const N = 500;
+  for (let s = 1; s <= N; s++) {
     const p = G.gerar('frequencias-histograma-classe-modal', s, { contexto: 'lista' });
     const e = p.errosTipicos.find((x) => x.codigo === 'contou_valores_diferentes');
     if (!e) continue;
     visto++;
-    assert.match(e.explicacao, /tem \d+ valores diferentes, mas \d+ observações/);
+    const { xs, a, h } = p.dados;
+    const deClasse = (lo) => xs.filter((x) => x >= lo && x < lo + h);
+    // Classe apontada pela opção errada e classe modal (opção certa), lidas do próprio item.
+    const lo = Number(p.opcoes[e.opcao].match(/\[(\d+)/)[1]);
+    const loM = Number(p.opcoes[p.correta].match(/\[(\d+)/)[1]);
+    const obs = deClasse(lo).length;
+    const dif = new Set(deClasse(lo)).size;
+    assert.ok(dif < obs, 'semente ' + s + ': ' + dif + ' diferentes e ' + obs + ' observações');
+    assert.notEqual(lo, loM);
+    // É mesmo a classe com mais valores diferentes (o que escolhe quem comete o erro).
+    for (let j = 0; j < 5; j++) {
+      const outra = a + j * h;
+      if (outra !== lo) assert.ok(new Set(deClasse(outra)).size < dif, 'semente ' + s);
+    }
+    // A explicação usa estes números.
+    assert.ok(e.explicacao.includes('tem ' + dif + ' valores diferentes e ' + obs + ' observações'), e.explicacao);
+    assert.ok(e.explicacao.includes(deClasse(loM).length + ' observações'), e.explicacao);
   }
-  assert.ok(visto > 0);
+  assert.ok(visto >= N / 5, 'aparece em ' + visto + ' de ' + N);
 });
 
 test('sem frases com dois «dois pontos» seguidos nas explicações e passos', () => {

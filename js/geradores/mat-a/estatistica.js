@@ -621,6 +621,23 @@ globalThis.Manual = globalThis.Manual || {};
   };
 
   // Classe modal: lista de dados brutos ou tabela de frequências acumuladas.
+  // Valores inteiros de uma classe [lo, hi]: fixos + pares + (triplo) + simples, todos os do interior distintos entre si.
+  function valoresClasse(rng, lo, hi, total, fixos, pares, triplo) {
+    const simples = total - fixos.length - 2 * pares - (triplo ? 3 : 0);
+    if (simples < 0) return null;
+    const precisos = pares + (triplo ? 1 : 0) + simples;
+    const interior = baralhar(rng, Array.from({ length: hi - lo }, (_, i) => lo + 1 + i));
+    if (precisos > interior.length) return null;
+    const usados = interior.slice(0, precisos);
+    const vals = fixos.slice();
+    let i = 0;
+    let vt = null;
+    if (triplo) { vt = usados[i++]; vals.push(vt, vt, vt); }
+    for (let k = 0; k < pares; k++) { const v = usados[i++]; vals.push(v, v); }
+    while (i < usados.length) vals.push(usados[i++]);
+    return { vals, vt };
+  }
+
   function construirModalLista(rng) {
     const C = calc();
     const t = escolher(rng, CONTINUOS);
@@ -629,13 +646,19 @@ globalThis.Manual = globalThis.Manual || {};
     const a = escolher(rng, t.inicios);
     // Classe modal num dos lados (1 ou 4) e as outras classes bem povoadas: a mediana cai noutra classe.
     const m = escolher(rng, [1, k - 1]);
-    const cm = inteiro(rng, 5, 7);
+    // comRepetidos: uma classe não modal (jd) com um valor repetido fica com mais valores diferentes do que
+    // todas as outras (a modal e a anterior têm dois pares além dos valores de fronteira) — é a classe que
+    // escolhe quem conta valores diferentes em vez de observações.
+    const comRepetidos = rng() < 0.5;
+    const cm = comRepetidos ? inteiro(rng, 6, 7) : inteiro(rng, 5, 7);
     const cont = Array(k).fill(0);
     cont[m] = cm;
     cont[m - 1] = cm - 1;
     const livres = [];
     for (let j = 0; j < k; j++) if (j !== m && j !== m - 1) livres.push(j);
     for (const j of livres) cont[j] = inteiro(rng, cm - 3, cm - 2);
+    const jd = comRepetidos ? escolher(rng, livres) : -1;
+    if (jd >= 0) cont[jd] = cm - 1;
     // Classe da mediana (só depende das contagens): a classe do valor que se repete tem de ser outra.
     const n = soma(cont);
     const acum = [];
@@ -643,20 +666,19 @@ globalThis.Manual = globalThis.Manual || {};
     const posMed = n % 2 ? [(n + 1) / 2] : [n / 2, n / 2 + 1];
     const classesMed = posMed.map((q) => acum.findIndex((N) => N >= q));
     if (classesMed.some((j) => j !== classesMed[0])) return null;
-    const tc = escolher(rng, livres.filter((j) => j !== classesMed[0]));
+    const tc = escolher(rng, livres.filter((j) => j !== classesMed[0] && j !== jd));
     if (tc === undefined || cont[tc] < (tc === 0 ? 4 : 3)) return null;
     const xs = [];
     let vt = null;
     for (let j = 0; j < k; j++) {
       const lo = a + j * h;
-      const hi = lo + h - 1;
-      const vals = [];
-      if (j === 0) vals.push(lo);
-      if (j === m) vals.push(lo, lo);
-      if (j === tc) { vt = inteiro(rng, lo + 1, hi); vals.push(vt, vt, vt); }
-      while (vals.length < cont[j]) vals.push(inteiro(rng, lo + 1, hi));
-      if (vals.length > cont[j]) return null;
-      xs.push(...vals);
+      const fixos = j === m ? [lo, lo] : j === 0 ? [lo] : [];
+      let pares = 0;
+      if (comRepetidos) pares = j === m || j === m - 1 ? 2 : j === tc ? 0 : 1;
+      const r = valoresClasse(rng, lo, lo + h - 1, cont[j], fixos, pares, j === tc);
+      if (!r) return null;
+      if (j === tc) vt = r.vt;
+      xs.push(...r.vals);
     }
     const cls = C.classes(xs, h, a);
     if (cls.length !== k) return null;
@@ -675,8 +697,10 @@ globalThis.Manual = globalThis.Manual || {};
       errado[j]++;
     }
     const mFront = unicoMaximo(errado);
+    // Erro «valores diferentes»: só se a classe que ganha em valores diferentes tem mesmo valores repetidos.
     const distintos = Array.from({ length: k }, (_, j) => new Set(xs.filter((x) => classeDe(x) === j)).size);
-    const jDist = unicoMaximo(distintos);
+    const jMax = unicoMaximo(distintos);
+    const jDist = jMax >= 0 && jMax !== m && distintos[jMax] < counts[jMax] ? jMax : -1;
     const ordem = baralhar(rng, xs);
     return {
       t, k, h, a, xs: ordem, counts, modal,
@@ -684,7 +708,7 @@ globalThis.Manual = globalThis.Manual || {};
         { codigo: 'fronteira_na_classe_anterior', j: mFront, explicacao: 'Contaste os valores iguais ao limite inferior de uma classe (como ' + fmt(a + m * h) + ') na classe anterior; numa classe [a, b[ o valor b já pertence à classe seguinte.' },
         { codigo: 'classe_da_mediana', j: classeDe(me), explicacao: 'Essa é a classe onde fica a mediana (' + fmt(me) + '); a classe modal é a que tem maior frequência.' },
         { codigo: 'classe_do_valor_mais_frequente', j: classeDe(vt), explicacao: 'O valor que mais se repete (' + fmt(vt) + ') está nessa classe, mas a classe modal é a que tem mais valores no total.' },
-        { codigo: 'contou_valores_diferentes', j: jDist, explicacao: jDist < 0 ? '' : 'Contaste os valores diferentes de cada classe. A classe ' + classeTxt(a, h, jDist) + ' tem ' + fmt(distintos[jDist]) + ' valores diferentes, mas ' + fmt(counts[jDist]) + ' observações, porque os repetidos também contam; a classe ' + classeTxt(a, h, m) + ' tem ' + fmt(counts[m]) + ' observações.' },
+        { codigo: 'contou_valores_diferentes', j: jDist, explicacao: jDist < 0 ? '' : 'Contaste os valores diferentes de cada classe, mas os repetidos também contam. A classe ' + classeTxt(a, h, jDist) + ' tem ' + fmt(distintos[jDist]) + ' valores diferentes e ' + fmt(counts[jDist]) + ' observações; a classe ' + classeTxt(a, h, m) + ' tem só ' + fmt(distintos[m]) + ' valores diferentes, mas ' + fmt(counts[m]) + ' observações.' },
       ],
     };
   }
