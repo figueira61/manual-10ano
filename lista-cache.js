@@ -36,6 +36,7 @@ self.LISTA_CACHE = [
   "index.html",
   "js/aleatorio.js",
   "js/app.js",
+  "js/aprendizagem.js",
   "js/config.js",
   "js/conta.js",
   "js/fila.js",
@@ -76,4 +77,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '28c6e7203c';
+self.VERSAO_CACHE = '900cec69f1';
