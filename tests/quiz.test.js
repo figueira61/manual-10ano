@@ -198,3 +198,18 @@ test('construirTentativa grava erro_tipico', () => {
   assert.equal(Manual.quiz.construirTentativa(c, p, 0, 'errada', 10, 'x', { codigo: 'sinal_h', explicacao: 'E' }).erro_tipico, 'sinal_h');
   assert.equal(Manual.quiz.construirTentativa(c, p, 0, 'errada', 10, 'x').erro_tipico, null);
 });
+
+test('erro com valor igual à resposta certa mantém certa e erroTipico null', () => {
+  Manual = carregar('js/quiz.js', 'js/aprendizagem.js');
+  const p = { tipo: 'numerica', resposta: 2, errosTipicos: [{ codigo: 'x', valor: 2, explicacao: 'E' }] };
+  const r = Manual.quiz.corrigir(p, '2');
+  assert.equal(r.certa, true);
+  assert.equal(r.erroTipico, null);
+});
+
+test('corrigir escolha devolve erroTipico', () => {
+  Manual = carregar('js/quiz.js', 'js/aprendizagem.js');
+  const p = { tipo: 'escolha', opcoes: ['a', 'b', 'c'], correta: 0, errosTipicos: [{ codigo: 'op2', opcao: 2, explicacao: 'E' }] };
+  assert.deepEqual(Manual.quiz.corrigir(p, 2).erroTipico, { codigo: 'op2', explicacao: 'E' });
+  assert.equal(Manual.quiz.corrigir(p, 0).erroTipico, null);
+});

@@ -190,6 +190,12 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
       R.texto(valor, r.respostaCorreta);
       correta.appendChild(valor);
       feedback.appendChild(correta);
+      if (r.erroTipico) {
+        const bloco = R.criar('div', 'erro-tipico');
+        bloco.appendChild(R.criar('p', 'feedback-titulo', 'O que provavelmente aconteceu'));
+        R.paragrafo(bloco, r.erroTipico.explicacao, 'explicacao');
+        feedback.appendChild(bloco);
+      }
       if (r.resolucao.length) {
         feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
         R.passos(feedback, r.resolucao);
