@@ -225,8 +225,9 @@ globalThis.Manual = globalThis.Manual || {};
   function seloEstado(estado) {
     const rotulo = ROTULOS_ESTADO[estado];
     if (!rotulo) return null;
-    const el = criar('span', 'selo-estado e-' + estado, rotulo);
-    el.setAttribute('aria-label', 'Estado: ' + rotulo);
+    const el = criar('span', 'selo-estado e-' + estado);
+    el.appendChild(criar('span', 'so-leitores', 'Estado: '));
+    el.appendChild(document.createTextNode(rotulo));
     return el;
   }
 

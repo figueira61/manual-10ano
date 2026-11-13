@@ -24,9 +24,10 @@ function t(res, semente, quando, extra) {
 const CH = 'mat-a/f/afim';
 const AGORA = () => new Date('2026-11-13T10:00:00Z');
 
-test('aluna: 2 erradas com sementes diferentes -> nao_resolvido, intervalo 1', () => {
+test('aluna: 2 erradas com sementes diferentes -> nao_resolvido, intervalo 1', async () => {
   const { M, conta, guardados, arm } = ambiente('aluna');
   const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  await m.carregar();
   let avisos = 0; m.aoMudar(() => { avisos += 1; });
   m.registar(t('errada', 1, '2026-11-13T09:00:00Z'));
   m.registar(t('errada', 2, '2026-11-13T09:05:00Z'));
@@ -90,12 +91,91 @@ test('carregar sem sessao usa so o local e nunca lanca', async () => {
   assert.equal(m2.estadoDe(CH).estado, 'dificuldade');
 });
 
-test('3 certas em 2 dias -> domina e intervalo avanca', () => {
+test('3 certas em 2 dias -> domina e intervalo avanca', async () => {
   const { M, conta, guardados, arm } = ambiente('aluna');
   const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  await m.carregar();
   m.registar(t('certa', 1, '2026-11-12T10:00:00Z'));
   m.registar(t('certa', 2, '2026-11-13T09:00:00Z'));
   m.registar(t('certa', 3, '2026-11-13T09:10:00Z'));
   assert.equal(m.estadoDe(CH).estado, 'domina');
   assert.deepEqual(guardados.map((g) => g.intervalo_dias), [1, 3, 7]);
+});
+
+function atraso() {
+  let resolver;
+  const p = new Promise((r) => { resolver = r; });
+  return { p, resolver };
+}
+
+test('registar durante carregar em curso nao perde a tentativa', async () => {
+  const d = atraso();
+  const { M, conta, arm, dados } = ambiente('aluna', { tentativas: () => d.p });
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  const c = m.carregar();
+  const nova = t('errada', 1, '2026-11-13T09:00:00Z');
+  m.registar(nova);
+  d.resolver([]);
+  await c;
+  assert.ok(JSON.parse(dados['manual10.historico.v1']).itens.some((i) => i.id === nova.id));
+  assert.equal(m.estadoDe(CH).estado, 'dificuldade');
+});
+
+test('carregar antigo de outra conta nao escreve nada', async () => {
+  const d = atraso();
+  let dono = 'A';
+  let primeira = true;
+  const { M, conta, arm, dados } = ambiente('aluna', {
+    estado: () => ({ papel: 'aluna', perfil: { id: dono } }),
+    tentativas: () => (primeira ? ((primeira = false), d.p) : Promise.resolve([])),
+  });
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  const antigo = m.carregar();
+  dono = 'B';
+  await m.carregar();
+  const antes = dados['manual10.historico.v1'];
+  d.resolver([t('errada', 1, '2026-11-12T09:00:00Z')]);
+  await antigo;
+  assert.equal(dados['manual10.historico.v1'], antes);
+  assert.equal(JSON.parse(antes).dono, 'B');
+  assert.equal(m.estadoDe(CH), null);
+});
+
+test('intervalo de visitante nao passa para a aluna que entra', async () => {
+  let papel = null, id = null;
+  const { M, conta, guardados, arm } = ambiente('aluna', {
+    estado: () => ({ papel, perfil: id ? { id } : null }),
+  });
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  m.registar(t('certa', 1, '2026-11-12T10:00:00Z'));
+  m.registar(t('certa', 2, '2026-11-13T09:00:00Z'));
+  assert.equal(m.estadoDe(CH).intervalo_dias, 3);
+  papel = 'aluna'; id = 'B';
+  await m.carregar();
+  assert.equal(m.estadoDe(CH), null);
+  m.registar(t('certa', 3, '2026-11-13T09:10:00Z'));
+  assert.equal(guardados.length, 1);
+  assert.equal(guardados[0].intervalo_dias, 1);
+});
+
+test('registar com id repetido nao avanca o intervalo', () => {
+  const { M, conta, arm } = ambiente('aluna');
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  const a = t('certa', 1, '2026-11-13T09:00:00Z');
+  m.registar(a);
+  m.registar(a);
+  assert.equal(m.estadoDe(CH).intervalo_dias, 1);
+});
+
+test('registar antes dos estados remotos so guarda depois e com o intervalo remoto', async () => {
+  const d = atraso();
+  const { M, conta, guardados, arm } = ambiente('aluna', { estados: () => d.p });
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  const c = m.carregar();
+  m.registar(t('certa', 1, '2026-11-13T09:00:00Z'));
+  assert.equal(guardados.length, 0);
+  d.resolver([{ chave: CH, estado: 'dominio', tipos: {}, proxima_revisao: '2026-11-13', intervalo_dias: 7 }]);
+  await c;
+  assert.equal(guardados.length, 1);
+  assert.equal(guardados[0].intervalo_dias, 14);
 });

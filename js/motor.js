@@ -40,6 +40,10 @@ globalThis.Manual = globalThis.Manual || {};
     const agora = typeof o.agora === 'function' ? o.agora : function () { return new Date(); };
     const ouvintes = new Set();
     let estados = {};
+    let estadosDono; // dono a que `estados` pertence
+    let geracao = 0;
+    let carregadoPara; // dono cujos estados remotos já foram lidos
+    let pendentes = []; // { t } de alunas à espera dos estados remotos
     let memoria = { dono: null, itens: [] };
 
     function infoConta() {
@@ -95,7 +99,14 @@ globalThis.Manual = globalThis.Manual || {};
       try {
         if (!ehObjeto(t) || typeof t.id !== 'string') return;
         const info = infoConta();
-        const itens = junta(lerHistorico(info.dono), [t]);
+        if (estadosDono !== info.dono) {
+          estados = {};
+          estadosDono = info.dono;
+          pendentes = [];
+        }
+        const existentes = lerHistorico(info.dono);
+        if (existentes.some(function (i) { return i.id === t.id; })) return;
+        const itens = junta(existentes, [t]);
         guardarHistorico(info.dono, itens);
         const chave = chaveDe(t);
         const c = Manual.aprendizagem.classificarSubtema(itens.filter(function (i) { return chaveDe(i) === chave; }));
@@ -106,7 +117,9 @@ globalThis.Manual = globalThis.Manual || {};
           proxima_revisao: r.proxima_revisao, intervalo_dias: r.intervalo_dias,
         };
         estados[chave] = novo;
-        if (info.aluna && conta && typeof conta.guardarEstado === 'function') {
+        if (info.aluna && carregadoPara !== info.dono) {
+          pendentes.push(t); // guarda-se depois de ler os estados remotos
+        } else if (info.aluna && conta && typeof conta.guardarEstado === 'function') {
           try {
             Promise.resolve(conta.guardarEstado(Object.assign({}, novo))).catch(function () {});
           } catch (erro) {
@@ -130,6 +143,7 @@ globalThis.Manual = globalThis.Manual || {};
     }
 
     async function carregar() {
+      const minha = ++geracao;
       try {
         const info = infoConta();
         let itens = lerHistorico(info.dono);
@@ -145,6 +159,9 @@ globalThis.Manual = globalThis.Manual || {};
             if (Array.isArray(e)) remotos = e.filter(function (x) { return ehObjeto(x) && x.chave; });
           } catch (erro) { /* só local */ }
         }
+        if (minha !== geracao || infoConta().dono !== info.dono) return;
+        // o que foi registado durante a espera não se perde
+        itens = junta(lerHistorico(info.dono), itens);
         guardarHistorico(info.dono, itens);
         const novos = {};
         remotos.forEach(function (e) {
@@ -155,10 +172,25 @@ globalThis.Manual = globalThis.Manual || {};
         });
         const calculados = Manual.aprendizagem.classificarTudo(itens);
         Object.keys(calculados).forEach(function (chave) {
-          const base = novos[chave] || estados[chave] || { chave: chave, proxima_revisao: null, intervalo_dias: null };
+          const base = novos[chave] || { chave: chave, proxima_revisao: null, intervalo_dias: null };
           novos[chave] = Object.assign({}, base, { estado: calculados[chave].estado, tipos: calculados[chave].tipos });
         });
+        const pend = estadosDono === info.dono ? pendentes : [];
         estados = novos;
+        estadosDono = info.dono;
+        pendentes = [];
+        if (info.aluna) carregadoPara = info.dono;
+        pend.forEach(function (t) {
+          const chave = chaveDe(t);
+          const base = estados[chave];
+          const r = Manual.aprendizagem.proximaRevisao(base.intervalo_dias, t, agora());
+          estados[chave] = Object.assign({}, base, r);
+          if (conta && typeof conta.guardarEstado === 'function') {
+            try {
+              Promise.resolve(conta.guardarEstado(Object.assign({}, estados[chave]))).catch(function () {});
+            } catch (erro) { /* volta a calcular-se */ }
+          }
+        });
       } catch (erro) {
         // mantém o que há
       }
