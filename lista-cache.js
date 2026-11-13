@@ -41,6 +41,7 @@ self.LISTA_CACHE = [
   "js/conta.js",
   "js/fila.js",
   "js/geradores/ajudas.js",
+  "js/geradores/mat-a/cidadania.js",
   "js/geradores/registo.js",
   "js/icones.js",
   "js/motor.js",
@@ -81,4 +82,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'dea079c14f';
+self.VERSAO_CACHE = 'a5723a5c45';

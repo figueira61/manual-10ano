@@ -87,6 +87,20 @@ test('salario', () => {
   assert.equal(r.taxaRetencao, 0.1);
 });
 
+test('salário anual (14 meses) e por hora', () => {
+  assert.equal(C.salarioAnual(1050), 14700);
+  assert.equal(C.salarioAnual(1000, 12), 12000);
+  perto(C.salarioHora(1050, 40), (1050 * 12) / (52 * 40));
+  perto(C.salarioHora(1300, 40), 7.5);
+});
+
+test('capital inicial (inverso do juro simples e do composto)', () => {
+  perto(C.capitalInicialSimples(2300, 0.03, 5), 2000);
+  perto(C.capitalInicialComposto(1102.5, 0.05, 2, 1), 1000);
+  const m = C.jurosCompostos(1500, 0.06, 2, 12).montante;
+  perto(C.capitalInicialComposto(m, 0.06, 2, 12), 1500);
+});
+
 test('constantes ilustrativas exportadas', () => {
   assert.ok(C.ESCALOES_IRS_ILUSTRATIVOS.length >= 4);
   assert.equal(C.ESCALOES_IRS_ILUSTRATIVOS.at(-1).ate, Infinity);

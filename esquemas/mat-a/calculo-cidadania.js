@@ -92,6 +92,27 @@ Manual.calc.cidadania = (function () {
     return { juro: montante - capital, montante, passos };
   }
 
+  // Capital inicial que, com juro simples, dá o montante indicado: C = M / (1 + r·t).
+  function capitalInicialSimples(montante, taxaAnual, anos) {
+    return montante / (1 + taxaAnual * anos);
+  }
+
+  // Capital inicial que, com juro composto, dá o montante indicado: C = M / (1 + r/n)^(n·t).
+  function capitalInicialComposto(montante, taxaAnual, anos, periodosPorAno) {
+    const n = periodosPorAno;
+    return montante / Math.pow(1 + taxaAnual / n, n * anos);
+  }
+
+  // Salário anual: por omissão 14 meses (12 + subsídios de férias e de Natal).
+  function salarioAnual(brutoMensal, meses = 14) {
+    return brutoMensal * meses;
+  }
+
+  // Valor por hora: (salário mensal × 12) / (52 semanas × horas semanais).
+  function salarioHora(brutoMensal, horasSemanais) {
+    return (brutoMensal * 12) / (52 * horasSemanais);
+  }
+
   function irsAnual(rendimentoColetavel, escaloes) {
     const parcelas = [];
     let imposto = 0;
@@ -118,7 +139,8 @@ Manual.calc.cidadania = (function () {
   }
 
   return {
-    maioria, borda, hondt, stLague, jurosSimples, jurosCompostos, irsAnual, salario,
+    maioria, borda, hondt, stLague, jurosSimples, jurosCompostos, capitalInicialSimples, capitalInicialComposto,
+    irsAnual, salario, salarioAnual, salarioHora,
     ESCALOES_IRS_ILUSTRATIVOS, TABELA_RETENCAO_ILUSTRATIVA,
   };
 })();
