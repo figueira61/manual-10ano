@@ -40,6 +40,8 @@ self.LISTA_CACHE = [
   "js/config.js",
   "js/conta.js",
   "js/fila.js",
+  "js/geradores/ajudas.js",
+  "js/geradores/registo.js",
   "js/icones.js",
   "js/motor.js",
   "js/nucleo.js",
@@ -79,4 +81,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '06e3316013';
+self.VERSAO_CACHE = 'afc5090f14';
