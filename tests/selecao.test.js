@@ -155,3 +155,10 @@ test('estratificar: determinístico com a mesma semente', () => {
   const cands = banco(['a', 'b'], 6);
   assert.deepEqual(S.estratificar(cands, ['a', 'b'], 5, M.aleatorio.criar(7)), S.estratificar(cands, ['a', 'b'], 5, M.aleatorio.criar(7)));
 });
+
+test('M6: escolher e estratificar sem rng usam um gerador novo', () => {
+  const cands = banco(['a', 'b'], 3);
+  assert.equal(S.escolher(cands, [], { n: 2 }).length, 2);
+  assert.equal(S.escolher(cands, [], undefined).length, 1);
+  assert.equal(S.estratificar(cands, ['a', 'b'], 4).length, 4);
+});

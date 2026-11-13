@@ -467,6 +467,12 @@ globalThis.Manual = globalThis.Manual || {};
     } catch (e) {
       // a fila nunca impede o apagamento
     }
+    // Histórico local do motor adaptativo desta conta (ver js/motor.js).
+    try {
+      if (armazenamento) armazenamento.removeItem('manual10.historico.v1:' + uid);
+    } catch (e) {
+      // armazenamento indisponível: nada a remover
+    }
     try {
       await cliente.auth.signOut();
     } catch (e) {

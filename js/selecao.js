@@ -25,7 +25,12 @@ globalThis.Manual = globalThis.Manual || {};
     return 1;
   }
 
-  const semSemente = (c) => c.semente === undefined || c.semente === null;
+  // Sem rng dado, um gerador novo com semente aleatória.
+  function gerador(rng) {
+    return typeof rng === 'function' ? rng : Manual.aleatorio.criar(Manual.aleatorio.novaSemente());
+  }
+
+  const semSemente =(c) => c.semente === undefined || c.semente === null;
 
   // Índice de `pesos` sorteado com probabilidade proporcional ao peso.
   function sortear(pesos, rng) {
@@ -39,7 +44,8 @@ globalThis.Manual = globalThis.Manual || {};
   }
 
   function escolher(candidatos, historico, opcoes) {
-    const { n = 1, rng, ultimoErro } = opcoes || {};
+    const { n = 1, ultimoErro } = opcoes || {};
+    const rng = gerador((opcoes || {}).rng);
     const lista = Array.isArray(candidatos) ? candidatos.filter((c) => c && typeof c === 'object') : [];
     const porTipo = {};
     ordenar(historico).forEach((t) => { (porTipo[t.tipo] = porTipo[t.tipo] || []).push(t); });
@@ -98,7 +104,8 @@ globalThis.Manual = globalThis.Manual || {};
     return resultado;
   }
 
-  function estratificar(candidatos, temas, n, rng) {
+  function estratificar(candidatos, temas, n, rngDado) {
+    const rng = gerador(rngDado);
     const lista = Array.isArray(candidatos) ? candidatos : [];
     const ordem = Array.isArray(temas) ? temas : [];
     const k = ordem.length;

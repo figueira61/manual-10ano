@@ -498,3 +498,29 @@ test('armazenamentoFalhou reflete a fila', async () => {
   await Manual.conta.guardarTentativa(tentativa());
   assert.equal(Manual.conta.armazenamentoFalhou(), true);
 });
+
+// ---------- vaga final da fase 2B ----------
+test('guardarTentativa mantém id e criado_em fornecidos', async () => {
+  const arm = memoria();
+  await Manual.conta.iniciar({ armazenamento: arm });
+  const t = await Manual.conta.guardarTentativa(Object.assign(tentativa(), { id: 'fixo', criado_em: '2026-11-13T09:00:00.000Z' }));
+  assert.equal(t.id, 'fixo');
+  assert.equal(t.criado_em, '2026-11-13T09:00:00.000Z');
+});
+
+test('apagarConta apaga o histórico local dessa conta; sair não apaga nada', async () => {
+  const f = falso();
+  const arm = memoria();
+  arm.setItem('manual10.historico.v1:u1', '{"dono":"u1","itens":[]}');
+  arm.setItem('manual10.historico.v1:u2', '{"dono":"u2","itens":[]}');
+  arm.setItem('manual10.historico.v1:visitante', '{"dono":null,"itens":[]}');
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  await Manual.conta.sair();
+  assert.ok(arm.getItem('manual10.historico.v1:u1'));
+  await Manual.conta.entrar('a@b.pt', 'x');
+  await Manual.conta.apagarConta();
+  assert.equal(arm.getItem('manual10.historico.v1:u1'), null);
+  assert.ok(arm.getItem('manual10.historico.v1:u2'));
+  assert.ok(arm.getItem('manual10.historico.v1:visitante'));
+});

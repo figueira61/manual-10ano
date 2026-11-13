@@ -29,7 +29,7 @@ function atribuirFicheiro(rel, tema) {
     if (!s) throw new Error(rel + ': mais arrays quiz do que subtemas');
     const recuo = m[1] + '  ';
     let n = 0;
-    while (i < linhas.length && !new RegExp('^' + m[1] + '\],?\s*$').test(linhas[i])) {
+    while (i < linhas.length && !new RegExp('^' + m[1] + '\\],?\\s*$').test(linhas[i])) {
       const l = linhas[i];
       saida.push(l);
       i++;

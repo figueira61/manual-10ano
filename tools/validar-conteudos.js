@@ -54,6 +54,43 @@ function validarPergunta(p, i, ctx, erros, idsPerguntas) {
     const msg = compararVerificar(p.verificar, p.resposta, tol);
     if (msg) erros.push(loc + ': ' + msg);
   }
+  if (p.errosTipicos !== undefined) validarErrosTipicos(p, loc, erros);
+}
+
+const FORMATO_CODIGO_ERRO = /^[a-z0-9_]+$/;
+
+function validarErrosTipicos(p, loc, erros) {
+  if (!Array.isArray(p.errosTipicos)) {
+    erros.push(loc + ': errosTipicos tem de ser uma lista');
+    return;
+  }
+  const tol = p.tolerancia == null ? 1e-9 : p.tolerancia;
+  const nOpcoes = Array.isArray(p.opcoes) ? p.opcoes.length : 0;
+  p.errosTipicos.forEach((e, j) => {
+    const l = loc + ' erro típico ' + (j + 1);
+    if (!e || typeof e !== 'object') {
+      erros.push(l + ': não é um objeto');
+      return;
+    }
+    if (typeof e.codigo !== 'string' || e.codigo === '' || e.codigo.length > 80 || !FORMATO_CODIGO_ERRO.test(e.codigo)) {
+      erros.push(l + ': codigo "' + e.codigo + '" inválido (1-80 caracteres a-z, 0-9, _)');
+    }
+    if (typeof e.explicacao !== 'string' || e.explicacao.trim() === '') erros.push(l + ': explicacao vazia');
+    if (p.tipo === 'numerica') {
+      if (typeof e.valor !== 'number' || !Number.isFinite(e.valor)) {
+        erros.push(l + ': valor não é um número finito');
+      } else if (!(Math.abs(e.valor - p.resposta) > tol + EPS)) {
+        erros.push(l + ': valor ' + e.valor + ' coincide com a resposta (tolerância ' + tol + ')');
+      }
+    }
+    if (p.tipo === 'escolha') {
+      if (!Number.isInteger(e.opcao) || e.opcao < 0 || e.opcao >= nOpcoes) {
+        erros.push(l + ': opcao (' + e.opcao + ') fora do intervalo das opções');
+      } else if (e.opcao === p.correta) {
+        erros.push(l + ': opcao igual à correta');
+      }
+    }
+  });
 }
 
 function validarBloco(b, i, d, ctx, existeFicheiro, erros) {

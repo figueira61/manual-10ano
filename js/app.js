@@ -427,6 +427,8 @@ globalThis.Manual = globalThis.Manual || {};
     Manual.motor = Manual.criarMotor({ conta: Manual.conta, armazenamento: armazenamentoLocal() });
     Manual.motor.carregar();
     Manual.conta.aoMudar(function () { Manual.motor.carregar(); });
+    // Se os estados remotos não vieram (sem rede), volta a tentar quando a ligação regressa.
+    window.addEventListener('online', function () { Manual.motor.carregar(); });
     Manual.vistasConta.montarTopo(document.getElementById('zona-conta'));
     Manual.tema.ligar(document.getElementById('botao-tema'));
 

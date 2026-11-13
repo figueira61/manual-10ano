@@ -246,3 +246,45 @@ test('id de disciplina reservado (rota) falha', () => {
   const erros = validar(c);
   assert.ok(erros.some((e) => /entrar.*reservad/.test(e)), erros.join('\n'));
 });
+
+// ---------- M4: errosTipicos ----------
+test('M4: errosTipicos válidos passam (numérica e escolha)', () => {
+  const c = base();
+  sub(c).quiz[0] = numerica({ errosTipicos: [{ codigo: 'sinal_trocado', valor: -10, explicacao: 'x' }] });
+  sub(c).quiz[1].errosTipicos = [{ codigo: 'ordem_2', opcao: 2, explicacao: 'y' }];
+  assert.deepEqual(validar(c), []);
+});
+test('M4: codigo vazio, longo ou com caracteres inválidos', () => {
+  for (const codigo of ['', 'a'.repeat(81), 'Sinal-Trocado', undefined]) {
+    const c = base();
+    sub(c).quiz[1].errosTipicos = [{ codigo, opcao: 2, explicacao: 'y' }];
+    esperaErro(c, /mat\/t1\/s1.*codigo/);
+  }
+  const ok = base();
+  sub(ok).quiz[1].errosTipicos = [{ codigo: 'a'.repeat(80), opcao: 2, explicacao: 'y' }];
+  assert.deepEqual(validar(ok), []);
+});
+test('M4: explicacao vazia', () => {
+  const c = base();
+  sub(c).quiz[1].errosTipicos = [{ codigo: 'x', opcao: 2, explicacao: '' }];
+  esperaErro(c, /explicacao/);
+});
+test('M4: numérica com valor não finito ou dentro da tolerância da resposta', () => {
+  for (const valor of [Infinity, NaN, '3', 10, 10.05]) {
+    const c = base();
+    sub(c).quiz[0] = numerica({ tolerancia: 0.1, errosTipicos: [{ codigo: 'x', valor, explicacao: 'e' }] });
+    esperaErro(c, /valor/);
+  }
+});
+test('M4: escolha com opcao fora do intervalo, não inteira ou igual à correta', () => {
+  for (const opcao of [3, -1, 1.5, 1, undefined]) {
+    const c = base();
+    sub(c).quiz[1].errosTipicos = [{ codigo: 'x', opcao, explicacao: 'e' }];
+    esperaErro(c, /opcao/);
+  }
+});
+test('M4: errosTipicos que não é lista', () => {
+  const c = base();
+  sub(c).quiz[1].errosTipicos = { codigo: 'x' };
+  esperaErro(c, /errosTipicos/);
+});

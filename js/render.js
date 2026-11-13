@@ -244,7 +244,21 @@ globalThis.Manual = globalThis.Manual || {};
     return Manual.motor ? Manual.motor.aoMudar(desenhar) : function () {};
   }
 
+  // Dá à tentativa o id e a data antes de a entregar à conta e ao motor (o mesmo id nos dois).
+  function registarTentativa(tentativa) {
+    tentativa.id = Manual.uuid();
+    tentativa.criado_em = new Date().toISOString();
+    try {
+      Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});
+    } catch (erro) {
+      // a fila nunca impede o motor
+    }
+    if (Manual.motor) Manual.motor.registar(tentativa);
+    return tentativa;
+  }
+
   Manual.render = {
+    registarTentativa: registarTentativa,
     seloEstado: seloEstado,
     ligarSeloEstado: ligarSeloEstado,
     criar: criar,
@@ -320,9 +334,7 @@ globalThis.Manual = globalThis.Manual || {};
         // que usou este dispositivo ainda não é conhecido).
         if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return;
         const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
-        const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico);
-        Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});
-        if (Manual.motor) Manual.motor.registar(tentativa);
+        registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico));
       });
 
       const nav = criar('nav', 'nav-subtemas');

@@ -81,20 +81,30 @@ globalThis.Manual = globalThis.Manual || {};
     return new Date(Date.UTC(a, m - 1, d + n)).toISOString().slice(0, 10);
   }
 
-  function proximaRevisao(intervaloAtual, tentativa, agora) {
+  function dataValida(agora) {
+    return agora instanceof Date && Number.isFinite(agora.getTime());
+  }
+
+  // ultimoAvanco: dia de Lisboa ('AAAA-MM-DD') do último avanço; no mesmo dia não volta a avançar.
+  function proximaRevisao(intervaloAtual, tentativa, agora, ultimoAvanco) {
+    if (!dataValida(agora) || !tentativa || typeof tentativa !== 'object') {
+      return { intervalo_dias: INTERVALOS[0], proxima_revisao: null };
+    }
+    const hoje = diaLisboa(agora.toISOString());
     let intervalo;
     if (tentativa.resultado === 'errada') {
       intervalo = INTERVALOS[0];
-    } else if (limpa(tentativa)) {
+    } else if (limpa(tentativa) && ultimoAvanco !== hoje) {
       const i = INTERVALOS.indexOf(intervaloAtual);
       intervalo = intervaloAtual == null || i < 0 ? INTERVALOS[0] : INTERVALOS[Math.min(i + 1, INTERVALOS.length - 1)];
     } else {
       intervalo = intervaloAtual == null || INTERVALOS.indexOf(intervaloAtual) < 0 ? INTERVALOS[0] : intervaloAtual;
     }
-    return { intervalo_dias: intervalo, proxima_revisao: somarDias(diaLisboa(agora.toISOString()), intervalo) };
+    return { intervalo_dias: intervalo, proxima_revisao: somarDias(hoje, intervalo) };
   }
 
-  function proximoNivel(nivel, historicoNoNivel) {
+  function proximoNivel(nivelBruto, historicoNoNivel) {
+    const nivel = Number.isFinite(nivelBruto) ? Math.min(2, Math.max(0, Math.round(nivelBruto))) : 0;
     const h = Array.isArray(historicoNoNivel) ? historicoNoNivel : [];
     if (h[h.length - 1] === 'errada') return Math.max(0, nivel - 1);
     if (h.length >= 2 && h[h.length - 1] === 'certa' && h[h.length - 2] === 'certa') return Math.min(2, nivel + 1);
@@ -102,6 +112,7 @@ globalThis.Manual = globalThis.Manual || {};
   }
 
   function emRevisao(estados, agora) {
+    if (!dataValida(agora)) return [];
     const hoje = diaLisboa(agora.toISOString());
     return (Array.isArray(estados) ? estados : [])
       .filter((e) => e && e.proxima_revisao && e.proxima_revisao <= hoje)

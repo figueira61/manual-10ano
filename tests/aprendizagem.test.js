@@ -185,3 +185,29 @@ test('detetarErro e agregarErros', () => {
   assert.deepEqual(D.agregarErros([]), []);
   assert.deepEqual(D.agregarErros(null), []);
 });
+
+// ---------- vaga final de correções (M7, I3) ----------
+test('M7: proximaRevisao com agora invalido ou sem tentativa', () => {
+  assert.deepEqual(A.proximaRevisao(7, t(), new Date('lixo')), { intervalo_dias: 1, proxima_revisao: null });
+  assert.deepEqual(A.proximaRevisao(7, t(), undefined), { intervalo_dias: 1, proxima_revisao: null });
+  assert.deepEqual(A.proximaRevisao(7, null, new Date('2026-11-13T10:00:00Z')), { intervalo_dias: 1, proxima_revisao: null });
+});
+test('M7: emRevisao com agora invalido devolve []', () => {
+  const e = [{ chave: 'a', estado: 'domina', proxima_revisao: '2026-01-01' }];
+  assert.deepEqual(A.emRevisao(e, new Date('lixo')), []);
+  assert.deepEqual(A.emRevisao(e, null), []);
+});
+test('M7: proximoNivel limita o nivel a 0..2', () => {
+  assert.equal(A.proximoNivel(7, []), 2);
+  assert.equal(A.proximoNivel(-3, []), 0);
+  assert.equal(A.proximoNivel(5, ['certa', 'certa']), 2);
+  assert.equal(A.proximoNivel(9, ['errada']), 1);
+  assert.equal(A.proximoNivel(undefined, []), 0);
+});
+test('I3: proximaRevisao nao avanca duas vezes no mesmo dia de Lisboa', () => {
+  const agora = new Date('2026-11-13T10:00:00Z');
+  assert.equal(A.proximaRevisao(3, t(), agora, '2026-11-13').intervalo_dias, 3);
+  assert.equal(A.proximaRevisao(3, t(), agora, '2026-11-13').proxima_revisao, '2026-11-16');
+  assert.equal(A.proximaRevisao(3, t(), agora, '2026-11-12').intervalo_dias, 7);
+  assert.equal(A.proximaRevisao(3, t({ resultado: 'errada' }), agora, '2026-11-13').intervalo_dias, 1);
+});
