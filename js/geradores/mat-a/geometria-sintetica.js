@@ -25,8 +25,12 @@ globalThis.Manual = globalThis.Manual || {};
   const tentar = (construir) => AJ.tentar(construir, 'geometria sintética');
   const { fechar, fecharTexto } = AJ;
 
+  // Cada gerar passa por notacaoPontos: uma só notação de pontos por item.
   function registar(def) {
-    G.registar(Object.assign({ disciplina: 'mat-a', tema: 'geometria-sintetica', id: def.subtema + '-' + def.tipo }, def));
+    const gerar = def.gerar;
+    G.registar(Object.assign({ disciplina: 'mat-a', tema: 'geometria-sintetica', id: def.subtema + '-' + def.tipo }, def, {
+      gerar: (semente, opcoes) => notacaoPontos(gerar(semente, opcoes)),
+    }));
   }
 
   // ---------------------------------------------------------------- pontos e vetores (sem Manual.calc)
@@ -67,8 +71,35 @@ globalThis.Manual = globalThis.Manual || {};
   const seg = (i, j) => NOMES[Math.min(i, j)] + NOMES[Math.max(i, j)];
   const par = (v) => (v < 0 ? '(' + tex(v) + ')' : tex(v));
   const somaTex = (vs) => vs.map((v, i) => (i === 0 ? tex(v) : (v < 0 ? ' - ' + tex(-v) : ' + ' + tex(v)))).join('');
-  // (1, 2) com inteiros; (1{,}5;\ 2) quando há decimais (como no resto do manual).
-  const texPonto = (P) => '(' + tex(P[0]) + (P.every(inteiroV) ? ', ' : ';\\ ') + tex(P[1]) + ')';
+  // Os pontos escrevem-se com um separador provisório; notacaoPontos escolhe a notação do item inteiro:
+  // (a; b) se algum ponto do item tem uma coordenada não inteira, (a, b) caso contrário.
+  const SEP = '§';
+  const texPonto = (P) => '(' + tex(P[0]) + SEP + tex(P[1]) + ')';
+  function notacaoPontos(ex) {
+    const textos = [];
+    (function recolher(v) {
+      if (typeof v === 'string') textos.push(v);
+      else if (Array.isArray(v)) v.forEach(recolher);
+      else if (v && typeof v === 'object') Object.keys(v).forEach((k) => recolher(v[k]));
+    })(ex);
+    const decimal = textos.some((t) => (t.match(/\([^()§]*§[^()§]*\)/g) || []).some((p) => p.includes('{,}')));
+    const sep = decimal ? ';\\ ' : ', ';
+    return (function trocar(v) {
+      if (typeof v === 'string') return v.split(SEP).join(sep);
+      if (Array.isArray(v)) return v.map(trocar);
+      if (v && typeof v === 'object') {
+        const o = {};
+        Object.keys(v).forEach((k) => { o[k] = trocar(v[k]); });
+        return o;
+      }
+      return v;
+    })(ex);
+  }
+  // Leitura de uma opção "$(a, b)$" ou "$(a;\ b)$" (verificarIndependente compara números, não texto).
+  function lerPonto(t) {
+    const m = String(t).replace(/\$/g, '').replace(/\{,\}/g, '.').replace(/\\ /g, '').replace(/\s/g, '').match(/^\((-?[\d.]+)[,;](-?[\d.]+)\)$/);
+    return m ? [Number(m[1]), Number(m[2])] : null;
+  }
   const opPonto = (P) => '$' + texPonto(P) + '$';
   const nomeado = (n, P) => '$' + n + texPonto(P) + '$';
   const listaVertices = (vs) => nomeado('A', vs[0]) + ', ' + nomeado('B', vs[1]) + ' e ' + nomeado('C', vs[2]);
@@ -82,11 +113,33 @@ globalThis.Manual = globalThis.Manual || {};
     const pares = [[0, 1], [1, 2], [0, 2]];
     return '\\begin{array}{l} ' + pares.map(([i, j]) => dist2Tex(seg(i, j), vs[i], vs[j])).join(' \\\\ ') + ' \\end{array}';
   }
-  // (H − P)·(R − Q) = 0: H está na altura tirada de P, perpendicular a [QR].
-  function alturaTex(nP, P, H, nQR, Q, R) {
-    const u = menos(H, P);
-    const w = menos(R, Q);
-    return '\\overrightarrow{' + nP + 'H} \\cdot \\overrightarrow{' + nQR + '} = ' + par(u[0]) + ' \\times ' + par(w[0]) + ' + ' + par(u[1]) + ' \\times ' + par(w[1]) + ' = ' + tex(escalar(u, w));
+  // Declive da reta PQ como fração irredutível { n, d } (d > 0); null se a reta for vertical.
+  const mdc = (a, b) => (b ? mdc(b, a % b) : a);
+  function declive(P, Q) {
+    let n = Q[1] - P[1];
+    let d = Q[0] - P[0];
+    if (Math.abs(d) < 1e-9) return null;
+    while (!inteiroV(n) || !inteiroV(d)) { n *= 2; d *= 2; } // coordenadas com meios
+    n = limpo(n);
+    d = limpo(d);
+    if (d < 0) { n = -n; d = -d; }
+    const g = mdc(Math.abs(n), d) || 1;
+    return { n: limpo(n / g), d: limpo(d / g) };
+  }
+  const fracTex = (f) => (f.d === 1 ? tex(f.n) : (f.n < 0 ? '-' : '') + '\\dfrac{' + tex(Math.abs(f.n)) + '}{' + tex(f.d) + '}');
+  const fatorFrac = (f) => (f.n < 0 ? '\\left(' + fracTex(f) + '\\right)' : fracTex(f));
+  // Perpendicularidade das retas PQ e RS pelos declives (10.º ano): m₁ × m₂ = −1,
+  // ou, sem declive, uma reta vertical e a outra horizontal.
+  function perpendicularTex(n1, P, Q, n2, R, S) {
+    const m1 = declive(P, Q);
+    const m2 = declive(R, S);
+    if (!m1 || !m2) {
+      const [nv, V, nh, Hz] = !m1 ? [n1, P, n2, R] : [n2, R, n1, P];
+      return '\\text{reta } ' + nv + '\\colon x = ' + tex(V[0]) + '\\ \\text{(vertical)},\\quad \\text{reta } ' + nh + '\\colon y = ' + tex(Hz[1]) + '\\ \\text{(horizontal)}';
+    }
+    const prod = { n: m1.n * m2.n, d: m1.d * m2.d };
+    return 'm_{' + n1 + '} = ' + fracTex(m1) + ',\\quad m_{' + n2 + '} = ' + fracTex(m2) + ',\\quad m_{' + n1 + '} \\times m_{' + n2 + '} = ' +
+      fatorFrac(m1) + ' \\times ' + fatorFrac(m2) + ' = ' + tex(prod.n / prod.d);
   }
   const comp = (v) => '$' + tex(v, 2) + '$';
   const compCm = (v) => '$' + tex(v, 2) + '$ cm';
@@ -121,7 +174,7 @@ globalThis.Manual = globalThis.Manual || {};
   function conferePonto(p, P) {
     if (!P) return false;
     if (p.formato === 'numerica') return Math.abs(p.resposta - P[p.dados.eixo]) <= p.tolerancia + 1e-9;
-    return AJ.chave(p.opcoes[p.correta]) === AJ.chave(opPonto(P));
+    return iguais(lerPonto(p.opcoes[p.correta]), P);
   }
 
   const dentro = (P, lim = 40) => Array.isArray(P) && P.every((v) => Number.isFinite(v) && Math.abs(v) <= lim);
@@ -377,15 +430,23 @@ globalThis.Manual = globalThis.Manual || {};
         if (ret) {
           erros.push({ codigo: 'raio_circunscrito', valor: limpo(ladosOrd[2] / 2), explicacao: 'Metade da hipotenusa, ' + fmt(ladosOrd[2] / 2, 2) + ', é o raio da circunferência circunscrita (o circuncentro é o ponto médio da hipotenusa). A circunferência inscrita é tangente aos lados e tem raio $r = \\dfrac{2A}{P} = ' + tex(r, 2) + '$.' });
         }
-        const s = P / 2;
+        // Verificação (10.º ano): no triângulo retângulo, r = (a + b − c)/2 (tangentes iguais a partir de cada vértice);
+        // nos outros, os três triângulos com vértice no incentro e altura r somam a área. verificarIndependente usa Heron.
         const rH = raioHeron(la, lb, lc);
-        return fechar(rng, formato, { enunciado, resolucao, dados: { contexto, vertices: vs, lados: [la, lb, lc], base: lb0, altura: h }, esquema: esquema(vs, ['incentro']) }, {
-          resposta: r, tolerancia: 0.01, unidade: coords ? undefined : 'cm', texto, erros: erros.filter((e) => exato(e.valor, 2)),
-          verificacao: {
-            passo: 'Confirmar com a fórmula de Heron, com o semiperímetro $s = ' + tex(s) + '$',
-            calculo: 'r = \\sqrt{\\dfrac{(s - a)(s - b)(s - c)}{s}} = \\sqrt{\\dfrac{' + tex(s - la) + ' \\times ' + tex(s - lb) + ' \\times ' + tex(s - lc) + '}{' + tex(s) + '}}' + igualOuAprox(rH, 2),
+        const verificacao = ret
+          ? {
+            passo: 'Confirmar com $r = \\dfrac{a + b - c}{2}$, válida no triângulo retângulo (catetos $a$ e $b$, hipotenusa $c$), porque as tangentes tiradas de cada vértice à circunferência inscrita são iguais',
+            calculo: 'r = \\dfrac{' + tex(ladosOrd[0]) + ' + ' + tex(ladosOrd[1]) + ' - ' + tex(ladosOrd[2]) + '}{2} = ' + tex((ladosOrd[0] + ladosOrd[1] - ladosOrd[2]) / 2, 2),
+            valor: limpo((ladosOrd[0] + ladosOrd[1] - ladosOrd[2]) / 2),
+          }
+          : {
+            passo: 'Confirmar que os três triângulos com vértice no incentro, de bases nos lados e altura $r$, somam a área do triângulo, que é ' + fmt(Ar),
+            calculo: '\\dfrac{' + tex(la) + ' \\times ' + tex(r, 2) + '}{2} + \\dfrac{' + tex(lb) + ' \\times ' + tex(r, 2) + '}{2} + \\dfrac{' + tex(lc) + ' \\times ' + tex(r, 2) + '}{2} = ' +
+              somaTex([la * rH / 2, lb * rH / 2, lc * rH / 2].map((v) => limpo(v))) + ' = ' + tex(limpo(P * rH / 2), 2),
             valor: r2(rH),
-          },
+          };
+        return fechar(rng, formato, { enunciado, resolucao, dados: { contexto, vertices: vs, lados: [la, lb, lc], base: lb0, altura: h }, esquema: esquema(vs, ['incentro']) }, {
+          resposta: r, tolerancia: 0.01, unidade: coords ? undefined : 'cm', texto, erros: erros.filter((e) => exato(e.valor, 2)), verificacao,
         });
       });
     },
@@ -411,28 +472,32 @@ globalThis.Manual = globalThis.Manual || {};
       retas: ['bissetrizes dos ângulos internos', 'semirretas que dividem cada ângulo interno em dois ângulos iguais'],
       prop: ['É equidistante dos três lados do triângulo.', 'É o centro da circunferência tangente aos três lados do triângulo.'],
       resumo: 'o ponto de encontro das bissetrizes dos ângulos internos e é equidistante dos três lados',
-      verif: 'd(I, AB) = d(I, BC) = d(I, AC)',
+      verif: '\\text{bissetrizes} \\Rightarrow \\text{mesma distância aos três lados}',
+      ensina: ['A bissetriz de um ângulo', 'Cada ponto da bissetriz de um ângulo está à mesma distância dos dois lados desse ângulo. O ponto comum às três bissetrizes está, por isso, à mesma distância dos três lados e é o centro da circunferência inscrita.'],
     },
     circuncentro: {
       opcao: 'O circuncentro.',
       retas: ['mediatrizes dos lados', 'retas perpendiculares a cada lado que passam pelo seu ponto médio'],
       prop: ['É equidistante dos três vértices do triângulo.', 'É o centro da circunferência que passa pelos três vértices do triângulo.', 'Num triângulo retângulo, é o ponto médio da hipotenusa.'],
       resumo: 'o ponto de encontro das mediatrizes dos lados e é equidistante dos três vértices',
-      verif: '\\overline{OA} = \\overline{OB} = \\overline{OC}',
+      verif: '\\text{mediatrizes} \\Rightarrow \\text{mesma distância aos três vértices}',
+      ensina: ['A mediatriz de um segmento', 'A mediatriz de um segmento é a reta perpendicular a ele no ponto médio, e cada ponto dela está à mesma distância dos dois extremos. O ponto comum às três mediatrizes está, por isso, à mesma distância dos três vértices.'],
     },
     ortocentro: {
       opcao: 'O ortocentro.',
       retas: ['retas que contêm as alturas', 'retas perpendiculares a cada lado que passam pelo vértice oposto'],
       prop: ['Num triângulo retângulo, coincide com o vértice do ângulo reto.', 'Num triângulo obtusângulo, fica fora do triângulo, do lado do vértice do ângulo obtuso.'],
       resumo: 'o ponto de encontro das retas que contêm as alturas',
-      verif: 'AH \\perp BC,\\quad BH \\perp AC',
+      verif: '\\text{alturas} \\Rightarrow \\text{perpendiculares aos lados, pelos vértices opostos}',
+      ensina: ['A altura de um triângulo', 'A altura relativa a um lado é o segmento que vai do vértice oposto até à reta desse lado, perpendicular a ela. Num triângulo retângulo, cada cateto é a altura relativa ao outro, por isso as alturas cruzam-se no vértice do ângulo reto.'],
     },
     baricentro: {
       opcao: 'O baricentro.',
       retas: ['medianas', 'segmentos que unem cada vértice ao ponto médio do lado oposto'],
       prop: ['É o centro de massa de uma placa triangular homogénea.', 'Está em cada mediana, a dois terços do seu comprimento a contar do vértice.', 'Tem por coordenadas a média das coordenadas dos três vértices.'],
       resumo: 'o ponto de encontro das medianas e está a dois terços de cada uma a partir do vértice',
-      verif: '\\overline{AG} = \\tfrac{2}{3}\\,\\overline{AM_a}',
+      verif: '\\text{medianas} \\Rightarrow \\text{a dois terços de cada mediana, a contar do vértice}',
+      ensina: ['A mediana de um triângulo', 'A mediana une um vértice ao ponto médio do lado oposto e divide o triângulo em duas partes com a mesma área. Por isso, o ponto comum às três medianas é o ponto de equilíbrio (centro de massa) do triângulo.'],
     },
   };
   const CHAVES_PONTOS = Object.keys(PONTOS);
@@ -452,13 +517,13 @@ globalThis.Manual = globalThis.Manual || {};
           : 'Qual dos pontos notáveis de um triângulo tem a propriedade seguinte? «' + texto + '»';
         const resolucao = [
           { passo: 'Lembrar a definição', porque: Pt.opcao.replace(/\.$/, '') + ' é ' + Pt.resumo + '.' },
-          { passo: 'Associar ao enunciado', porque: retas ? 'As ' + texto + ' são as retas que definem este ponto.' : 'A propriedade dada é característica deste ponto e de nenhum dos outros três.' },
+          { passo: Pt.ensina[0], porque: Pt.ensina[1] },
         ];
         const erros = CHAVES_PONTOS.filter((x) => x !== k).map((x) => ({
           codigo: 'escolheu_' + x, texto: PONTOS[x].opcao,
           explicacao: PONTOS[x].opcao.replace(/\.$/, '') + ' é ' + PONTOS[x].resumo + '. O ponto pedido é ' + Pt.opcao.charAt(0).toLowerCase() + Pt.opcao.slice(1, -1) + ', que é ' + Pt.resumo + '.',
         }));
-        const ex = { enunciado, resolucao, verificacao: { passo: 'Confirmar pela característica do ponto', calculo: Pt.verif }, dados: { contexto, texto } };
+        const ex = { enunciado, resolucao, verificacao: { passo: 'Confirmar pela ligação entre as retas que definem o ponto e a sua propriedade', calculo: Pt.verif }, dados: { contexto, texto } };
         return fecharTexto(rng, ex, Pt.opcao, erros, Pt.opcao);
       });
     },
@@ -604,7 +669,7 @@ globalThis.Manual = globalThis.Manual || {};
             erros = [
               { codigo: 'dois_tercos', valor: (2 * m) / 3, explicacao: fmt((2 * m) / 3, 2) + ' cm é dois terços da mediana, o comprimento de $' + ag + '$ (a parte junto ao vértice). $' + gm + '$ é a parte junto ao lado, um terço, ' + fmt(resp, 2) + ' cm.' },
               { codigo: 'metade', valor: m / 2, explicacao: 'O baricentro não é o ponto médio da mediana. $' + gm + '$ é um terço dela, $\\dfrac{' + tex(m) + '}{3} = ' + tex(resp, 2) + '$ cm.' },
-              { codigo: 'um_sexto', valor: m / 6, explicacao: 'O «um sexto» aparece nas áreas (as medianas dividem o triângulo em seis triângulos equivalentes), não nos comprimentos. $' + gm + ' = \\dfrac{1}{3} \\times ' + tex(m) + ' = ' + tex(resp, 2) + '$ cm.' },
+              { codigo: 'um_sexto', valor: m / 6, explicacao: 'As três medianas dividem o triângulo em seis triângulos com a mesma área, cada um com um sexto da área total. Esse «um sexto» é das áreas, não dos comprimentos, e $' + gm + ' = \\dfrac{1}{3} \\times ' + tex(m) + ' = ' + tex(resp, 2) + '$ cm.' },
             ];
           }
           const outro = limpo(m - resp);
@@ -623,7 +688,7 @@ globalThis.Manual = globalThis.Manual || {};
             { passo: 'Resolver em ordem à mediana', porque: 'Divide-se por $\\dfrac{2}{3}$, ou seja, multiplica-se por $\\dfrac{3}{2}$.', calculo: am + ' = \\dfrac{3}{2} \\times ' + tex(g) + ' = ' + tex(resp, 2) },
           ];
           erros = [
-            { codigo: 'aplicou_dois_tercos', valor: limpo((2 * g) / 3), explicacao: 'Multiplicaste $' + ag + '$ por $\\dfrac{2}{3}$, mas é $' + ag + '$ que é dois terços da mediana, e a mediana é maior. $' + am + ' = \\dfrac{3}{2} \\times ' + tex(g) + ' = ' + tex(resp, 2) + '$ cm.' },
+            { codigo: 'aplicou_dois_tercos', valor: limpo((2 * g) / 3), explicacao: 'Multiplicaste $' + ag + '$ por $\\dfrac{2}{3}$, mas a relação é ao contrário. É $' + ag + '$ que mede dois terços da mediana, por isso a mediana é maior do que $' + ag + '$ e $' + am + ' = \\dfrac{3}{2} \\times ' + tex(g) + ' = ' + tex(resp, 2) + '$ cm.' },
             { codigo: 'calculou_gm', valor: g / 2, explicacao: fmt(g / 2) + ' cm é $' + gm + '$, metade de $' + ag + '$. A mediana é a soma das duas partes, ' + fmt(g) + ' + ' + fmt(g / 2) + ' = ' + fmt(resp, 2) + ' cm.' },
             { codigo: 'ag_como_metade', valor: 2 * g, explicacao: 'Tomaste $' + ag + '$ como metade da mediana. O baricentro fica a dois terços do vértice, logo a mediana é $\\dfrac{3}{2} \\times ' + tex(g) + ' = ' + tex(resp, 2) + '$ cm.' },
             { codigo: 'ag_como_terco', valor: 3 * g, explicacao: 'Tomaste $' + ag + '$ como um terço da mediana (esse é $' + gm + '$). $' + ag + '$ é dois terços, logo a mediana é ' + fmt(resp, 2) + ' cm.' },
@@ -695,10 +760,10 @@ globalThis.Manual = globalThis.Manual || {};
           { passo: 'Encontrar o ângulo reto', porque: 'Pelo recíproco do teorema de Pitágoras, o ângulo em ' + nV + ' é reto.', calculo: pitagorasTex(T) },
           { passo: 'Concluir', porque: 'Num triângulo retângulo, cada cateto é a altura relativa ao outro cateto, por isso as alturas cruzam-se no vértice do ângulo reto.', calculo: 'H = ' + nV + texPonto(H) },
         ];
-        // Outro método: H (pelas alturas, regra de Cramer) está nas alturas tiradas de U e de W (produto escalar nulo).
-        const nU = NOMES[iU], nW = NOMES[iW];
-        const verifCalc = alturaTex(nU, U, Hind, seg(iV, iW), V, W) + ',\\quad ' + alturaTex(nW, W, Hind, seg(iV, iU), V, U);
-        const verifPasso = 'Confirmar que $H' + texPonto(Hind) + '$ está nas alturas tiradas de ' + nU + ' e de ' + nW + ' (perpendiculares aos lados opostos)';
+        // Outro método: declives dos catetos (perpendiculares ⇒ cada um é a altura relativa ao outro, e cruzam-se no vértice).
+        // verificarIndependente usa as alturas resolvidas pela regra de Cramer.
+        const verifCalc = perpendicularTex(seg(iV, iU), V, U, seg(iV, iW), V, W);
+        const verifPasso = 'Confirmar pelos declives que os catetos $[' + seg(iV, iU) + ']$ e $[' + seg(iV, iW) + ']$ são perpendiculares, logo são duas alturas e cruzam-se em $H' + texPonto(Hind) + '$';
         const base = { resolucao, dados: { vertices: vs }, esquema: esquema(vs, ['ortocentro']) };
         const intro = 'Considera o triângulo de vértices ' + listaVertices(vs) + '. ';
         if (formato === 'vf') {
@@ -724,7 +789,7 @@ globalThis.Manual = globalThis.Manual || {};
       const H = ortocentroCramer(vs[0], vs[1], vs[2]);
       if (!H || verticeReto(vs) < 0) return false;
       if (p.formato === 'vf') return p.correta === iguais(p.dados.afirmado, H);
-      return AJ.chave(p.opcoes[p.correta]) === AJ.chave(opPonto(H));
+      return iguais(lerPonto(p.opcoes[p.correta]), H);
     },
     limites(p) {
       return verticesNaCaixa(p.dados.vertices);
@@ -801,7 +866,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'ponto_medio_og', P: medio(O, Gt), explicacao: opPonto(medio(O, Gt)) + ' é o ponto médio de $[OG]$. N é o ponto médio de $[OH]$, e H está mais longe, com $H = O + 3\\overrightarrow{OG} = ' + texPonto(H) + '$.' },
             { codigo: 'calculou_h', P: H, explicacao: opPonto(H) + ' é o ortocentro H. Falta o último passo, porque N é o ponto médio de $[OH]$, ' + nomeado('N', N) + '.' },
             { codigo: 'g_ponto_medio_oh', P: Gt, explicacao: 'Tomaste G como ponto médio de $[OH]$, mas $\\overline{OG} : \\overline{GH} = 1 : 2$. Com $H' + texPonto(H) + '$, o ponto médio de $[OH]$ é ' + nomeado('N', N) + '.' },
-            { codigo: 'simetrico_de_o', P: H2, explicacao: opPonto(H2) + ' é o simétrico de O em relação a G, que seria H se G fosse o ponto médio de $[OH]$. Como $\\overline{GH} = 2\\,\\overline{OG}$, $H' + texPonto(H) + '$ e $N' + texPonto(N) + '$.' },
+            { codigo: 'simetrico_de_o', P: H2, explicacao: 'Puseste G a meio de $[OH]$ e assim H ficou em ' + opPonto(H2) + '. Mas G está mais perto de O do que de H, porque $\\overline{GH} = 2\\,\\overline{OG}$, e por isso $H' + texPonto(H) + '$ e $N' + texPonto(N) + '$.' },
           ];
         }
         // Outro método: N é o circuncentro do triângulo medial (passa pelos pontos médios dos lados).
@@ -812,7 +877,7 @@ globalThis.Manual = globalThis.Manual || {};
         return fecharPonto(rng, formato, ex, {
           certo: N, eixo, erros,
           verificacao: {
-            passo: 'Confirmar que $N$ está à mesma distância dos pontos médios dos lados ($M_a$ de $[BC]$, $M_b$ de $[AC]$, $M_c$ de $[AB]$)',
+            passo: 'Por exemplo, o triângulo de vértices ' + listaVertices(vs) + ' tem estes pontos notáveis. Confirmar que $N$ está à mesma distância dos pontos médios dos seus lados ($M_a$ de $[BC]$, $M_b$ de $[AC]$, $M_c$ de $[AB]$), por onde passa a circunferência dos nove pontos',
             calculo: Ms.map((M, i) => nomesM[i] + texPonto(M)).join(',\\ ') + ',\\quad ' + Ms.map((M, i) => '\\overline{N' + nomesM[i] + '}^2').join(' = ') + ' = ' + tex(d2(N, Ms[0])),
             P: Nind,
           },
@@ -863,8 +928,8 @@ globalThis.Manual = globalThis.Manual || {};
           return fechar(rng, formato, { enunciado, resolucao, dados: { contexto, catetos: [a, b] }, esquema: esquema(vs, ['circuncentro', 'ortocentro', 'novePontos']) }, {
             resposta: r9, tolerancia: 0.01, unidade: 'cm', texto: compCm, erros,
             verificacao: {
-              passo: 'Confirmar que o ponto médio $N$ de $[OH]$ dista $r_N$ do ponto médio de um cateto (a circunferência passa por ele), com o ângulo reto em $(0, 0)$',
-              calculo: 'N = ' + texPonto(N) + ',\\quad M' + texPonto(Mab) + ',\\quad \\overline{NM} = \\sqrt{' + par(w[0]) + '^2 + ' + par(w[1]) + '^2}' + igualOuAprox(rInd, 2),
+              passo: 'Por exemplo, põe o triângulo com ' + listaVertices(vs) + ' (ângulo reto em A). O circuncentro O é o ponto médio de $[BC]$ e o ortocentro H é A. Confirmar que N, ponto médio de $[OH]$, dista $r_N$ do ponto médio M de $[AB]$ (a circunferência dos nove pontos passa por M)',
+              calculo: 'O' + texPonto(medio(vs[1], vs[2])) + ',\\quad H' + texPonto(vs[0]) + ',\\quad N' + texPonto(N) + ',\\quad M' + texPonto(Mab) + ',\\quad \\overline{NM} = \\sqrt{' + par(w[0]) + '^2 + ' + par(w[1]) + '^2}' + igualOuAprox(rInd, 2),
               valor: r2(rInd),
             },
           });
@@ -956,7 +1021,7 @@ globalThis.Manual = globalThis.Manual || {};
     } else {
       d = 3 * inteiro(rng, 1, 9);
       resp = (2 * d) / 3;
-      calculo = ol('GH') + ' = \\dfrac{2}{3} \\times ' + tex(d) + ' = ' + tex(resp, 2);
+      calculo = ol('OG') + ' = ' + tex(d) + ' \\div 3 = ' + tex(d / 3) + ',\\quad ' + ol('GH') + ' = 2 \\times ' + tex(d / 3) + ' = ' + tex(resp, 2);
       erros = [
         { codigo: 'g_ponto_medio', valor: d / 2, explicacao: 'Tomaste G como ponto médio de $[OH]$. Como $' + ol('OG') + ' : ' + ol('GH') + ' = 1 : 2$, $' + ol('GH') + '$ é dois terços de $' + ol('OH') + '$, ' + fmt(resp, 2) + ' cm.' },
         { codigo: 'razao_invertida', valor: d / 3, explicacao: fmt(d / 3, 2) + ' cm é um terço de $' + ol('OH') + '$, que é $' + ol('OG') + '$. $' + ol('GH') + '$ é a parte maior, dois terços, ' + fmt(resp, 2) + ' cm.' },
@@ -1028,7 +1093,7 @@ globalThis.Manual = globalThis.Manual || {};
         const Ht = mais(Gb, vezes(3, OG));
         const H3 = vezes(3, Gb);
         const erros = [
-          { codigo: 'g_ponto_medio', P: Hm, explicacao: opPonto(Hm) + ' é o simétrico de O em relação a G, como se G fosse o ponto médio de $[OH]$. Como $\\overline{GH} = 2\\,\\overline{OG}$, $H = G + 2\\overrightarrow{OG} = ' + texPonto(H) + '$.' },
+          { codigo: 'g_ponto_medio', P: Hm, explicacao: 'Puseste G a meio de $[OH]$ e assim H ficou em ' + opPonto(Hm) + '. Mas G está mais perto de O do que de H, porque $\\overline{GH} = 2\\,\\overline{OG}$, e por isso $H = G + 2\\overrightarrow{OG} = ' + texPonto(H) + '$.' },
           { codigo: 'razao_invertida', P: Hi, explicacao: 'Somaste a G só metade de $\\overrightarrow{OG}$, como se $\\overline{GH} = \\tfrac{1}{2}\\,\\overline{OG}$. A razão é $\\overline{OG} : \\overline{GH} = 1 : 2$, logo $H = ' + texPonto(H) + '$.' },
           { codigo: 'triplicou_a_partir_de_g', P: Ht, explicacao: 'Somaste $3\\overrightarrow{OG}$ a G. $\\overrightarrow{OH} = 3\\overrightarrow{OG}$ conta-se a partir de O, e a partir de G soma-se só $2\\overrightarrow{OG}$, o que dá ' + nomeado('H', H) + '.' },
           { codigo: 'h_igual_3g', P: H3, explicacao: 'Usaste $H = 3G$, que só vale quando O está na origem. Em geral, $H = 3G - 2O = ' + texPonto(H) + '$.' },
@@ -1036,8 +1101,8 @@ globalThis.Manual = globalThis.Manual || {};
         const Hind = ortocentroCramer(vs[0], vs[1], vs[2]);
         const GH = menos(Hind, Gb);
         const verificacao = {
-          passo: 'Com os vértices ' + listaVertices(vs) + ', confirmar que $H' + texPonto(Hind) + '$ está nas alturas tiradas de A e de B e que $\\overrightarrow{GH} = 2\\overrightarrow{OG}$',
-          calculo: alturaTex('A', vs[0], Hind, 'BC', vs[1], vs[2]) + ',\\quad ' + alturaTex('B', vs[1], Hind, 'AC', vs[0], vs[2]) + ',\\quad \\overrightarrow{GH} = ' + texPonto(GH) + ' = 2' + texPonto(OG),
+          passo: 'Por exemplo, o triângulo de vértices ' + listaVertices(vs) + ' tem estes O e G. Confirmar pelos declives que $H' + texPonto(Hind) + '$ está nas alturas tiradas de A e de B ($AH \\perp BC$ e $BH \\perp AC$) e que $\\overrightarrow{GH} = 2\\overrightarrow{OG}$',
+          calculo: perpendicularTex('AH', vs[0], Hind, 'BC', vs[1], vs[2]) + ';\\quad ' + perpendicularTex('BH', vs[1], Hind, 'AC', vs[0], vs[2]) + ';\\quad \\overrightarrow{GH} = ' + texPonto(GH) + ' = 2' + texPonto(OG),
         };
         const ex = { resolucao, esquema: esquema(vs, ['circuncentro', 'ortocentro', 'baricentro', 'euler']) };
         if (formato === 'vf') {
@@ -1065,7 +1130,7 @@ globalThis.Manual = globalThis.Manual || {};
       const vs = p.dados.vertices;
       const H = ortocentroCramer(vs[0], vs[1], vs[2]);
       if (p.formato === 'vf') return p.correta === iguais(p.dados.afirmado, H);
-      return AJ.chave(p.opcoes[p.correta]) === AJ.chave(opPonto(H));
+      return iguais(lerPonto(p.opcoes[p.correta]), H);
     },
     limites(p) {
       if (p.dados.contexto === 'comprimentos') return p.dados.d > 0 && p.dados.d <= 27;

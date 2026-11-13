@@ -85,7 +85,8 @@ test('snapshot: raio-nove-pontos (retangulo), semente 7', () => {
 
 test('snapshot: centro-nove-pontos (OG), semente 7', () => {
   const p = G.gerar('euler-nove-pontos-centro-nove-pontos', 7, { formato: 'numerica', contexto: 'OG' });
-  assert.match(p.enunciado, /\$O\(4, 3\)\$ e o baricentro é \$G\(5, 3\)\$/);
+  // N = (5,5; 3) tem decimais, por isso todos os pontos do item usam ponto e vírgula.
+  assert.match(p.enunciado, /\$O\(4;\\ 3\)\$ e o baricentro é \$G\(5;\\ 3\)\$/);
   assert.equal(p.resposta, 5.5); // H = O + 3·OG = (7, 3), N = (5,5; 3)
 });
 
@@ -253,6 +254,104 @@ test('escolha: cada opção errada tem um código próprio; comprimentos sempre 
       }
     }
   }
+});
+
+// Todos os textos de um item (enunciado, opções, passos, verificação, explicações).
+function textosDoItem(p) {
+  return [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.flatMap((r) => [r.passo, r.porque, r.calculo || '']),
+    [p.verificacao.passo, p.verificacao.calculo], p.errosTipicos.map((e) => e.explicacao));
+}
+const COM_PONTOS = [
+  ['incentro-circuncentro-circuncentro-retangulo', ['coordenadas', 'raio']],
+  ['ortocentro-baricentro-baricentro', ['vertices', 'mediana']],
+  ['ortocentro-baricentro-ortocentro-retangulo', ['eixos', 'obliquo']],
+  ['euler-nove-pontos-centro-nove-pontos', ['OH', 'OG']],
+  ['euler-nove-pontos-raio-nove-pontos', ['retangulo', 'coordenadas']],
+  ['euler-nove-pontos-razao-euler', ['coordenadas']],
+];
+function* itensComPontos(n) {
+  for (const [id, contextos] of COM_PONTOS) {
+    for (const formato of G.obter(id).formatos) {
+      for (const contexto of contextos) {
+        for (let s = 1; s <= n; s++) yield G.gerar(id, s, { formato, contexto });
+      }
+    }
+  }
+}
+const COORD = '(-?(?:\\d|\\{,\\})+)';
+const num = (t) => Number(t.replace('{,}', '.'));
+// Pontos com nome e coordenadas escritas: "X(a, b)", "M_a(a;\ b)" ou "X = (a, b)" (não seguidos de + ou −).
+function pontosDefinidos(p) {
+  const re = new RegExp('(?<![A-Za-z0-9\\\\_{])([A-Z](?:_[a-z])?)(?: = )?\\(' + COORD + '(?:, |;\\\\ )' + COORD + '\\)(?!\\s*[-+])', 'g');
+  const def = {};
+  for (const t of textosDoItem(p)) {
+    for (const m of t.matchAll(re)) {
+      const P = [num(m[2]), num(m[3])];
+      if (def[m[1]]) assert.ok(iguais(def[m[1]], P), p.gerador + ' ' + p.semente + ': ' + m[1] + ' com duas coordenadas diferentes');
+      def[m[1]] = P;
+    }
+  }
+  return def;
+}
+
+test('vetores, declives e retas escritos coincidem com os pontos do item (XY = Y − X)', () => {
+  let vetores = 0;
+  let declives = 0;
+  for (const p of itensComPontos(40)) {
+    const def = pontosDefinidos(p);
+    for (const t of textosDoItem(p)) {
+      // Sem coeficiente antes do vetor (p. ex. \tfrac{2}{3}\overrightarrow{AM} não é o próprio AM).
+      for (const m of t.matchAll(new RegExp('(?<![}\\d])\\\\overrightarrow\\{([A-Z])([A-Z])\\} = \\(' + COORD + '(?:, |;\\\\ )' + COORD + '\\)', 'g'))) {
+        const [X, Y] = [def[m[1]], def[m[2]]];
+        if (!X || !Y) continue;
+        vetores++;
+        assert.ok(iguais([num(m[3]), num(m[4])], menos(Y, X)), p.gerador + ' ' + p.semente + ': ' + m[0]);
+      }
+      for (const m of t.matchAll(/(?<!\\times )m_\{([A-Z])([A-Z])\} = (-?)(?:\\dfrac\{(\d+)\}\{(\d+)\}|(\d+))/g)) {
+        const [X, Y] = [def[m[1]], def[m[2]]];
+        if (!X || !Y) continue;
+        declives++;
+        const v = (m[3] ? -1 : 1) * (m[6] !== undefined ? Number(m[6]) : Number(m[4]) / Number(m[5]));
+        assert.ok(proximo(v, (Y[1] - X[1]) / (Y[0] - X[0])), p.gerador + ' ' + p.semente + ': ' + m[0]);
+      }
+      for (const m of t.matchAll(/reta \} ([A-Z])([A-Z])\\colon ([xy]) = (-?[\d{},]+)/g)) {
+        const [X, Y] = [def[m[1]], def[m[2]]];
+        const i = m[3] === 'x' ? 0 : 1;
+        assert.ok(X && Y && proximo(X[i], num(m[4])) && proximo(Y[i], num(m[4])), p.gerador + ' ' + p.semente + ': ' + m[0]);
+      }
+    }
+  }
+  assert.ok(vetores > 100 && declives > 50, vetores + ' vetores e ' + declives + ' declives conferidos');
+});
+
+test('a verificação só usa pontos definidos no item', () => {
+  for (const p of itensComPontos(40)) {
+    const todos = textosDoItem(p).join(' ');
+    const v = p.verificacao.passo + ' ' + p.verificacao.calculo;
+    const usados = new Set();
+    // Pontos em segmentos, vetores, declives, retas ([BC], \overline{NM_a}, m_{AH}, reta BH) e pontos com coordenadas (M_a(…)).
+    for (const m of v.matchAll(/\\(?:overline|overrightarrow)\{([^}]*)\}|m_\{([A-Z]+)\}|reta \} ([A-Z]+)|\[([A-Z]+)\]|(?<![A-Za-z\\_{])([A-Z](?:_[a-z])?)\(/g)) {
+      for (const n of (m[1] || m[2] || m[3] || m[4] || m[5]).match(/[A-Z](?:_[a-z])?/g) || []) usados.add(n);
+    }
+    // Um ponto médio de um lado só está definido se os vértices desse triângulo também estiverem.
+    if ([...usados].some((n) => /^M_/.test(n))) ['A', 'B', 'C'].forEach((n) => usados.add(n));
+    for (const n of usados) {
+      const definido = new RegExp('(?<![A-Za-z0-9\\\\_{])' + n + '(?:\\(| = )').test(todos);
+      assert.ok(definido, p.gerador + ' ' + p.contexto + ' ' + p.semente + ': ' + n + ' não está definido');
+    }
+  }
+});
+
+test('notação dos pontos: (a; b) em todo o item se alguma coordenada não é inteira, (a, b) caso contrário', () => {
+  let comDecimais = 0;
+  for (const p of itensComPontos(40)) {
+    const pontos = textosDoItem(p).flatMap((t) => [...t.matchAll(new RegExp('\\(' + COORD + '(, |;\\\\ )' + COORD + '\\)', 'g'))]);
+    const decimal = pontos.some((m) => m[1].includes('{,}') || m[3].includes('{,}'));
+    if (decimal) comDecimais++;
+    for (const m of pontos) assert.equal(m[2], decimal ? ';\\ ' : ', ', p.gerador + ' ' + p.semente + ': ' + m[0]);
+    assert.ok(!textosDoItem(p).some((t) => t.includes('§')), 'separador provisório por trocar');
+  }
+  assert.ok(comDecimais > 20, comDecimais + ' itens com decimais');
 });
 
 test('sem frases com dois «dois pontos» nas explicações e passos', () => {
