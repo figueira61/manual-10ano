@@ -34,6 +34,7 @@ self.LISTA_CACHE = [
   "esquemas/nucleo/referencial.js",
   "icone.svg",
   "index.html",
+  "js/aleatorio.js",
   "js/app.js",
   "js/config.js",
   "js/conta.js",
@@ -75,4 +76,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'fd1d9b06c9';
+self.VERSAO_CACHE = '28c6e7203c';
