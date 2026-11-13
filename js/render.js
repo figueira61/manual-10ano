@@ -286,7 +286,7 @@ globalThis.Manual = globalThis.Manual || {};
         // que usou este dispositivo ainda não é conhecido).
         if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return;
         const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
-        const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao());
+        const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico);
         Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});
       });
 

@@ -182,3 +182,19 @@ test('construirTentativa limita duracao_ms a [0, 3 600 000] e descarta valores n
   assert.equal(d(Infinity), null);
   assert.equal(d(undefined), null);
 });
+
+test('corrigir devolve erroTipico só quando errada e válida', () => {
+  Manual = carregar('js/quiz.js', 'js/aprendizagem.js');
+  const p = { tipo: 'numerica', resposta: 2, errosTipicos: [{ codigo: 'sinal_h', valor: -2, explicacao: 'E' }] };
+  assert.deepEqual(Manual.quiz.corrigir(p, '-2').erroTipico, { codigo: 'sinal_h', explicacao: 'E' });
+  assert.equal(Manual.quiz.corrigir(p, '2').erroTipico, null);
+  assert.equal(Manual.quiz.corrigir(p, 'x').erroTipico, null);
+  assert.equal(Manual.quiz.corrigir({ tipo: 'numerica', resposta: 2 }, '5').erroTipico, null);
+});
+
+test('construirTentativa grava erro_tipico', () => {
+  const c = { disciplina: 'd', tema: 't', subtema: 's' };
+  const p = { tipo: 'numerica' };
+  assert.equal(Manual.quiz.construirTentativa(c, p, 0, 'errada', 10, 'x', { codigo: 'sinal_h', explicacao: 'E' }).erro_tipico, 'sinal_h');
+  assert.equal(Manual.quiz.construirTentativa(c, p, 0, 'errada', 10, 'x').erro_tipico, null);
+});

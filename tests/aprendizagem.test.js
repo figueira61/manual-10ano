@@ -157,3 +157,31 @@ test('emRevisao: vencidos por prioridade e data', () => {
   ], agora);
   assert.deepEqual(r, ['nr', 'dif0', 'dif', 'dom']);
 });
+
+test('detetarErro e agregarErros', () => {
+  const M = carregar('js/quiz.js', 'js/aprendizagem.js');
+  const D = M.aprendizagem;
+  const num = { tipo: 'numerica', resposta: 2, errosTipicos: [{ codigo: 'sinal_h', valor: -2, explicacao: 'x' }] };
+  assert.deepEqual(D.detetarErro(num, '-2'), { codigo: 'sinal_h', explicacao: 'x' });
+  assert.equal(D.detetarErro(num, '\u22122').codigo, 'sinal_h');
+  assert.equal(D.detetarErro(num, '2'), null);
+  assert.equal(D.detetarErro(num, 'abc'), null);
+  assert.equal(D.detetarErro({ tipo: 'numerica', resposta: 2 }, '-2'), null);
+  const tol = { tipo: 'numerica', resposta: 2, tolerancia: 0.01, errosTipicos: [{ codigo: 'a', valor: -2, explicacao: 'e' }] };
+  assert.equal(D.detetarErro(tol, '-2,005').codigo, 'a');
+  assert.equal(D.detetarErro(tol, '-2,5'), null);
+  const esc = { tipo: 'escolha', opcoes: ['a', 'b', 'c'], correta: 0, errosTipicos: [{ codigo: 'op2', opcao: 2, explicacao: 'e' }] };
+  assert.equal(D.detetarErro(esc, 2).codigo, 'op2');
+  assert.equal(D.detetarErro(esc, 1), null);
+  assert.equal(D.detetarErro(esc, 0), null);
+  assert.equal(D.detetarErro({ tipo: 'vf', correta: true, errosTipicos: [{ codigo: 'v', explicacao: 'e' }] }, false), null);
+
+  const ts = [];
+  for (let i = 0; i < 35; i++) ts.push({ id: 'i' + String(i).padStart(2, '0'), criado_em: new Date(Date.UTC(2026, 10, 1, 10, i)).toISOString(), erro_tipico: i < 5 ? 'velho' : (i % 2 ? 'b' : 'a') });
+  ts.push({ id: 'z', criado_em: '2026-10-01T00:00:00Z', erro_tipico: null });
+  const r = D.agregarErros(ts);
+  assert.ok(!r.some((x) => x.codigo === 'velho'));
+  assert.equal(r.reduce((s, x) => s + x.contagem, 0), 30);
+  assert.deepEqual(D.agregarErros([]), []);
+  assert.deepEqual(D.agregarErros(null), []);
+});

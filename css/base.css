@@ -462,6 +462,8 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
   color: var(--texto);
   font: inherit;
 }
+.erro-tipico { background: var(--aviso-fundo); border-left: 4px solid var(--cor-5); border-radius: 4px; padding: 8px 12px; margin: 8px 0; }
+.erro-tipico .feedback-titulo { margin-top: 0; }
 .aviso-erro { color: var(--errado); font-weight: 600; }
 .feedback { margin-top: 12px; }
 .feedback.certo, .feedback.errado { padding: 10px 12px; border-radius: 8px; }

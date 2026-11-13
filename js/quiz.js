@@ -49,7 +49,12 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
     certa = valida && Math.abs(x - pergunta.resposta) <= tolerancia + 1e-12;
   }
 
-  return { valida, certa, respostaCorreta, resolucao, explicacao };
+  let erroTipico = null;
+  if (valida && !certa && Manual.aprendizagem && typeof Manual.aprendizagem.detetarErro === 'function') {
+    erroTipico = Manual.aprendizagem.detetarErro(pergunta, resposta);
+  }
+
+  return { valida, certa, respostaCorreta, resolucao, explicacao, erroTipico };
 };
 
 // Tentativa a registar quando a aluna verifica uma pergunta do mini-quiz. Função pura.
@@ -61,7 +66,7 @@ function limitarDuracao(ms) {
   return Math.min(DURACAO_MAXIMA_MS, Math.max(0, Math.round(ms)));
 }
 
-Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId) {
+Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId, erroTipico) {
   return {
     disciplina: contexto.disciplina,
     tema: contexto.tema,
@@ -75,7 +80,7 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
     primeira_tentativa: true,
     viu_resolucao: false,
     usou_pista: false,
-    erro_tipico: null,
+    erro_tipico: erroTipico ? erroTipico.codigo : null,
     duracao_ms: limitarDuracao(duracaoMs),
     sessao_id: sessaoId,
   };
@@ -168,6 +173,7 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
             pergunta: pergunta,
             resultado: r.certa ? 'certa' : 'errada',
             duracaoMs: Date.now() - inicio,
+            erroTipico: r.erroTipico,
           });
         } catch (e) {
           // o registo nunca impede o estudo

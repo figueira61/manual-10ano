@@ -113,7 +113,40 @@ globalThis.Manual = globalThis.Manual || {};
       .map((e) => e.chave);
   }
 
+  function detetarErro(pergunta, resposta) {
+    try {
+      if (!pergunta || !Array.isArray(pergunta.errosTipicos)) return null;
+      if (pergunta.tipo === 'numerica') {
+        const x = Manual.quiz.lerNumero(resposta);
+        if (Number.isNaN(x)) return null;
+        const tol = (pergunta.tolerancia === undefined ? 1e-9 : pergunta.tolerancia) + 1e-12;
+        if (Math.abs(x - pergunta.resposta) <= tol) return null;
+        const e = pergunta.errosTipicos.find((c) => typeof c.valor === 'number' && Math.abs(x - c.valor) <= tol);
+        return e ? { codigo: e.codigo, explicacao: e.explicacao } : null;
+      }
+      if (pergunta.tipo === 'escolha') {
+        if (!Number.isInteger(resposta) || resposta === pergunta.correta) return null;
+        const e = pergunta.errosTipicos.find((c) => c.opcao === resposta);
+        return e ? { codigo: e.codigo, explicacao: e.explicacao } : null;
+      }
+    } catch (e) {
+      // sem deteção nunca impede a correção
+    }
+    return null;
+  }
+
+  function agregarErros(tentativas, n = 30) {
+    const contagens = {};
+    ordenar(tentativas).slice(-n).forEach((t) => {
+      if (t.erro_tipico) contagens[t.erro_tipico] = (contagens[t.erro_tipico] || 0) + 1;
+    });
+    return Object.keys(contagens)
+      .map((codigo) => ({ codigo, contagem: contagens[codigo] }))
+      .sort((x, y) => y.contagem - x.contagem || (x.codigo < y.codigo ? -1 : x.codigo > y.codigo ? 1 : 0));
+  }
+
   Manual.aprendizagem = {
+    detetarErro, agregarErros,
     INTERVALOS, diaLisboa, estadoTipo, classificarSubtema, classificarTudo,
     proximaRevisao, proximoNivel, emRevisao,
   };
