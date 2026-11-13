@@ -4,6 +4,7 @@ const path = require('node:path');
 const RAIZ = path.join(__dirname, '..');
 const TIPOS_BLOCO = ['texto', 'definicao', 'exemplo', 'erro-frequente', 'formula', 'quadro', 'codigo', 'esquema'];
 const EPS = 1e-12;
+const FORMATO_ID_PERGUNTA = /^[a-z0-9-]+-q[0-9]{2}$/;
 
 function ficheiroEsquema(d, id) {
   const M = globalThis.Manual;
@@ -29,8 +30,15 @@ function compararVerificar(verificar, esperado, tol) {
   return null;
 }
 
-function validarPergunta(p, i, ctx, erros) {
+function validarPergunta(p, i, ctx, erros, idsPerguntas) {
   const loc = ctx + ' pergunta ' + (i + 1);
+  if (typeof p.id !== 'string' || p.id === '') {
+    erros.push(loc + ': pergunta sem id');
+  } else {
+    if (!FORMATO_ID_PERGUNTA.test(p.id)) erros.push(loc + ': id "' + p.id + '" fora do formato <subtema>-qNN');
+    if (idsPerguntas.has(p.id)) erros.push(loc + ': id de pergunta repetido (' + p.id + ')');
+    idsPerguntas.add(p.id);
+  }
   if (p.tipo === 'escolha') {
     const ops = Array.isArray(p.opcoes) ? p.opcoes : [];
     if (!Number.isInteger(p.correta) || p.correta < 0 || p.correta >= ops.length) {
@@ -64,7 +72,7 @@ function validarBloco(b, i, d, ctx, existeFicheiro, erros) {
   }
 }
 
-function validarSubtema(s, d, t, existeFicheiro, erros) {
+function validarSubtema(s, d, t, existeFicheiro, erros, idsPerguntas) {
   const ctx = d + '/' + t + '/' + s.id;
   if (!s.titulo) erros.push(ctx + ': falta titulo');
   if (!naoVazio(s.ae)) erros.push(ctx + ': ae vazio');
@@ -76,7 +84,7 @@ function validarSubtema(s, d, t, existeFicheiro, erros) {
     erros.push(ctx + ': quiz precisa de 4-6 perguntas (tem ' + quiz.length + ')');
   }
   (s.essencial || []).forEach((b, i) => validarBloco(b, i, d, ctx, existeFicheiro, erros));
-  quiz.forEach((p, i) => validarPergunta(p, i, ctx, erros));
+  quiz.forEach((p, i) => validarPergunta(p, i, ctx, erros, idsPerguntas));
 }
 
 const RESERVADOS = ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado'];
@@ -91,6 +99,7 @@ function validar({ indice, temas, ae, existeFicheiro }) {
     const ficheiros = (temas && temas[d]) || [];
     const cobertos = new Set();
     const idsTema = new Set();
+    const idsPerguntas = new Set();
 
     for (const tIdx of disc.temas) {
       const tema = ficheiros.find((x) => x.id === tIdx.id);
@@ -111,7 +120,7 @@ function validar({ indice, temas, ae, existeFicheiro }) {
         if (!doIndice.has(id)) erros.push(d + '/' + tema.id + '/' + id + ': subtema no ficheiro de tema em falta no índice');
       }
       for (const s of tema.subtemas) {
-        validarSubtema(s, d, tema.id, existeFicheiro, erros);
+        validarSubtema(s, d, tema.id, existeFicheiro, erros, idsPerguntas);
         (s.ae || []).forEach((a) => cobertos.add(a));
       }
     }

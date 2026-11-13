@@ -4,13 +4,17 @@ const { carregar } = require('./ajuda.js');
 
 let validar;
 
+let contador = 0;
+
 beforeEach(() => {
+  contador = 0;
   carregar('js/nucleo.js');
   delete require.cache[require.resolve('../tools/validar-conteudos.js')];
   ({ validar } = require('../tools/validar-conteudos.js'));
 });
 
 const escolha = () => ({
+  id: 's1-q' + String(++contador).padStart(2, '0'),
   tipo: 'escolha',
   enunciado: 'Qual?',
   opcoes: ['a', 'b', 'c'],
@@ -93,6 +97,26 @@ test('regra 1: ids de subtema duplicados no tema', () => {
   esperaErro(c, /duplicad/);
 });
 
+test('regra 7: pergunta sem id', () => {
+  const c = base();
+  delete sub(c).quiz[1].id;
+  esperaErro(c, /sem id/);
+});
+
+test('regra 7: id repetido na disciplina', () => {
+  const c = base();
+  sub(c).quiz[1].id = sub(c).quiz[0].id;
+  esperaErro(c, /id de pergunta repetido/);
+});
+
+test('regra 7: id fora do formato', () => {
+  for (const mau of ['s1-q1', 'S1-q01', 's1_q01', 's1-q001', 'q01']) {
+    const c = base();
+    sub(c).quiz[0].id = mau;
+    esperaErro(c, /formato/);
+  }
+});
+
 test('regra 2: campos obrigatórios em falta', () => {
   for (const [campo, valor] of [
     ['titulo', ''],
@@ -133,6 +157,7 @@ test('regra 3: escolha com opções duplicadas', () => {
 });
 
 const numerica = (extra) => ({
+  id: 's1-q01',
   tipo: 'numerica',
   enunciado: 'Quanto?',
   resposta: 10,

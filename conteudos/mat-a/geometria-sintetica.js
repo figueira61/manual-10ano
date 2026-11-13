@@ -89,6 +89,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'incentro-circuncentro-q01',
           tipo: 'numerica',
           enunciado: 'Um triângulo retângulo tem catetos de 6 cm e 8 cm. Qual é o raio da circunferência inscrita?',
           resposta: 2,
@@ -102,6 +103,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.incentro([0, 0], [8, 0], [0, 6]).raio,
         },
         {
+          id: 'incentro-circuncentro-q02',
           tipo: 'numerica',
           enunciado: 'No mesmo triângulo (catetos de 6 cm e 8 cm), qual é o raio da circunferência circunscrita?',
           resposta: 5,
@@ -114,6 +116,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.circuncentro([0, 0], [8, 0], [0, 6]).raio,
         },
         {
+          id: 'incentro-circuncentro-q03',
           tipo: 'numerica',
           enunciado: 'Um triângulo isósceles tem lados de 5 cm, 5 cm e 6 cm. Qual é o raio da circunferência inscrita?',
           resposta: 1.5,
@@ -127,6 +130,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.incentro([-3, 0], [3, 0], [0, 4]).raio,
         },
         {
+          id: 'incentro-circuncentro-q04',
           tipo: 'escolha',
           enunciado: 'Qual é o ponto que está à mesma distância dos três vértices de um triângulo?',
           opcoes: ['O circuncentro.', 'O incentro.', 'O ortocentro.', 'O baricentro.'],
@@ -134,6 +138,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'O circuncentro está nas três mediatrizes, logo é equidistante dos três vértices. O incentro é equidistante dos três lados.',
         },
         {
+          id: 'incentro-circuncentro-q05',
           tipo: 'vf',
           enunciado: 'O circuncentro de um triângulo está sempre no interior do triângulo.',
           correta: false,
@@ -242,6 +247,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'ortocentro-baricentro-q01',
           tipo: 'numerica',
           enunciado: 'Num triângulo $[ABC]$, a mediana $[BM]$ mede 15 cm. Quanto mede $[BG]$, sendo $G$ o baricentro?',
           resposta: 10,
@@ -258,6 +264,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'ortocentro-baricentro-q02',
           tipo: 'numerica',
           enunciado: 'Um triângulo $[ABC]$ tem 48 cm² de área e baricentro $G$. Qual é a área do triângulo $[ABG]$?',
           resposta: 16,
@@ -271,6 +278,7 @@ Manual.registarTema('mat-a', {
           verificar: () => (2 * 48) / 6,
         },
         {
+          id: 'ortocentro-baricentro-q03',
           tipo: 'numerica',
           enunciado: 'Qual é a ordenada do baricentro do triângulo de vértices $A(-2, 1)$, $B(4, 3)$ e $C(1, -7)$?',
           resposta: -1,
@@ -282,6 +290,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.baricentro([-2, 1], [4, 3], [1, -7])[1],
         },
         {
+          id: 'ortocentro-baricentro-q04',
           tipo: 'escolha',
           enunciado: 'O triângulo $[ABC]$ é retângulo em $A$. Onde fica o ortocentro?',
           opcoes: ['No vértice $A$.', 'No ponto médio de $[BC]$.', 'No interior do triângulo.', 'Fora do triângulo.'],
@@ -289,12 +298,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Os catetos $[AB]$ e $[AC]$ são alturas e cortam-se em $A$. O ponto médio de $[BC]$ é o circuncentro.',
         },
         {
+          id: 'ortocentro-baricentro-q05',
           tipo: 'vf',
           enunciado: 'Num triângulo obtusângulo, o baricentro fica fora do triângulo.',
           correta: false,
           explicacao: 'O baricentro (tal como o incentro) é sempre interior: está nas medianas, a $\\frac{2}{3}$ de cada uma a partir do vértice. Os que ficam fora são o circuncentro e o ortocentro.',
         },
         {
+          id: 'ortocentro-baricentro-q06',
           tipo: 'escolha',
           enunciado: 'Num triângulo isósceles $[ABC]$, com $\\overline{AB} = \\overline{AC}$, onde ficam os pontos notáveis $I$, $O$, $H$ e $G$?',
           opcoes: [
@@ -378,6 +389,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'euler-nove-pontos-q01',
           tipo: 'numerica',
           enunciado: 'Num triângulo, a distância do circuncentro ao baricentro é $\\overline{OG} = 2$ cm. Quanto mede $\\overline{OH}$?',
           resposta: 6,
@@ -396,6 +408,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'euler-nove-pontos-q02',
           tipo: 'numerica',
           enunciado: 'A circunferência circunscrita a um triângulo tem 7 cm de raio. Qual é o raio da circunferência dos nove pontos?',
           resposta: 3.5,
@@ -408,6 +421,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.circunferenciaNovePontos([7, 0], [-7, 0], [0, 7]).raio,
         },
         {
+          id: 'euler-nove-pontos-q03',
           tipo: 'numerica',
           enunciado: 'Num triângulo, o circuncentro é $O(1, 2)$ e o ortocentro é $H(7, 5)$. Qual é a ordenada do centro $N$ da circunferência dos nove pontos?',
           resposta: 3.5,
@@ -419,6 +433,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.pontoMedio([1, 2], [7, 5])[1],
         },
         {
+          id: 'euler-nove-pontos-q04',
           tipo: 'numerica',
           enunciado: 'Com $O(1, 2)$ e $H(7, 5)$, qual é a abcissa do baricentro $G$?',
           resposta: 3,
@@ -433,6 +448,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'euler-nove-pontos-q05',
           tipo: 'escolha',
           enunciado: 'Quais destes pontos pertencem sempre à circunferência dos nove pontos?',
           opcoes: [
@@ -445,6 +461,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'Os nove pontos são os 3 pontos médios dos lados, os 3 pés das alturas e os pontos médios de $[AH]$, $[BH]$ e $[CH]$ (com $H$, não com $O$). Os vértices estão na circunscrita.',
         },
         {
+          id: 'euler-nove-pontos-q06',
           tipo: 'vf',
           enunciado: 'Num triângulo retângulo, o centro da circunferência dos nove pontos é o ponto médio do segmento que une o vértice do ângulo reto ao ponto médio da hipotenusa.',
           correta: true,

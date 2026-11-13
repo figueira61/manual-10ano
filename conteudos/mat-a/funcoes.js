@@ -78,6 +78,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'generalidades-q01',
           tipo: 'escolha',
           enunciado: 'Qual das correspondências de $A = \\{1, 2, 3\\}$ em $B = \\{4, 5, 6\\}$, dadas pelos pares (objeto, imagem), **não** é uma função?',
           opcoes: [
@@ -90,12 +91,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'O objeto 1 tem duas imagens (4 e 5), logo não é função. Objetos diferentes com a mesma imagem, como em $\\{(1, 4), (2, 4), (3, 4)\\}$, são permitidos.',
         },
         {
+          id: 'generalidades-q02',
           tipo: 'vf',
           enunciado: 'O contradomínio de uma função é sempre igual ao conjunto de chegada.',
           correta: false,
           explicacao: 'O contradomínio é o conjunto das imagens e está contido no conjunto de chegada, mas pode ser menor.',
         },
         {
+          id: 'generalidades-q03',
           tipo: 'numerica',
           enunciado: 'Seja $g(x) = 3 - 2x$. Calcula $g(-4)$.',
           resposta: 11,
@@ -107,6 +110,7 @@ Manual.registarTema('mat-a', {
           verificar: () => 3 - 2 * -4,
         },
         {
+          id: 'generalidades-q04',
           tipo: 'numerica',
           enunciado: 'A função $h$, de domínio $\\{-2, -1, 0, 1, 2\\}$, é definida por $h(x) = x^2 - 3$. Quantos elementos tem o contradomínio de $h$?',
           resposta: 3,
@@ -118,6 +122,7 @@ Manual.registarTema('mat-a', {
           verificar: () => new Set([-2, -1, 0, 1, 2].map((x) => x * x - 3)).size,
         },
         {
+          id: 'generalidades-q05',
           tipo: 'escolha',
           enunciado: 'A temperatura $T$ (°C) de um forno, $t$ minutos depois de ligado, é dada por $T(t) = 20 + 15t$, para $0 \\leq t \\leq 12$. Qual é a variável dependente?',
           opcoes: ['O tempo $t$.', 'A temperatura $T$.', 'O número 15.', 'O intervalo $[0, 12]$.'],
@@ -199,6 +204,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'afim-q01',
           tipo: 'numerica',
           enunciado: 'Determina o zero de $f(x) = 3x + 4{,}5$.',
           resposta: -1.5,
@@ -211,6 +217,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.afim(3, 4.5).zero,
         },
         {
+          id: 'afim-q02',
           tipo: 'numerica',
           enunciado: 'Um depósito tem 60 L de água e perde 4 L por hora: $V(t) = 60 - 4t$. Ao fim de quantas horas fica vazio?',
           resposta: 15,
@@ -223,12 +230,14 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.afim(-4, 60).zero,
         },
         {
+          id: 'afim-q03',
           tipo: 'vf',
           enunciado: 'A função $f(x) = 4 - 2x$ é crescente.',
           correta: false,
           explicacao: 'Na forma $mx + b$ fica $f(x) = -2x + 4$: o declive é $-2 < 0$, logo é decrescente.',
         },
         {
+          id: 'afim-q04',
           tipo: 'escolha',
           enunciado: 'Em que conjunto é $f(x) = 2x - 8$ positiva?',
           opcoes: ['$]-\\infty, 4[$', '$]4, +\\infty[$', '$]-\\infty, -4[$', '$]-4, +\\infty[$'],
@@ -236,6 +245,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'O zero é $x = 4$ e, como $m = 2 > 0$, a função é crescente: positiva à direita do zero.',
         },
         {
+          id: 'afim-q05',
           tipo: 'escolha',
           enunciado: 'Qual é a expressão da reta que passa em $(0, 5)$ e $(1, 2)$?',
           opcoes: ['$y = 3x + 5$', '$y = -3x + 2$', '$y = -3x + 5$', '$y = 5x - 3$'],
@@ -327,6 +337,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'quadratica-q01',
           tipo: 'numerica',
           enunciado: 'Calcula o binómio discriminante de $f(x) = 2x^2 - 3x - 2$.',
           resposta: 25,
@@ -338,6 +349,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(2, -3, -2).delta,
         },
         {
+          id: 'quadratica-q02',
           tipo: 'numerica',
           enunciado: 'Qual é a ordenada do vértice da parábola $y = x^2 + 6x + 5$?',
           resposta: -4,
@@ -349,6 +361,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(1, 6, 5).vertice[1],
         },
         {
+          id: 'quadratica-q03',
           tipo: 'numerica',
           enunciado: 'Qual é o maior zero de $f(x) = x^2 - x - 6$?',
           resposta: 3,
@@ -360,6 +373,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(1, -1, -6).zeros[1],
         },
         {
+          id: 'quadratica-q04',
           tipo: 'escolha',
           enunciado: 'Qual é o contradomínio de $f(x) = -x^2 + 4x - 1$?',
           opcoes: ['$[3, +\\infty[$', '$]-\\infty, -1]$', '$]-\\infty, 3]$', '$\\mathbb{R}$'],
@@ -367,12 +381,14 @@ Manual.registarTema('mat-a', {
           explicacao: '$a = -1 < 0$ (máximo). $h = -\\dfrac{4}{-2} = 2$, $k = -4 + 8 - 1 = 3$. Contradomínio: $]-\\infty, 3]$.',
         },
         {
+          id: 'quadratica-q05',
           tipo: 'vf',
           enunciado: 'Se $a > 0$ e $\\Delta < 0$, então $f(x) = ax^2 + bx + c$ é positiva para todo o $x$ real.',
           correta: true,
           explicacao: 'A parábola tem concavidade para cima e não corta o eixo $Ox$, logo fica toda acima dele.',
         },
         {
+          id: 'quadratica-q06',
           tipo: 'escolha',
           enunciado: 'Em que intervalo é crescente $f(x) = (x - 1)^2 + 2$?',
           opcoes: ['$]-\\infty, 1]$', '$[1, +\\infty[$', '$[2, +\\infty[$', '$]-\\infty, 2]$'],
@@ -452,6 +468,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'transformacoes-q01',
           tipo: 'escolha',
           enunciado: 'O gráfico de $g(x) = (x - 4)^2$ obtém-se do de $f(x) = x^2$ por:',
           opcoes: [
@@ -464,12 +481,14 @@ Manual.registarTema('mat-a', {
           explicacao: '$g(x) = f(x - 4)$, com $h = 4$: translação de vetor $(4, 0)$, para a direita.',
         },
         {
+          id: 'transformacoes-q02',
           tipo: 'vf',
           enunciado: 'O gráfico de $y = 0{,}5x^2$ obtém-se do de $y = x^2$ por uma dilatação vertical.',
           correta: false,
           explicacao: 'Como $0 < 0{,}5 < 1$, é uma contração vertical de coeficiente $0{,}5$.',
         },
         {
+          id: 'transformacoes-q03',
           tipo: 'numerica',
           enunciado: 'Qual é a abcissa do vértice da parábola $y = (x + 3)^2 + 1$?',
           resposta: -3,
@@ -481,6 +500,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(1, 6, 10).vertice[0],
         },
         {
+          id: 'transformacoes-q04',
           tipo: 'numerica',
           enunciado: 'Escreve $g(x) = 2(x - 1)^2 - 8$ na forma $ax^2 + bx + c$. Qual é o valor de $c$?',
           resposta: -6,
@@ -492,6 +512,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.canonicaParaGeral(2, 1, -8).c,
         },
         {
+          id: 'transformacoes-q05',
           tipo: 'numerica',
           enunciado: 'Uma parábola tem vértice $(1, 2)$ e passa em $(3, -6)$. Na forma $y = a(x - 1)^2 + 2$, qual é o valor de $a$?',
           resposta: -2,
@@ -503,6 +524,7 @@ Manual.registarTema('mat-a', {
           verificar: () => (-6 - 2) / (3 - 1) ** 2,
         },
         {
+          id: 'transformacoes-q06',
           tipo: 'escolha',
           enunciado: 'Que transformação leva o gráfico de $y = x^2$ no de $y = -x^2$?',
           opcoes: ['Reflexão no eixo $Ox$', 'Reflexão no eixo $Oy$', 'Translação de vetor $(0, -1)$', 'Contração vertical'],
@@ -613,6 +635,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'equacoes-inequacoes-q01',
           tipo: 'numerica',
           enunciado: 'Qual é a maior solução de $x^2 - 5x + 6 = 0$?',
           resposta: 3,
@@ -624,6 +647,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(1, -5, 6).zeros[1],
         },
         {
+          id: 'equacoes-inequacoes-q02',
           tipo: 'numerica',
           enunciado: 'Um retângulo tem 20 cm de perímetro e 21 cm² de área. Quanto mede o lado menor?',
           resposta: 3,
@@ -637,6 +661,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(1, -10, 21).zeros[0],
         },
         {
+          id: 'equacoes-inequacoes-q03',
           tipo: 'numerica',
           enunciado: 'Calcula o binómio discriminante $\\Delta$ da equação $3x^2 - 6x + 3 = 0$.',
           resposta: 0,
@@ -648,6 +673,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.quadratica(3, -6, 3).delta,
         },
         {
+          id: 'equacoes-inequacoes-q04',
           tipo: 'escolha',
           enunciado: 'Qual é o conjunto-solução de $x^2 - 9 \\geq 0$?',
           opcoes: [
@@ -660,12 +686,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Zeros $-3$ e $3$; concavidade para cima, logo $x^2 - 9 \\geq 0$ fora do intervalo entre os zeros, incluindo-os (desigualdade larga).',
         },
         {
+          id: 'equacoes-inequacoes-q05',
           tipo: 'vf',
           enunciado: 'A inequação $x^2 + 1 < 0$ é impossível.',
           correta: true,
           explicacao: '$x^2 \\geq 0$, logo $x^2 + 1 \\geq 1 > 0$ para todo o $x$: não há soluções (C.S. $= \\varnothing$).',
         },
         {
+          id: 'equacoes-inequacoes-q06',
           tipo: 'escolha',
           enunciado: 'Qual é o conjunto-solução de $x^2 - 2x - 3 < 0$?',
           opcoes: ['$]-1, 3[$', '$]-3, 1[$', '$]-\\infty, -1[ \\cup ]3, +\\infty[$', '$[-1, 3]$'],
@@ -790,6 +818,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'ramos-modulo-q01',
           tipo: 'numerica',
           enunciado: 'Na função $f(x) = x + 2$ se $x < 0$; $x^2$ se $0 \\leq x < 2$; $3$ se $x \\geq 2$, calcula $f(1{,}5)$.',
           resposta: 2.25,
@@ -805,6 +834,7 @@ Manual.registarTema('mat-a', {
           ], 1.5),
         },
         {
+          id: 'ramos-modulo-q02',
           tipo: 'numerica',
           enunciado: 'No aluguer de bicicletas ($C(t) = 5$ se $0 < t \\leq 2$; $C(t) = 5 + 2(t - 2)$ se $t > 2$), quanto se paga por 5 horas?',
           resposta: 11,
@@ -820,6 +850,7 @@ Manual.registarTema('mat-a', {
           ], 5),
         },
         {
+          id: 'ramos-modulo-q03',
           tipo: 'numerica',
           enunciado: 'Seja $h(x) = -2x + 4$ se $x < 1$ e $h(x) = x - 5$ se $x \\geq 1$. Qual é o zero de $h$?',
           resposta: 5,
@@ -831,6 +862,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.funcoes.afim(1, -5).zero,
         },
         {
+          id: 'ramos-modulo-q04',
           tipo: 'escolha',
           enunciado: 'Qual é o contradomínio de $f(x) = |x| - 2$?',
           opcoes: ['$[0, +\\infty[$', '$[-2, +\\infty[$', '$[2, +\\infty[$', '$\\mathbb{R}$'],
@@ -838,12 +870,14 @@ Manual.registarTema('mat-a', {
           explicacao: '$|x| \\geq 0$, logo $|x| - 2 \\geq -2$, com $-2$ atingido em $x = 0$: translação de vetor $(0, -2)$ do gráfico de $|x|$.',
         },
         {
+          id: 'ramos-modulo-q05',
           tipo: 'vf',
           enunciado: 'Para todo o número real $x$, $|x| = x$.',
           correta: false,
           explicacao: 'Só para $x \\geq 0$. Por exemplo, $|-3| = 3 \\neq -3$.',
         },
         {
+          id: 'ramos-modulo-q06',
           tipo: 'escolha',
           enunciado: 'Qual é a expressão por ramos de $|x + 1|$?',
           opcoes: [

@@ -71,7 +71,7 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
     disciplina: contexto.disciplina,
     tema: contexto.tema,
     subtema: contexto.subtema,
-    tipo: contexto.subtema + '#q' + indice,
+    tipo: pergunta.id || contexto.subtema + '#q' + indice,
     semente: null,
     formato: pergunta.tipo,
     modo: 'quiz',

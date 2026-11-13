@@ -92,6 +92,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'plano-referencial-q01',
           tipo: 'numerica',
           enunciado: 'Qual é a distância entre $A(-1, 2)$ e $B(5, 10)$?',
           resposta: 10,
@@ -103,6 +104,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.distancia([-1, 2], [5, 10]),
         },
         {
+          id: 'plano-referencial-q02',
           tipo: 'numerica',
           enunciado: 'Qual é a ordenada do ponto médio de $[AB]$, com $A(-3, 7)$ e $B(5, -1)$?',
           resposta: 3,
@@ -114,6 +116,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.pontoMedio([-3, 7], [5, -1])[1],
         },
         {
+          id: 'plano-referencial-q03',
           tipo: 'numerica',
           enunciado: '$M(2, 1)$ é o ponto médio de $[AB]$ e $A(-1, 4)$. Qual é a abcissa de $B$?',
           resposta: 5,
@@ -129,6 +132,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'plano-referencial-q04',
           tipo: 'escolha',
           enunciado: 'Qual é o transformado de $P(-2, 5)$ pela meia-volta de centro na origem?',
           opcoes: ['$(-2, -5)$', '$(2, 5)$', '$(2, -5)$', '$(5, -2)$'],
@@ -136,6 +140,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'A meia-volta de centro $O$ troca o sinal das duas coordenadas: $(-2, 5) \\to (2, -5)$.',
         },
         {
+          id: 'plano-referencial-q05',
           tipo: 'vf',
           enunciado: 'O transformado de $(3, 4)$ pela reflexão de eixo $Oy$ é $(3, -4)$.',
           correta: false,
@@ -256,6 +261,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'plano-condicoes-q01',
           tipo: 'numerica',
           enunciado: 'Qual é o raio da circunferência $(x + 3)^2 + (y - 4)^2 = 49$?',
           resposta: 7,
@@ -267,6 +273,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Math.sqrt(49),
         },
         {
+          id: 'plano-condicoes-q02',
           tipo: 'numerica',
           enunciado: 'Qual é a ordenada na origem da reta que passa por $(2, 1)$ e $(4, 7)$?',
           resposta: -5,
@@ -281,6 +288,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'plano-condicoes-q03',
           tipo: 'numerica',
           enunciado: 'Qual é o declive da mediatriz de $[AB]$, com $A(0, 0)$ e $B(4, 2)$?',
           resposta: -2,
@@ -296,6 +304,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'plano-condicoes-q04',
           tipo: 'escolha',
           enunciado: 'Qual dos pontos pertence ao semiplano definido por $y < 2x - 1$?',
           opcoes: ['$(0, 0)$', '$(1, 1)$', '$(3, 2)$', '$(-2, -4)$'],
@@ -308,12 +317,14 @@ Manual.registarTema('mat-a', {
           calculo: true,
         },
         {
+          id: 'plano-condicoes-q05',
           tipo: 'vf',
           enunciado: 'A condição $x^2 + y^2 \\leq 9 \\wedge y \\geq 0$ define um semicírculo.',
           correta: true,
           explicacao: '$x^2 + y^2 \\leq 9$ é o círculo de centro $O$ e raio 3; a conjunção com $y \\geq 0$ fica só com a metade de cima.',
         },
         {
+          id: 'plano-condicoes-q06',
           tipo: 'escolha',
           enunciado: 'Qual das condições define o conjunto vazio?',
           opcoes: ['$(x - 1)^2 + y^2 = 0$', '$(x - 1)^2 + y^2 = -4$', '$x > 2 \\vee x < 1$', '$y \\leq 0 \\wedge x \\geq 0$'],
@@ -446,6 +457,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'espaco-q01',
           tipo: 'numerica',
           enunciado: 'Qual é a distância da origem ao ponto $P(2, 3, 6)$?',
           resposta: 7,
@@ -456,6 +468,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.distancia([0, 0, 0], [2, 3, 6]),
         },
         {
+          id: 'espaco-q02',
           tipo: 'numerica',
           enunciado: 'Qual é a cota do ponto médio de $[AB]$, com $A(1, 4, -3)$ e $B(5, 0, 7)$?',
           resposta: 2,
@@ -466,6 +479,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.pontoMedio([1, 4, -3], [5, 0, 7])[2],
         },
         {
+          id: 'espaco-q03',
           tipo: 'numerica',
           enunciado: 'Qual é o raio da superfície esférica $(x - 1)^2 + (y + 2)^2 + z^2 = 16$?',
           resposta: 4,
@@ -476,6 +490,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Math.sqrt(16),
         },
         {
+          id: 'espaco-q04',
           tipo: 'escolha',
           enunciado: 'No espaço, o que representa a condição $y = 3$?',
           opcoes: ['Uma reta paralela ao eixo $Ox$.', 'Um plano paralelo a $xOz$.', 'Um plano paralelo a $xOy$.', 'Um ponto do eixo $Oy$.'],
@@ -483,12 +498,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Só a ordenada está fixa; $x$ e $z$ variam livremente: é o plano paralelo a $xOz$ que passa por $(0, 3, 0)$.',
         },
         {
+          id: 'espaco-q05',
           tipo: 'vf',
           enunciado: 'A condição $x = 1 \\wedge z = 2$ define uma reta paralela ao eixo $Oy$.',
           correta: true,
           explicacao: 'Com $x$ e $z$ fixos, só a ordenada varia: os pontos $(1, y, 2)$ formam uma reta paralela a $Oy$.',
         },
         {
+          id: 'espaco-q06',
           tipo: 'vf',
           enunciado: 'O ponto $P(2, -1, 5)$ pertence à esfera $x^2 + y^2 + z^2 \\leq 25$.',
           correta: false,
@@ -625,6 +642,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'vetores-q01',
           tipo: 'numerica',
           enunciado: 'Qual é a norma do vetor $\\vec{w} = (2, -3, 6)$?',
           resposta: 7,
@@ -635,6 +653,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.norma([2, -3, 6]),
         },
         {
+          id: 'vetores-q02',
           tipo: 'numerica',
           enunciado: 'Com $\\vec{u} = (1, 2)$ e $\\vec{v} = (-2, 5)$, qual é a 2.ª coordenada de $3\\vec{u} - 2\\vec{v}$?',
           resposta: -4,
@@ -649,6 +668,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'vetores-q03',
           tipo: 'numerica',
           enunciado: 'Para que valor de $k$ são colineares $\\vec{u} = (3, -6)$ e $\\vec{v} = (k, 4)$?',
           resposta: -2,
@@ -664,6 +684,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'vetores-q04',
           tipo: 'escolha',
           enunciado: 'Dados $A(2, -1, 0)$ e $\\vec{u} = (-3, 4, 1)$, quais são as coordenadas do ponto $A + \\vec{u}$?',
           opcoes: ['$(5, -5, -1)$', '$(-1, 3, 1)$', '$(-6, -4, 0)$', '$(-5, 5, 1)$'],
@@ -675,6 +696,7 @@ Manual.registarTema('mat-a', {
           calculo: true,
         },
         {
+          id: 'vetores-q05',
           tipo: 'vf',
           enunciado: 'Para qualquer vetor $\\vec{u}$, $\\|-2\\vec{u}\\| = -2\\|\\vec{u}\\|$.',
           correta: false,
@@ -794,6 +816,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'reta-vetorial-q01',
           tipo: 'numerica',
           enunciado: 'Qual é o declive da reta $(x, y) = (-1, 4) + \\lambda(2, -6),\\ \\lambda \\in \\mathbb{R}$?',
           resposta: -3,
@@ -804,6 +827,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.equacaoReduzida([-1, 4], [2, -6]).m,
         },
         {
+          id: 'reta-vetorial-q02',
           tipo: 'numerica',
           enunciado: 'Qual é a ordenada na origem da mesma reta, $(x, y) = (-1, 4) + \\lambda(2, -6)$?',
           resposta: 1,
@@ -815,6 +839,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.geometria.equacaoReduzida([-1, 4], [2, -6]).b,
         },
         {
+          id: 'reta-vetorial-q03',
           tipo: 'numerica',
           enunciado: 'Na reta $(x, y, z) = (2, 0, -1) + \\lambda(1, -2, 3)$, qual é o valor de $\\lambda$ para o ponto de cota 8?',
           resposta: 3,
@@ -826,6 +851,7 @@ Manual.registarTema('mat-a', {
           verificar: () => (Manual.calc.geometria.retaVetorial([2, 0, -1], [1, -2, 3], 3)[2] === 8 ? 3 : NaN),
         },
         {
+          id: 'reta-vetorial-q04',
           tipo: 'escolha',
           enunciado: 'Qual dos vetores é um vetor diretor da reta $y = 2x + 1$?',
           opcoes: ['$(2, 1)$', '$(-2, 1)$', '$(0, 1)$', '$(1, 2)$'],
@@ -833,12 +859,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Um vetor diretor de $y = mx + b$ é $(1, m) = (1, 2)$: dá $m = \\dfrac{2}{1} = 2$. $(2, 1)$ daria $m = \\dfrac{1}{2}$.',
         },
         {
+          id: 'reta-vetorial-q05',
           tipo: 'vf',
           enunciado: 'As retas $(x, y) = (0, 0) + \\lambda(2, -4)$ e $y = -2x + 7$ são paralelas.',
           correta: true,
           explicacao: 'A primeira tem declive $\\dfrac{-4}{2} = -2$, igual ao da segunda; os vetores diretores $(2, -4)$ e $(1, -2)$ são colineares. Como $(0, 0)$ não está na segunda reta, são paralelas e distintas.',
         },
         {
+          id: 'reta-vetorial-q06',
           tipo: 'escolha',
           enunciado: 'Qual é a equação reduzida da reta $(x, y) = (3, 1) + \\lambda(0, 2)$?',
           opcoes: ['$y = 2x + 1$', '$x = 3$', '$y = 1$', '$y = 3x$'],

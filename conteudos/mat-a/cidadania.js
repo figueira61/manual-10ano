@@ -79,6 +79,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'maiorias-q01',
           tipo: 'numerica',
           enunciado: 'Numa eleição para a Associação de Estudantes, a lista A teve 412 votos, a B 305 e a C 183. Quantos votos garantem a maioria absoluta?',
           resposta: 451,
@@ -91,6 +92,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.maioria([412, 305, 183]).limiarAbsoluta,
         },
         {
+          id: 'maiorias-q02',
           tipo: 'numerica',
           enunciado: 'Na mesma eleição (412, 305 e 183 votos), quantos votos faltaram a A para ter maioria absoluta?',
           resposta: 39,
@@ -102,12 +104,14 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.maioria([412, 305, 183]).limiarAbsoluta - 412,
         },
         {
+          id: 'maiorias-q03',
           tipo: 'vf',
           enunciado: 'Um candidato com maioria absoluta tem sempre também maioria simples.',
           correta: true,
           explicacao: 'Se tem mais de metade dos votos, nenhum outro pode ter mais votos do que ele.',
         },
         {
+          id: 'maiorias-q04',
           tipo: 'escolha',
           enunciado: 'Votaram 1000 pessoas. Qual destes resultados dá maioria absoluta ao candidato?',
           opcoes: ['500 votos', '501 votos', '499 votos', '334 votos'],
@@ -115,6 +119,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'Metade de 1000 é 500; é preciso mais do que metade, logo pelo menos 501.',
         },
         {
+          id: 'maiorias-q05',
           tipo: 'vf',
           enunciado: 'Numa eleição com três candidatos, há sempre um vencedor por maioria absoluta.',
           correta: false,
@@ -180,6 +185,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'borda-q01',
           tipo: 'numerica',
           enunciado: 'Na eleição do exemplo (4 Ana > Bruno > Carla; 3 Bruno > Carla > Ana; 3 Carla > Bruno > Ana), quantos pontos de Borda tem a Carla?',
           resposta: 19,
@@ -197,6 +203,7 @@ Manual.registarTema('mat-a', {
           ], 3).pontos[2],
         },
         {
+          id: 'borda-q02',
           tipo: 'numerica',
           enunciado: 'Quatro candidatos para a Associação de Estudantes: 8 boletins A > B > C > D; 6 boletins B > C > D > A; 5 boletins C > B > D > A; 2 boletins D > B > C > A. Quantos pontos de Borda tem B (4, 3, 2, 1 pontos)?',
           resposta: 69,
@@ -216,6 +223,7 @@ Manual.registarTema('mat-a', {
           ], 4).pontos[1],
         },
         {
+          id: 'borda-q03',
           tipo: 'escolha',
           enunciado: 'Numa eleição com 21 eleitores e quatro candidatos houve 8 boletins A > B > C > D, 6 boletins B > C > D > A, 5 boletins C > B > D > A e 2 boletins D > B > C > A. Os pontos de Borda são A 45, B 69, C 58 e D 38. Que conclusão é correta?',
           opcoes: [
@@ -228,12 +236,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'A tem mais primeiros lugares (8 em 21, sem maioria absoluta), mas é último em 13 boletins; B tem mais pontos de Borda.',
         },
         {
+          id: 'borda-q04',
           tipo: 'vf',
           enunciado: 'No método de Borda, um candidato que nunca é o 1.º de ninguém pode ganhar a eleição.',
           correta: true,
           explicacao: 'Se ficar em 2.º lugar em quase todos os boletins pode acumular mais pontos do que os outros.',
         },
         {
+          id: 'borda-q05',
           tipo: 'escolha',
           enunciado: 'Com 5 candidatos, quantos pontos dá cada boletim ao candidato colocado em 2.º lugar?',
           opcoes: ['4', '2', '5', '3'],
@@ -331,6 +341,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'hondt-stlague-q01',
           tipo: 'numerica',
           enunciado: 'Numa pequena assembleia de freguesia (exemplo simplificado) elegem-se 5 mandatos. A lista A teve 4200 votos, B 2700 e C 1500. Quantos mandatos tem A pelo método de Hondt?',
           resposta: 3,
@@ -344,6 +355,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.hondt([4200, 2700, 1500], 5).mandatos[0],
         },
         {
+          id: 'hondt-stlague-q02',
           tipo: 'numerica',
           enunciado: 'Na mesma eleição (4200, 2700 e 1500 votos, 5 mandatos), quantos mandatos tem B pelo método de St. Laguë?',
           resposta: 2,
@@ -357,6 +369,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.stLague([4200, 2700, 1500], 5).mandatos[1],
         },
         {
+          id: 'hondt-stlague-q03',
           tipo: 'escolha',
           enunciado: 'No método de Hondt, os votos de cada partido são divididos por…',
           opcoes: ['1, 2, 3, 4, …', '1, 3, 5, 7, …', '2, 4, 6, 8, …', 'o total de votos'],
@@ -364,12 +377,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Hondt usa os naturais 1, 2, 3, …; St. Laguë usa os ímpares.',
         },
         {
+          id: 'hondt-stlague-q04',
           tipo: 'vf',
           enunciado: 'Em comparação com o método de Hondt, o método de St. Laguë tende a favorecer os partidos mais pequenos.',
           correta: true,
           explicacao: 'Os divisores crescem mais depressa (1, 3, 5, …), o que penaliza mais o 2.º e 3.º mandatos dos partidos grandes.',
         },
         {
+          id: 'hondt-stlague-q05',
           tipo: 'vf',
           enunciado: 'Para a mesma votação, os métodos de Hondt e de St. Laguë dão sempre a mesma distribuição de mandatos.',
           correta: false,
@@ -501,6 +516,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'salarios-q01',
           tipo: 'numerica',
           enunciado: 'Com a tabela de retenção ilustrativa, qual é o salário líquido mensal de quem ganha 1500 € brutos?',
           resposta: 1035,
@@ -514,6 +530,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.salario(1500).liquido,
         },
         {
+          id: 'salarios-q02',
           tipo: 'numerica',
           enunciado: 'Com os escalões ilustrativos, qual é o IRS anual de um rendimento coletável de 12 000 €?',
           resposta: 1840,
@@ -527,6 +544,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.irsAnual(12000, Manual.calc.cidadania.ESCALOES_IRS_ILUSTRATIVOS).imposto,
         },
         {
+          id: 'salarios-q03',
           tipo: 'numerica',
           enunciado: 'Um contrato de 900 € brutos mensais e 40 horas semanais. Qual é o valor por hora, arredondado às centésimas?',
           resposta: 5.19,
@@ -539,12 +557,14 @@ Manual.registarTema('mat-a', {
           verificar: () => (900 * 12) / (52 * 40),
         },
         {
+          id: 'salarios-q04',
           tipo: 'vf',
           enunciado: 'A retenção na fonte é o valor final do IRS do ano: nunca há acertos.',
           correta: false,
           explicacao: 'É provisória. Na declaração anual calcula-se o imposto devido; a diferença é reembolsada ou paga.',
         },
         {
+          id: 'salarios-q05',
           tipo: 'escolha',
           enunciado: 'O que significa dizer que o IRS é progressivo?',
           opcoes: [
@@ -668,6 +688,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'juros-q01',
           tipo: 'numerica',
           enunciado: 'Depositas 5000 € a 2 % ao ano, com juro composto e capitalização anual, durante 3 anos. Qual é o montante final, às centésimas?',
           resposta: 5306.04,
@@ -681,6 +702,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.jurosCompostos(5000, 0.02, 3, 1).montante,
         },
         {
+          id: 'juros-q02',
           tipo: 'numerica',
           enunciado: 'Um empréstimo de 1500 € a 6 % ao ano em regime de juro simples, durante 2 anos. Quanto se paga de juros?',
           resposta: 180,
@@ -693,6 +715,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.cidadania.jurosSimples(1500, 0.06, 2).juro,
         },
         {
+          id: 'juros-q03',
           tipo: 'numerica',
           enunciado: 'Que capital deves depositar hoje, a 4 % ao ano com capitalização anual, para teres 5000 € daqui a 3 anos? Arredonda às centésimas.',
           resposta: 4444.98,
@@ -706,6 +729,7 @@ Manual.registarTema('mat-a', {
           verificar: () => 5000 / Math.pow(1.04, 3),
         },
         {
+          id: 'juros-q04',
           tipo: 'numerica',
           enunciado: 'Depositas 1000 € a 5 % ao ano com capitalização anual. Ao fim de quantos anos, no mínimo, o montante atinge 1500 €?',
           resposta: 9,
@@ -723,6 +747,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'juros-q05',
           tipo: 'vf',
           enunciado: 'Com a mesma taxa anual, a capitalização mensal dá um montante maior do que a capitalização anual (para mais de um ano de prazo).',
           correta: true,

@@ -86,6 +86,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'conceitos-q01',
           tipo: 'escolha',
           enunciado: 'Para estudar o tempo que os alunos de uma escola de 800 alunos gastam no telemóvel, mediu-se esse tempo em 60 alunos escolhidos ao acaso. Qual é a população?',
           opcoes: ['Os 800 alunos da escola.', 'Os 60 alunos escolhidos.', 'O tempo gasto no telemóvel.', 'Os telemóveis dos alunos.'],
@@ -93,6 +94,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'A população é o conjunto de todas as unidades sobre as quais se quer concluir: os 800 alunos. Os 60 são a amostra; o tempo é a variável.',
         },
         {
+          id: 'conceitos-q02',
           tipo: 'escolha',
           enunciado: 'Qual destas variáveis dá origem a dados quantitativos contínuos?',
           opcoes: ['Tempo (em segundos) que cada aluno demora a correr 100 m.', 'Número de livros lidos no último ano.', 'Número de irmãos.', 'Cor preferida.'],
@@ -100,6 +102,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'O tempo é uma medição e pode tomar qualquer valor de um intervalo. Livros e irmãos são contagens (discretos); a cor é qualitativa.',
         },
         {
+          id: 'conceitos-q03',
           tipo: 'escolha',
           enunciado: 'Um jornal publica no site a pergunta «Concorda com o novo horário escolar?» e recebe 5000 respostas. Porque é que a amostra é enviesada?',
           opcoes: [
@@ -112,12 +115,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'Em amostras por resposta voluntária, quem responde não foi escolhido ao acaso; o resultado não representa a população.',
         },
         {
+          id: 'conceitos-q04',
           tipo: 'vf',
           enunciado: 'Numa sondagem bem feita, a percentagem obtida na amostra é exatamente igual à percentagem na população.',
           correta: false,
           explicacao: 'Outra amostra daria um valor um pouco diferente; a conclusão para a população tem uma margem de erro, não é «verdadeira ou falsa».',
         },
         {
+          id: 'conceitos-q05',
           tipo: 'escolha',
           enunciado: 'Qual é a ordem correta das fases de um procedimento estatístico?',
           opcoes: [
@@ -225,6 +230,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'frequencias-histograma-q01',
           tipo: 'numerica',
           enunciado: 'Dos 20 alunos do exemplo (4 com 0 irmãos, 8 com 1, 5 com 2, 2 com 3 e 1 com 4), quantos têm pelo menos 2 irmãos?',
           resposta: 8,
@@ -238,6 +244,7 @@ Manual.registarTema('mat-a', {
           verificar: () => 20 - Manual.calc.estatistica.tabelaFrequencias([0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4])[1].absolutaAcumulada,
         },
         {
+          id: 'frequencias-histograma-q02',
           tipo: 'numerica',
           enunciado: 'Registou-se o número de golos em 10 jogos: 0, 1, 1, 2, 2, 2, 3, 3, 4, 5. Qual é a frequência relativa acumulada do valor 2 (em decimal)?',
           resposta: 0.6,
@@ -249,6 +256,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.tabelaFrequencias([0, 1, 1, 2, 2, 2, 3, 3, 4, 5])[2].relativaAcumulada,
         },
         {
+          id: 'frequencias-histograma-q03',
           tipo: 'numerica',
           enunciado: 'Nas 20 alturas do exemplo, com classes de amplitude 10 a começar em 150, que percentagem de alunos mede pelo menos 170 cm?',
           resposta: 35,
@@ -265,6 +273,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'frequencias-histograma-q04',
           tipo: 'escolha',
           enunciado: 'Mediu-se o tempo (em minutos) que 200 pessoas esperaram numa fila. Que representação é mais adequada para mostrar a forma da distribuição?',
           opcoes: ['Histograma', 'Gráfico de barras', 'Diagrama de caule-e-folhas', 'Gráfico circular'],
@@ -272,6 +281,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'Os dados são contínuos e numerosos: agrupam-se em classes e representam-se num histograma. Um caule-e-folhas com 200 dados é pouco prático.',
         },
         {
+          id: 'frequencias-histograma-q05',
           tipo: 'vf',
           enunciado: 'Num histograma com classes de igual amplitude, a classe com o retângulo mais alto é a que tem maior frequência.',
           correta: true,
@@ -382,6 +392,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'localizacao-q01',
           tipo: 'numerica',
           enunciado: 'Número de mensagens recebidas por 9 alunos numa hora: 12, 7, 10, 16, 10, 13, 9, 15, 10. Calcula a média (arredondada às centésimas).',
           resposta: 11.33,
@@ -393,6 +404,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.media([12, 7, 10, 16, 10, 13, 9, 15, 10]),
         },
         {
+          id: 'localizacao-q02',
           tipo: 'numerica',
           enunciado: 'Para os mesmos dados (12, 7, 10, 16, 10, 13, 9, 15, 10), qual é a mediana?',
           resposta: 10,
@@ -405,6 +417,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.mediana([12, 7, 10, 16, 10, 13, 9, 15, 10]),
         },
         {
+          id: 'localizacao-q03',
           tipo: 'numerica',
           enunciado: 'Ainda para 7, 9, 10, 10, 10, 12, 13, 15, 16, calcula o 3.º quartil $Q_3$.',
           resposta: 13,
@@ -416,6 +429,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.quartis([12, 7, 10, 16, 10, 13, 9, 15, 10]).q3,
         },
         {
+          id: 'localizacao-q04',
           tipo: 'escolha',
           enunciado: 'Qual é a moda de 7, 9, 10, 10, 10, 12, 13, 15, 16?',
           opcoes: ['10', '11,33', '12', 'Não há moda.'],
@@ -423,6 +437,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'O 10 aparece três vezes; nenhum outro valor aparece mais do que uma vez.',
         },
         {
+          id: 'localizacao-q05',
           tipo: 'vf',
           enunciado: 'A mediana de um conjunto de dados é sempre um dos dados.',
           correta: false,
@@ -537,6 +552,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'dispersao-q01',
           tipo: 'numerica',
           enunciado: 'Calcula a variância amostral $s^2$ de 3, 5, 7, 9, 11.',
           resposta: 10,
@@ -550,6 +566,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.variancia([3, 5, 7, 9, 11]),
         },
         {
+          id: 'dispersao-q02',
           tipo: 'numerica',
           enunciado: 'Qual é o desvio padrão amostral $s$ de 3, 5, 7, 9, 11 (arredondado às centésimas)?',
           resposta: 3.16,
@@ -561,6 +578,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.desvioPadrao([3, 5, 7, 9, 11]),
         },
         {
+          id: 'dispersao-q03',
           tipo: 'numerica',
           enunciado: 'Calcula a amplitude interquartil de 3, 5, 7, 9, 11.',
           resposta: 4,
@@ -573,6 +591,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.amplitudeInterquartil([3, 5, 7, 9, 11]),
         },
         {
+          id: 'dispersao-q04',
           tipo: 'escolha',
           enunciado: 'Os conjuntos A = {9, 10, 11} e B = {1, 10, 19} têm média 10. O que se pode dizer dos desvios padrão?',
           opcoes: ['$s_B > s_A$', '$s_A > s_B$', '$s_A = s_B$, porque as médias são iguais.', 'Não se pode comparar sem calcular a mediana.'],
@@ -585,6 +604,7 @@ Manual.registarTema('mat-a', {
           calculo: true,
         },
         {
+          id: 'dispersao-q05',
           tipo: 'vf',
           enunciado: 'Se as alturas de um grupo forem medidas em centímetros, a variância vem em centímetros.',
           correta: false,
@@ -714,6 +734,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'propriedades-q01',
           tipo: 'numerica',
           enunciado: 'Os dados 9, 12, 15 têm média 12 e desvio padrão 3. Cada dado é multiplicado por 2 e depois somado 5. Qual é a nova média?',
           resposta: 29,
@@ -726,6 +747,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.media([9, 12, 15].map((x) => 2 * x + 5)),
         },
         {
+          id: 'propriedades-q02',
           tipo: 'numerica',
           enunciado: 'Com a mesma transformação ($y = 2x + 5$ aplicada a 9, 12, 15, com $s_x = 3$), qual é o novo desvio padrão?',
           resposta: 6,
@@ -737,6 +759,7 @@ Manual.registarTema('mat-a', {
           verificar: () => Manual.calc.estatistica.desvioPadrao([9, 12, 15].map((x) => 2 * x + 5)),
         },
         {
+          id: 'propriedades-q03',
           tipo: 'numerica',
           enunciado: 'Tempos de espera agrupados: $[0, 10[$ → 3 pessoas; $[10, 20[$ → 5 pessoas; $[20, 30]$ → 2 pessoas. Calcula um valor aproximado da média (em minutos).',
           resposta: 14,
@@ -754,6 +777,7 @@ Manual.registarTema('mat-a', {
           ]),
         },
         {
+          id: 'propriedades-q04',
           tipo: 'escolha',
           enunciado: 'Os salários numa pequena empresa são 800, 850, 900, 900, 950, 1000 e 5000 €. Que medidas descrevem melhor o centro e a dispersão destes salários?',
           opcoes: ['Mediana e amplitude interquartil.', 'Média e desvio padrão.', 'Média e amplitude.', 'Moda e desvio padrão.'],
@@ -761,6 +785,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'O salário de 5000 € é um outlier: puxa a média (≈ 1485,71 €) e o desvio padrão para cima. A mediana (900 €) e a AIQ são resistentes.',
         },
         {
+          id: 'propriedades-q05',
           tipo: 'vf',
           enunciado: 'Se a amplitude interquartil de um conjunto de dados é 0, então todos os dados são iguais.',
           correta: false,
@@ -878,6 +903,7 @@ Manual.registarTema('mat-a', {
       ],
       quiz: [
         {
+          id: 'bivariada-q01',
           tipo: 'numerica',
           enunciado: 'Idade de 4 carros ($x$, em anos) e preço ($y$, em milhares de euros): $(2; 27)$, $(4; 21)$, $(6; 17)$, $(8; 15)$. A reta de regressão é $y = -2x + 30$. Estima o preço de um carro com 5 anos.',
           resposta: 20,
@@ -893,6 +919,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'bivariada-q02',
           tipo: 'numerica',
           enunciado: 'Com a reta $y = 1{,}5x + 5$ do exemplo das horas de estudo, estima a nota de um aluno que estuda 6,5 horas por semana.',
           resposta: 14.75,
@@ -907,6 +934,7 @@ Manual.registarTema('mat-a', {
           },
         },
         {
+          id: 'bivariada-q03',
           tipo: 'escolha',
           enunciado: 'Num diagrama de dispersão, os pontos estão muito perto de uma reta que desce da esquerda para a direita. Qual é o valor mais provável de $r$?',
           opcoes: ['$-0{,}95$', '$0{,}95$', '$-0{,}2$', '$0$'],
@@ -914,6 +942,7 @@ Manual.registarTema('mat-a', {
           explicacao: 'Reta a descer: correlação negativa; pontos muito perto da reta: forte, ou seja, $r$ perto de $-1$.',
         },
         {
+          id: 'bivariada-q04',
           tipo: 'escolha',
           enunciado: 'Com a reta $y = -2x + 30$ dos carros (idades de 2 a 8 anos), alguém estima o preço de um carro com 20 anos e obtém $-10$ mil euros. Qual é o erro?',
           opcoes: [
@@ -926,12 +955,14 @@ Manual.registarTema('mat-a', {
           explicacao: 'As contas estão certas ($-40 + 30 = -10$), mas a reta só descreve os dados entre 2 e 8 anos; fora disso a relação não tem de ser linear.',
         },
         {
+          id: 'bivariada-q05',
           tipo: 'vf',
           enunciado: 'Se há uma correlação positiva forte entre o número de bombeiros num incêndio e os prejuízos causados, então são os bombeiros que causam os prejuízos.',
           correta: false,
           explicacao: 'Correlação não é causalidade: a dimensão do incêndio é uma variável perturbadora que faz aumentar as duas.',
         },
         {
+          id: 'bivariada-q06',
           tipo: 'vf',
           enunciado: 'Se $r \\approx 0$, as duas variáveis não têm qualquer relação.',
           correta: false,

@@ -170,6 +170,12 @@ test('construirTentativa devolve a tentativa do mini-quiz com os valores exatos'
   });
 });
 
+test('construirTentativa usa o id da pergunta como tipo quando existe', () => {
+  const contexto = { disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' };
+  const t = Manual.quiz.construirTentativa(contexto, { tipo: 'escolha', id: 'afim-q03' }, 2, 'certa', 10, 's');
+  assert.equal(t.tipo, 'afim-q03');
+});
+
 test('construirTentativa limita duracao_ms a [0, 3 600 000] e descarta valores não finitos', () => {
   const contexto = { disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' };
   const pergunta = { tipo: 'escolha' };
