@@ -58,6 +58,21 @@ globalThis.Manual = globalThis.Manual || {};
   const baseQ = (v) => (ehInteiro(v) && v >= 0 ? texQ(v) : ehInteiro(v) ? '(' + texQ(v) + ')' : '\\left(' + texQ(v) + '\\right)');
   // Parcela com sinal para continuar uma soma: " + 3", " - \dfrac{1}{2}".
   const maisQ = (v) => (v < 0 ? ' - ' + texQ(-v) : ' + ' + texQ(v));
+  // Coeficiente vezes variável, sem o 1: cx(1, 'x') = 'x', cx(-1, 'x^2') = '-x^2', cx(3, 'x') = '3x'.
+  const cx = (k, v) => (k === 1 ? v : k === -1 ? '-' + v : texQ(k) + v);
+  // Produto k × X, com −X quando k = −1 e X quando k = 1.
+  const vezesTex = (k, X) => (k === 1 ? X : k === -1 ? '-' + X : texQ(k) + ' \\times ' + X);
+  // Igualdades encadeadas sem membros vazios nem repetidos seguidos: cadeia('a', 'b', 'b') = 'a = b'.
+  const cadeia = (...ps) => ps.filter((x, i, l) => x !== '' && (i === 0 || x !== l[i - 1])).join(' = ');
+  // Número com sinal explícito: '+2', '-3'.
+  const sgnTex = (k) => (k > 0 ? '+' : '') + tex(k);
+  // n/d = resultado, sem «= …» repetido nem divisão por 1.
+  function divTex(n, d) {
+    const r = texQ(limpo(n / d));
+    if (d === 1) return r;
+    const q = '\\dfrac{' + texQ(n) + '}{' + texQ(d) + '}';
+    return q === r ? r : q + ' = ' + r;
+  }
   const somaNumTex = (vs) => vs.map((v, i) => (i === 0 ? texQ(v) : maisQ(v))).join('');
   const opQ = (v) => '$' + texQ(v) + '$';
   // Argumento de uma função: f(2), f\left(\dfrac{1}{2}\right).
@@ -136,6 +151,7 @@ globalThis.Manual = globalThis.Manual || {};
   // numerica: pergunta-se um elemento, dado por o.pega(S) (NaN = erro sem valor nessa pergunta); escolha: o conjunto.
   function fecharConjunto(rng, formato, ex, o) {
     const verif = { passo: o.verificacao.passo, calculo: o.verificacao.calculo };
+    o = Object.assign({}, o, { erros: o.erros.filter(Boolean) });
     if (formato === 'numerica') {
       const resposta = o.pega(o.certo);
       if (!decimal2(resposta)) return null;
@@ -222,7 +238,7 @@ globalThis.Manual = globalThis.Manual || {};
       erros.push({ codigo: 'dobro_em_vez_de_quadrado', valor: limpo(a * 2 * x0 + b * x0 + c), explicacao: 'Calculaste $' + baseQ(x0) + '^2$ como $2 \\times ' + parQ(x0) + ' = ' + tex(2 * x0) + '$. O quadrado é o produto do número por si próprio, $' + parQ(x0) + ' \\times ' + parQ(x0) + ' = ' + tex(sq) + '$.' + res });
     }
     if (x0 !== 1) {
-      erros.push({ codigo: 'esqueceu_quadrado', valor: limpo(a * x0 + b * x0 + c), explicacao: 'Substituíste $' + v + '^2$ por $' + tex(x0) + '$, esquecendo o expoente. Em $' + texQ(a) + v + '^2$ entra $' + baseQ(x0) + '^2 = ' + tex(sq) + '$.' + res });
+      erros.push({ codigo: 'esqueceu_quadrado', valor: limpo(a * x0 + b * x0 + c), explicacao: 'Substituíste $' + v + '^2$ por $' + tex(x0) + '$, esquecendo o expoente. Em $' + cx(a, v + '^2') + '$ entra $' + baseQ(x0) + '^2 = ' + tex(sq) + '$.' + res });
     }
     if (Math.abs(a) !== 1) {
       const errado = limpo(sinal(a) * a * a * sq + b * x0 + c);
@@ -297,25 +313,24 @@ globalThis.Manual = globalThis.Manual || {};
     // No táxi os valores escrevem-se em decimal (euros e quilómetros); na função abstrata, em fração.
     const N = taxi ? (u) => tex(u, 2) : texQ;
     const maisN = (u) => (u < 0 ? ' - ' + N(-u) : ' + ' + N(u));
-    const argN = (u) => (taxi || ehInteiro(u) ? N(u) : '\left(' + N(u) + '\right)');
-    const coefX = (taxi && m === 1) ? x : N(m) + x;
+    const coefX = m === 1 ? x : N(m) + x;
     const exprTex = taxi ? N(b) + ' + ' + coefX : afimTex(m, b);
     const fim = ' Assim, $' + x + ' = ' + N(resp) + '$.';
     const erros = [
-      { codigo: 'calculou_imagem', valor: limpo(m * y0 + b), explicacao: 'Calculaste $' + f + '(' + argN(y0) + ') = ' + N(limpo(m * y0 + b)) + '$, a imagem de $' + N(y0) + '$. Pede-se o contrário, o ' + (taxi ? 'valor de $d$' : 'objeto $x$') + ' tal que $' + f + '(' + x + ') = ' + N(y0) + '$.' + fim },
+      { codigo: 'calculou_imagem', valor: limpo(m * y0 + b), explicacao: 'Calculaste $' + f + '(' + N(y0) + ') = ' + N(limpo(m * y0 + b)) + '$, a imagem de $' + N(y0) + '$. Pede-se o contrário, o ' + (taxi ? 'valor de $d$' : 'objeto $x$') + ' tal que $' + f + '(' + x + ') = ' + N(y0) + '$.' + fim },
       { codigo: 'nao_trocou_sinal', valor: limpo((y0 + b) / m), explicacao: 'Passaste $' + N(b) + '$ para o outro membro sem trocar o sinal. Fica $' + coefX + ' = ' + N(y0) + maisN(-b) + ' = ' + N(y0 - b) + '$.' + fim },
       { codigo: 'dividiu_antes', valor: limpo(y0 / m - b), explicacao: 'Dividiste $' + N(y0) + '$ por $' + N(m) + '$ antes de tirar $' + N(b) + '$. Primeiro isola-se o termo em $' + x + '$, $' + coefX + ' = ' + N(y0 - b) + '$, e só depois se divide por $' + N(m) + '$.' + fim },
-      { codigo: 'multiplicou_pelo_declive', valor: limpo((y0 - b) * m), explicacao: 'Multiplicaste $' + N(y0 - b) + '$ por $' + N(m) + '$. Para desfazer o produto $' + N(m) + ' \times ' + x + '$ divide-se por $' + N(m) + '$.' + fim },
+      { codigo: 'multiplicou_pelo_declive', valor: limpo((y0 - b) * m), explicacao: 'Multiplicaste $' + N(y0 - b) + '$ por $' + N(m) + '$. Para desfazer o produto $' + N(m) + ' \\times ' + x + '$ divide-se por $' + N(m) + '$.' + fim },
     ].filter((e) => (taxi ? e.valor > 0 && decimal2(e.valor) : simples(e.valor)));
     const resolucao = [
       { passo: 'Escrever a equação', porque: 'Procura-se o ' + (taxi ? 'valor de $d$' : 'objeto') + ' cuja imagem é $' + N(y0) + '$.', calculo: exprTex + ' = ' + N(y0) },
       { passo: 'Isolar o termo em $' + x + '$', porque: 'Passa-se a parcela $' + N(b) + '$ para o outro membro, trocando-lhe o sinal.', calculo: coefX + ' = ' + N(y0) + maisN(-b) + ' = ' + N(y0 - b) },
-      { passo: 'Dividir pelo coeficiente', porque: 'Dividem-se os dois membros por $' + N(m) + '$.', calculo: x + ' = \dfrac{' + N(y0 - b) + '}{' + N(m) + '} = ' + N(resp) },
     ];
-    const produto = (m === 1 && taxi ? '' : N(Math.abs(m)) + ' \times ') + (taxi ? N(resp) : parQ(resp));
+    if (m !== 1) resolucao.push({ passo: 'Dividir pelo coeficiente', porque: 'Dividem-se os dois membros por $' + N(m) + '$.', calculo: x + ' = \\dfrac{' + N(y0 - b) + '}{' + N(m) + '} = ' + N(resp) });
+    const produto = (m === 1 ? '' : N(Math.abs(m)) + ' \\times ') + (taxi ? N(resp) : parQ(resp));
     const verifCalc = taxi
-      ? f + '(' + N(resp) + ') = ' + N(b) + ' + ' + produto + ' = ' + N(b) + ' + ' + N(limpo(m * resp)) + ' = ' + N(limpo(b + m * resp))
-      : f + '(' + argN(resp) + ') = ' + (m < 0 ? '-' : '') + produto + maisN(b) + ' = ' + N(limpo(m * resp)) + maisN(b) + ' = ' + N(limpo(b + m * resp));
+      ? f + '(' + N(resp) + ') = ' + N(b) + ' + ' + produto + (m === 1 ? '' : ' = ' + N(b) + ' + ' + N(limpo(m * resp))) + ' = ' + N(limpo(b + m * resp))
+      : f + '(' + N(resp) + ') = ' + (m < 0 ? '-' : '') + produto + maisN(b) + ' = ' + N(limpo(m * resp)) + maisN(b) + ' = ' + N(limpo(b + m * resp));
     return fechar(rng, formato, { enunciado: intro, resolucao, dados: { contexto, m, b, y0 } }, {
       resposta: resp, tolerancia: 0, unidade: taxi ? 'km' : undefined, texto, erros,
       verificacao: {
@@ -455,23 +470,24 @@ globalThis.Manual = globalThis.Manual || {};
     const expr = trocada ? somaTex([[b, ''], [m, 'x']]) : afimTex(m, b);
     const fim = ' O zero é $' + texQ(z) + '$.';
     const erros = [
-      { codigo: 'sinal_trocado', valor: limpo(b / m), explicacao: 'Passaste $' + texQ(b) + '$ para o outro membro sem trocar o sinal. De $' + afimTex(m, b) + ' = 0$ vem $' + texQ(m) + 'x = ' + texQ(-b) + '$, logo $x = ' + texQ(z) + '$.' },
+      { codigo: 'sinal_trocado', valor: limpo(b / m), explicacao: 'Passaste $' + texQ(b) + '$ para o outro membro sem trocar o sinal. De $' + afimTex(m, b) + ' = 0$ vem $' + cx(m, 'x') + ' = ' + texQ(-b) + '$' + (m === 1 ? '' : ', logo $x = ' + texQ(z) + '$') + '.' },
       trocada
         ? { codigo: 'declive_e_termo_trocados', valor: limpo(-m / b), explicacao: 'Tomaste $' + texQ(b) + '$ como declive e $' + texQ(m) + '$ como ordenada na origem, porque $' + texQ(b) + '$ vem primeiro. O declive é o coeficiente de $x$, $' + texQ(m) + '$, e $f(x) = ' + afimTex(m, b) + '$.' + fim }
-        : { codigo: 'dividiu_ao_contrario', valor: limpo(-m / b), explicacao: 'Dividiste $' + texQ(m) + '$ por $' + texQ(b) + '$, ao contrário. De $' + texQ(m) + 'x = ' + texQ(-b) + '$ divide-se por $' + texQ(m) + '$, o coeficiente de $x$.' + fim },
-      { codigo: 'ordenada_na_origem', valor: b, explicacao: '$' + texQ(b) + '$ é a ordenada na origem, $f(0)$, onde o gráfico corta o eixo $Oy$. O zero é onde o gráfico corta o eixo $Ox$, ou seja, a solução de $f(x) = 0$.' + fim },
+        : Math.abs(m) === 1 || Math.abs(b) === 1 ? null : { codigo: 'dividiu_ao_contrario', valor: limpo(-m / b), explicacao: 'Dividiste $' + texQ(m) + '$ por $' + texQ(b) + '$, ao contrário. De $' + texQ(m) + 'x = ' + texQ(-b) + '$ divide-se por $' + texQ(m) + '$, o coeficiente de $x$.' + fim },
+      { codigo: 'ordenada_na_origem', valor: b, explicacao: '$' + texQ(b) + '$ é a ordenada na origem, $f(0)$, onde o gráfico corta o eixo $Oy$. Pede-se a abcissa do ponto onde o gráfico corta o eixo $Ox$, a solução de $f(x) = 0$.' + fim },
     ];
     const resolucao = [
       { passo: 'Igualar a expressão a zero', porque: 'Os zeros de $f$ são as soluções de $f(x) = 0$.', calculo: expr + ' = 0' },
-      { passo: 'Isolar o termo em $x$', porque: 'Passa-se $' + texQ(b) + '$ para o outro membro, trocando-lhe o sinal.', calculo: texQ(m) + 'x = ' + texQ(-b) },
-      { passo: 'Dividir pelo declive', porque: 'Dividem-se os dois membros por $' + texQ(m) + '$, o coeficiente de $x$.', calculo: 'x = \\dfrac{' + texQ(-b) + '}{' + texQ(m) + '} = ' + texQ(z) },
+      { passo: 'Isolar o termo em $x$', porque: 'Passa-se $' + texQ(b) + '$ para o outro membro, trocando-lhe o sinal.', calculo: cx(m, 'x') + ' = ' + texQ(-b) },
     ];
+    if (m === -1) resolucao.push({ passo: 'Trocar o sinal dos dois membros', porque: 'De $-x = ' + texQ(-b) + '$ vem $x = ' + texQ(z) + '$.', calculo: 'x = ' + texQ(z) });
+    else if (m !== 1) resolucao.push({ passo: 'Dividir pelo declive', porque: 'Dividem-se os dois membros por $' + texQ(m) + '$, o coeficiente de $x$.', calculo: 'x = ' + divTex(-b, m) });
     const ex = { enunciado: 'Considera a função afim $f$ definida por $f(x) = ' + expr + '$. Qual é o zero de $f$?', resolucao, dados: { contexto, m, b }, esquema: esquemaAfim(m, b) };
     return fechar(rng, formato, ex, {
       resposta: z, tolerancia: 0, texto: opQ, erros,
       verificacao: {
         passo: 'Confirmar que a imagem de $' + texQ(z) + '$ é zero',
-        calculo: 'f' + argQ(z) + ' = ' + texQ(m) + ' \\times ' + parQ(z) + maisQ(b) + ' = ' + texQ(limpo(m * z)) + maisQ(b) + ' = ' + texQ(limpo(m * z + b)),
+        calculo: cadeia('f' + argQ(z), vezesTex(m, parQ(z)) + maisQ(b), texQ(limpo(m * z)) + maisQ(b), texQ(limpo(m * z + b))),
         valor: limpo(-b / m),
       },
     });
@@ -519,10 +535,10 @@ globalThis.Manual = globalThis.Manual || {};
     const [nA, nB] = modelo ? ['P', 'Q'] : ['A', 'B'];
     const fim = ' O declive é $' + texQ(m) + '$.';
     const erros = [
-      { codigo: 'inverteu_razao', valor: limpo(dx / dy), explicacao: 'Dividiste a diferença das abcissas pela das ordenadas. O declive é a variação de $y$ a dividir pela variação de $x$, $\\dfrac{' + tex(dy) + '}{' + tex(dx) + '}$.' + fim },
+      { codigo: 'inverteu_razao', valor: limpo(dx / dy), explicacao: 'Dividiste a diferença das abcissas pela das ordenadas. O declive é a variação de $y$ a dividir pela variação de $x$, e não o inverso.' + fim },
       { codigo: 'subtracao_trocada', valor: limpo(-m), explicacao: 'Subtraíste por ordens diferentes, $' + tex(B[1]) + maisQ(-A[1]) + '$ em cima e $' + tex(A[0]) + maisQ(-B[0]) + '$ em baixo. As duas diferenças têm de começar no mesmo ponto, $\\dfrac{' + tex(B[1]) + maisQ(-A[1]) + '}{' + tex(B[0]) + maisQ(-A[0]) + '}$.' + fim },
     ];
-    if (B[0] !== 0) {
+    if (B[0] !== 0 && B[0] !== 1) {
       erros.push({ codigo: 'quociente_de_um_ponto', valor: limpo(B[1] / B[0]), explicacao: 'Dividiste a ordenada de $' + nB + '$ pela sua abcissa, $\\dfrac{' + tex(B[1]) + '}{' + tex(B[0]) + '}$. Isso só dá o declive se a reta passar pela origem, e esta não passa. Usam-se as diferenças entre os dois pontos.' + fim });
     }
     const errosOk = erros.filter((e) => simples(e.valor));
@@ -531,7 +547,7 @@ globalThis.Manual = globalThis.Manual || {};
       : 'Uma função afim $f$ tem um gráfico que passa pelos pontos $A' + ptTex(A[0], A[1]) + '$ e $B' + ptTex(B[0], B[1]) + '$. Qual é o declive do gráfico de $f$?';
     const resolucao = [
       { passo: 'Escrever a fórmula do declive', porque: 'O declive é a variação das ordenadas a dividir pela variação das abcissas, entre dois pontos da reta.', calculo: 'm = \\dfrac{y_{' + nB + '} - y_{' + nA + '}}{x_{' + nB + '} - x_{' + nA + '}}' },
-      { passo: 'Substituir e calcular', porque: 'As duas diferenças fazem-se pela mesma ordem, de ' + nA + ' para ' + nB + '.', calculo: 'm = \\dfrac{' + tex(B[1]) + ' - ' + parQ(A[1]) + '}{' + tex(B[0]) + ' - ' + parQ(A[0]) + '} = \\dfrac{' + tex(dy) + '}{' + tex(dx) + '} = ' + texQ(m) },
+      { passo: 'Substituir e calcular', porque: 'As duas diferenças fazem-se pela mesma ordem, de ' + nA + ' para ' + nB + '.', calculo: 'm = \\dfrac{' + tex(B[1]) + ' - ' + parQ(A[1]) + '}{' + tex(B[0]) + ' - ' + parQ(A[0]) + '} = ' + divTex(dy, dx) },
     ];
     if (modelo) resolucao.push({ passo: 'Interpretar', porque: 'O declive é a variação do volume por hora: ' + (m < 0 ? 'o depósito perde ' + fmt(-m) : 'o depósito ganha ' + fmt(m)) + ' litros por hora.' });
     const bb = limpo(A[1] - m * A[0]);
@@ -539,7 +555,7 @@ globalThis.Manual = globalThis.Manual || {};
     return fechar(rng, formato, ex, {
       resposta: m, tolerancia: 0, texto: opQ, erros: errosOk,
       verificacao: {
-        passo: 'Confirmar que a reta $y = ' + texQ(m) + 'x' + (bb === 0 ? '' : maisQ(bb)) + '$, que passa em ' + nA + ', também passa em ' + nB,
+        passo: 'Confirmar que a reta $y = ' + cx(m, 'x') + (bb === 0 ? '' : maisQ(bb)) + '$, que passa em ' + nA + ', também passa em ' + nB,
         calculo: 'b = ' + tex(A[1]) + ' - ' + parQ(m) + ' \\times ' + parQ(A[0]) + ' = ' + texQ(bb) + ',\\quad ' + parQ(m) + ' \\times ' + parQ(B[0]) + maisQ(bb) + ' = ' + texQ(limpo(m * B[0] + bb)) + ' = y_{' + nB + '}',
         valor: limpo((A[1] - B[1]) / (A[0] - B[0])),
       },
@@ -593,8 +609,8 @@ globalThis.Manual = globalThis.Manual || {};
       erros.push({ codigo: 'declive_e_termo_trocados', I: semiReta(z2, dir2, fechado), mon: b > 0 ? 'crescente' : 'decrescente', explicacao: 'Tomaste $' + texQ(b) + '$ como declive porque vem primeiro. O declive é o coeficiente de $x$, $' + texQ(m) + '$, e o zero é $' + texQ(z) + '$.' + fim });
     }
     erros.push(
-      { codigo: 'lado_trocado', I: semiReta(z, !direita, fechado), explicacao: 'Escolheste o lado errado do zero. Como $f$ é ' + mon + ', ' + (direita ? 'à direita' : 'à esquerda') + ' do zero tem ' + (quer > 0 ? 'imagens positivas' : 'imagens negativas') + '.' + fim },
-      { codigo: 'zero_com_sinal_trocado', I: semiReta(-z, direita, fechado), explicacao: 'O zero é $' + texQ(z) + '$, não $' + texQ(-z) + '$. De $' + texQ(m) + 'x' + maisQ(b) + ' = 0$ vem $x = ' + texQ(z) + '$.' + fim },
+      { codigo: 'lado_trocado', I: semiReta(z, !direita, fechado), explicacao: 'Escolheste o lado errado do zero, como se $f$ fosse ' + (mon === 'crescente' ? 'decrescente' : 'crescente') + '.' + fim },
+      { codigo: 'zero_com_sinal_trocado', I: semiReta(-z, direita, fechado), explicacao: 'O zero é $' + texQ(z) + '$, não $' + texQ(-z) + '$. De $' + afimTex(m, b) + ' = 0$ vem $x = ' + texQ(z) + '$.' + fim },
       { codigo: 'extremo_errado', I: semiReta(z, direita, !fechado), explicacao: 'Em $x = ' + texQ(z) + '$ tem-se $f(x) = 0$, que ' + (fechado ? 'satisfaz' : 'não satisfaz') + ' $' + ineq + '$, por isso o zero ' + (fechado ? 'pertence' : 'não pertence') + ' ao conjunto (intervalo ' + (fechado ? 'fechado' : 'aberto') + ' nesse extremo).' + fim },
     );
     if (!proximo(b, z)) {
@@ -611,7 +627,7 @@ globalThis.Manual = globalThis.Manual || {};
     };
     const testeTex = 'f(' + tex(tE) + ') = ' + texQ(fE) + (fE > 0 ? ' > 0' : ' < 0') + ',\\quad f' + argQ(z) + ' = 0,\\quad f(' + tex(tD) + ') = ' + texQ(fD) + (fD > 0 ? ' > 0' : ' < 0');
     const resolucao = [
-      { passo: 'Calcular o zero', porque: 'O sinal de uma função afim só pode mudar no zero.', calculo: expr + ' = 0 \\Leftrightarrow ' + texQ(m) + 'x = ' + texQ(-b) + ' \\Leftrightarrow x = ' + texQ(z) },
+      { passo: 'Calcular o zero', porque: 'O sinal de uma função afim só pode mudar no zero.', calculo: expr + ' = 0 \\Leftrightarrow ' + (m === 1 ? '' : cx(m, 'x') + ' = ' + texQ(-b) + ' \\Leftrightarrow ') + 'x = ' + texQ(z) },
       { passo: 'Ver a monotonia', porque: 'O declive é o coeficiente de $x$, $m = ' + texQ(m) + '$; como $m ' + (m > 0 ? '> 0' : '< 0') + '$, $f$ é ' + mon + '.', calculo: 'm = ' + texQ(m) },
       { passo: 'Ler o sinal', porque: 'Sendo ' + mon + ', $f$ é ' + (m > 0 ? 'negativa antes do zero e positiva depois' : 'positiva antes do zero e negativa depois') + '; ' + (fechado ? 'o zero entra porque a desigualdade é larga.' : 'o zero fica de fora porque a desigualdade é estrita.'), calculo: ineq + ' \\Leftrightarrow x \\in ' + intervaloTex(certo) },
     ];
@@ -824,7 +840,7 @@ globalThis.Manual = globalThis.Manual || {};
       erros = [
         { codigo: 'sinais_trocados', S: certo.map((x) => -x), explicacao: 'Usaste $b$ em vez de $-b$ na fórmula resolvente. O numerador é $-b \\pm \\sqrt{\\Delta} = ' + tex(-b) + ' \\pm ' + tex(r) + '$.' + fim },
         { codigo: 'dividiu_so_por_a', S: certo.map((x) => 2 * x), explicacao: 'Dividiste por $a = ' + tex(a) + '$ em vez de $2a = ' + tex(2 * a) + '$. O denominador da fórmula resolvente é $2a$.' + fim },
-        { codigo: 'dividiu_so_a_raiz', S: [limpo(-b - r / (2 * a)), limpo(-b + r / (2 * a))], explicacao: 'Dividiste só $\\sqrt{\\Delta}$ por $2a$. A fração $\\dfrac{-b \\pm \\sqrt{\\Delta}}{2a}$ divide o numerador todo, $' + tex(-b) + ' \\pm ' + tex(r) + '$, por $' + tex(2 * a) + '$.' + fim },
+        (Math.max(Math.abs(-b - r / (2 * a)), Math.abs(-b + r / (2 * a))) > 3 * Math.max(...certo.map(Math.abs)) + 2) ? null : { codigo: 'dividiu_so_a_raiz', ultimo: true, S: [limpo(-b - r / (2 * a)), limpo(-b + r / (2 * a))], explicacao: 'Dividiste só $\\sqrt{\\Delta}$ por $2a$. A fração $\\dfrac{-b \\pm \\sqrt{\\Delta}}{2a}$ divide o numerador todo, $' + tex(-b) + ' \\pm ' + tex(r) + '$, por $' + tex(2 * a) + '$.' + fim },
       ];
       const errado = raizesRacionais(a, b, -c);
       if (errado && !mesmoConjunto(errado, certo)) {
@@ -848,8 +864,8 @@ globalThis.Manual = globalThis.Manual || {};
       const fim = fimZ(certo);
       erros = [
         { codigo: 'perdeu_zero_nulo', S: [z], explicacao: 'Dividiste os dois membros por $x$ e perdeste a solução $x = 0$. Põe-se $x$ em evidência, $x(' + afimTex(a, b) + ') = 0$, e pela lei do anulamento do produto $x = 0$ ou $' + afimTex(a, b) + ' = 0$.' + fim },
-        { codigo: 'sinal_trocado', S: [0, limpo(b / a)], explicacao: 'Em $' + afimTex(a, b) + ' = 0$ passaste $' + texQ(b) + '$ para o outro membro sem trocar o sinal. Fica $' + texQ(a) + 'x = ' + texQ(-b) + '$.' + fim },
-        { codigo: 'dividiu_ao_contrario', S: [0, limpo(-a / b)], explicacao: 'Em $' + texQ(a) + 'x = ' + texQ(-b) + '$ dividiste $' + texQ(a) + '$ por $' + texQ(-b) + '$. Divide-se pelo coeficiente de $x$, $x = \\dfrac{' + texQ(-b) + '}{' + texQ(a) + '} = ' + texQ(z) + '$.' + fim },
+        { codigo: 'sinal_trocado', S: [0, limpo(b / a)], explicacao: 'Em $' + afimTex(a, b) + ' = 0$ passaste $' + texQ(b) + '$ para o outro membro sem trocar o sinal. Fica $' + cx(a, 'x') + ' = ' + texQ(-b) + '$.' + fim },
+        Math.abs(a) === 1 ? null : { codigo: 'dividiu_ao_contrario', S: [0, limpo(-a / b)], explicacao: 'Em $' + texQ(a) + 'x = ' + texQ(-b) + '$ dividiste $' + texQ(a) + '$ por $' + texQ(-b) + '$. Divide-se pelo coeficiente de $x$, $x = ' + divTex(-b, a) + '$.' + fim },
       ];
       resolucao = [
         { passo: 'Pôr $x$ em evidência', porque: 'Não há termo independente, por isso $x$ é fator comum.', calculo: poliTex(a, b, 0) + ' = 0 \\Leftrightarrow x(' + afimTex(a, b) + ') = 0' },
@@ -869,10 +885,10 @@ globalThis.Manual = globalThis.Manual || {};
         { codigo: 'so_raiz_positiva', S: [s], explicacao: 'De $x^2 = ' + tex(s * s) + '$ ficaste só com $x = ' + tex(s) + '$. Também $(' + tex(-s) + ')^2 = ' + tex(s * s) + '$, por isso $x = \\pm\\sqrt{' + tex(s * s) + '}$.' + fim },
         { codigo: 'esqueceu_raiz', S: [-s * s, s * s], explicacao: 'De $x^2 = ' + tex(s * s) + '$ escreveste $x = \\pm ' + tex(s * s) + '$, sem a raiz quadrada. $x = \\pm\\sqrt{' + tex(s * s) + '} = \\pm ' + tex(s) + '$.' + fim },
         { codigo: 'dividiu_por_2', S: [limpo(-s * s / 2), limpo(s * s / 2)], explicacao: 'De $x^2 = ' + tex(s * s) + '$ dividiste $' + tex(s * s) + '$ por 2. O expoente 2 desfaz-se com a raiz quadrada, $x = \\pm\\sqrt{' + tex(s * s) + '} = \\pm ' + tex(s) + '$.' + fim },
-        { codigo: 'sinal_ao_isolar', S: [], explicacao: 'Ao passar $' + tex(c) + '$ para o outro membro não trocaste o sinal e ficaste com $x^2 = ' + tex(-s * s) + '$, sem soluções. Fica $' + texQ(a) + 'x^2 = ' + tex(-c) + '$, $x^2 = ' + tex(s * s) + '$.' + fim },
+        { codigo: 'sinal_ao_isolar', S: [], explicacao: 'Ao passar $' + tex(c) + '$ para o outro membro não trocaste o sinal e ficaste com $x^2 = ' + tex(-s * s) + '$, sem soluções. Fica $' + cx(a, 'x^2') + ' = ' + tex(-c) + '$, $x^2 = ' + tex(s * s) + '$.' + fim },
       ];
       resolucao = [
-        { passo: 'Isolar $x^2$', porque: 'Não há termo em $x$, por isso isola-se $x^2$.', calculo: poliTex(a, 0, c) + ' = 0 \\Leftrightarrow ' + texQ(a) + 'x^2 = ' + tex(-c) + ' \\Leftrightarrow x^2 = ' + tex(s * s) },
+        { passo: 'Isolar $x^2$', porque: 'Não há termo em $x$, por isso isola-se $x^2$.', calculo: poliTex(a, 0, c) + ' = 0 \\Leftrightarrow ' + (a === 1 ? '' : cx(a, 'x^2') + ' = ' + tex(-c) + ' \\Leftrightarrow ') + 'x^2 = ' + tex(s * s) },
         { passo: 'Tirar a raiz quadrada', porque: 'Há dois números com quadrado $' + tex(s * s) + '$, um positivo e um negativo.', calculo: 'x = -\\sqrt{' + tex(s * s) + '} \\vee x = \\sqrt{' + tex(s * s) + '} \\Leftrightarrow x = ' + tex(-s) + ' \\vee x = ' + tex(s) },
       ];
       pega = (S) => { const pos = S.filter((x) => x > 0); return pos.length === 1 ? pos[0] : NaN; };
@@ -880,8 +896,10 @@ globalThis.Manual = globalThis.Manual || {};
     }
     const S = raizesRacionais(a, b, c);
     const ex = { enunciado: 'Considera a função $f$ definida por $f(x) = ' + poliTex(a, b, c) + '$. ' + pergunta, resolucao, dados: { contexto, a, b, c, pega: pergunta } };
+    // dividiu_so_a_raiz só entra se faltarem outros erros (valores menos plausíveis).
+    const ordem = baralhar(rng, erros.filter((e) => e && !e.ultimo)).concat(erros.filter((e) => e && e.ultimo));
     return fecharConjunto(rng, formato, ex, {
-      certo, pega, erros: baralhar(rng, erros),
+      certo, pega, erros: ordem,
       verificacao: { passo: 'Confirmar que as imagens dos zeros são nulas', calculo: substituicoesTex('f', a, b, c, S), S },
     });
   }
@@ -1002,11 +1020,11 @@ globalThis.Manual = globalThis.Manual || {};
       const fim = ' O vértice de $g$ é $' + ptTex(V[0], V[1]) + '$.';
       erros = [
         { codigo: 'sentido_horizontal_trocado', P: [p - h, q + k], explicacao: '$f(' + fArg(h) + ')$ desloca o gráfico ' + unidades(Math.abs(h)) + ' para a ' + (h > 0 ? 'direita' : 'esquerda') + ', não para a ' + (h > 0 ? 'esquerda' : 'direita') + '. O que estava em $x = ' + tex(p) + '$ passa para $x = ' + tex(p + h) + '$.' + fim },
-        { codigo: 'ambos_os_sentidos_trocados', P: [p - h, q - k], explicacao: 'Trocaste os dois sentidos. Só o deslocamento horizontal tem o sinal ao contrário do que está escrito; $' + mais(k).trim() + '$ fora do parênteses ' + (k > 0 ? 'sobe' : 'desce') + ' o gráfico ' + unidades(Math.abs(k)) + '.' + fim },
+        { codigo: 'ambos_os_sentidos_trocados', P: [p - h, q - k], explicacao: 'Trocaste os dois sentidos. Só o deslocamento horizontal tem o sinal ao contrário do que está escrito; $' + sgnTex(k) + '$ fora do parênteses ' + (k > 0 ? 'sobe' : 'desce') + ' o gráfico ' + unidades(Math.abs(k)) + '.' + fim },
       ];
       if (h !== k) erros.push({ codigo: 'trocou_eixos', P: [p + k, q + h], explicacao: 'Trocaste as direções. A alteração dentro do parênteses, no argumento de $f$, mexe nas abcissas; a parcela de fora mexe nas ordenadas.' + fim });
       resolucao = [
-        { passo: 'Identificar as transformações', porque: '$f(' + fArg(h) + ')$ é uma translação horizontal de ' + fmt(Math.abs(h)) + ' para a ' + (h > 0 ? 'direita' : 'esquerda') + ' e $' + mais(k).trim() + '$ uma translação vertical de ' + fmt(Math.abs(k)) + ' para ' + (k > 0 ? 'cima' : 'baixo') + ', ou seja, uma translação de vetor $' + ptTex(h, k) + '$.' },
+        { passo: 'Identificar as transformações', porque: '$f(' + fArg(h) + ')$ é uma translação horizontal de ' + fmt(Math.abs(h)) + ' para a ' + (h > 0 ? 'direita' : 'esquerda') + ' e $' + sgnTex(k) + '$ uma translação vertical de ' + fmt(Math.abs(k)) + ' para ' + (k > 0 ? 'cima' : 'baixo') + ', ou seja, uma translação de vetor $' + ptTex(h, k) + '$.' },
         { passo: 'Transformar o vértice', porque: 'Somam-se as coordenadas do vetor às do vértice de $f$.', calculo: ptTex(p, q) + ' + ' + ptTex(h, k) + ' = ' + ptTex(V[0], V[1]) },
       ];
       verif = {
@@ -1023,17 +1041,17 @@ globalThis.Manual = globalThis.Manual || {};
       V = [p, A * q + k];
       const fim = ' O vértice de $g$ é $' + ptTex(V[0], V[1]) + '$.';
       erros = [
-        { codigo: 'ignorou_fator', P: [p, q + k], explicacao: 'Não aplicaste o fator $' + tex(A) + '$. Multiplicar $f(x)$ por $' + tex(A) + '$ multiplica as ordenadas por $' + tex(A) + '$, e $' + tex(A) + ' \\times ' + parQ(q) + ' = ' + tex(A * q) + '$.' + fim },
+        { codigo: 'ignorou_fator', P: [p, q + k], explicacao: (A === -1 ? 'Não aplicaste o sinal menos. $-f(x)$ troca o sinal das ordenadas, e $' : 'Não aplicaste o fator $' + tex(A) + '$. Multiplicar $f(x)$ por $' + tex(A) + '$ multiplica as ordenadas por $' + tex(A) + '$, e $') + vezesTex(A, parQ(q)) + ' = ' + tex(A * q) + '$.' + fim },
       ];
-      if (k !== 0) erros.push({ codigo: 'somou_antes_de_multiplicar', P: [p, A * (q + k)], explicacao: 'Somaste $' + tex(k) + '$ antes de multiplicar por $' + tex(A) + '$. Em $' + g + '$ primeiro multiplica-se $f(x)$ por $' + tex(A) + '$ e só depois se soma, $' + tex(A) + ' \\times ' + parQ(q) + mais(k) + ' = ' + tex(A * q + k) + '$.' + fim });
-      if (p !== 0) erros.push({ codigo: 'multiplicou_abcissa', P: [A * p, A * q + k], explicacao: 'Multiplicaste também a abcissa por $' + tex(A) + '$. Em $' + fatorTex(A) + 'f(x)$ o fator está fora de $f$ e só mexe nas ordenadas; as abcissas ficam iguais.' + fim });
+      if (k !== 0) erros.push({ codigo: 'somou_antes_de_multiplicar', P: [p, A * (q + k)], explicacao: 'Somaste $' + tex(k) + '$ antes de ' + (A === -1 ? 'trocar o sinal' : 'multiplicar por $' + tex(A) + '$') + '. Em $' + g + '$ primeiro ' + (A === -1 ? 'troca-se o sinal de $f(x)$' : 'multiplica-se $f(x)$ por $' + tex(A) + '$') + ' e só depois se soma, $' + vezesTex(A, parQ(q)) + mais(k) + ' = ' + tex(A * q + k) + '$.' + fim });
+      if (p !== 0) erros.push({ codigo: 'multiplicou_abcissa', P: [A * p, A * q + k], explicacao: (A === -1 ? 'Trocaste também o sinal da abcissa.' : 'Multiplicaste também a abcissa por $' + tex(A) + '$.') + ' Em $' + fatorTex(A) + 'f(x)$ o fator está fora de $f$ e só mexe nas ordenadas; as abcissas ficam iguais.' + fim });
       resolucao = [
-        { passo: 'Identificar as transformações', porque: (A < 0 ? 'O fator negativo reflete o gráfico no eixo $Ox$; ' : '') + (Math.abs(A) !== 1 ? (A < 0 ? 'o' : 'O') + ' fator $' + tex(A) + '$ multiplica as ordenadas (dilatação vertical de fator ' + fmt(Math.abs(A)) + '); ' : '') + (k !== 0 ? 'a parcela $' + mais(k).trim() + '$ é uma translação vertical.' : 'não há translação vertical.') },
-        { passo: 'Transformar o vértice', porque: 'A abcissa fica igual; a ordenada é multiplicada por $' + tex(A) + '$ e depois soma-se $' + tex(k) + '$.', calculo: ptTex(p, q) + ' \\to ' + ptTex(p, A * q + k) },
+        { passo: 'Identificar as transformações', porque: (A < 0 ? 'O fator negativo reflete o gráfico no eixo $Ox$; ' : '') + (Math.abs(A) !== 1 ? (A < 0 ? 'o' : 'O') + ' fator $' + tex(A) + '$ multiplica as ordenadas (dilatação vertical de fator ' + fmt(Math.abs(A)) + '); ' : '') + (k !== 0 ? 'a parcela $' + sgnTex(k) + '$ é uma translação vertical.' : 'não há translação vertical.') },
+        { passo: 'Transformar o vértice', porque: 'A abcissa fica igual; a ordenada ' + (A === -1 ? 'troca de sinal' : 'é multiplicada por $' + tex(A) + '$') + (k === 0 ? '.' : ' e depois soma-se $' + tex(k) + '$.'), calculo: ptTex(p, q) + ' \\to ' + ptTex(p, A * q + k) },
       ];
       verif = {
         passo: 'Confirmar a imagem de $' + tex(p) + '$ por $g$',
-        calculo: 'g(' + tex(p) + ') = ' + tex(A) + ' \\times f(' + tex(p) + ')' + mais(k) + ' = ' + tex(A) + ' \\times ' + parQ(q) + mais(k) + ' = ' + tex(A * q + k),
+        calculo: cadeia('g(' + tex(p) + ')', vezesTex(A, 'f(' + tex(p) + ')') + mais(k), vezesTex(A, parQ(q)) + mais(k), tex(A * q + k)),
         P: [p, A * q + k],
       };
       dadosT = { tipo: 'vertical', A, k };
@@ -1045,17 +1063,17 @@ globalThis.Manual = globalThis.Manual || {};
       V = [p / B, q + k];
       const fim = ' O vértice de $g$ é $' + ptTex(V[0], V[1]) + '$.';
       erros = [
-        { codigo: 'ignorou_fator', P: [p, q + k], explicacao: 'Não aplicaste o fator $' + tex(B) + '$ do argumento. Em $g$ o argumento de $f$ é $' + tex(p) + '$ quando $' + tex(B) + 'x = ' + tex(p) + '$, ou seja, $x = ' + tex(p / B) + '$.' + fim },
+        { codigo: 'ignorou_fator', P: [p, q + k], explicacao: 'Não aplicaste o fator $' + tex(B) + '$ do argumento. Em $g$ o argumento de $f$ é $' + tex(p) + '$ quando $' + cx(B, 'x') + ' = ' + tex(p) + '$, ou seja, $x = ' + tex(p / B) + '$.' + fim },
       ];
       if (Math.abs(B) !== 1) erros.push({ codigo: 'multiplicou_em_vez_de_dividir', P: [B * p, q + k], explicacao: 'Multiplicaste a abcissa por $' + tex(B) + '$. Em $f(' + tex(B) + 'x)$ as abcissas dividem-se por $' + tex(B) + '$, porque $' + tex(B) + ' \\times ' + parQ(p / B) + ' = ' + tex(p) + '$.' + fim });
-      if (q !== 0 && B !== 1) erros.push({ codigo: 'fator_na_ordenada', P: [p, B * q + k], explicacao: 'Aplicaste o fator $' + tex(B) + '$ às ordenadas, como se fosse $' + tex(B) + 'f(x)$. Dentro do argumento, o fator mexe nas abcissas.' + fim });
+      if (q !== 0 && B !== 1) erros.push({ codigo: 'fator_na_ordenada', P: [p, B * q + k], explicacao: 'Aplicaste o fator $' + tex(B) + '$ às ordenadas, como se fosse $' + fatorTex(B) + 'f(x)$. Dentro do argumento, o fator mexe nas abcissas.' + fim });
       resolucao = [
-        { passo: 'Identificar as transformações', porque: '$f(' + (B === -1 ? '-' : tex(B)) + 'x)$ mexe só nas abcissas, que ficam divididas por $' + tex(B) + '$' + (k !== 0 ? '; a parcela $' + mais(k).trim() + '$ é uma translação vertical.' : '.') },
-        { passo: 'Transformar o vértice', porque: 'A abcissa divide-se por $' + tex(B) + '$ e à ordenada soma-se $' + tex(k) + '$.', calculo: ptTex(p, q) + ' \\to ' + ptTex(p / B, q + k) },
+        { passo: 'Identificar as transformações', porque: '$f(' + (B === -1 ? '-' : tex(B)) + 'x)$ mexe só nas abcissas, que ' + (B === -1 ? 'trocam de sinal' : 'ficam divididas por $' + tex(B) + '$') + (k !== 0 ? '; a parcela $' + sgnTex(k) + '$ é uma translação vertical.' : '.') },
+        { passo: 'Transformar o vértice', porque: (B === -1 ? 'A abcissa troca de sinal' : 'A abcissa divide-se por $' + tex(B) + '$') + (k === 0 ? ' e a ordenada fica igual.' : ' e à ordenada soma-se $' + tex(k) + '$.'), calculo: ptTex(p, q) + ' \\to ' + ptTex(p / B, q + k) },
       ];
       verif = {
         passo: 'Confirmar que em $x = ' + tex(p / B) + '$ o argumento de $f$ é $' + tex(p) + '$, a abcissa do vértice de $f$',
-        calculo: 'g(' + tex(p / B) + ') = f(' + tex(B) + ' \\times ' + parQ(p / B) + ')' + mais(k) + ' = f(' + tex(p) + ')' + mais(k) + ' = ' + tex(q + k),
+        calculo: 'g(' + tex(p / B) + ') = f(' + vezesTex(B, parQ(p / B)) + ')' + mais(k) + ' = f(' + tex(p) + ')' + mais(k) + ' = ' + tex(q + k),
         P: [p / B, q + k],
       };
       dadosT = { tipo: 'horizontal', B, k };
@@ -1111,7 +1129,7 @@ globalThis.Manual = globalThis.Manual || {};
     ];
     if (contexto === 'translacao') {
       if (h !== k) erros.push({ codigo: 'trocou_h_k', texto: reg(a, k, h), explicacao: 'Trocaste as coordenadas do vetor. A primeira, $' + tex(h) + '$, é o deslocamento horizontal e vai dentro do parênteses; a segunda, $' + tex(k) + '$, é o vertical e vai fora.' + fim });
-      erros.push({ codigo: 'ambos_os_sinais_trocados', texto: reg(a, -h, -k), explicacao: 'Trocaste os dois sinais. Só o deslocamento horizontal aparece com o sinal trocado, dentro do parênteses; o vertical soma-se tal como está, $' + mais(k).trim() + '$.' + fim });
+      erros.push({ codigo: 'ambos_os_sinais_trocados', texto: reg(a, -h, -k), explicacao: 'Trocaste os dois sinais. Só o deslocamento horizontal aparece com o sinal trocado, dentro do parênteses; o vertical soma-se tal como está, $' + sgnTex(k) + '$.' + fim });
     } else {
       erros.push({ codigo: 'fator_invertido', texto: reg((refl ? -1 : 1) / A, h, k), explicacao: 'Usaste $' + texQ(1 / A) + '$ em vez de $' + texQ(A) + '$. Uma ' + (A > 1 ? 'dilatação' : 'contração') + ' vertical de fator $' + texQ(A) + '$ multiplica as ordenadas por $' + texQ(A) + '$.' + fim });
       if (refl) {
@@ -1185,8 +1203,8 @@ globalThis.Manual = globalThis.Manual || {};
     const y0 = vert ? (mod === 0.5 ? 2 * escolher(rng, NAO_NULOS(3)) : escolher(rng, NAO_NULOS(4))) : escolher(rng, NAO_NULOS(4));
     const img = vert ? [x0, limpo(fator * y0)] : [limpo(x0 / fator), y0];
     const verifPonto = vert
-      ? 'g(' + tex(x0) + ') = ' + texQ(fator) + ' \\times f(' + tex(x0) + ') = ' + texQ(fator) + ' \\times ' + parQ(y0) + ' = ' + tex(img[1])
-      : 'g(' + tex(img[0]) + ') = f(' + texQ(fator) + ' \\times ' + parQ(img[0]) + ') = f(' + tex(x0) + ') = ' + tex(y0);
+      ? cadeia('g(' + tex(x0) + ')', vezesTex(fator, 'f(' + tex(x0) + ')'), vezesTex(fator, parQ(y0)), tex(img[1]))
+      : 'g(' + tex(img[0]) + ') = f(' + vezesTex(fator, parQ(img[0])) + ') = f(' + tex(x0) + ') = ' + tex(y0);
     if (tipo === 'descricao') {
       certa = descricaoEfeito(contexto, fator);
       falsas = [];
@@ -1195,7 +1213,7 @@ globalThis.Manual = globalThis.Manual || {};
       if (mod !== 1) {
         const fEf = vert ? mod : 1 / mod;
         const trocada = (fator < 0 ? 'uma reflexão no eixo $' + (vert ? 'Ox' : 'Oy') + '$ seguida de ' : '') + 'uma ' + (fEf > 1 ? 'contração' : 'dilatação') + ' ' + direcao + ' de fator $' + texQ(fEf) + '$';
-        falsas.push({ texto: trocada, codigo: 'dilatacao_contracao_trocadas', explicacao: (vert ? 'Multiplicar as ordenadas por $' + texQ(mod) + '$' : 'Dividir as abcissas por $' + texQ(mod) + '$') + (fEf > 1 ? ' afasta' : ' aproxima') + ' os pontos do eixo $' + (vert ? 'Ox' : 'Oy') + '$, o que é uma ' + (fEf > 1 ? 'dilatação' : 'contração') + '. O correto é ' + certa + '.' });
+        falsas.push({ texto: trocada, codigo: 'dilatacao_contracao_trocadas', explicacao: (vert ? 'Multiplicar as ordenadas por $' + texQ(mod) + '$' : 'Dividir as abcissas por $' + texQ(mod) + '$') + (fEf > 1 ? ' afasta' : ' aproxima') + ' os pontos do eixo $' + (vert ? 'Ox' : 'Oy') + '$, o que é uma ' + (fEf > 1 ? 'dilatação' : 'contração') + ', não uma ' + (fEf > 1 ? 'contração' : 'dilatação') + '.' + (fator < 0 ? ' O correto é ' + certa + '.' : '') });
         if (!vert) {
           const naoInv = (fator < 0 ? 'uma reflexão no eixo $Oy$ seguida de ' : '') + 'uma ' + (mod > 1 ? 'dilatação' : 'contração') + ' horizontal de fator $' + texQ(mod) + '$';
           falsas.push({ texto: naoInv, codigo: 'fator_nao_invertido', explicacao: 'Em $f(' + texQ(fator) + 'x)$ as abcissas dividem-se por $' + texQ(mod) + '$ (multiplicam-se por $' + texQ(1 / mod) + '$), por isso o fator é $' + texQ(1 / mod) + '$, não $' + texQ(mod) + '$. O correto é ' + certa + '.' });
@@ -1203,7 +1221,7 @@ globalThis.Manual = globalThis.Manual || {};
         }
       }
       if (fator < 0) {
-        falsas.push({ texto: certa.replace(vert ? '$Ox$' : '$Oy$', vert ? '$Oy$' : '$Ox$'), codigo: 'eixo_reflexao_trocado', explicacao: (vert ? 'O sinal menos fora de $f$ troca o sinal das ordenadas, $(x, y) \\to (x, -y)$, o que é uma reflexão no eixo $Ox$.' : 'O sinal menos dentro do argumento troca o sinal das abcissas, $(x, y) \\to (-x, y)$, o que é uma reflexão no eixo $Oy$.') + ' O correto é ' + certa + '.' });
+        falsas.push({ texto: certa.replace(vert ? '$Ox$' : '$Oy$', vert ? '$Oy$' : '$Ox$'), codigo: 'eixo_reflexao_trocado', explicacao: (vert ? 'O sinal menos fora de $f$ troca o sinal das ordenadas, $(x, y) \\to (x, -y)$, o que é uma reflexão no eixo $Ox$.' : 'O sinal menos dentro do argumento troca o sinal das abcissas, $(x, y) \\to (-x, y)$, o que é uma reflexão no eixo $Oy$.') + (mod !== 1 ? ' O correto é ' + certa + '.' : '') });
       }
       const verifDesc = 'Seguir o ponto $P' + ptTex(x0, y0) + '$ do gráfico de $f$, que passa para $' + ptTex(img[0], img[1]) + '$';
       verif = { passo: verifDesc, calculo: verifPonto };
@@ -1212,11 +1230,11 @@ globalThis.Manual = globalThis.Manual || {};
       certa = '$' + ptTex(img[0], img[1]) + '$';
       falsas = [];
       if (vert) {
-        if (ehInteiro(fator * x0) && x0 * fator !== x0) falsas.push({ texto: '$' + ptTex(fator * x0, y0) + '$', codigo: 'aplicou_na_abcissa', explicacao: 'Multiplicaste a abcissa por $' + texQ(fator) + '$. Em $' + gTex + '$ o fator está fora de $f$ e multiplica as ordenadas; a abcissa fica $' + tex(x0) + '$.' });
+        if (ehInteiro(fator * x0) && x0 * fator !== x0) falsas.push({ texto: '$' + ptTex(fator * x0, y0) + '$', codigo: 'aplicou_na_abcissa', explicacao: (fator === -1 ? 'Trocaste o sinal da abcissa.' : 'Multiplicaste a abcissa por $' + texQ(fator) + '$.') + ' Em $' + gTex + '$ o fator está fora de $f$ e multiplica as ordenadas; a abcissa fica $' + tex(x0) + '$.' });
         if (ehInteiro(y0 / fator) && mod !== 1) falsas.push({ texto: '$' + ptTex(x0, y0 / fator) + '$', codigo: 'dividiu_a_ordenada', explicacao: 'Dividiste a ordenada por $' + texQ(fator) + '$. A imagem de $' + tex(x0) + '$ por $g$ é $' + texQ(fator) + ' \\times f(' + tex(x0) + ')$, por isso a ordenada multiplica-se.' });
       } else {
         if (ehInteiro(fator * x0) && mod !== 1) falsas.push({ texto: '$' + ptTex(fator * x0, y0) + '$', codigo: 'multiplicou_em_vez_de_dividir', explicacao: 'Multiplicaste a abcissa por $' + texQ(fator) + '$. Procura-se $x$ com $' + texQ(fator) + 'x = ' + tex(x0) + '$, ou seja, $x = ' + tex(img[0]) + '$.' });
-        if (ehInteiro(fator * y0) && fator !== 1) falsas.push({ texto: '$' + ptTex(x0, fator * y0) + '$', codigo: 'aplicou_na_ordenada', explicacao: 'Multiplicaste a ordenada por $' + texQ(fator) + '$, como em $' + fatorTex(fator) + 'f(x)$. Dentro do argumento, o fator mexe nas abcissas.' });
+        if (ehInteiro(fator * y0) && fator !== 1) falsas.push({ texto: '$' + ptTex(x0, fator * y0) + '$', codigo: 'aplicou_na_ordenada', explicacao: (fator === -1 ? 'Trocaste o sinal da ordenada' : 'Multiplicaste a ordenada por $' + texQ(fator) + '$') + ', como em $' + fatorTex(fator) + 'f(x)$. Dentro do argumento, o fator mexe nas abcissas.' });
       }
       verif = { passo: 'Confirmar que o ponto afirmado está no gráfico de $g$', calculo: verifPonto };
       afirmadoCerto = certa;
@@ -1228,7 +1246,7 @@ globalThis.Manual = globalThis.Manual || {};
     const v = AJ.vfDe(rng, frase(certa), frase(er.texto), { codigo: er.codigo, explicacao: er.explicacao });
     const afirmado = v.correta ? afirmadoCerto : er.texto;
     const resolucao = tipo === 'descricao'
-      ? [{ passo: 'Ver onde está o fator', porque: vert ? 'Um fator fora de $f$ multiplica as ordenadas, $(x, y) \\to (x, ' + somaTex([[fator, 'y']]) + ')$.' : 'Um fator dentro do argumento divide as abcissas por $' + texQ(fator) + '$, $(x, y) \\to (' + somaTex([[1 / fator, 'x']]) + ', y)$.', calculo: 'g(x) = ' + gTex }, { passo: 'Descrever a transformação', porque: 'O efeito é ' + certa + '.' }]
+      ? [{ passo: 'Ver onde está o fator', porque: vert ? 'Um fator fora de $f$ multiplica as ordenadas, $(x, y) \\to (x, ' + somaTex([[fator, 'y']]) + ')$.' : (fator === -1 ? 'Um sinal menos dentro do argumento troca o sinal das abcissas' : 'Um fator dentro do argumento divide as abcissas por $' + texQ(fator) + '$') + ', $(x, y) \\to (' + somaTex([[1 / fator, 'x']]) + ', y)$.', calculo: 'g(x) = ' + gTex }, { passo: 'Descrever a transformação', porque: 'O efeito é ' + certa + '.' }]
       : [{ passo: 'Aplicar a transformação ao ponto', porque: vert ? 'Um fator fora de $f$ multiplica as ordenadas e mantém as abcissas.' : 'Um fator dentro do argumento divide as abcissas e mantém as ordenadas.', calculo: ptTex(x0, y0) + ' \\to ' + ptTex(img[0], img[1]) }];
     return {
       enunciado: intro + (tipo === 'ponto' ? '' : '') + 'Afirmação: «' + v.enunciado + '»', resolucao, correta: v.correta, errosTipicos: v.errosTipicos,
@@ -1464,7 +1482,7 @@ globalThis.Manual = globalThis.Manual || {};
     if (membros) resolucao.push({ passo: 'Passar tudo para o primeiro membro', porque: 'O discriminante calcula-se na forma $ax^2 + bx + c = 0$.', calculo: poliTex(a, b, c) + ' = 0' });
     resolucao.push(
       { passo: 'Calcular o discriminante', porque: '$\\Delta = b^2 - 4ac$, com $a = ' + tex(a) + '$, $b = ' + tex(b) + '$ e $c = ' + tex(c) + '$.', calculo: deltaTex(a, b, c) },
-      { passo: 'Concluir', porque: 'Com $\\Delta > 0$ há duas soluções, com $\\Delta = 0$ uma e com $\\Delta < 0$ nenhuma.', calculo: veredicto + ' \\Rightarrow ' + tex(n) + '\\ \\text{soluções}' },
+      { passo: 'Concluir', porque: 'Com $\\Delta > 0$ há duas soluções, com $\\Delta = 0$ uma e com $\\Delta < 0$ nenhuma.', calculo: veredicto + ' \\Rightarrow \\text{' + ['nenhuma solução', 'uma solução', 'duas soluções'][n] + '}' },
     );
     // Outro método: forma canónica, (x − h)² = −k/a.
     const hv = limpo(-b / (2 * a));
@@ -1535,7 +1553,7 @@ globalThis.Manual = globalThis.Manual || {};
       const erros = [
         { codigo: 'ramo_errado', valor: B, explicacao: 'Usaste o primeiro ramo, $C(t) = ' + tex(B) + '$, que só vale até ' + (T === 1 ? '1 hora' : fmt(T) + ' horas') + '. Como $' + tex(t0) + ' > ' + tex(T) + '$, usa-se o segundo ramo.' + fim },
         { codigo: 'cobrou_todas_as_horas', valor: limpo(B + r * t0), explicacao: 'Calculaste $' + tex(B) + ' + ' + tex(r) + ' \\times ' + tex(t0) + '$, cobrando todas as horas. Só se pagam à parte as horas além ' + (T === 1 ? 'da primeira' : 'das primeiras ' + fmt(T)) + ', $' + tex(t0) + ' - ' + tex(T) + ' = ' + tex(t0 - T) + '$.' + fim },
-        { codigo: 'esqueceu_valor_base', valor: limpo(r * (t0 - T)), explicacao: 'Calculaste só o custo das horas extra, $' + tex(r) + ' \\times ' + tex(t0 - T) + ' = ' + tex(r * (t0 - T)) + '$. O segundo ramo inclui os $' + tex(B) + '$ € das primeiras horas.' + fim },
+        { codigo: 'esqueceu_valor_base', valor: limpo(r * (t0 - T)), explicacao: 'Calculaste só o custo das horas extra, $' + tex(r) + ' \\times ' + tex(t0 - T) + ' = ' + tex(r * (t0 - T)) + '$. O segundo ramo inclui os $' + tex(B) + '$ € ' + (T === 1 ? 'da primeira hora' : 'das primeiras ' + fmt(T) + ' horas') + '.' + fim },
       ];
       const ex = {
         enunciado: 'Um aluguer de bicicletas custa $' + tex(B) + '$ € até ' + fmt(T) + ' ' + (T === 1 ? 'hora' : 'horas') + ' (inclusive) e mais $' + tex(r) + '$ € por cada hora além disso. O custo, em euros, de $t$ horas de aluguer é dado por $$' + ramosTex('C', 't', [{ expr: tex(B), cond: '0 < t \\leq ' + tex(T) }, { expr: tex(B) + ' + ' + (r === 1 ? '' : tex(r)) + '(t - ' + tex(T) + ')', cond: 't > ' + tex(T) }]) + '$$Quanto se paga por $' + tex(t0) + '$ horas de aluguer?',
@@ -1547,7 +1565,7 @@ globalThis.Manual = globalThis.Manual || {};
       };
       return fechar(rng, formato, ex, {
         resposta: C, tolerancia: 0, unidade: '€', texto: din, erros: baralhar(rng, erros),
-        verificacao: { passo: 'Fazer a conta ao contrário, do custo para o tempo', calculo: '\\dfrac{' + tex(C, 2) + ' - ' + tex(B) + '}{' + tex(r) + '} + ' + tex(T) + ' = ' + tex(limpo((C - B) / r)) + ' + ' + tex(T) + ' = ' + tex(t0), valor: limpo(B + r * (t0 - T)) },
+        verificacao: { passo: 'Fazer a conta ao contrário, do custo para o tempo', calculo: (r === 1 ? '(' + tex(C, 2) + ' - ' + tex(B) + ')' : '\\dfrac{' + tex(C, 2) + ' - ' + tex(B) + '}{' + tex(r) + '}') + ' + ' + tex(T) + ' = ' + tex(limpo((C - B) / r)) + ' + ' + tex(T) + ' = ' + tex(t0), valor: limpo(B + r * (t0 - T)) },
       });
     }
     const c = inteiro(rng, -2, 3);
@@ -1573,33 +1591,40 @@ globalThis.Manual = globalThis.Manual || {};
     const fim = ' Assim, $f(' + tex(x0) + ') = ' + tex(y) + '$.';
     const erros = [];
     const [exprOutro, condOutro, outroV] = naEsq ? [exprR, condTex(opD, c), R(x0)] : [exprL, condTex(opE, c), L(x0)];
-    erros.push({ codigo: 'ramo_errado', valor: outroV, explicacao: 'Usaste o ramo $' + exprOutro + '$, mas a sua condição, $' + condOutro + '$, é falsa para $x = ' + tex(x0) + '$' + (x0 === c ? ' (nesse extremo a bola é vazia)' : '') + '.' + fim });
+    erros.push({ codigo: 'ramo_errado', valor: outroV, explicacao: 'Usaste o ramo $' + exprOutro + '$, mas a sua condição, $' + condOutro + '$, é falsa para $x = ' + tex(x0) + '$' + (x0 === c ? ', porque a desigualdade é estrita e $' + tex(c) + '$ não está incluído nesse ramo' : '') + '.' + fim });
     if (naEsq) {
       if (x0 !== 0 && p === -1) erros.push({ codigo: 'menos_dentro_do_quadrado', valor: limpo(x0 * x0 + q), explicacao: 'Calculaste $-x^2$ como $(-x)^2$. Em $-x^2$ primeiro faz-se o quadrado e depois troca-se o sinal, $-' + baseQ(x0) + '^2 = ' + tex(-x0 * x0) + '$.' + fim });
       if (x0 < 0 && p === 1) erros.push({ codigo: 'quadrado_sem_parenteses', valor: limpo(-x0 * x0 + q), explicacao: 'Calculaste $' + tex(x0) + '^2 = ' + tex(-x0 * x0) + '$, sem parênteses. O quadrado de um número negativo é positivo, $(' + tex(x0) + ')^2 = ' + tex(x0 * x0) + '$.' + fim });
       if (x0 !== 0 && x0 !== 2) erros.push({ codigo: 'dobro_em_vez_de_quadrado', valor: limpo(p * 2 * x0 + q), explicacao: 'Calculaste $' + baseQ(x0) + '^2$ como $2 \\times ' + parQ(x0) + '$. O quadrado é o produto do número por si próprio, $' + parQ(x0) + ' \\times ' + parQ(x0) + ' = ' + tex(x0 * x0) + '$.' + fim });
     } else {
       if (bb !== 0) erros.push({ codigo: 'ordem_das_operacoes', valor: limpo((bb + m) * x0), explicacao: 'Fizeste primeiro a soma, $(' + tex(bb) + maisQ(m) + ') \\times ' + parQ(x0) + '$. A multiplicação faz-se antes da soma, $' + tex(bb) + ' + ' + parQ(m) + ' \\times ' + parQ(x0) + '$.' + fim });
+      if (bb !== 0 && bb !== m) erros.push({ codigo: 'coeficiente_trocado', valor: limpo(bb * x0 + m), explicacao: 'Multiplicaste $x$ por $' + tex(bb) + '$, a parcela que vem primeiro. Em $' + exprR + '$ o coeficiente de $x$ é $' + tex(m) + '$ e $' + tex(bb) + '$ é a parcela que não depende de $x$.' + fim });
       if (m < 0 && x0 < 0) erros.push({ codigo: 'sinal_produto', valor: limpo(bb - m * x0), explicacao: '$' + tex(m) + ' \\times (' + tex(x0) + ')$ é o produto de dois números negativos, por isso é positivo, $' + tex(m * x0) + '$.' + fim });
+      if (m > 0 && x0 < 0) erros.push({ codigo: 'sinal_de_x_esquecido', valor: limpo(bb - m * x0), explicacao: 'Substituíste $x$ por $' + tex(-x0) + '$ em vez de $' + tex(x0) + '$, perdendo o sinal. Fica $' + vezesTex(m, '(' + tex(x0) + ')') + ' = ' + tex(m * x0) + '$.' + fim });
+      if (m < 0 && x0 > 0) erros.push({ codigo: 'sinal_de_m_esquecido', valor: limpo(bb - m * x0), explicacao: 'Somaste $' + vezesTex(-m, tex(x0)) + '$, mas o termo em $x$ tem sinal menos, $' + cx(m, 'x') + '$, e por isso subtrai-se, $' + vezesTex(m, tex(x0)) + ' = ' + tex(m * x0) + '$.' + fim });
     }
     const [exprCerto, condCerto, condErrada] = naEsq ? [exprL, condTex(opE, c), condTex(opD, c)] : [exprR, condTex(opD, c), condTex(opE, c)];
-    const inverso = naEsq
-      ? (p === 1 ? tex(y) + maisQ(-q) + ' = ' + tex(y - q) + ' = ' + baseQ(x0) + '^2' : tex(q) + maisQ(-y) + ' = ' + tex(q - y) + ' = ' + baseQ(x0) + '^2')
-      : '\\dfrac{' + tex(y) + maisQ(-bb) + '}{' + tex(m) + '} = ' + texQ(limpo((y - bb) / m));
+    const comX0 = (cond) => cond.replace(/^x/, tex(x0));
+    // Outra ordem das parcelas (o termo em x primeiro / a constante primeiro).
+    const recalculo = x0 === 0 ? 'f(0) = ' + tex(y) : naEsq
+      ? (q === 0
+        ? cadeia('f(' + tex(x0) + ')', (p < 0 ? '-' : '') + '(' + parQ(x0) + ' \\times ' + parQ(x0) + ')', tex(y))
+        : cadeia('f(' + tex(x0) + ')', tex(q) + (p < 0 ? ' - ' : ' + ') + baseQ(x0) + '^2', tex(q) + maisQ(p * x0 * x0), tex(y)))
+      : cadeia('f(' + tex(x0) + ')', vezesTex(m, parQ(x0)) + (bb === 0 ? '' : maisQ(bb)), bb === 0 ? '' : texQ(m * x0) + maisQ(bb), tex(y));
     const ex = {
       enunciado: 'Considera a função $f$ definida por $$' + ramosTex('f', 'x', [{ expr: exprL, cond: condTex(opE, c) }, { expr: exprR, cond: condTex(opD, c) }]) + '$$Qual é o valor de $f(' + tex(x0) + ')$?',
       resolucao: [
-        { passo: 'Escolher o ramo', porque: 'Para $x = ' + tex(x0) + '$ é verdadeira a condição $' + condCerto + '$' + (x0 === c ? ', a do ramo que inclui o extremo $' + tex(c) + '$.' : '.'), calculo: condCerto.replace(/^x/, tex(x0)) },
-        { passo: 'Calcular', porque: 'Substitui-se $x$ por $' + tex(x0) + '$ na expressão desse ramo, $' + exprCerto + '$.', calculo: naEsq ? substituicaoTex('f', p, 0, q, x0) : x0 === 0 ? 'f(0) = ' + tex(bb) : 'f(' + tex(x0) + ') = ' + tex(bb) + (m < 0 ? ' - ' : ' + ') + (Math.abs(m) === 1 ? '' : tex(Math.abs(m)) + ' \\times ') + parQ(x0) + ' = ' + tex(y) },
+        { passo: 'Escolher o ramo', porque: 'Para $x = ' + tex(x0) + '$ é verdadeira a condição $' + condCerto + '$' + (x0 === c ? ', a do ramo que inclui o extremo $' + tex(c) + '$.' : '.'), calculo: comX0(condCerto) },
+        { passo: 'Calcular', porque: 'Substitui-se $x$ por $' + tex(x0) + '$ na expressão desse ramo, $' + exprCerto + '$.', calculo: naEsq ? substituicaoTex('f', p, 0, q, x0) : x0 === 0 ? 'f(0) = ' + tex(bb) : cadeia('f(' + tex(x0) + ')', (bb === 0 ? '' : tex(bb) + (m < 0 ? ' - ' : ' + ')) + (bb === 0 && m < 0 ? '-' : '') + (Math.abs(m) === 1 ? '' : tex(Math.abs(m)) + ' \\times ') + parQ(x0), tex(y)) },
       ],
       dados: { contexto, c, p, q, m, b: bb, esqInclui, x0 },
     };
     return fechar(rng, formato, ex, {
       resposta: y, tolerancia: 0, texto: opQ, erros: baralhar(rng, erros),
       verificacao: {
-        passo: 'Confirmar que $' + tex(x0) + '$ falha a outra condição ($' + condErrada + '$) e voltar de $' + tex(y) + '$ a $x$ desfazendo as operações do ramo',
-        calculo: inverso,
-        valor: naEsq ? limpo(p * x0 * x0 + q) : limpo(m * x0 + bb),
+        passo: 'Confirmar que $' + tex(x0) + '$ satisfaz a condição do ramo escolhido e não a do outro, e voltar a calcular com as parcelas por outra ordem',
+        calculo: comX0(condCerto) + '\\ \\text{(verdadeiro)},\\quad ' + comX0(condErrada) + '\\ \\text{(falso)};\\quad ' + recalculo,
+        valor: naEsq ? limpo(q + p * x0 * x0) : limpo(m * x0 + bb),
       },
     });
   }
@@ -1655,7 +1680,7 @@ globalThis.Manual = globalThis.Manual || {};
     }
     const erros = [
       { codigo: 'so_uma_solucao', S: [a + d], explicacao: 'Esqueceste o caso negativo. $|y| = ' + tex(d) + '$ quando $y = ' + tex(d) + '$ ou $y = ' + tex(-d) + '$, por isso há duas soluções.' + fim },
-      { codigo: 'sinal_de_a_trocado', S: [-a - d, -a + d], explicacao: 'Trocaste o sinal de $' + tex(a) + '$. $' + absTex + '$ é a distância de $x$ a $' + tex(a) + '$, por isso as soluções são $' + tex(a) + ' \\pm ' + tex(d) + '$.' + fim },
+      { codigo: 'sinal_de_a_trocado', S: [-a - d, -a + d], explicacao: 'Trocaste o sinal de $' + tex(a) + '$. $' + absTex + '$ é a distância de $x$ a $' + tex(a) + '$, por isso as soluções são $' + tex(a) + ' - ' + tex(d) + ' = ' + tex(a - d) + '$ e $' + tex(a) + ' + ' + tex(d) + ' = ' + tex(a + d) + '$.' },
       { codigo: 'menos_so_no_x', S: [a + d, -a - d], explicacao: 'No caso negativo escreveste $-x ' + (a > 0 ? '- ' + tex(a) : '+ ' + tex(-a)) + ' = ' + tex(d) + '$, trocando só o sinal de $x$. O caso negativo é $-(' + fArg(a) + ') = ' + tex(d) + '$, ou seja, $' + fArg(a) + ' = ' + tex(-d) + '$.' + fim },
     ].concat(extra);
     const qual = rng() < 0.5 ? 'maior' : 'menor';
@@ -1738,7 +1763,7 @@ globalThis.Manual = globalThis.Manual || {};
       const zErr = -k.x;
       const okErr = satisfaz(k.ramo === 'L' ? opE : opD, zErr, c);
       const S = validos.filter((x) => x !== k.x).concat(okErr ? [zErr] : []);
-      erros.push({ codigo: k.ramo === 'L' ? 'sinal_no_zero_do_1_ramo' : 'sinal_no_zero_do_2_ramo', S, explicacao: 'Em $' + afimTex(k.m, k.b) + ' = 0$ passaste $' + tex(k.b) + '$ para o outro membro sem trocar o sinal e obtiveste $x = ' + tex(zErr) + '$. Fica $' + texQ(k.m) + 'x = ' + tex(-k.b) + '$, $x = ' + tex(k.x) + '$.' + fim });
+      erros.push({ codigo: k.ramo === 'L' ? 'sinal_no_zero_do_1_ramo' : 'sinal_no_zero_do_2_ramo', S, explicacao: 'Em $' + afimTex(k.m, k.b) + ' = 0$ passaste $' + tex(k.b) + '$ para o outro membro sem trocar o sinal e obtiveste $x = ' + tex(zErr) + '$. Fica $' + cx(k.m, 'x') + ' = ' + tex(-k.b) + '$' + (Math.abs(k.m) === 1 && k.m === 1 ? '' : ', $x = ' + tex(k.x) + '$') + '.' + fim });
     }
     const resolucao = [
       { passo: 'Resolver em cada ramo', porque: 'Um zero de $f$ anula a expressão de um ramo.', calculo: (contexto === 'lineares' ? exprL + ' = 0 \\Leftrightarrow x = ' + tex(cands[0].x) : exprL + ' = 0 \\Leftrightarrow x = ' + tex(-ramos.s) + ' \\vee x = ' + tex(ramos.s)) + ';\\quad ' + exprR + ' = 0 \\Leftrightarrow x = ' + tex(z2) },

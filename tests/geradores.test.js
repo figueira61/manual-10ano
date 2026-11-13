@@ -367,6 +367,44 @@ test('regra 4: + +, − +, −0 isolado, ∞ e Infinity', () => {
   assert.deepEqual(verificar(bom, { sementes: 5 }), []);
 });
 
+test('regra 4: barras invertidas perdidas (caracteres de controlo e comandos LaTeX sem barra)', () => {
+  // Textos tal como saíam de '\times', '\dfrac', '\left(' numa string JS de aspas simples.
+  const maus = [
+    ['explicacao', 'Para desfazer o produto $0{,}5 \times d$ divide-se.'],
+    ['calculo', 'd = dfrac{7{,}5}{0{,}5} = 15'],
+    ['calculo', 'f' + 'left(' + 'x' + 'right)' + ' = 2'],
+    ['porque', 'Fica $x \u000bee 2$.'],
+    ['calculo', 'x sqrt{4} = 2'],
+    ['porque', 'Como $x le 3$, usa-se o ramo.'],
+    ['calculo', '2 cdot 3 = 6'],
+    ['calculo', 'x = 2 Rightarrow y = 4'],
+    ['enunciado', 'Calcula text{área}.'],
+  ];
+  for (const [campo, t] of maus) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => {
+      if (campo === 'enunciado') ex.enunciado = t;
+      else if (campo === 'explicacao') ex.errosTipicos.forEach((e) => { e.explicacao += ' ' + t; });
+      else if (campo === 'porque') ex.resolucao[0].porque = t;
+      else ex.resolucao[0].calculo = t;
+    });
+    assert.deepEqual(regras(verificar(d, { sementes: 5 })), ['4'], t);
+  }
+  // Palavras portuguesas com as mesmas letras e comandos bem escritos não disparam.
+  const bom = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => {
+    ex.resolucao[0].porque = 'A legenda do texto diz que o quadro tem tempos; geral e leve. $\\dfrac{1}{2} \\times \\left(3\\right) \\leq \\sqrt{4}$';
+  });
+  assert.deepEqual(verificar(bom, { sementes: 5 }), []);
+});
+
+test('regra 4: coeficiente 1 escrito numa fórmula', () => {
+  for (const mau of ['$1x + 3 = 0$', '$y = -1x^2$', '$2 + 1t$']) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Fica ' + mau; });
+    assert.deepEqual(regras(verificar(d, { sementes: 5 })), ['4'], mau);
+  }
+  const bom = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Fica $x + 10x - \\dfrac{1}{2}x = 21x$, $x_1 = 3$ e 1 x fora.'; });
+  assert.deepEqual(verificar(bom, { sementes: 5 }), []);
+});
+
 test('regra 1: verificarIndependente que aceita tudo falha a mutação', () => {
   for (const def of [defSoma({ verificarIndependente: () => true }), defVf({ verificarIndependente: () => true })]) {
     const e = verificar(def, { sementes: 20 });

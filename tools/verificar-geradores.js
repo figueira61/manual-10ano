@@ -13,6 +13,18 @@ const PROIBIDO = /NaN|undefined|Infinity|∞|[+−-]\s*[+−-]|[−-]\s*0(?![\d{
 // Dentro de fórmulas: vírgula decimal sem {,} e espaços não ASCII (NBSP, U+202F…).
 const VIRGULA_TEX = /\d,\d/;
 const ESPACO_NAO_ASCII = /(?![ \t\n\r\f\v])\s/;
+// Barra invertida perdida numa string JS ('\times' → TAB + "imes", '\dfrac' → "dfrac"): caracteres de controlo
+// e comandos LaTeX sem a barra. As palavras só contam isoladas (não precedidas de \ nem de letra), para que
+// palavras portuguesas (p. ex. «legenda», «texto», «quadro») não disparem.
+const CONTROLO = /[\t\r\f\v\b]/;
+// Coeficiente 1 escrito numa fórmula ("1x", "-1x^2"): escreve-se x, -x, x^2.
+const COEFICIENTE_UM = /(?<![\d,.{}A-Za-z_\\])1[a-z](?![A-Za-z])/;
+const LETRA = 'A-Za-zÀ-ÖØ-öø-ÿ';
+// Com { ( [ | a seguir nenhuma palavra portuguesa coincide: basta não ter a barra antes ("fleft(" apanha f\left().
+// As palavras soltas (times, le, ge…) exigem fronteira de palavra dos dois lados.
+const COMANDO_SEM_BARRA = new RegExp(
+  '(?<!\\\\[A-Za-z]*)(?:(?:dfrac|tfrac|frac|sqrt|text|mathbb|overline|overrightarrow)\\{|left[(\\[|]|right[)\\]|])' +
+  '|(?<![\\\\' + LETRA + '])(?:times|cdot|Rightarrow|Leftrightarrow|le|ge|leq|geq|quad|infty|emptyset|vee|cup|pm|neq|approx)(?![' + LETRA + '])');
 
 let katexPadrao = null;
 function obterKatex() {
@@ -139,6 +151,9 @@ function regra4(p, katex) {
     if (typeof texto !== 'string') { e.push(rotulo + ' não é texto'); continue; }
     const m = texto.match(PROIBIDO);
     if (m) e.push(rotulo + ' contém "' + m[0] + '": ' + texto);
+    if (CONTROLO.test(texto)) e.push(rotulo + ' contém um carácter de controlo (barra invertida perdida?): ' + JSON.stringify(texto));
+    const sb = texto.match(COMANDO_SEM_BARRA);
+    if (sb) e.push(rotulo + ' contém o comando LaTeX "' + sb[0] + '" sem a barra invertida: ' + texto);
     let formulas;
     if (latex) formulas = [texto];
     else {
@@ -147,6 +162,7 @@ function regra4(p, katex) {
       formulas = x.formulas;
     }
     for (const f of formulas) {
+      if (COEFICIENTE_UM.test(f)) e.push(rotulo + ' com coeficiente 1 escrito (escreve-se x, não 1x): ' + f);
       if (VIRGULA_TEX.test(f)) e.push(rotulo + ' com vírgula decimal sem {,} (usa ajudas.tex): ' + f);
       if (ESPACO_NAO_ASCII.test(f)) e.push(rotulo + ' com espaço não ASCII numa fórmula (usa ajudas.tex): ' + JSON.stringify(f));
       try {

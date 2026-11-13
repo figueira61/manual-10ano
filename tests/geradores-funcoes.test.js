@@ -268,6 +268,56 @@ test('códigos de erro únicos por item e sem frases com dois «dois pontos»', 
   }
 });
 
+test('coeficiente 1 omitido, sem divisões por 1 e sem igualdades repetidas («A = A»)', () => {
+  const repeticao = /(?:^|=\s)([^=]{2,}?)\s=\s\1(?:\s*$|\s*[,;.]|\s+\\)/;
+  for (const id of IDS) {
+    for (const p of amostras(id, 25)) {
+      for (const t of textosDoItem(p)) {
+        assert.ok(!/(^|[^0-9,{}.])1x/.test(t), id + ' 1x: ' + t);
+        assert.ok(!/(^|[^0-9,{}.])-?1 \\times f/.test(t), id + ' 1 × f: ' + t);
+        assert.ok(!/\\dfrac\{[^{}]*\}\{1\}/.test(t), id + ' /1: ' + t);
+        assert.ok(!/[Dd]ivid[a-zà-ú-]*[^.$]*por \$-?1\$/.test(t), id + ' dividir por 1: ' + t);
+        assert.ok(!repeticao.test(t), id + ' repetição: ' + t);
+      }
+      // «Dividiste o coeficiente pelo termo»: só faz sentido com coeficiente e termo diferentes de ±1.
+      for (const e of p.errosTipicos.filter((x) => x.codigo === 'dividiu_ao_contrario')) {
+        assert.ok(!/Dividiste \$-?1\$ por|por \$-?1\$, ao contrário/.test(e.explicacao), id + ': ' + e.explicacao);
+      }
+    }
+  }
+});
+
+test('número de soluções escrito por extenso', () => {
+  for (const p of amostras('equacoes-inequacoes-numero-solucoes', 30)) {
+    const t = textosDoItem(p).join(' ');
+    assert.ok(!/\d\\? ?\\?(text\{)?\s*soluç/.test(t), t);
+    assert.ok(/nenhuma solução|uma solução|duas soluções|não tem soluções/.test(t));
+  }
+});
+
+test('avaliar ramos: verificação confere as duas condições e recalcula; extremo sem «bola»', () => {
+  let linear = 0, total = 0;
+  for (const p of amostras('ramos-modulo-avaliar-ramos', 60).filter((q) => q.dados.contexto === 'abstrato')) {
+    assert.match(p.verificacao.calculo, /\\text\{\(verdadeiro\)\},\\quad .*\\text\{\(falso\)\}/);
+    for (const t of textosDoItem(p)) assert.ok(!/bola/.test(t), t);
+    if (p.formato === 'escolha') {
+      total++;
+      const d = p.dados;
+      if (!(d.esqInclui ? d.x0 <= d.c : d.x0 < d.c)) linear++;
+    }
+  }
+  assert.ok(linear / total > 0.4, 'escolha no ramo linear: ' + linear + '/' + total);
+});
+
+test('dividiu_so_a_raiz só com valores na escala dos zeros', () => {
+  for (const p of amostras('quadratica-zeros', 60).filter((q) => q.formato === 'escolha' && q.dados.contexto === 'completa')) {
+    const e = erro(p, 'dividiu_so_a_raiz');
+    if (!e) continue;
+    const zeros = lerConjunto(certa(p)).map(Math.abs);
+    for (const v of lerConjunto(p.opcoes[e.opcao])) assert.ok(Math.abs(v) <= 3 * Math.max(...zeros) + 2, p.opcoes[e.opcao]);
+  }
+});
+
 test('esquemas só com valores que cabem nos controlos', () => {
   for (const id of ['afim-zero', 'quadratica-vertice', 'quadratica-contradominio', 'transformacoes-expressao']) {
     for (const p of amostras(id, 20)) {
