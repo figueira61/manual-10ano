@@ -169,3 +169,16 @@ test('construirTentativa devolve a tentativa do mini-quiz com os valores exatos'
     sessao_id: 'sessao-1',
   });
 });
+
+test('construirTentativa limita duracao_ms a [0, 3 600 000] e descarta valores não finitos', () => {
+  const contexto = { disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' };
+  const pergunta = { tipo: 'escolha' };
+  const d = (ms) => Manual.quiz.construirTentativa(contexto, pergunta, 0, 'certa', ms, 's').duracao_ms;
+  assert.equal(d(-5), 0);
+  assert.equal(d(3600001), 3600000);
+  assert.equal(d(9e15), 3600000);
+  assert.equal(d(1234.6), 1235);
+  assert.equal(d(NaN), null);
+  assert.equal(d(Infinity), null);
+  assert.equal(d(undefined), null);
+});

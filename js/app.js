@@ -324,6 +324,42 @@ globalThis.Manual = globalThis.Manual || {};
     document.getElementById('botao-menu').setAttribute('aria-expanded', 'false');
   }
 
+  // Regresso da ligação do email com erro (ex.: ligação expirada): mostra uma mensagem no
+  // início e limpa o hash. Com sucesso (access_token) o supabase-js trata e limpa o hash.
+  function avisoAutenticacao() {
+    const erro = Manual.router.erroAutenticacao(window.location.hash);
+    if (!erro) return;
+    const expirou = erro.codigo === 'otp_expired' || /expired/i.test(erro.descricao || '');
+    const aviso = criar('p', 'aviso-form aviso-erro aviso-autenticacao', expirou
+      ? 'A ligação expirou; pede um novo email de confirmação ao entrar.'
+      : 'Não foi possível usar esta ligação; pede um novo email de confirmação ao entrar.');
+    aviso.setAttribute('role', 'status');
+    principal.insertBefore(aviso, principal.firstChild);
+    try {
+      history.replaceState(null, '', location.pathname + location.search + '#/');
+    } catch (e) { /* o hash fica; sem consequências */ }
+  }
+
+  // Um service worker novo tomou conta da página: avisa, sem recarregar sozinho.
+  function avisoNovaVersao() {
+    if (document.getElementById('aviso-versao')) return;
+    const caixa = criar('div', 'aviso-versao');
+    caixa.id = 'aviso-versao';
+    caixa.setAttribute('role', 'status');
+    caixa.appendChild(criar('p', '', 'Há uma nova versão do manual.'));
+    const acoes = criar('div', 'aviso-versao-acoes');
+    const atualizar = criar('button', 'botao botao-principal', 'Atualizar');
+    atualizar.type = 'button';
+    atualizar.addEventListener('click', function () { location.reload(); });
+    const fechar = criar('button', 'botao', 'Agora não');
+    fechar.type = 'button';
+    fechar.addEventListener('click', function () { caixa.remove(); });
+    acoes.appendChild(atualizar);
+    acoes.appendChild(fechar);
+    caixa.appendChild(acoes);
+    document.body.appendChild(caixa);
+  }
+
   // ---------- encaminhamento ----------
 
   function navegar() {
@@ -337,6 +373,7 @@ globalThis.Manual = globalThis.Manual || {};
     switch (rota.vista) {
       case 'inicio':
         vistaInicio();
+        avisoAutenticacao();
         break;
       case 'disciplina':
         vistaDisciplina(rota);
@@ -403,6 +440,12 @@ globalThis.Manual = globalThis.Manual || {};
   arrancar();
 
   if ((location.protocol === 'http:' || location.protocol === 'https:') && 'serviceWorker' in navigator) {
+    // Na primeira instalação não havia controlador: aí a mudança não é uma versão nova.
+    let controlada = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (controlada) avisoNovaVersao();
+      controlada = true;
+    });
     window.addEventListener('load', function () {
       try {
         navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(function () {});

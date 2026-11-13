@@ -53,6 +53,14 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
 };
 
 // Tentativa a registar quando a aluna verifica uma pergunta do mini-quiz. Função pura.
+// Duração máxima registada (1 hora): um separador esquecido aberto não gera um valor absurdo.
+const DURACAO_MAXIMA_MS = 3600000;
+
+function limitarDuracao(ms) {
+  if (typeof ms !== 'number' || !isFinite(ms)) return null;
+  return Math.min(DURACAO_MAXIMA_MS, Math.max(0, Math.round(ms)));
+}
+
 Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId) {
   return {
     disciplina: contexto.disciplina,
@@ -68,7 +76,7 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
     viu_resolucao: false,
     usou_pista: false,
     erro_tipico: null,
-    duracao_ms: duracaoMs,
+    duracao_ms: limitarDuracao(duracaoMs),
     sessao_id: sessaoId,
   };
 };

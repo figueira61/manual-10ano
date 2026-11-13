@@ -47,6 +47,7 @@ function falso(opcoes = {}) {
       return { error: null };
     },
     getSession: async () => ({ data: { session: f.sessao }, error: null }),
+    stopAutoRefresh: async () => { f.chamadas.push(['stopAutoRefresh']); },
     onAuthStateChange: (fn) => {
       f.ouvinte = fn;
       return { data: { subscription: { unsubscribe() {} } } };
@@ -58,18 +59,30 @@ function falso(opcoes = {}) {
       upsert: async (itens, o) => {
         f.chamadas.push(['upsert', t, itens, o]);
         if (f.falhaUpsert) return { error: { message: 'Failed to fetch' } };
-        f.tabelas[t].push(...[].concat(itens));
-        return { error: null };
+        const lista = [].concat(itens);
+        const r = f.respostaUpsert && f.respostaUpsert(lista);
+        if (r) return r;
+        f.tabelas[t].push(...lista);
+        return { error: null, status: 201 };
       },
       select() { return q; },
       eq(c, v) { q.filtros.push([c, v]); return q; },
+      in(c, v) { q.filtros.push([c + ' in', v]); return q; },
       gte(c, v) { q.filtros.push([c + '>=', v]); return q; },
       order() { return q; },
       limit() { return q; },
+      range(a, b) { q.intervalo = [a, b]; return q; },
       delete() { q.apagar = true; return q; },
       then(res, rej) {
-        f.chamadas.push(['consulta', t, q.filtros, !!q.apagar]);
-        return Promise.resolve({ data: f.tabelas[t].slice(), error: null }).then(res, rej);
+        f.chamadas.push(['consulta', t, q.filtros, !!q.apagar, q.intervalo]);
+        // Aplica os filtros como o PostgREST (o RLS não é simulado) e o intervalo pedido.
+        let linhas = f.tabelas[t].filter((l) => q.filtros.every(([c, v]) => {
+          if (c.endsWith(' in')) return v.includes(l[c.slice(0, -3)]);
+          if (c.endsWith('>=')) return l[c.slice(0, -2)] >= v;
+          return l[c] === v;
+        }));
+        if (q.intervalo) linhas = linhas.slice(q.intervalo[0], q.intervalo[1] + 1);
+        return Promise.resolve({ data: linhas, error: null }).then(res, rej);
       },
     };
     return q;
@@ -312,4 +325,176 @@ test('apagarConta limpa da fila local os itens da conta e de visitante, não os 
   assert.equal(Manual.criarFila(arm).pendentes().length, 3);
   await Manual.conta.apagarConta();
   assert.deepEqual(Manual.criarFila(arm).pendentes().map((i) => i.id), ['c']);
+});
+
+// ---------- vaga final de correções ----------
+
+function linhasTentativas(n, aluna) {
+  return Array.from({ length: n }, (_, i) => ({ id: 't' + i, aluna_id: aluna, criado_em: String(i).padStart(6, '0') }));
+}
+
+test('tentativas e estados paginam de 1000 em 1000 até uma página curta; exportar recebe tudo', async () => {
+  const f = falso();
+  f.tabelas.tentativas = linhasTentativas(2500, 'u1');
+  f.tabelas.estados = Array.from({ length: 1000 }, (_, i) => ({ aluna_id: 'u1', chave: 'k' + i }));
+  await Manual.conta.iniciar({ cliente: f, armazenamento: memoria() });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  f.chamadas.length = 0;
+  assert.equal((await Manual.conta.tentativas()).length, 2500);
+  const paginas = f.chamadas.filter((c) => c[0] === 'consulta' && c[1] === 'tentativas').map((c) => c[4]);
+  assert.deepEqual(paginas, [[0, 999], [1000, 1999], [2000, 2999]]);
+  assert.equal((await Manual.conta.estados()).length, 1000);
+  const x = await Manual.conta.exportar();
+  assert.equal(x.tentativas.length, 2500);
+  assert.equal(x.estados.length, 1000);
+  assert.equal(new Set(x.tentativas.map((t) => t.id)).size, 2500);
+});
+
+test('erroPermanente: 4xx exceto 401/408/429 e códigos Postgres 22xxx/23xxx', () => {
+  const p = Manual.conta.erroPermanente;
+  assert.equal(p(400, '22P02'), true);
+  assert.equal(p(409, '23505'), true);
+  assert.equal(p(403, '42501'), true);
+  assert.equal(p(undefined, '23514'), true);
+  assert.equal(p(401, 'PGRST301'), false);
+  assert.equal(p(408, ''), false);
+  assert.equal(p(429, ''), false);
+  assert.equal(p(500, ''), false);
+  assert.equal(p(503, ''), false);
+  assert.equal(p(0, ''), false);
+  assert.equal(p(undefined, undefined), false);
+});
+
+test('item venenoso: o lote é reenviado item a item; os bons entram, o mau vai para a quarentena', async () => {
+  const f = falso();
+  const arm = memoria();
+  f.respostaUpsert = (itens) =>
+    itens.some((i) => i.disciplina === 'mau')
+      ? { error: { code: '22P02', message: 'invalid input syntax' }, status: 400 }
+      : null;
+  const q = Manual.criarFila(arm);
+  q.juntar({ id: 'a', disciplina: 'd' });
+  q.juntar({ id: 'mau1', disciplina: 'mau' });
+  q.juntar({ id: 'b', disciplina: 'd' });
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.deepEqual(f.tabelas.tentativas.map((t) => t.id).sort(), ['a', 'b']);
+  assert.equal(Manual.criarFila(arm).tamanho(), 0);
+  assert.deepEqual(Manual.criarQuarentena(arm).itens().map((i) => i.id), ['mau1']);
+  // nunca mais bloqueia: um novo envio não volta a tentar o item mau
+  f.chamadas.length = 0;
+  await Manual.conta.guardarTentativa(tentativa());
+  const ups = f.chamadas.filter((c) => c[0] === 'upsert');
+  assert.equal(ups.length, 1);
+  assert.equal(ups[0][2].length, 1);
+});
+
+test('erro de rede ou 5xx no envio: tudo fica na fila e nada vai para a quarentena', async () => {
+  const respostas = [
+    { error: { message: 'Service Unavailable', code: '' }, status: 503 },
+    { error: { message: 'TypeError: Failed to fetch', code: '' }, status: 0 },
+  ];
+  for (const resposta of respostas) {
+    Manual = carregar('js/nucleo.js', 'js/config.js', 'js/fila.js', 'js/conta.js');
+    const f = falso();
+    const arm = memoria();
+    f.respostaUpsert = () => resposta;
+    const q = Manual.criarFila(arm);
+    q.juntar({ id: 'a', disciplina: 'd' });
+    q.juntar({ id: 'b', disciplina: 'd' });
+    await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+    await Manual.conta.entrar('a@b.pt', 'x');
+    assert.equal(Manual.criarFila(arm).tamanho(), 2);
+    assert.equal(Manual.criarQuarentena(arm).itens().length, 0);
+    assert.equal(f.chamadas.filter((c) => c[0] === 'upsert').length, 1);
+  }
+});
+
+test('ligacoes devolve o nome da outra parte (lado da aluna e lado do encarregado)', async () => {
+  const f = falso();
+  f.tabelas.perfis.push({ id: 'e1', papel: 'encarregado', nome: 'Rui' });
+  f.tabelas.ligacoes = [{ id: 'l1', aluna_id: 'u1', encarregado_id: 'e1', criado_em: '2026-11-12T10:00:00Z' }];
+  await Manual.conta.iniciar({ cliente: f, armazenamento: memoria() });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  const l = await Manual.conta.ligacoes();
+  assert.equal(l[0].nome, 'Rui');
+  assert.equal(l[0].id, 'l1');
+
+  Manual = carregar('js/nucleo.js', 'js/config.js', 'js/fila.js', 'js/conta.js');
+  const g = falso();
+  g.tabelas.perfis = [{ id: 'u1', papel: 'encarregado', nome: 'Rui' }, { id: 'a9', papel: 'aluna', nome: 'Ana' }];
+  g.tabelas.ligacoes = [{ id: 'l2', aluna_id: 'a9', encarregado_id: 'u1', criado_em: '2026-11-12T10:00:00Z' }];
+  await Manual.conta.iniciar({ cliente: g, armazenamento: memoria() });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal((await Manual.conta.ligacoes())[0].nome, 'Ana');
+});
+
+test('exportar de um encarregado: só o próprio perfil e ligações, nenhuma linha da educanda', async () => {
+  const f = falso();
+  f.tabelas.perfis = [{ id: 'u1', papel: 'encarregado', nome: 'Rui' }, { id: 'a9', papel: 'aluna', nome: 'Ana' }];
+  f.tabelas.ligacoes = [{ id: 'l2', aluna_id: 'a9', encarregado_id: 'u1', criado_em: '2026-11-12T10:00:00Z' }];
+  f.tabelas.tentativas = linhasTentativas(3, 'a9');
+  f.tabelas.estados = [{ aluna_id: 'a9', chave: 'k' }];
+  await Manual.conta.iniciar({ cliente: f, armazenamento: memoria() });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  const x = await Manual.conta.exportar();
+  assert.equal(x.perfil.id, 'u1');
+  assert.deepEqual(x.tentativas, []);
+  assert.deepEqual(x.estados, []);
+  assert.equal(x.ligacoes.length, 1);
+});
+
+test('sair com signOut falhado: pára a renovação automática antes de remover a sessão', async () => {
+  const f = falso();
+  const arm = memoria();
+  const chave = 'sb-dhflcwqwmhbyxqcsxvlh-auth-token';
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  await Manual.conta.entrar('a@b.pt', 'x');
+  arm.setItem(chave, 'x');
+  const removerOriginal = arm.removeItem;
+  arm.removeItem = (k) => { f.chamadas.push(['removeItem', k]); removerOriginal(k); };
+  f.auth.signOut = async () => { throw new TypeError('Failed to fetch'); };
+  await Manual.conta.sair();
+  const ordem = f.chamadas.filter((c) => c[0] === 'stopAutoRefresh' || c[0] === 'removeItem').map((c) => c[0]);
+  assert.deepEqual(ordem, ['stopAutoRefresh', 'removeItem']);
+  assert.equal(arm.getItem(chave), null);
+  // sem stopAutoRefresh no cliente: não lança
+  delete f.auth.stopAutoRefresh;
+  await Manual.conta.entrar('a@b.pt', 'x');
+  await Manual.conta.sair();
+  assert.equal(Manual.conta.estado().autenticado, false);
+});
+
+test('podeRegistar: decisão pura a partir do papel atual e do último papel neste dispositivo', () => {
+  const p = Manual.conta.podeRegistar;
+  assert.equal(p('aluna', 'encarregado'), true);
+  assert.equal(p('encarregado', null), false);
+  assert.equal(p(null, 'encarregado'), false);
+  assert.equal(p(null, 'aluna'), true);
+  assert.equal(p(null, null), true);
+});
+
+test('último papel fica guardado no dispositivo e trava o registo enquanto o papel não é conhecido', async () => {
+  const f = falso();
+  f.tabelas.perfis = [{ id: 'u1', papel: 'encarregado', nome: 'Rui' }];
+  const arm = memoria();
+  await Manual.conta.iniciar({ cliente: f, armazenamento: arm });
+  assert.equal(Manual.conta.registaTentativas(), true);
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(arm.getItem('manual10.ultimo_papel'), 'encarregado');
+  assert.equal(Manual.conta.registaTentativas(), false);
+  await Manual.conta.sair();
+  assert.equal(Manual.conta.registaTentativas(), false);
+  f.tabelas.perfis = [{ id: 'u1', papel: 'aluna', nome: 'Ana' }];
+  await Manual.conta.entrar('a@b.pt', 'x');
+  assert.equal(arm.getItem('manual10.ultimo_papel'), 'aluna');
+  assert.equal(Manual.conta.registaTentativas(), true);
+});
+
+test('armazenamentoFalhou reflete a fila', async () => {
+  const arm = { getItem: () => null, setItem: () => { throw new Error('cheio'); }, removeItem() {} };
+  await Manual.conta.iniciar({ armazenamento: arm });
+  assert.equal(Manual.conta.armazenamentoFalhou(), false);
+  await Manual.conta.guardarTentativa(tentativa());
+  assert.equal(Manual.conta.armazenamentoFalhou(), true);
 });

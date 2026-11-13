@@ -7,6 +7,8 @@ globalThis.Manual = globalThis.Manual || {};
   const NAO_ENCONTRADO = { vista: 'naoEncontrado' };
   // Nomes de um só segmento que são vistas próprias (não podem ser ids de disciplina).
   const RESERVADOS = ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado'];
+  // Hash com que o Supabase devolve o utilizador depois da ligação do email (sucesso ou erro).
+  const HASH_AUTENTICACAO = /^#?(access_token|error|error_description|type)=/;
 
   // Converte um hash (#/mat-a/funcoes/quadratica?...) numa rota. Não verifica se a rota existe.
   Manual.router = {
@@ -14,6 +16,7 @@ globalThis.Manual = globalThis.Manual || {};
 
     analisar: function (hash) {
       let texto = String(hash || '');
+      if (HASH_AUTENTICACAO.test(texto)) return { vista: 'inicio' };
       if (texto.charAt(0) === '#') texto = texto.slice(1);
 
       const indice = texto.indexOf('?');
@@ -43,6 +46,15 @@ globalThis.Manual = globalThis.Manual || {};
       }
       if (partes.length === 2) return { vista: 'tema', disciplina: disciplina, tema: segundo };
       return { vista: 'subtema', disciplina: disciplina, tema: segundo, subtema: terceiro };
+    },
+
+    // Erro devolvido pelo Supabase no hash (ex.: ligação de confirmação expirada); null se não houver.
+    erroAutenticacao: function (hash) {
+      const texto = String(hash || '');
+      if (!HASH_AUTENTICACAO.test(texto)) return null;
+      const p = new URLSearchParams(texto.replace(/^#/, ''));
+      if (!p.has('error') && !p.has('error_description')) return null;
+      return { erro: p.get('error'), codigo: p.get('error_code'), descricao: p.get('error_description') };
     },
 
     // Inverso de analisar: rota -> hash canónico.

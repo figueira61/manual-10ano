@@ -282,8 +282,9 @@ globalThis.Manual = globalThis.Manual || {};
         progresso.registarQuiz(chave, certas, total);
       }, function (r) {
         if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return;
-        // Só contas de aluna registam tentativas.
-        if (typeof Manual.conta.estado === 'function' && Manual.conta.estado().papel === 'encarregado') return;
+        // Só contas de aluna registam tentativas (e nada enquanto o papel de um encarregado
+        // que usou este dispositivo ainda não é conhecido).
+        if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return;
         const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
         const tentativa = Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao());
         Promise.resolve(Manual.conta.guardarTentativa(tentativa)).catch(function () {});

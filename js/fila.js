@@ -4,7 +4,11 @@ globalThis.Manual = globalThis.Manual || {};
   const Manual = globalThis.Manual;
 
   const CHAVE_PADRAO = 'manual10.fila.v1';
+  const CHAVE_QUARENTENA = 'manual10.fila.quarentena.v1';
   const TAMANHO_LOTE = 50;
+  const MAXIMO_FILA = 1000;
+  const MAXIMO_QUARENTENA = 100;
+  const VALIDADE_OUTRAS_CONTAS_MS = 30 * 86400000;
 
   function ehObjeto(x) {
     return x !== null && typeof x === 'object' && !Array.isArray(x);
@@ -52,11 +56,35 @@ globalThis.Manual = globalThis.Manual || {};
     return itens;
   }
 
+  // Limpa a fila (função pura): itens de outras contas com mais de 30 dias saem; acima de 1000
+  // itens saem primeiro os mais antigos de visitante/outras contas e só depois os mais antigos
+  // da conta atual (`dono`), para que as respostas mais recentes desta conta nunca se percam.
+  Manual.podarFila = function (itens, dono, agora) {
+    const limite = agora - VALIDADE_OUTRAS_CONTAS_MS;
+    const protegido = (i) => !!dono && i.aluna_id === dono;
+    let r = itens.filter((i) => {
+      if (!i.aluna_id || i.aluna_id === dono) return true;
+      const t = Date.parse(i.criado_em);
+      return isNaN(t) || t >= limite;
+    });
+    let excesso = r.length - MAXIMO_FILA;
+    if (excesso <= 0) return r;
+    r = r.filter((i) => {
+      if (excesso > 0 && !protegido(i)) {
+        excesso -= 1;
+        return false;
+      }
+      return true;
+    });
+    return excesso > 0 ? r.slice(excesso) : r;
+  };
+
   // Fila de envios pendentes (ex.: tentativas de quiz). Nunca lança erro.
   // Cada operação relê o armazenamento, para que duas abas partilhadas não se apaguem.
   // Se o armazenamento falhar (ausente, a lançar exceções), a fila passa a viver em memória.
   Manual.criarFila = function (armazenamento, chave = CHAVE_PADRAO) {
     let falhou = !armazenamento;
+    let escritaFalhou = false; // o armazenamento existia mas deixou de funcionar (cheio, bloqueado)
     let memoria = [];
 
     function ler() {
@@ -65,6 +93,7 @@ globalThis.Manual = globalThis.Manual || {};
           memoria = analisar(armazenamento.getItem(chave));
         } catch (erro) {
           falhou = true;
+          escritaFalhou = true;
         }
       }
       return memoria.slice();
@@ -77,17 +106,19 @@ globalThis.Manual = globalThis.Manual || {};
         armazenamento.setItem(chave, JSON.stringify(itens));
       } catch (erro) {
         falhou = true;
+        escritaFalhou = true;
       }
     }
 
     return {
-      // Ignora um item cujo id já está na fila.
-      juntar: function (item) {
+      // Ignora um item cujo id já está na fila. `dono` (id da conta atual, opcional) decide
+      // que itens são protegidos quando a fila é limpa (ver podarFila).
+      juntar: function (item, dono) {
         if (!ehObjeto(item) || typeof item.id !== 'string') return;
         const itens = ler();
         if (itens.some((i) => i.id === item.id)) return;
         itens.push(item);
-        guardar(itens);
+        guardar(Manual.podarFila(itens, dono || null, Date.now()));
       },
 
       pendentes: function () {
@@ -111,6 +142,36 @@ globalThis.Manual = globalThis.Manual || {};
       tamanho: function () {
         return ler().length;
       },
+
+      // Verdadeiro se o armazenamento deixou de aceitar escritas: a fila vive só em memória.
+      armazenamentoFalhou: function () {
+        return escritaFalhou;
+      },
+    };
+  };
+
+  // Itens recusados de forma permanente pelo servidor: saem da fila para não a bloquearem,
+  // mas ficam guardados (no máximo 100, os mais recentes) para diagnóstico. Nunca lança.
+  Manual.criarQuarentena = function (armazenamento) {
+    function ler() {
+      try {
+        return armazenamento ? analisar(armazenamento.getItem(CHAVE_QUARENTENA)) : [];
+      } catch (erro) {
+        return [];
+      }
+    }
+    return {
+      juntar: function (item) {
+        if (!ehObjeto(item) || typeof item.id !== 'string') return;
+        const itens = ler().filter((i) => i.id !== item.id);
+        itens.push(item);
+        try {
+          if (armazenamento) armazenamento.setItem(CHAVE_QUARENTENA, JSON.stringify(itens.slice(-MAXIMO_QUARENTENA)));
+        } catch (erro) {
+          // sem armazenamento: o item perde-se, mas deixa de bloquear a fila
+        }
+      },
+      itens: ler,
     };
   };
 

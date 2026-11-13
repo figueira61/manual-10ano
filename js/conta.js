@@ -14,6 +14,41 @@ globalThis.Manual = globalThis.Manual || {};
   let emCurso = null;
   let ligadoOnline = false;
   let armazenamento = null;
+  let quarentena = Manual.criarQuarentena(null);
+
+  const PAGINA = 1000; // limite de linhas por resposta do PostgREST
+  const CHAVE_ULTIMO_PAPEL = 'manual10.ultimo_papel';
+
+  // Erro que não se resolve a repetir o mesmo pedido: 4xx (exceto 401/408/429) ou
+  // dados inválidos/violação de restrição do Postgres (classes 22 e 23).
+  function erroPermanente(estadoHttp, codigoPg) {
+    if (/^2[23][0-9A-Z]{3}$/.test(String(codigoPg || ''))) return true;
+    const s = Number(estadoHttp);
+    return s >= 400 && s < 500 && s !== 401 && s !== 408 && s !== 429;
+  }
+
+  // Decide se uma resposta ao quiz é registada: nunca numa conta de encarregado e, enquanto o
+  // papel não é conhecido, também não se a última conta deste dispositivo era de encarregado.
+  function podeRegistar(papelAtual, ultimoPapel) {
+    if (papelAtual) return papelAtual === 'aluna';
+    return ultimoPapel !== 'encarregado';
+  }
+
+  function lerUltimoPapel() {
+    try {
+      return armazenamento ? armazenamento.getItem(CHAVE_ULTIMO_PAPEL) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function guardarUltimoPapel(p) {
+    try {
+      if (armazenamento && p) armazenamento.setItem(CHAVE_ULTIMO_PAPEL, p);
+    } catch (e) {
+      // sem armazenamento: só vale para esta sessão
+    }
+  }
 
   function erro(codigo, causa) {
     const e = new Error(codigo + (causa && causa.message ? ': ' + causa.message : ''));
@@ -115,6 +150,7 @@ globalThis.Manual = globalThis.Manual || {};
   async function definirSessao(nova) {
     sessao = nova || null;
     await carregarPerfil();
+    guardarUltimoPapel(papel);
     notificar();
   }
 
@@ -160,6 +196,7 @@ globalThis.Manual = globalThis.Manual || {};
     cliente = o.cliente || criarClientePadrao();
     armazenamento = o.armazenamento || armazenamentoPadrao();
     fila = Manual.criarFila(armazenamento);
+    quarentena = Manual.criarQuarentena(armazenamento);
     sessao = null;
     perfil = null;
     papel = null;
@@ -245,7 +282,15 @@ globalThis.Manual = globalThis.Manual || {};
       } catch (e) {
         falhou = true;
       }
-      if (falhou) removerSessaoGuardada();
+      if (falhou) {
+        // Sem isto, o cliente em memória podia renovar o token e voltar a guardar a sessão.
+        try {
+          if (typeof cliente.auth.stopAutoRefresh === 'function') await cliente.auth.stopAutoRefresh();
+        } catch (e) {
+          // continua: o importante é remover a sessão guardada
+        }
+        removerSessaoGuardada();
+      }
     }
     await definirSessao(null);
   }
@@ -256,9 +301,44 @@ globalThis.Manual = globalThis.Manual || {};
     if (!item.id) item.id = Manual.uuid();
     if (!item.criado_em) item.criado_em = new Date().toISOString();
     if (!item.aluna_id && sessao && sessao.user) item.aluna_id = sessao.user.id;
-    fila.juntar(item);
+    fila.juntar(item, sessao && sessao.user ? sessao.user.id : null);
     await sincronizar();
     return item;
+  }
+
+  // upsert das linhas; um erro devolvido pelo servidor leva `permanente` (ver erroPermanente).
+  async function inserirTentativas(linhas) {
+    let r;
+    try {
+      r = await cliente.from('tentativas').upsert(linhas, { onConflict: 'id', ignoreDuplicates: true });
+    } catch (causa) {
+      throw traduzir(causa);
+    }
+    if (r && r.error) {
+      const e = traduzir(r.error);
+      e.permanente = erroPermanente(r.status, r.error.code);
+      throw e;
+    }
+  }
+
+  // Lote recusado de forma permanente: reenvia item a item; os que voltam a ser recusados
+  // saem da fila para a quarentena. Um erro de rede a meio deixa o resto na fila.
+  async function enviarUmAUm(linhas) {
+    const aceites = [];
+    for (const linha of linhas) {
+      try {
+        await inserirTentativas([linha]);
+        aceites.push(linha.id);
+      } catch (e) {
+        if (!e.permanente) break;
+        quarentena.juntar(Object.assign({}, linha, {
+          motivo: String(e.message || '').slice(0, 200),
+          em_quarentena_desde: new Date().toISOString(),
+        }));
+        fila.marcarEnviados([linha.id]);
+      }
+    }
+    return aceites;
   }
 
   // Só envia itens desta conta (ou sem dono, que passam a ser dela); os outros ficam pendentes.
@@ -273,9 +353,12 @@ globalThis.Manual = globalThis.Manual || {};
       if (!i.aluna_id) fila.atualizar(i.id, { aluna_id: uid });
     });
     const linhas = meus.map((i) => Object.assign({}, i, { aluna_id: uid }));
-    await chamar(() =>
-      cliente.from('tentativas').upsert(linhas, { onConflict: 'id', ignoreDuplicates: true })
-    );
+    try {
+      await inserirTentativas(linhas);
+    } catch (e) {
+      if (!e.permanente) throw e; // rede/5xx: tudo fica na fila
+      return enviarUmAUm(linhas);
+    }
     return meus.map((i) => i.id);
   }
 
@@ -294,21 +377,35 @@ globalThis.Manual = globalThis.Manual || {};
     return emCurso;
   }
 
+  // O PostgREST devolve no máximo 1000 linhas por pedido: pede páginas até vir uma curta.
+  // `construir()` cria a consulta (com ordem total, para as páginas não se sobreporem).
+  async function todasAsPaginas(construir) {
+    const todas = [];
+    for (let inicio = 0; ; inicio += PAGINA) {
+      const pagina = (await chamar(() => construir().range(inicio, inicio + PAGINA - 1))) || [];
+      todas.push(...pagina);
+      if (pagina.length < PAGINA) return todas;
+    }
+  }
+
   async function tentativas(opcoes) {
     exigirSessao();
     const o = opcoes || {};
-    let q = cliente.from('tentativas').select('*');
-    if (o.alunaId) q = q.eq('aluna_id', o.alunaId);
-    if (o.desde) q = q.gte('criado_em', o.desde);
-    q = q.order('criado_em', { ascending: true });
-    return (await chamar(() => q)) || [];
+    return todasAsPaginas(function () {
+      let q = cliente.from('tentativas').select('*');
+      if (o.alunaId) q = q.eq('aluna_id', o.alunaId);
+      if (o.desde) q = q.gte('criado_em', o.desde);
+      return q.order('criado_em', { ascending: true }).order('id', { ascending: true });
+    });
   }
 
   async function estados(alunaId) {
     exigirSessao();
-    let q = cliente.from('estados').select('*');
-    if (alunaId) q = q.eq('aluna_id', alunaId);
-    return (await chamar(() => q)) || [];
+    return todasAsPaginas(function () {
+      let q = cliente.from('estados').select('*');
+      if (alunaId) q = q.eq('aluna_id', alunaId);
+      return q.order('aluna_id', { ascending: true }).order('chave', { ascending: true });
+    });
   }
 
   async function guardarEstado(e) {
@@ -328,9 +425,19 @@ globalThis.Manual = globalThis.Manual || {};
     return chamar(() => cliente.rpc('usar_codigo_ligacao', { codigo: codigo }));
   }
 
+  // Ligações da conta, cada uma com `nome` da outra parte (o encarregado, para a aluna;
+  // a educanda, para o encarregado). Sem nome visível, `nome` fica null.
   async function ligacoes() {
-    exigirSessao();
-    return (await chamar(() => cliente.from('ligacoes').select('*'))) || [];
+    const uid = exigirSessao();
+    const linhas = (await chamar(() => cliente.from('ligacoes').select('*'))) || [];
+    const outra = (l) => (l.aluna_id === uid ? l.encarregado_id : l.aluna_id);
+    const ids = [...new Set(linhas.map(outra))];
+    const nomes = new Map();
+    if (ids.length) {
+      const perfis = (await chamar(() => cliente.from('perfis').select('id, nome').in('id', ids))) || [];
+      perfis.forEach((p) => nomes.set(p.id, p.nome == null ? null : p.nome));
+    }
+    return linhas.map((l) => Object.assign({}, l, { nome: nomes.has(outra(l)) ? nomes.get(outra(l)) : null }));
   }
 
   async function revogarLigacao(id) {
@@ -341,10 +448,11 @@ globalThis.Manual = globalThis.Manual || {};
   async function exportar() {
     const uid = exigirSessao();
     const linhas = await chamar(() => cliente.from('perfis').select('*').eq('id', uid).limit(1));
+    // Filtra pelo próprio id: um encarregado exporta só os seus dados, não os da educanda.
     return {
       perfil: (Array.isArray(linhas) && linhas[0]) || null,
-      tentativas: await tentativas(),
-      estados: await estados(),
+      tentativas: await tentativas({ alunaId: uid }),
+      estados: await estados(uid),
       ligacoes: await ligacoes(),
     };
   }
@@ -385,5 +493,15 @@ globalThis.Manual = globalThis.Manual || {};
     revogarLigacao: revogarLigacao,
     exportar: exportar,
     apagarConta: apagarConta,
+    erroPermanente: erroPermanente,
+    podeRegistar: podeRegistar,
+    // Verdadeiro se as respostas desta sessão devem ser registadas (ver podeRegistar).
+    registaTentativas: function () {
+      return podeRegistar(papel, lerUltimoPapel());
+    },
+    // Verdadeiro se o dispositivo deixou de guardar a fila (as respostas vivem só em memória).
+    armazenamentoFalhou: function () {
+      return fila.armazenamentoFalhou();
+    },
   };
 })();

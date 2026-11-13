@@ -316,3 +316,75 @@ test('atualizar junta campos ao item e ignora ids desconhecidos', () => {
   assert.deepEqual(f.pendentes(), [{ id: 'a', tentativa: { enunciado: 'x' }, aluna_id: 'u1' }]);
   assert.equal(Manual.criarFila(arm).pendentes()[0].aluna_id, 'u1');
 });
+
+// ---------- limite da fila, limpeza e quarentena ----------
+
+const AGORA = Date.parse('2026-11-13T12:00:00Z');
+const DIA = 86400000;
+const em = (dias) => new Date(AGORA - dias * DIA).toISOString();
+
+test('podarFila: itens de outras contas com mais de 30 dias saem; os da conta atual e de visitante ficam', () => {
+  const itens = [
+    { id: 'velho-outra', aluna_id: 'u2', criado_em: em(31) },
+    { id: 'recente-outra', aluna_id: 'u2', criado_em: em(29) },
+    { id: 'velho-meu', aluna_id: 'u1', criado_em: em(90) },
+    { id: 'velho-visitante', criado_em: em(90) },
+  ];
+  assert.deepEqual(ids(Manual.podarFila(itens, 'u1', AGORA)), ['recente-outra', 'velho-meu', 'velho-visitante']);
+  // sem conta atual, todas as contas são "outras"
+  assert.deepEqual(ids(Manual.podarFila(itens, null, AGORA)), ['recente-outra', 'velho-visitante']);
+});
+
+test('podarFila: acima de 1000 itens saem primeiro os mais antigos de visitante/outras contas', () => {
+  const itens = [];
+  for (let i = 0; i < 600; i++) itens.push({ id: 'meu' + i, aluna_id: 'u1', criado_em: em(1) });
+  for (let i = 0; i < 500; i++) itens.push({ id: 'vis' + i, criado_em: em(1) });
+  const r = Manual.podarFila(itens, 'u1', AGORA);
+  assert.equal(r.length, 1000);
+  assert.equal(r.filter((i) => i.aluna_id === 'u1').length, 600);
+  assert.equal(r.find((i) => i.id === 'vis0'), undefined);
+  assert.ok(r.find((i) => i.id === 'vis499'));
+});
+
+test('podarFila: só itens da conta atual acima do limite: saem os mais antigos, ficam os mais recentes', () => {
+  const itens = [];
+  for (let i = 0; i < 1005; i++) itens.push({ id: 'meu' + i, aluna_id: 'u1', criado_em: em(1) });
+  const r = Manual.podarFila(itens, 'u1', AGORA);
+  assert.equal(r.length, 1000);
+  assert.equal(r[0].id, 'meu5');
+  assert.equal(r[999].id, 'meu1004');
+});
+
+test('juntar aplica o limite de 1000 usando o dono indicado', () => {
+  const arm = armazenamentoFalso();
+  const f = Manual.criarFila(arm);
+  for (let i = 0; i < 1000; i++) f.juntar({ id: 'v' + i, criado_em: new Date().toISOString() });
+  f.juntar({ id: 'novo', aluna_id: 'u1', criado_em: new Date().toISOString() }, 'u1');
+  const p = f.pendentes();
+  assert.equal(p.length, 1000);
+  assert.equal(p[0].id, 'v1');
+  assert.equal(p[999].id, 'novo');
+});
+
+test('armazenamentoFalhou: falso por omissão; verdadeiro depois de setItem lançar', () => {
+  const ok = Manual.criarFila(armazenamentoFalso());
+  ok.juntar(item('a'));
+  assert.equal(ok.armazenamentoFalhou(), false);
+  const cheio = Manual.criarFila({ getItem: () => null, setItem: () => { throw new Error('cheio'); } });
+  assert.equal(cheio.armazenamentoFalhou(), false);
+  cheio.juntar(item('a'));
+  assert.equal(cheio.armazenamentoFalhou(), true);
+  assert.equal(Manual.criarFila(null).armazenamentoFalhou(), false);
+});
+
+test('quarentena guarda itens em manual10.fila.quarentena.v1, no máximo 100 (ficam os mais recentes)', () => {
+  const arm = armazenamentoFalso();
+  const q = Manual.criarQuarentena(arm);
+  for (let i = 0; i < 105; i++) q.juntar({ id: 'q' + i });
+  const lidos = Manual.criarQuarentena(arm).itens();
+  assert.equal(lidos.length, 100);
+  assert.equal(lidos[0].id, 'q5');
+  assert.equal(lidos[99].id, 'q104');
+  assert.ok(arm.dados.has('manual10.fila.quarentena.v1'));
+  assert.doesNotThrow(() => Manual.criarQuarentena({ getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); } }).juntar({ id: 'a' }));
+});

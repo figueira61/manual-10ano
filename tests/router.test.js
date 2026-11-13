@@ -83,3 +83,24 @@ test('nomes reservados são vistas de um só segmento', () => {
   assert.deepEqual(Manual.router.analisar('#/mat-a'), { vista: 'disciplina', disciplina: 'mat-a' });
   assert.deepEqual(Manual.router.analisar('#/conta/x'), { vista: 'tema', disciplina: 'conta', tema: 'x' });
 });
+
+test('regresso do email de confirmação (hash do Supabase) vai para o início', () => {
+  const hashes = [
+    '#access_token=abc&refresh_token=def&type=signup',
+    '#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired',
+    '#error_description=x',
+    '#type=recovery',
+  ];
+  for (const h of hashes) assert.deepEqual(Manual.router.analisar(h), { vista: 'inicio' }, h);
+});
+
+test('erroAutenticacao lê o erro do hash do Supabase; null nos outros casos', () => {
+  assert.deepEqual(
+    Manual.router.erroAutenticacao('#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired'),
+    { erro: 'access_denied', codigo: 'otp_expired', descricao: 'Email link is invalid or has expired' }
+  );
+  assert.deepEqual(Manual.router.erroAutenticacao('#error_description=Algo%20falhou'), { erro: null, codigo: null, descricao: 'Algo falhou' });
+  assert.equal(Manual.router.erroAutenticacao('#access_token=abc&type=signup'), null);
+  assert.equal(Manual.router.erroAutenticacao('#/mat-a'), null);
+  assert.equal(Manual.router.erroAutenticacao(''), null);
+});

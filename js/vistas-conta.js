@@ -235,16 +235,16 @@ globalThis.Manual = globalThis.Manual || {};
     cabecalho(principal, 'Privacidade');
     const c = cartao(principal);
     const itens = [
-      ['Quem é responsável', 'O manual é um projeto familiar. O responsável pelo tratamento dos dados é o administrador do manual, que pertence à família; o contacto faz-se através do encarregado de educação.'],
+      ['Quem é responsável', 'O manual é um projeto familiar. O responsável pelo tratamento dos dados é o administrador do manual, que pertence à família. Contacto: figueira61@gmail.com.'],
       ['Que dados guardamos', 'Só o mínimo: o teu email, o nome a mostrar, o tipo de conta (aluna ou encarregado de educação) e as tuas tentativas e estados de estudo (que perguntas respondeste, se acertaste e quanto tempo demoraste).'],
-      ['Para quê', 'Para guardar o teu progresso, adaptar o treino ao que ainda não dominas e, se quiseres, permitir que o teu encarregado de educação o acompanhe. Não usamos os dados para publicidade nem os partilhamos com terceiros.'],
-      ['Onde ficam guardados', 'Os dados são guardados no Supabase (servidores na União Europeia, em Frankfurt), que também envia o email de confirmação da conta. O Supabase atua como subcontratante, isto é, trata os dados apenas por conta do projeto.'],
-      ['Quanto tempo', 'Os dados ficam guardados até apagares a conta.'],
-      ['Quem tem acesso', 'Tu; o encarregado de educação que ligares à tua conta com um código (podes revogar a ligação quando quiseres); e a administração do projeto, apenas a pedido e para resolver um problema.'],
+      ['Para quê', 'Para guardar o teu progresso, adaptar o treino ao que ainda não dominas e, se quiseres, permitir que o teu encarregado de educação o acompanhe. Não usamos os dados para publicidade e não os partilhamos com terceiros para outros fins.'],
+      ['Subcontratantes', 'Supabase (servidores na União Europeia, em Frankfurt): guarda os dados e envia os emails de confirmação da conta. GitHub Pages: aloja o site e, como qualquer servidor, vê nos seus registos o endereço IP de quem o visita. Ambos tratam os dados apenas para prestar estes serviços.'],
+      ['Quanto tempo', 'Os dados ficam guardados até apagares a conta. Os registos técnicos e as cópias de segurança do fornecedor são mantidos pelo Supabase durante um período limitado. Um registo que nunca foi confirmado pode ser removido a pedido, através do contacto acima.'],
+      ['Quem tem acesso', 'Tu; o encarregado de educação que ligares à tua conta com um código (podes revogar a ligação quando quiseres). A administração só acede aos dados a pedido da família, e fá-lo com o Claude (o assistente de inteligência artificial da Anthropic) através do conector do Supabase.'],
       ['Exportar e apagar', 'Em "A minha conta" podes descarregar todos os teus dados (JSON) e apagar a conta. Ao apagar, os dados são removidos definitivamente e a fila de respostas pendentes deste dispositivo também é limpa.'],
       ['Idade de consentimento', 'Em Portugal, o consentimento próprio para serviços online é válido a partir dos 13 anos (Lei n.º 58/2019). Abaixo dessa idade é necessária a autorização dos pais ou do representante legal.'],
       ['Reclamações', 'Tens o direito de apresentar reclamação à Comissão Nacional de Proteção de Dados (CNPD), em www.cnpd.pt.'],
-      ['Sem conta', 'Podes estudar sem criar conta. Nesse caso, o progresso fica só guardado neste dispositivo.'],
+      ['Sem conta', 'Podes estudar sem criar conta. Nesse caso, as respostas ficam só neste dispositivo e são adicionadas à próxima conta de aluna que entrar nele.'],
     ];
     itens.forEach(function (i) {
       c.appendChild(criar('h2', '', i[0]));
@@ -264,8 +264,9 @@ globalThis.Manual = globalThis.Manual || {};
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  // Lista de ligações com botão "Revogar" (aluna) ou só texto (encarregado).
-  function listaLigacoes(pai, vivo, textoItem, revogavel) {
+  // Lista de ligações ("Nome — ligado desde <data>") com botão "Revogar" (aluna) ou só texto
+  // (encarregado). `t` = { semNome, ligado } (ex.: 'Encarregado', 'ligado').
+  function listaLigacoes(pai, vivo, t, revogavel) {
     const lista = criar('ul', 'lista-ligacoes');
     pai.appendChild(lista);
     const mostrar = regiaoMensagem(pai, 'conta-ligacoes-mensagem');
@@ -279,7 +280,7 @@ globalThis.Manual = globalThis.Manual || {};
         }
         linhas.forEach(function (l) {
           const li = criar('li', 'item-ligacao');
-          li.appendChild(criar('span', '', textoItem + ' desde ' + dataCurta(l.criado_em)));
+          li.appendChild(criar('span', '', (l.nome || t.semNome) + ' — ' + t.ligado + ' desde ' + dataCurta(l.criado_em)));
           if (revogavel) {
             const revogar = botaoAcao('Revogar');
             revogar.addEventListener('click', function () {
@@ -319,7 +320,7 @@ globalThis.Manual = globalThis.Manual || {};
     });
     c.appendChild(criar('p', 'campo-ajuda', 'As respostas dadas neste dispositivo antes de entrares são adicionadas à conta que entrar a seguir.'));
     c.appendChild(criar('h3', '', 'Encarregados ligados'));
-    listaLigacoes(c, vivo, 'Encarregado ligado', true);
+    listaLigacoes(c, vivo, { semNome: 'Encarregado de educação', ligado: 'ligado' }, true);
   }
 
   function blocoLigacoesEncarregado(pai, vivo) {
@@ -336,7 +337,7 @@ globalThis.Manual = globalThis.Manual || {};
     form.appendChild(botao);
     c.appendChild(form);
     c.appendChild(criar('h3', '', 'Educandas ligadas'));
-    const recarregar = listaLigacoes(c, vivo, 'Educanda ligada', false);
+    const recarregar = listaLigacoes(c, vivo, { semNome: 'Educanda', ligado: 'ligada' }, false);
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -406,6 +407,11 @@ globalThis.Manual = globalThis.Manual || {};
         c.appendChild(criar('p', '', 'Não tens sessão iniciada.'));
         c.appendChild(ligacao('#/entrar', 'Entrar', 'botao botao-principal'));
         return;
+      }
+      if (typeof Manual.conta.armazenamentoFalhou === 'function' && Manual.conta.armazenamentoFalhou()) {
+        const aviso = criar('p', 'aviso-form aviso-erro', 'Este dispositivo não está a conseguir guardar as respostas pendentes (armazenamento cheio ou bloqueado). Mantém a página aberta até haver ligação à internet, para não as perderes.');
+        aviso.setAttribute('role', 'status');
+        corpo.appendChild(aviso);
       }
       const perfil = cartao(corpo, 'Perfil');
       const dl = criar('dl', 'dados-perfil');

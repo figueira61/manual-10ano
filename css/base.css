@@ -600,3 +600,15 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .dados-perfil { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 12px; }
 .dados-perfil dt { color: var(--texto-suave); }
 .dados-perfil dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* Aviso de nova versão (service worker atualizado): não bloqueia a página. */
+.aviso-versao {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 40;
+  max-width: 520px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 12px;
+  background: var(--superficie); color: var(--texto); border: 1px solid var(--borda); box-shadow: var(--sombra);
+}
+.aviso-versao p { margin: 0; font-weight: 600; }
+.aviso-versao-acoes { display: flex; gap: 8px; }
+.aviso-autenticacao { margin-bottom: 16px; }
