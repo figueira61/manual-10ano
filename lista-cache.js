@@ -64,6 +64,7 @@ self.LISTA_CACHE = [
   "js/treino.js",
   "js/vistas-conta.js",
   "js/vistas-estudo.js",
+  "js/vistas-progresso.js",
   "manifest.webmanifest",
   "vendor/katex/LICENSE.txt",
   "vendor/katex/fonts/KaTeX_AMS-Regular.woff2",
@@ -91,4 +92,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '69495133b9';
+self.VERSAO_CACHE = 'b506b193ec';

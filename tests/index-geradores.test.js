@@ -49,3 +49,11 @@ test('index.html: treino.js, teste.js e vistas-estudo.js depois de miniquiz.js e
   assert.ok(pos('js/vistas-estudo.js') > pos('js/render.js'), 'vistas-estudo.js depois de render.js');
   assert.ok(pos('js/vistas-estudo.js') > pos('js/motor.js'), 'vistas-estudo.js depois de motor.js');
 });
+
+test('index.html: vistas-progresso.js depois de vistas-estudo.js, de vistas-conta.js e de painel.js, antes de app.js; em cache', () => {
+  const lista = fs.readFileSync(path.join(RAIZ, 'lista-cache.js'), 'utf8');
+  const f = 'js/vistas-progresso.js';
+  for (const antes of ['js/vistas-estudo.js', 'js/vistas-conta.js', 'js/painel.js', 'js/motor.js']) assert.ok(pos(f) > pos(antes), f + ' depois de ' + antes);
+  assert.ok(pos(f) < pos('js/app.js'), f + ' antes de app.js');
+  assert.ok(lista.includes('"' + f + '"'), 'falta em lista-cache.js: ' + f);
+});

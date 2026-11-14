@@ -415,6 +415,7 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .selo-estado.estado-domina { --c: var(--certo); }
 .selo-estado.estado-dificuldade { --c: var(--cor-5); }
 .selo-estado.estado-nao-resolvido { --c: var(--errado); }
+.selo-estado.estado-sem { --c: var(--texto-suave); }
 .suporte-estado:empty { display: none; }
 .selo { display: inline-flex; gap: 8px; color: var(--texto-suave); font-size: 0.9rem; }
 .selo .lido { color: var(--certo); font-weight: 700; }
@@ -649,3 +650,18 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .escolha-linha { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; min-height: 28px; cursor: pointer; overflow-wrap: anywhere; }
 .escolha-linha input { margin-top: 4px; flex: none; }
 .pergunta.resultado .acoes { margin-top: 14px; }
+
+/* ---------- progresso ---------- */
+.progresso-dados .cartao-conta, .encarregado-corpo .cartao-conta { max-width: 44rem; }
+.ultima-atividade { color: var(--texto-suave); margin: 0 0 8px; }
+.lista-contagens { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.item-contagem { display: inline-flex; align-items: center; gap: 4px; }
+.lista-progresso { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.item-progresso { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 0; border-bottom: 1px solid var(--borda); }
+.item-progresso .ligacao-subtema { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
+.tabela-evolucao { width: 100%; border-collapse: collapse; }
+.tabela-evolucao th, .tabela-evolucao td { text-align: left; padding: 6px 8px 6px 0; vertical-align: middle; border-bottom: 1px solid var(--borda); font-weight: 400; }
+.tabela-evolucao thead th { font-weight: 700; font-size: 0.88rem; color: var(--texto-suave); }
+.tabela-evolucao .celula-barra { min-width: 9em; }
+.celula-barra .barra-pista { height: 12px; margin-bottom: 2px; }
+.celula-barra .barra-valor { grid-column: auto; display: block; }

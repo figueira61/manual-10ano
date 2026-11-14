@@ -323,7 +323,8 @@ globalThis.Manual = globalThis.Manual || {};
     listaLigacoes(c, vivo, { semNome: 'Encarregado de educação', ligado: 'ligado' }, true);
   }
 
-  function blocoLigacoesEncarregado(pai, vivo) {
+  // `aoLigar` (opcional) corre depois de uma ligação criada com sucesso.
+  function blocoLigacoesEncarregado(pai, vivo, aoLigar) {
     const c = cartao(pai, 'Educandas');
     c.appendChild(criar('p', '', 'Escreve o código que a educanda gerou na página dela.'));
     const form = criar('form', 'formulario');
@@ -350,6 +351,7 @@ globalThis.Manual = globalThis.Manual || {};
           codigo.value = '';
           mostrar('Ligação criada.', 'ok');
           recarregar();
+          if (typeof aoLigar === 'function') aoLigar();
         });
       });
     });
@@ -453,8 +455,6 @@ globalThis.Manual = globalThis.Manual || {};
     };
   }
 
-  const TITULOS_BREVE = { progresso: 'O meu progresso', treino: 'Treino', teste: 'Teste', encarregado: 'Encarregado' };
-
   // Devolve { destruir } quando a vista precisa de limpeza.
   function montar(vista, principal, rota) {
     switch (vista) {
@@ -464,11 +464,9 @@ globalThis.Manual = globalThis.Manual || {};
       case 'registar': vistaRegistar(principal); return null;
       case 'privacidade': vistaPrivacidade(principal); return null;
       case 'conta': return vistaConta(principal);
-      default:
-        cabecalho(principal, TITULOS_BREVE[vista] || 'Em breve');
-        principal.appendChild(criar('p', '', 'Disponível em breve.'));
-        principal.appendChild(ligacao('#/', 'Voltar ao início', 'botao'));
-        return null;
+      case 'progresso': return Manual.vistasProgresso.progresso(principal);
+      case 'encarregado': return Manual.vistasProgresso.encarregado(principal);
+      default: return null;
     }
   }
 
@@ -536,5 +534,10 @@ globalThis.Manual = globalThis.Manual || {};
     Manual.conta.aoMudar(desenhar);
   }
 
-  Manual.vistasConta = { montar: montar, montarTopo: montarTopo, mensagemDe: mensagemDe };
+  Manual.vistasConta = {
+    montar: montar, montarTopo: montarTopo, mensagemDe: mensagemDe,
+    // Partilhados com js/vistas-progresso.js.
+    cabecalho: cabecalho, cartao: cartao, ligacao: ligacao,
+    blocoLigacoesAluna: blocoLigacoesAluna, blocoDados: blocoDados, blocoLigacoesEncarregado: blocoLigacoesEncarregado,
+  };
 })();
