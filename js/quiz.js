@@ -24,6 +24,18 @@ Manual.quiz.ordemOpcoes = function (n, aleatorio) {
   return ordem;
 };
 
+// Resposta numérica como texto (sem a unidade). Perguntas geradas: como no resto do item, pelo Manual.formatar
+// (espaço dos milhares a partir de 5 algarismos, menos tipográfico; euros sempre com 2 casas: «3803,80», «18 440,00»).
+// Perguntas do banco (e sem Manual.formatar carregado): a apresentação de sempre, vírgula no lugar do ponto.
+Manual.quiz.textoNumero = function (pergunta) {
+  const v = pergunta.resposta;
+  if (!pergunta.gerador || !Manual.formatar || typeof v !== 'number') return String(v).replace('.', ',').replace('-', '−');
+  if (pergunta.unidade === '€') {
+    return Manual.formatar.arred(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/-/g, '−');
+  }
+  return Manual.formatar.num(v);
+};
+
 // Corrige uma pergunta com a resposta dada. Nunca lança erro.
 Manual.quiz.corrigir = function (pergunta, resposta) {
   const resolucao = pergunta.resolucao || [];
@@ -42,7 +54,7 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
     certa = valida && resposta === pergunta.correta;
   } else if (pergunta.tipo === 'numerica') {
     const tolerancia = pergunta.tolerancia === undefined ? 1e-9 : pergunta.tolerancia;
-    respostaCorreta = String(pergunta.resposta).replace('.', ',').replace('-', '−');
+    respostaCorreta = Manual.quiz.textoNumero(pergunta);
     if (pergunta.unidade) respostaCorreta += ' ' + pergunta.unidade;
     const x = Manual.quiz.lerNumero(resposta);
     valida = !Number.isNaN(x);

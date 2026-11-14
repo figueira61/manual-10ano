@@ -133,6 +133,31 @@ test('corrigir numerica formata a resposta negativa com o sinal menos tipográfi
   assert.equal(Manual.quiz.corrigir(p, '\u22121,5').certa, true);
 });
 
+test('corrigir numerica de um gerador: euros com 2 casas e espaço dos milhares (Manual.formatar)', () => {
+  Manual = carregar('esquemas/mat-a/formatar.js', 'js/quiz.js');
+  const NB = ' ';
+  const gerada = (resposta, unidade) => ({ tipo: 'numerica', gerador: 'g', resposta, tolerancia: 0, unidade });
+  assert.equal(Manual.quiz.corrigir(gerada(3803.8, '€'), '').respostaCorreta, '3803,80 €');
+  assert.equal(Manual.quiz.corrigir(gerada(18440, '€'), '').respostaCorreta, '18' + NB + '440,00 €');
+  assert.equal(Manual.quiz.corrigir(gerada(-2.5, '€'), '').respostaCorreta, '−2,50 €');
+  assert.equal(Manual.quiz.corrigir(gerada(12345.5, 'votos'), '').respostaCorreta, '12' + NB + '345,5 votos');
+  assert.equal(Manual.quiz.corrigir(gerada(-1.25), '').respostaCorreta, '−1,25');
+  // A resposta mostrada lê-se de volta como o mesmo número.
+  assert.equal(Manual.quiz.lerNumero(Manual.quiz.corrigir(gerada(18440, '€'), '').respostaCorreta.replace(' €', '')), 18440);
+});
+
+test('corrigir numerica do banco mantém a apresentação de sempre (sem gerador)', () => {
+  Manual = carregar('esquemas/mat-a/formatar.js', 'js/quiz.js');
+  const banco = (resposta, unidade) => ({ tipo: 'numerica', resposta, tolerancia: 0, unidade });
+  assert.equal(Manual.quiz.corrigir(banco(1035, '€'), '').respostaCorreta, '1035 €');
+  assert.equal(Manual.quiz.corrigir(banco(5306.04, '€'), '').respostaCorreta, '5306,04 €');
+  assert.equal(Manual.quiz.corrigir(banco(11, '€'), '').respostaCorreta, '11 €');
+});
+
+test('corrigir numerica de um gerador sem Manual.formatar carregado: apresentação de sempre', () => {
+  assert.equal(Manual.quiz.corrigir({ tipo: 'numerica', gerador: 'g', resposta: 3803.8, unidade: '€' }, '').respostaCorreta, '3803,8 €');
+});
+
 test('ordemOpcoes devolve uma permutação de 0..n-1', () => {
   let s = 0;
   const aleatorio = () => { s = (s * 7 + 3) % 10; return s / 10; };
