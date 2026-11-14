@@ -17,8 +17,7 @@ globalThis.Manual = globalThis.Manual || {};
   const ordenar = (l) => l.slice().sort((a, b) => a - b);
   const fmt = A.fmt;
   const tex = A.tex;
-  const limpo = (v) => Math.round(v * 1e9) / 1e9 + 0;
-  const r2 = (v) => Math.round(v * 100 + (v >= 0 ? 1e-7 : -1e-7)) / 100 + 0;
+  const { limpo, r2 } = A;
   const exato = (v, casas) => Math.abs(Math.round(v * Math.pow(10, casas)) / Math.pow(10, casas) - v) < 1e-9;
   const igualOuAprox = (v, casas = 2) => (exato(v, casas) ? ' = ' : ' \\approx ') + tex(v, casas);
   // Valor a meio de duas centésimas: o arredondamento seria ambíguo — o gerador re-sorteia.

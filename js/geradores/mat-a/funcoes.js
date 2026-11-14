@@ -17,8 +17,7 @@ globalThis.Manual = globalThis.Manual || {};
   const escolher = (rng, l) => l[inteiro(rng, 0, l.length - 1)];
   const fmt = AJ.fmt;
   const tex = AJ.tex;
-  const limpo = (v) => Math.round(v * 1e9) / 1e9 + 0;
-  const proximo = (a, b) => Math.abs(a - b) < 1e-9;
+  const { limpo, proximo } = AJ;
   const tentar = (construir) => AJ.tentar(construir, 'funções');
   const { fechar, fecharTexto, confere, chave } = AJ;
   const NAO_NULOS = (n) => Array.from({ length: 2 * n + 1 }, (_, i) => i - n).filter((v) => v !== 0);
@@ -159,10 +158,7 @@ globalThis.Manual = globalThis.Manual || {};
     ex.verificacao = verif;
     return fecharTexto(rng, ex, opPt(o.certo), erros.map((e) => ({ codigo: e.codigo, texto: opPt(e.P), explicacao: e.explicacao })), opPt(o.verificacao.P));
   }
-  function lerPonto(t) {
-    const m = String(t).replace(/\$/g, '').replace(/\s/g, '').match(/^\((-?\d+),(-?\d+)\)$/);
-    return m ? [Number(m[1]), Number(m[2])] : null;
-  }
+  const lerPonto = AJ.lerPonto;
   const confereVertice = (p, P) => (p.formato === 'numerica'
     ? Math.abs(p.resposta - P[p.dados.eixo]) <= p.tolerancia + 1e-9
     : (() => { const Q = lerPonto(p.opcoes[p.correta]); return !!Q && proximo(Q[0], P[0]) && proximo(Q[1], P[1]); })());

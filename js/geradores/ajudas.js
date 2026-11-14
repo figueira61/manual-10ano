@@ -5,6 +5,11 @@ Manual.geradores = Manual.geradores || {};
 Manual.geradores.ajudas = (function () {
   const arred = (v) => Math.round(v * 1e9) / 1e9 + 0;
   const igual = (a, b) => (typeof a === 'number' && typeof b === 'number' ? Math.abs(a - b) < 1e-9 : a === b);
+  // Utilitários numéricos dos geradores: limpo apaga o ruído de vírgula flutuante (e o −0), proximo compara números
+  // com tolerância 1e-9, r2 arredonda às centésimas (com um empurrão de 1e-7 para os casos a meio, p. ex. 2,675).
+  const limpo = arred;
+  const proximo = (a, b) => Math.abs(a - b) < 1e-9;
+  const r2 = (v) => Math.round(v * 100 + (v >= 0 ? 1e-7 : -1e-7)) / 100 + 0;
 
   // Número formatado para texto (vírgula decimal, menos tipográfico). Sem casas: Manual.formatar.num (até 3).
   function fmt(n, casas) {
@@ -209,6 +214,6 @@ Manual.geradores.ajudas = (function () {
 
   return {
     fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere,
-    fracao, texQ, cx, vezesTex, cadeia, divTex, SEP, texPonto, notacaoPontos, lerPonto,
+    fracao, texQ, cx, vezesTex, cadeia, divTex, SEP, texPonto, notacaoPontos, lerPonto, limpo, proximo, r2,
   };
 })();
