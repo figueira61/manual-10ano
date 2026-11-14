@@ -8,7 +8,7 @@
 
 As alterações ao esquema estão em `supabase/migracoes/`, numeradas (`0001_…sql`, `0002_…sql`). Aplicam-se por ordem, uma vez, pelo conector Supabase (`apply_migration`) ou pelo editor SQL do painel.
 
-- `0004_contexto.sql` (coluna `contexto` em `tentativas`): **por aplicar**. Aplica-se antes de publicar o cliente que envia `contexto`.
+- `0004_contexto.sql` (coluna `contexto` em `tentativas`): **aplicada em 2026-11-14**. Aplica-se antes de publicar o cliente que envia `contexto`.
 
 ## Testes de acesso (RLS)
 
