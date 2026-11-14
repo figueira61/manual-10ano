@@ -134,6 +134,49 @@ test('distâncias, normas e raios exatos (√n conferida pelos dados)', () => {
   }
 });
 
+test('pertence-reta (vf, plano): a verificação mostra sempre a substituição da abcissa', () => {
+  let comZero = 0;
+  for (const p of amostras('reta-vetorial-pertence-reta', 200).filter((q) => q.formato === 'vf' && q.dados.contexto === 'plano')) {
+    const c = p.verificacao.calculo;
+    // Ou uma conta (produto e/ou parcela) ou «x_P = … ⇒ y = …»; nunca só «−13 = y_P».
+    assert.match(c, /\\times | [+-] |^-\(|^x_P = -?\d+ \\Rightarrow y = /, c);
+    if (p.dados.P[0] === 0) {
+      comZero++;
+      assert.match(c, /^x_P = 0 \\Rightarrow y = /, c);
+      assert.match(p.verificacao.passo, /ordenada na origem/);
+    }
+  }
+  assert.ok(comZero > 0, 'nenhuma amostra com x_P = 0');
+});
+
+test('simétrico: a rotação de 90° do distrator é a do sentido positivo (anti-horário)', () => {
+  let n = 0;
+  for (const p of amostras('plano-referencial-simetrico', 80)) {
+    const e = erro(p, 'rodou_90');
+    if (!e) continue;
+    n++;
+    assert.match(e.explicacao, /rotação de \$90°\$ no sentido positivo \(anti-horário\)/);
+    if (p.formato === 'escolha') assert.deepEqual(lerPonto(p.opcoes[e.opcao]), [-p.dados.P[1], p.dados.P[0]].map((x) => x + 0));
+  }
+  assert.ok(n > 0);
+});
+
+test('norma: a verificação usa o teorema de Pitágoras (não eleva a norma ao quadrado)', () => {
+  for (const p of amostras('vetores-norma', 60)) {
+    const v = p.verificacao;
+    assert.match(v.passo, /triângulo retângulo|Pitágoras/, v.passo);
+    assert.doesNotMatch(v.passo, /elevando a norma ao quadrado/, v.passo);
+    // Sem «a ≈ b ≈ b» nem a norma arredondada ao quadrado.
+    assert.doesNotMatch(v.calculo, /\\approx [^=]*\\approx/, v.calculo);
+    assert.doesNotMatch(v.calculo, /\)\^2 = |\{,\}\d+\^2/, v.calculo);
+    const w = p.dados.contexto === 'vetor' ? p.dados.u : p.dados.u.map((x, i) => p.dados.k * x + p.dados.l * p.dados.v[i]);
+    const nz = w.filter((x) => x !== 0);
+    // Catetos: os valores absolutos das coordenadas (não nulas), sem parênteses de sinal.
+    if (nz.length === 2) for (const x of nz) assert.ok(v.calculo.includes(Math.abs(x) + '^2'), v.calculo);
+    if (nz.length === 3) assert.match(v.calculo, /d\^2 = .*d\^2 \+ /, v.calculo);
+  }
+});
+
 test('pontos e vetores exatos (ponto médio, simétrico, AB, ponto + vetor, λ)', () => {
   for (const p of amostras('plano-referencial-ponto-medio', 60).filter((q) => q.formato === 'escolha')) {
     const X = lerPonto(certa(p));

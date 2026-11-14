@@ -464,7 +464,7 @@ globalThis.Manual = globalThis.Manual || {};
         ? [
           { codigo: 'so_trocou_ordenada', P: [P[0], -P[1]], explicacao: 'Trocaste só o sinal da ordenada, ' + opPonto([P[0], -P[1]]) + ': isso é a reflexão de eixo $Ox$. Na meia-volta trocam de sinal as duas coordenadas, $P\'' + texPonto(Q) + '$.' },
           { codigo: 'so_trocou_abcissa', P: [-P[0], P[1]], explicacao: 'Trocaste só o sinal da abcissa, ' + opPonto([-P[0], P[1]]) + ': isso é a reflexão de eixo $Oy$. Na meia-volta trocam de sinal as duas coordenadas, $P\'' + texPonto(Q) + '$.' },
-          { codigo: 'rodou_90', P: pt([-P[1], P[0]]), explicacao: opPonto(pt([-P[1], P[0]])) + ' é o transformado de P pela rotação de $90°$. A meia-volta é a rotação de $180°$: $P\'' + texPonto(Q) + '$.' },
+          { codigo: 'rodou_90', P: pt([-P[1], P[0]]), explicacao: opPonto(pt([-P[1], P[0]])) + ' é o transformado de P pela rotação de $90°$ no sentido positivo (anti-horário). A meia-volta é a rotação de $180°$: $P\'' + texPonto(Q) + '$.' },
         ]
         : [
           { codigo: 'trocou_o_eixo', P: pt(TRANSFORMACOES[outro[t]].imagem(P)), explicacao: opPonto(pt(TRANSFORMACOES[outro[t]].imagem(P))) + ' é o transformado ' + TRANSFORMACOES[outro[t]].nome + '. ' + T.porque + ' Logo $P\'' + texPonto(Q) + '$.' },
@@ -1198,6 +1198,29 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ================================================================ vetores: norma
   const nv = (u) => '\\|' + u + '\\|';
+  // Verificação geométrica da norma de w (coordenadas inteiras): a norma é a hipotenusa de um triângulo retângulo
+  // cujos catetos são os valores absolutos das coordenadas (no espaço, Pitágoras em dois passos, pela diagonal d
+  // da base). As coordenadas nulas não contam. Devolve { passo, calculo, n }.
+  function pitagorasNorma(nome, w, numerica) {
+    const a = w.map(Math.abs).filter((x) => x !== 0);
+    const quad = (xs) => xs.map((x) => tex(x) + '^2').join(' + ');
+    const valores = (xs) => xs.map((x) => tex(x * x)).join(' + ');
+    const n = a.reduce((s, x) => s + x * x, 0);
+    const fim = ' \\Rightarrow ' + nv(nome) + ' = ' + raizCadeia(n, numerica);
+    if (a.length === 2) {
+      return {
+        passo: 'Confirmar com o triângulo retângulo de catetos $' + tex(a[0]) + '$ e $' + tex(a[1]) + '$ (os valores absolutos das coordenadas): a norma é a hipotenusa',
+        calculo: nv(nome) + '^2 = ' + quad(a) + ' = ' + valores(a) + ' = ' + tex(n) + fim,
+        n,
+      };
+    }
+    const d = a[0] * a[0] + a[1] * a[1];
+    return {
+      passo: 'Confirmar com o teorema de Pitágoras em dois passos: a diagonal $d$ do retângulo de lados $' + tex(a[0]) + '$ e $' + tex(a[1]) + '$, depois o triângulo retângulo de catetos $d$ e $' + tex(a[2]) + '$',
+      calculo: 'd^2 = ' + quad(a.slice(0, 2)) + ' = ' + tex(d) + ',\\quad ' + nv(nome) + '^2 = d^2 + ' + tex(a[2]) + '^2 = ' + tex(d) + ' + ' + tex(a[2] * a[2]) + ' = ' + tex(n) + fim,
+      n,
+    };
+  }
   function norma(rng, formato, contexto) {
     const numerica = formato === 'numerica';
     const fim = (k) => '$' + raizCadeia(k, numerica) + '$';
@@ -1221,12 +1244,7 @@ globalThis.Manual = globalThis.Manual || {};
       ];
       const enunciado = 'Considera o vetor $\\vec{u} = ' + texPonto(u) + '$. Qual é a norma de $\\vec{u}$?';
       const resolucao = [{ passo: 'Aplicar a fórmula da norma', porque: 'A norma é a raiz quadrada da soma dos quadrados das coordenadas.', calculo: nv('\\vec{u}') + ' = ' + cadeia('\\sqrt{' + somaQuad(u) + '}', '\\sqrt{' + u.map((v) => tex(v * v)).join(' + ') + '}', raizCadeia(n, numerica)) }];
-      const aprox = numerica && !quadrado(n);
-      const verificacao = {
-        passo: 'Confirmar elevando a norma ao quadrado: tem de dar a soma dos quadrados das coordenadas',
-        calculo: aprox ? tex(r2(Math.sqrt(n)), 2) + '^2 \\approx ' + tex(Math.pow(r2(Math.sqrt(n)), 2), 2) + ' \\approx ' + tex(n) + ' = ' + somaQuad(u) : (quadrado(n) ? raizTex(n) : '(' + raizTex(n) + ')') + '^2 = ' + tex(n) + ' = ' + somaQuad(u),
-        n,
-      };
+      const verificacao = pitagorasNorma('\\vec{u}', u, numerica);
       const ex = { enunciado, resolucao, dados: { contexto, u, pontos: {} }, esquema: undefined };
       return fecharMedida(rng, formato, ex, { n, erros: baralhar(rng, erros.filter(Boolean)), verificacao });
     }
@@ -1259,12 +1277,11 @@ globalThis.Manual = globalThis.Manual || {};
       { passo: 'Calcular a norma', porque: 'A norma é a raiz quadrada da soma dos quadrados das coordenadas.', calculo: nv(expr) + ' = ' + cadeia('\\sqrt{' + somaQuad(w) + '}', '\\sqrt{' + w.map((x) => tex(x * x)).join(' + ') + '}', raizCadeia(n, numerica)) },
     ];
     const wInd = u.map((x, i) => k * x + l * v[i]);
-    const aprox = numerica && !quadrado(n);
+    const pit = pitagorasNorma(expr, wInd, numerica);
     const verificacao = {
-      passo: 'Confirmar calculando cada coordenada de $' + expr + '$ numa só conta e elevando a norma ao quadrado',
-      calculo: expr + ' = (' + u.map((x, i) => combTex([[k, x], [l, v[i]]])).join(SEP) + ') = ' + texPonto(wInd) + ',\\quad ' +
-        (aprox ? tex(r2(Math.sqrt(n)), 2) + '^2 \\approx ' + tex(Math.pow(r2(Math.sqrt(n)), 2), 2) + ' \\approx ' + tex(n) : (quadrado(n) ? raizTex(n) : '(' + raizTex(n) + ')') + '^2 = ' + tex(n)) + ' = ' + somaQuad(wInd),
-      n: soma2(wInd),
+      passo: 'Confirmar calculando cada coordenada de $' + expr + '$ numa só conta; depois, a norma é a hipotenusa do triângulo retângulo de catetos $' + tex(Math.abs(wInd[0])) + '$ e $' + tex(Math.abs(wInd[1])) + '$',
+      calculo: expr + ' = (' + u.map((x, i) => combTex([[k, x], [l, v[i]]])).join(SEP) + ') = ' + texPonto(wInd) + ',\\quad ' + pit.calculo,
+      n: pit.n,
     };
     const ex = {
       enunciado, resolucao, dados: { contexto, u, v, k, l, pontos: {} },
@@ -1476,8 +1493,12 @@ globalThis.Manual = globalThis.Manual || {};
         const b = limpo(A[1] - A[0] * u[1] / u[0]);
         const y = limpo(A[1] + (P[0] - A[0]) * u[1] / u[0]);
         verificacao = {
-          passo: 'Confirmar com a equação reduzida de $r$: declive $m = \\dfrac{u_2}{u_1} = ' + divTex(u[1], u[0]) + '$ e $y = ' + polTex([[m, 'x'], [b, '']]) + '$ (passa por $A' + texPonto(A) + '$), substituindo a abcissa de $P$',
-          calculo: cadeia(P[0] === 0 ? texQ(b) : vezesTex(m, m === 1 ? texQ(P[0]) : parQ(P[0])) + maisQ(b), texQ(y)) + (proximo(y, P[1]) ? ' = y_P' : ' \\neq ' + tex(P[1]) + ' = y_P'),
+          passo: 'Confirmar com a equação reduzida de $r$: declive $m = \\dfrac{u_2}{u_1} = ' + divTex(u[1], u[0]) + '$ e $y = ' + polTex([[m, 'x'], [b, '']]) + '$ (passa por $A' + texPonto(A) + '$), substituindo a abcissa de $P$' +
+            (P[0] === 0 ? ': com $x = 0$ a parcela $' + cx(m, 'x') + '$ anula-se e fica $y = b$, a ordenada na origem' : ''),
+          // Substituição explícita; quando não há conta a mostrar (x_P = 0, ou y = x), diz-se o valor de x usado.
+          calculo: (P[0] === 0 || vezesTex(m, m === 1 ? texQ(P[0]) : parQ(P[0])) + maisQ(b) === texQ(y)
+            ? 'x_P = ' + tex(P[0]) + ' \\Rightarrow y = ' + texQ(y)
+            : vezesTex(m, m === 1 ? texQ(P[0]) : parQ(P[0])) + maisQ(b) + ' = ' + texQ(y)) + (proximo(y, P[1]) ? ' = y_P' : ' \\neq ' + tex(P[1]) + ' = y_P'),
           valor: proximo(y, P[1]),
         };
       } else {
