@@ -71,11 +71,13 @@ globalThis.Manual = globalThis.Manual || {};
   const par = (v) => (v < 0 ? '(' + tex(v) + ')' : tex(v));
   const somaTex = (vs) => vs.map((v, i) => (i === 0 ? tex(v) : (v < 0 ? ' - ' + tex(-v) : ' + ' + tex(v)))).join('');
   // Notação de pontos (uma só por item) e leitura de opções: Manual.geradores.ajudas.
-  const { texPonto, notacaoPontos, lerPonto } = AJ;
+  const { texPonto, notacaoPontos, lerPonto, SEP } = AJ;
   const opPonto = (P) => '$' + texPonto(P) + '$';
   const nomeado = (n, P) => '$' + n + texPonto(P) + '$';
   const listaVertices = (vs) => nomeado('A', vs[0]) + ', ' + nomeado('B', vs[1]) + ' e ' + nomeado('C', vs[2]);
-  const medioTex = (P, Q) => '\\left(\\dfrac{' + somaTex([P[0], Q[0]]) + '}{2}, \\dfrac{' + somaTex([P[1], Q[1]]) + '}{2}\\right) = ' + texPonto(medio(P, Q));
+  // Coordenadas como frações (média de pontos), com o separador provisório: a notação é a do item.
+  const mediaTex = (vs, d) => '\\left(' + [0, 1].map((i) => '\\dfrac{' + somaTex(vs.map((P) => P[i])) + '}{' + d + '}').join(SEP) + '\\right)';
+  const medioTex = (P, Q) => mediaTex([P, Q], 2) + ' = ' + texPonto(medio(P, Q));
   function dist2Tex(nome, P, Q) {
     const w = menos(Q, P);
     return '\\overline{' + nome + '}^2 = ' + par(w[0]) + '^2 + ' + par(w[1]) + '^2 = ' + tex(d2(P, Q));
@@ -548,7 +550,7 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado = 'Considera o triângulo de vértices ' + listaVertices(vs) + '. ' + pedido(formato, eixo, 'do baricentro $G$ deste triângulo');
           resolucao = [
             { passo: 'Lembrar onde fica o baricentro', porque: 'O baricentro é o ponto de encontro das medianas; em coordenadas, é a média dos três vértices.' },
-            { passo: 'Calcular a média das coordenadas', porque: 'Somam-se as abcissas (e as ordenadas) dos três vértices e divide-se por 3.', calculo: 'G = \\left(\\dfrac{' + somaTex(vs.map((P) => P[0])) + '}{3}, \\dfrac{' + somaTex(vs.map((P) => P[1])) + '}{3}\\right) = ' + texPonto(Gb) },
+            { passo: 'Calcular a média das coordenadas', porque: 'Somam-se as abcissas (e as ordenadas) dos três vértices e divide-se por 3.', calculo: 'G = ' + mediaTex(vs, 3) + ' = ' + texPonto(Gb) },
           ];
           erros = [
             { codigo: 'nao_dividiu_por_3', P: S, explicacao: 'Somaste as coordenadas dos três vértices, ' + opPonto(S) + ', mas não dividiste por 3. O baricentro é a média dos vértices, ' + nomeado('G', Gb) + '.' },
