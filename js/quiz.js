@@ -105,17 +105,22 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
   return t;
 };
 
+// "passo — porquê" de um passo da resolução detalhada (sem o cálculo). O porquê passa por R.texto, por isso o $…$ compõe-se com KaTeX.
+function linhaPasso(R, p) {
+  const linha = R.criar('p', 'passo-texto');
+  linha.appendChild(R.criar('strong', '', ''));
+  R.texto(linha.lastChild, p.passo);
+  if (p.porque) R.texto(linha, ' — ' + p.porque);
+  return linha;
+}
+
 // Resolução detalhada de um exercício gerado: cada passo "passo — porquê" e, por baixo, o cálculo
 // (bloco: true → matemática de bloco). O cálculo fica numa caixa com scroll horizontal próprio.
 function resolucaoDetalhada(R, pai, lista) {
   const ol = R.criar('ol', 'passos');
   lista.forEach(function (p) {
     const li = document.createElement('li');
-    const linha = R.criar('p', 'passo-texto');
-    linha.appendChild(R.criar('strong', '', ''));
-    R.texto(linha.lastChild, p.passo);
-    if (p.porque) R.texto(linha, ' — ' + p.porque);
-    li.appendChild(linha);
+    li.appendChild(linhaPasso(R, p));
     if (p.calculo) {
       const calc = R.criar('div', 'passo-calculo');
       R.texto(calc, p.bloco ? '$$' + p.calculo + '$$' : '$' + p.calculo + '$');
@@ -141,18 +146,94 @@ function verificacao(R, pai, v) {
   pai.appendChild(caixa);
 }
 
-// Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total) no fim.
+function passosDe(pergunta) {
+  return Array.isArray(pergunta.resolucaoDetalhada) && pergunta.resolucaoDetalhada.length
+    ? pergunta.resolucaoDetalhada : null;
+}
+
+// O feedback de uma pergunta corrigida: veredicto, resposta correta, erro típico, resolução, verificação,
+// esquema e ligação "Rever no manual". Usado no quiz (depois de Verificar) e na revisão do teste.
+// r: resultado de Manual.quiz.corrigir. registarEsquema(montagem) guarda o que é preciso destruir.
+function construirFeedback(R, feedback, pergunta, r, o, registarEsquema) {
+  feedback.className = 'feedback ' + (r.certa ? 'certo' : 'errado');
+  feedback.appendChild(R.criar('p', 'veredicto', r.certa ? '✔ Certo!' : '✘ Errado.'));
+  const correta = R.criar('p', 'resposta-correta');
+  correta.appendChild(document.createTextNode('Resposta correta: '));
+  const valor = document.createElement('span');
+  R.texto(valor, r.respostaCorreta);
+  correta.appendChild(valor);
+  feedback.appendChild(correta);
+  if (r.erroTipico) {
+    const bloco = R.criar('div', 'erro-tipico');
+    bloco.appendChild(R.criar('p', 'feedback-titulo', 'O que provavelmente aconteceu'));
+    R.paragrafo(bloco, r.erroTipico.explicacao, 'explicacao');
+    feedback.appendChild(bloco);
+  }
+  const detalhada = passosDe(pergunta);
+  if (detalhada) {
+    feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
+    resolucaoDetalhada(R, feedback, detalhada);
+    verificacao(R, feedback, pergunta.verificacao);
+  } else if (r.resolucao.length) {
+    feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
+    R.passos(feedback, r.resolucao);
+  }
+  if (r.explicacao) R.paragrafo(feedback, r.explicacao, 'explicacao');
+  // O esquema só aparece depois de verificar: pode mostrar a resposta.
+  if (pergunta.esquema && pergunta.esquema.id && typeof o.montarEsquema === 'function') {
+    try {
+      registarEsquema(o.montarEsquema(feedback, pergunta.esquema));
+    } catch (erro) {
+      // sem esquema
+    }
+  }
+  if (typeof o.ligacaoRever === 'function') {
+    let href = null;
+    try {
+      href = o.ligacaoRever(pergunta);
+    } catch (erro) {
+      // sem ligação
+    }
+    if (href) {
+      const a = R.criar('a', 'ligacao-rever', 'Rever no manual');
+      a.href = href;
+      feedback.appendChild(a);
+    }
+  }
+}
+
+function doisAlgarismos(n) {
+  return (n < 10 ? '0' : '') + n;
+}
+
+// Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total, respostas) no fim.
 // perguntas: lista ou função que devolve a lista (chamada de novo em cada "Repetir").
-// opcoes.montarEsquema(pai, esquema) -> { destruir }: mostra o esquema do exercício no feedback.
+// opcoes (todas opcionais; sem elas o comportamento é o do mini-quiz):
+//   montarEsquema(pai, esquema) -> { destruir }: mostra o esquema do exercício no feedback.
+//   modo: 'quiz' (por omissão), 'treino' ou 'teste' (sem feedback até ao fim; revisão no fim).
+//   nivel(pergunta) -> 0|1|2 (treino): 1 = pista, 0 = por passos, 2 (ou outro valor) = sem ajuda.
+//   cronometro: boolean (teste): mm:ss a contar.
+//   ligacaoRever(pergunta) -> href|null: "Rever no manual" no feedback (treino) e na revisão (teste).
+//   fim(cartao, certas, total, respostas): substitui o conteúdo do cartão final (sem "Repetir").
 Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoes) {
   const R = Manual.render;
   const o = opcoes || {};
+  const modo = MODOS.indexOf(o.modo) >= 0 ? o.modo : 'quiz';
+  const teste = modo === 'teste';
+  const treino = modo === 'treino';
   const obter = typeof perguntasOuFn === 'function' ? perguntasOuFn : function () { return perguntasOuFn; };
   let perguntas = obter();
   let indice = 0;
   let certas = 0;
   let inicio = Date.now();
   let esquemas = [];
+  let respostas = [];
+  let intervalo = null;
+  let cronometroEl = null;
+
+  function registarEsquema(m) {
+    esquemas.push(m);
+  }
 
   function destruirEsquemas() {
     esquemas.forEach(function (m) {
@@ -165,12 +246,53 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     esquemas = [];
   }
 
+  function pararCronometro() {
+    if (intervalo !== null) {
+      clearInterval(intervalo);
+      intervalo = null;
+    }
+  }
+
+  function iniciarCronometro() {
+    pararCronometro();
+    if (!(teste && o.cronometro)) return;
+    const t0 = Date.now();
+    if (!cronometroEl) {
+      cronometroEl = R.criar('p', 'cronometro', '00:00');
+      cronometroEl.setAttribute('role', 'timer');
+      cronometroEl.setAttribute('aria-live', 'off');
+    }
+    const atualizar = function () {
+      const s = Math.max(0, Math.floor((Date.now() - t0) / 1000));
+      cronometroEl.textContent = doisAlgarismos(Math.floor(s / 60)) + ':' + doisAlgarismos(s % 60);
+    };
+    atualizar();
+    intervalo = setInterval(atualizar, 1000);
+  }
+
+  function destruir() {
+    destruirEsquemas();
+    pararCronometro();
+  }
+
+  // Nível de ajuda pedido para a pergunta (só no treino): 0, 1 ou 2 (por omissão e para qualquer outro valor).
+  function nivelDe(pergunta) {
+    if (!treino || typeof o.nivel !== 'function') return 2;
+    try {
+      const n = o.nivel(pergunta);
+      return n === 0 || n === 1 ? n : 2;
+    } catch (erro) {
+      return 2;
+    }
+  }
+
   function novaPergunta(focar) {
     destruirEsquemas();
     el.textContent = '';
     const pergunta = perguntas[indice];
     const cartao = R.criar('div', 'pergunta');
     inicio = Date.now();
+    if (cronometroEl && intervalo !== null) cartao.appendChild(cronometroEl);
     const numero = R.criar('p', 'pergunta-n', 'Pergunta ' + (indice + 1) + ' de ' + perguntas.length);
     numero.tabIndex = -1;
     cartao.appendChild(numero);
@@ -210,6 +332,45 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     }
     cartao.appendChild(grupo);
 
+    // Ajuda do treino (só com resolução detalhada): nível 1 = pista, nível 0 = passos um a um.
+    const nivel = nivelDe(pergunta);
+    const passosAjuda = treino ? passosDe(pergunta) : null;
+    let usouPista = false;
+    let viuPassos = false;
+    const botoesAjuda = [];
+    if (passosAjuda && nivel === 1) {
+      const caixa = R.criar('div', 'ajuda');
+      const pista = R.criar('button', 'botao', 'Dá-me uma pista');
+      pista.type = 'button';
+      pista.onclick = function () {
+        const texto = R.criar('div', 'pista');
+        texto.appendChild(linhaPasso(R, passosAjuda[0]));
+        caixa.appendChild(texto);
+        pista.disabled = true;
+        usouPista = true;
+      };
+      caixa.appendChild(pista);
+      botoesAjuda.push(pista);
+      cartao.appendChild(caixa);
+    } else if (passosAjuda && nivel === 0) {
+      const caixa = R.criar('div', 'ajuda ajuda-passos');
+      caixa.appendChild(R.criar('p', 'feedback-titulo', 'Vamos por passos'));
+      const ol = R.criar('ol', 'passos');
+      caixa.appendChild(ol);
+      const proximo = R.criar('button', 'botao', 'Próximo passo');
+      proximo.type = 'button';
+      proximo.onclick = function () {
+        const li = document.createElement('li');
+        li.appendChild(linhaPasso(R, passosAjuda[ol.children.length]));
+        ol.appendChild(li);
+        viuPassos = true;
+        if (ol.children.length >= passosAjuda.length) proximo.disabled = true;
+      };
+      caixa.appendChild(proximo);
+      botoesAjuda.push(proximo);
+      cartao.appendChild(caixa);
+    }
+
     const mensagem = R.criar('p', 'aviso-erro');
     mensagem.setAttribute('role', 'alert');
     mensagem.hidden = true;
@@ -231,7 +392,8 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     }
 
     function verificar() {
-      const r = Manual.quiz.corrigir(pergunta, lerResposta());
+      const resposta = lerResposta();
+      const r = Manual.quiz.corrigir(pergunta, resposta);
       if (!r.valida) {
         mensagem.textContent = campo ? 'Escreve um número' : 'Escolhe uma opção';
         mensagem.hidden = false;
@@ -239,6 +401,12 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       }
       mensagem.hidden = true;
       if (r.certa) certas += 1;
+      respostas[indice] = {
+        pergunta: pergunta,
+        resposta: resposta,
+        resultado: r.certa ? 'certa' : 'errada',
+        erroTipico: r.erroTipico,
+      };
       if (typeof aoResponder === 'function') {
         try {
           aoResponder({
@@ -247,6 +415,9 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
             resultado: r.certa ? 'certa' : 'errada',
             duracaoMs: Date.now() - inicio,
             erroTipico: r.erroTipico,
+            nivel: nivel,
+            usouPista: usouPista,
+            viuPassos: viuPassos,
           });
         } catch (e) {
           // o registo nunca impede o estudo
@@ -254,39 +425,13 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       }
       opcoes.forEach(function (o) { o.radio.disabled = true; });
       if (campo) campo.disabled = true;
+      botoesAjuda.forEach(function (b) { b.disabled = true; });
 
-      feedback.className = 'feedback ' + (r.certa ? 'certo' : 'errado');
-      feedback.appendChild(R.criar('p', 'veredicto', r.certa ? '✔ Certo!' : '✘ Errado.'));
-      const correta = R.criar('p', 'resposta-correta');
-      correta.appendChild(document.createTextNode('Resposta correta: '));
-      const valor = document.createElement('span');
-      R.texto(valor, r.respostaCorreta);
-      correta.appendChild(valor);
-      feedback.appendChild(correta);
-      if (r.erroTipico) {
-        const bloco = R.criar('div', 'erro-tipico');
-        bloco.appendChild(R.criar('p', 'feedback-titulo', 'O que provavelmente aconteceu'));
-        R.paragrafo(bloco, r.erroTipico.explicacao, 'explicacao');
-        feedback.appendChild(bloco);
-      }
-      const detalhada = Array.isArray(pergunta.resolucaoDetalhada) && pergunta.resolucaoDetalhada.length
-        ? pergunta.resolucaoDetalhada : null;
-      if (detalhada) {
-        feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
-        resolucaoDetalhada(R, feedback, detalhada);
-        verificacao(R, feedback, pergunta.verificacao);
-      } else if (r.resolucao.length) {
-        feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
-        R.passos(feedback, r.resolucao);
-      }
-      if (r.explicacao) R.paragrafo(feedback, r.explicacao, 'explicacao');
-      // O esquema só aparece depois de verificar: pode mostrar a resposta.
-      if (pergunta.esquema && pergunta.esquema.id && typeof o.montarEsquema === 'function') {
-        try {
-          esquemas.push(o.montarEsquema(feedback, pergunta.esquema));
-        } catch (erro) {
-          // sem esquema
-        }
+      if (teste) {
+        // Sem veredicto, resolução nem esquema: só se vê no ecrã de revisão.
+        feedback.appendChild(R.criar('p', 'registada', 'Resposta registada.'));
+      } else {
+        construirFeedback(R, feedback, pergunta, r, o, registarEsquema);
       }
 
       const ultima = indice === perguntas.length - 1;
@@ -306,25 +451,54 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     }
   }
 
+  // Ecrã de revisão do teste: por pergunta, o mesmo feedback que o quiz mostra depois de Verificar.
+  function revisao() {
+    const caixa = R.criar('div', 'revisao');
+    caixa.appendChild(R.criar('h3', 'revisao-titulo', 'Revisão'));
+    respostas.forEach(function (x, i) {
+      const item = R.criar('div', 'revisao-item');
+      item.appendChild(R.criar('p', 'pergunta-n', 'Pergunta ' + (i + 1) + ' de ' + respostas.length));
+      R.paragrafo(item, x.pergunta.enunciado, 'enunciado');
+      const feedback = R.criar('div', 'feedback');
+      const r = Manual.quiz.corrigir(x.pergunta, x.resposta);
+      construirFeedback(R, feedback, x.pergunta, r, o, registarEsquema);
+      item.appendChild(feedback);
+      caixa.appendChild(item);
+    });
+    return caixa;
+  }
+
   function fim() {
+    pararCronometro();
     destruirEsquemas();
     el.textContent = '';
     const cartao = R.criar('div', 'pergunta resultado');
-    cartao.appendChild(R.criar('p', 'pontuacao', 'Acertaste ' + certas + ' de ' + perguntas.length + '.'));
-    const repetir = R.criar('button', 'botao botao-principal', 'Repetir');
-    repetir.type = 'button';
-    repetir.addEventListener('click', function () {
-      perguntas = obter();
-      indice = 0;
-      certas = 0;
-      novaPergunta(true);
-    });
-    cartao.appendChild(repetir);
-    el.appendChild(cartao);
-    repetir.focus();
-    if (typeof aoTerminar === 'function') aoTerminar(certas, perguntas.length);
+    if (typeof o.fim === 'function') {
+      o.fim(cartao, certas, perguntas.length, respostas);
+      cartao.tabIndex = -1;
+      el.appendChild(cartao);
+      cartao.focus();
+    } else {
+      cartao.appendChild(R.criar('p', 'pontuacao', 'Acertaste ' + certas + ' de ' + perguntas.length + '.'));
+      const repetir = R.criar('button', 'botao botao-principal', 'Repetir');
+      repetir.type = 'button';
+      repetir.addEventListener('click', function () {
+        perguntas = obter();
+        indice = 0;
+        certas = 0;
+        respostas = [];
+        iniciarCronometro();
+        novaPergunta(true);
+      });
+      cartao.appendChild(repetir);
+      el.appendChild(cartao);
+      repetir.focus();
+    }
+    if (teste) el.appendChild(revisao());
+    if (typeof aoTerminar === 'function') aoTerminar(certas, perguntas.length, respostas);
   }
 
+  iniciarCronometro();
   novaPergunta();
-  return { destruir: destruirEsquemas };
+  return { destruir: destruir };
 };
