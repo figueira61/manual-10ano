@@ -48,3 +48,43 @@ test('teste: configuração, começa e mostra a pergunta', () => {
   assert.ok(principal.querySelector('.pergunta'));
   v.destruir();
 });
+
+test('treino: a sugestão refaz-se quando o motor muda, mantém as caixas marcadas e destruir desliga', () => {
+  let estados = {};
+  let ouvinte = null;
+  let desligou = 0;
+  Manual.motor = {
+    historico: () => [],
+    estadoDe: (k) => estados[k] || null,
+    aoMudar: (fn) => { ouvinte = fn; return () => { desligou += 1; ouvinte = null; }; },
+  };
+  const principal = document.createElement('main');
+  const v = Manual.vistasEstudo.treino(principal, {});
+  const sugestao = () => principal.querySelectorAll('section').find((c) => /Sugestão de hoje/.test(c.textContent)).querySelectorAll('li').map((li) => li.textContent);
+  const antes = sugestao();
+  assert.ok(antes.length > 0);
+  const caixa = principal.querySelectorAll('input').find((i) => i.type === 'checkbox');
+  caixa.checked = true;
+  assert.equal(typeof ouvinte, 'function');
+  const ultima = 'mat-a/funcoes/afim';
+  estados = { [ultima]: { estado: 'dificuldade', proxima_revisao: '2000-01-01' } };
+  ouvinte({});
+  const depois = sugestao();
+  assert.notDeepEqual(depois, antes);
+  assert.ok(depois.length > 0);
+  assert.equal(principal.querySelectorAll('input').find((i) => i.type === 'checkbox').checked, true, 'a escolha livre mantém-se');
+  assert.equal(desligou, 0);
+  v.destruir();
+  assert.equal(desligou, 1);
+});
+
+test('treino: começar a sessão desliga a subscrição do motor', () => {
+  let desligou = 0;
+  Manual.motor = { historico: () => [], estadoDe: () => null, aoMudar: () => () => { desligou += 1; } };
+  const principal = document.createElement('main');
+  const v = Manual.vistasEstudo.treino(principal, {});
+  principal.querySelectorAll('button').find((b) => b.textContent === 'Começar').click();
+  assert.equal(desligou, 1);
+  v.destruir();
+  assert.equal(desligou, 1);
+});

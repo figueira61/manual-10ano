@@ -84,6 +84,17 @@ test('encarregado: erro de leitura mostra a mensagem e não lança', async () =>
   v.destruir();
 });
 
+test('encarregado: falha em ligacoes() tem mensagem própria', async () => {
+  stubConta({ estado: ENC });
+  Manual.conta.ligacoes = () => Promise.reject(new Error('x'));
+  const principal = document.createElement('main');
+  const v = Manual.vistasProgresso.encarregado(principal);
+  await esperar(); await esperar(); await esperar();
+  assert.match(principal.textContent, /Não foi possível ler as tuas ligações\. Tenta outra vez mais tarde\./);
+  assert.doesNotMatch(principal.textContent, /desta educanda/);
+  v.destruir();
+});
+
 test('encarregado: papel diferente vê o aviso e a ligação para entrar', () => {
   stubConta({ estado: { autenticado: true, papel: 'aluna' } });
   const principal = document.createElement('main');

@@ -340,13 +340,16 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     const botoesAjuda = [];
     if (passosAjuda && nivel === 1) {
       const caixa = R.criar('div', 'ajuda');
+      caixa.setAttribute('aria-live', 'polite');
       const pista = R.criar('button', 'botao', 'Dá-me uma pista');
       pista.type = 'button';
       pista.onclick = function () {
         const texto = R.criar('div', 'pista');
+        texto.tabIndex = -1;
         texto.appendChild(linhaPasso(R, passosAjuda[0]));
         caixa.appendChild(texto);
         pista.disabled = true;
+        texto.focus();
         usouPista = true;
       };
       caixa.appendChild(pista);
@@ -354,6 +357,7 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       cartao.appendChild(caixa);
     } else if (passosAjuda && nivel === 0) {
       const caixa = R.criar('div', 'ajuda ajuda-passos');
+      caixa.setAttribute('aria-live', 'polite');
       caixa.appendChild(R.criar('p', 'feedback-titulo', 'Vamos por passos'));
       const ol = R.criar('ol', 'passos');
       caixa.appendChild(ol);
@@ -361,10 +365,12 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       proximo.type = 'button';
       proximo.onclick = function () {
         const li = document.createElement('li');
+        li.tabIndex = -1;
         li.appendChild(linhaPasso(R, passosAjuda[ol.children.length]));
         ol.appendChild(li);
         viuPassos = true;
         if (ol.children.length >= passosAjuda.length) proximo.disabled = true;
+        li.focus();
       };
       caixa.appendChild(proximo);
       botoesAjuda.push(proximo);

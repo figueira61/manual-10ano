@@ -387,7 +387,8 @@ globalThis.Manual = globalThis.Manual || {};
         progresso.registarQuiz(chave, certas, total);
         // O cartão final acaba de ser desenhado por quiz.js (e é refeito a cada "Repetir").
         const cartaoFinal = areaQuiz.querySelector ? areaQuiz.querySelector('.resultado') : null;
-        if (cartaoFinal) {
+        const temGeradores = !!(Manual.geradores && Manual.geradores.doSubtema(disciplinaId, subtema.id).length > 0);
+        if (cartaoFinal && temGeradores) {
           const treinar = criar('a', 'botao', 'Treinar este subtema');
           treinar.href = Manual.router.caminho({ vista: 'treino', subtema: chave });
           cartaoFinal.appendChild(treinar);

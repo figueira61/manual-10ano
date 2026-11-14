@@ -144,7 +144,17 @@ globalThis.Manual = globalThis.Manual || {};
     const corpo = criar('div');
     principal.appendChild(corpo);
 
+    let desligarMotor = null;
+
+    function desligar() {
+      if (typeof desligarMotor === 'function') {
+        try { desligarMotor(); } catch (erro) { /* ignora */ }
+      }
+      desligarMotor = null;
+    }
+
     function parar() {
+      desligar();
       if (quiz && typeof quiz.destruir === 'function') {
         try { quiz.destruir(); } catch (erro) { /* ignora */ }
       }
@@ -222,25 +232,38 @@ globalThis.Manual = globalThis.Manual || {};
     function escolher() {
       parar();
       corpo.textContent = '';
-      const chaves = todasAsChaves();
-
-      const sug = Manual.treino.sugestao(
-        chaves.map(function (k) {
-          const e = estadoDe(k);
-          return { chave: k, estado: e ? e.estado : null, proxima_revisao: e ? e.proxima_revisao : null };
-        }),
-        Manual.indice, new Date());
-      const c1 = cartao(corpo, 'Sugestão de hoje');
-      if (sug.length) {
-        const ul = criar('ul', 'lista-resumo');
-        sug.forEach(function (k) { ul.appendChild(criar('li', '', tituloSubtema(k))); });
-        c1.appendChild(ul);
-        c1.appendChild(criar('p', 'meta', '~10 min'));
-        const ir = botao('Começar', 'botao-principal');
-        ir.addEventListener('click', function () { comecar(sug); });
-        c1.appendChild(ir);
-      } else {
-        c1.appendChild(criar('p', '', 'Ainda não há exercícios para sugerir.'));
+      const c1 = cartao(corpo);
+      function sugestaoAgora() {
+        return Manual.treino.sugestao(
+          todasAsChaves().map(function (k) {
+            const e = estadoDe(k);
+            return { chave: k, estado: e ? e.estado : null, proxima_revisao: e ? e.proxima_revisao : null };
+          }),
+          Manual.indice, new Date());
+      }
+      function desenharSugestao() {
+        c1.textContent = '';
+        c1.appendChild(criar('h2', '', 'Sugestão de hoje'));
+        const sug = sugestaoAgora();
+        if (sug.length) {
+          const ul = criar('ul', 'lista-resumo');
+          sug.forEach(function (k) { ul.appendChild(criar('li', '', tituloSubtema(k))); });
+          c1.appendChild(ul);
+          c1.appendChild(criar('p', 'meta', '~10 min'));
+          const ir = botao('Começar', 'botao-principal');
+          ir.addEventListener('click', function () {
+            const agora = sugestaoAgora(); // lê o histórico e os estados neste momento
+            comecar(agora.length ? agora : sug);
+          });
+          c1.appendChild(ir);
+        } else {
+          c1.appendChild(criar('p', '', 'Ainda não há exercícios para sugerir.'));
+        }
+      }
+      desenharSugestao();
+      // O motor pode acabar de carregar depois de a vista abrir: refaz a sugestão, sem tocar na escolha livre.
+      if (Manual.motor && typeof Manual.motor.aoMudar === 'function') {
+        desligarMotor = Manual.motor.aoMudar(function () { if (vivo && desligarMotor) desenharSugestao(); });
       }
 
       const c2 = cartao(corpo, 'Escolha livre');

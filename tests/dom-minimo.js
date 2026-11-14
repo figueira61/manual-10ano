@@ -69,7 +69,10 @@ class Elemento extends No {
   }
 
   click() { if (!this.disabled) this.dispatch('click'); }
-  focus() { this.focado = true; }
+  focus() {
+    this.focado = true;
+    if (globalThis.document) globalThis.document.activeElement = this;
+  }
 
   // Seletores simples: ".classe", "etiqueta" ou "etiqueta.classe".
   corresponde(sel) {

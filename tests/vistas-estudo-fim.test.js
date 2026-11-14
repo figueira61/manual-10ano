@@ -168,6 +168,22 @@ test('mini-quiz: "Treinar este subtema" no cartão final, uma só vez mesmo depo
   assert.equal(ligacoes().length, 1);
 });
 
+test('mini-quiz: sem geradores no subtema não há "Treinar este subtema"', () => {
+  Manual.indice.length = 0;
+  Manual.indice.push({ id: 'mat-a', nome: 'Matemática A', disponivel: true, temas: [{ id: 'funcoes', titulo: 'Funções', subtemas: [{ id: 'sem-geradores', titulo: 'X' }] }] });
+  Manual.obterTema = () => ({ titulo: 'Funções' });
+  Manual.miniquiz = undefined;
+  const subtema = {
+    id: 'sem-geradores', titulo: 'X', minutos: 5, essencial: [], resumo: [],
+    quiz: [{ tipo: 'vf', enunciado: 'Verdade?', resposta: true, explicacao: 'sim' }],
+  };
+  const el = document.createElement('div');
+  Manual.render.subtema(el, 'mat-a', 'funcoes', subtema, { registarQuiz() {}, marcarLido() {} });
+  jogar(el.querySelector('.quiz'), () => true);
+  assert.ok(el.querySelector('.resultado'));
+  assert.equal(el.querySelectorAll('.resultado a').filter((a) => a.textContent === 'Treinar este subtema').length, 0);
+});
+
 test('menu da conta por papel', () => {
   let ouvinte = null;
   let est = { autenticado: false, papel: null, perfil: null };

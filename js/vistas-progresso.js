@@ -10,6 +10,8 @@ globalThis.Manual = globalThis.Manual || {};
   const V = Manual.vistasConta; // cabecalho, cartao, ligacao e os blocos de conta (não se duplicam aqui)
 
   const MS_DIA = 24 * 60 * 60 * 1000;
+  const MENSAGEM_LIGACOES = 'Não foi possível ler as tuas ligações. Tenta outra vez mais tarde.';
+  const FALHA_LIGACOES = {};
   const MENSAGEM_LEITURA = 'Não foi possível ler os dados desta educanda.';
 
   // ---------- datas ----------
@@ -296,8 +298,18 @@ globalThis.Manual = globalThis.Manual || {};
         return;
       }
       Promise.resolve()
-        .then(function () { return Manual.conta.ligacoes(); })
+        .then(function () {
+          return Promise.resolve(Manual.conta.ligacoes()).catch(function () { return FALHA_LIGACOES; });
+        })
         .then(function (linhas) {
+          if (linhas === FALHA_LIGACOES) {
+            if (!vivo || minha !== geracao) return;
+            corpo.textContent = '';
+            const p = criar('p', 'aviso-form aviso-erro', MENSAGEM_LIGACOES);
+            p.setAttribute('role', 'status');
+            corpo.appendChild(p);
+            return;
+          }
           if (!vivo || minha !== geracao) return;
           corpo.textContent = '';
           const ls = Array.isArray(linhas) ? linhas : [];

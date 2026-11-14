@@ -232,6 +232,9 @@ test('treino nível 1: botão de pista mostra o 1.º passo sem cálculo, desativ
   assert.equal(caixa.querySelector('.passo-calculo'), null);
   assert.ok(caixa.querySelector('.math'), 'o porquê continua a ser composto com KaTeX');
   assert.equal(pista.disabled, true);
+  assert.equal(el.querySelector('.ajuda').getAttribute('aria-live'), 'polite');
+  assert.equal(document.activeElement, caixa, 'o foco vai para a pista revelada');
+  assert.equal(caixa.tabIndex, -1);
   escrever(el, '5');
   el.querySelector('button.botao-principal').click();
   assert.equal(resp[0].usouPista, true);
@@ -252,7 +255,9 @@ test('treino nível 0: os passos revelam-se um a um, sem cálculo; viuPassos só
   for (let i = 1; i <= 3; i++) {
     prox.click();
     assert.equal(el.querySelectorAll('.ajuda-passos li').length, i);
+    assert.equal(document.activeElement, el.querySelectorAll('.ajuda-passos li')[i - 1], 'o foco vai para o passo novo');
   }
+  assert.equal(el.querySelector('.ajuda-passos').getAttribute('aria-live'), 'polite');
   assert.equal(el.querySelector('.ajuda-passos .passo-calculo'), null);
   assert.equal(prox.disabled, true);
   assert.equal(el.querySelectorAll('.ajuda-passos li')[1].textContent, 'Conferir — ver o resultado');
