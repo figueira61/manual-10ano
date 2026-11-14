@@ -21,6 +21,12 @@ function codigos() {
     for (const m of s.matchAll(/codigo: ([^,}]+)/g)) for (const q of m[1].matchAll(/'([a-z0-9_]+)'/g)) t.add(q[1]);
     for (const m of s.matchAll(/^\s+([a-z][a-z0-9_]*): '/gm)) if (/_/.test(m[1])) t.add(m[1]);
   }
+  // Famílias construídas em tempo de execução: 'escolheu_' + ponto notável e 'nao_viu_' + método de amostragem.
+  const geo = fs.readFileSync(path.join(PASTA, 'geometria-sintetica.js'), 'utf8');
+  const pontos = geo.slice(geo.indexOf('const PONTOS = {'), geo.indexOf('const CHAVES_PONTOS'));
+  for (const m of pontos.matchAll(/^    ([a-z]+): \{/gm)) t.add('escolheu_' + m[1]);
+  const est = fs.readFileSync(path.join(PASTA, 'estatistica.js'), 'utf8');
+  for (const m of est.matchAll(/\{ codigo: '([a-z_]+)', texto: \(n\) =>/g)) t.add('nao_viu_' + m[1]);
   return [...t].filter((c) => /^[a-z0-9]+(_[a-z0-9]+)*$/.test(c)).sort();
 }
 
@@ -162,4 +168,32 @@ test('erros: no máximo 5', () => {
   const Manual = M();
   const ts = ['a_1', 'b_2', 'c_3', 'd_4', 'e_5', 'f_6', 'g_7'].map((c, i) => tent({ resultado: 'errada', erro_tipico: c, criado_em: '2026-11-1' + (i % 3) + 'T10:00:00Z' }));
   assert.equal(Manual.painel.modelo(ts, [], Manual.indice, new Date('2026-11-14T12:00:00Z')).erros.length, 5);
+});
+
+test('os códigos construídos em tempo de execução estão no snapshot e têm texto próprio', () => {
+  const { painel } = M();
+  const cs = codigos();
+  const esperados = {
+    escolheu_incentro: 'Escolheu o incentro', escolheu_circuncentro: 'Escolheu o circuncentro',
+    escolheu_ortocentro: 'Escolheu o ortocentro', escolheu_baricentro: 'Escolheu o baricentro',
+    nao_viu_conveniencia: 'Não viu que a amostra era por conveniência',
+    nao_viu_resposta_voluntaria: 'Não viu que a amostra era de resposta voluntária',
+  };
+  for (const c of Object.keys(esperados)) {
+    assert.ok(cs.includes(c), c + ' falta na recolha');
+    assert.equal(painel.humanizarErro(c), esperados[c]);
+  }
+});
+
+test('textos de erro sem números de um exercício concreto e sem frases soltas', () => {
+  const { painel } = M();
+  const vagos = ['metade', 'um_terco', 'intervalo_aberto', 'media_dos_valores', 'ordem_trocada', 'maioria_simples', 'esqueceu_a', 'esqueceu_somar_a'];
+  for (const c of vagos) {
+    const t = painel.humanizarErro(c);
+    assert.ok(/^(Deu|Tomou|Deixou|Fez|Subtraiu|Esqueceu|Escolheu)/.test(t) && t.split(' ').length >= 5, c + ' -> ' + t);
+  }
+  for (const c of codigos()) {
+    const t = painel.humanizarErro(c);
+    if (c in painel.EXCECOES) assert.ok(!/(32|1,8|11 %)/.test(t) || c === 'taxa_1_1', c + ' -> ' + t);
+  }
 });

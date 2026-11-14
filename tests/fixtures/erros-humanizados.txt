@@ -5,7 +5,7 @@ alargada_como_amostra → Tomou a população alargada como se fosse a amostra
 aleatoria_vista_como_enviesada → Julgou enviesada uma amostra aleatória
 alinhado_como_perfeito → Tomou pontos quase alinhados como correlação perfeita
 ambos_os_sentidos_trocados → Trocou ambos os sentidos
-ambos_os_sinais_trocados → Ambos os sinais trocados
+ambos_os_sinais_trocados → Trocou o sinal de h e também o de k
 amostra_como_populacao → Tomou a amostra como se fosse a população
 amostra_como_variavel → Tomou a amostra como se fosse a variável
 amplitude_total → Deu a amplitude em vez da amplitude interquartil
@@ -14,9 +14,9 @@ aplicou_b_antes → Somou a constante antes de multiplicar
 aplicou_dois_tercos → Multiplicou AG por 2/3 em vez de dividir por 2/3
 aplicou_na_abcissa → Aplicou o fator à abcissa
 aplicou_na_ordenada → Aplicou o fator à ordenada
-area_como_perimetro → Área como perímetro
-area_sem_metade → Área sem metade
-area_sobre_perimetro → Área sobre perímetro
+area_como_perimetro → Usou a fórmula do perímetro em vez da da área
+area_sem_metade → Esqueceu de dividir por 2 no cálculo da área
+area_sobre_perimetro → Dividiu a área pelo perímetro em vez do semiperímetro
 arredondou_e_somou_um → Arredondou e somou um a mais
 arredondou_p_para_baixo → Arredondou a posição p para baixo
 assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
@@ -26,20 +26,20 @@ calculou_gm → Calculou GM em vez da mediana
 calculou_h → Parou no ortocentro H
 calculou_imagem → Calculou a imagem em vez do objeto
 calculou_oh → Calculou todo o segmento OH em vez de GH
-capitalizacao_anual → Capitalização anual
-catorze_meses → Contou 14 meses de trabalho
+capitalizacao_anual → Usou capitalização anual quando os juros se juntam várias vezes por ano
+catorze_meses → Contou os 14 pagamentos como meses de trabalho
 causalidade → Concluiu que x causa y
 centro_no_ponto → Tomou o ponto da circunferência como centro
 centro_sinais_trocados → Trocou os sinais do centro
 circuncentro → Deu o circuncentro em vez do ponto pedido
 classe_da_mediana → Deu a classe da mediana em vez da classe modal
 classe_do_valor_mais_frequente → Deu a classe do valor mais repetido em vez da classe modal
-cobrou_todas_as_horas → Cobrou todas as horas
+cobrou_todas_as_horas → Cobrou todas as horas, e não só as que ultrapassam o limite
 codigo_numerico_como_quantitativa → Tomou um código numérico por variável quantitativa
 coeficiente_trocado → Multiplicou x pelo coeficiente errado
 comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
 concavidade_trocada → Trocou o sentido da concavidade
-confundiu_com_baricentro → Confundiu com baricentro
+confundiu_com_baricentro → Deu o baricentro em vez do centro dos nove pontos
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
 contagem_como_categoria → Tomou a contagem por categoria
 contagem_em_vez_de_percentagem → Deu a contagem em vez da percentagem
@@ -47,7 +47,7 @@ continua_como_discreta → Tomou uma variável contínua por discreta
 continua_como_qualitativa → Tomou uma variável contínua por qualitativa
 contou_o_complementar → Contou o contrário do pedido
 contou_valores → Contou os valores diferentes em vez das observações
-contou_valores_diferentes → Contou valores diferentes
+contou_valores_diferentes → Contou os valores diferentes em vez das observações
 conveniencia → Julgou aleatória uma amostra por conveniência
 coordenada_errada → Usou a coordenada errada
 coordenadas_trocadas → Trocou as coordenadas
@@ -76,7 +76,7 @@ dividiu_antes → Dividiu antes de isolar o termo em x
 dividiu_ao_contrario → Dividiu pela ordem trocada
 dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
-dividiu_pelo_numero_de_valores → Dividiu pelo número de valores
+dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
 dividiu_por_2 → Dividiu por 2 onde não devia
 dividiu_por_n → Dividiu por n em vez de por n − 1
 dividiu_so_a_raiz → Dividiu só a raiz, e não o resto
@@ -89,24 +89,28 @@ dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
 eixo_reflexao_trocado → Trocou o eixo da reflexão
 escalao_errado → Usou a taxa de outro escalão
+escolheu_baricentro → Escolheu o baricentro
+escolheu_circuncentro → Escolheu o circuncentro
+escolheu_incentro → Escolheu o incentro
+escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
-esqueceu_a → Esqueceu de multiplicar pelo fator
+esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_altura_inicial → Esqueceu a altura inicial
-esqueceu_b → Esqueceu o termo b
+esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
 esqueceu_dividir → Esqueceu de dividir
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
-esqueceu_o_fator → Esqueceu o fator
+esqueceu_o_fator → Não multiplicou o vetor pelo fator
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
 esqueceu_raiz → Esqueceu a raiz quadrada
 esqueceu_reflexao → Esqueceu a reflexão
 esqueceu_retencao → Esqueceu a retenção
-esqueceu_somar_a → Esqueceu de somar a
+esqueceu_somar_a → Esqueceu de somar a coordenada do ponto A
 esqueceu_somar_quadrados → Esqueceu de somar os quadrados
 esqueceu_ss → Esqueceu o desconto para a Segurança Social
 esqueceu_subtrair → Esqueceu de subtrair
@@ -126,7 +130,7 @@ forca_subestimada → Subestimou a força da relação
 fraca_como_nula → Tomou uma correlação fraca por nula
 frequencia_absoluta → Deu a frequência absoluta em vez da relativa
 fronteira_estrita → Errou se a fronteira pertence à região
-fronteira_na_classe_anterior → Fronteira na classe anterior
+fronteira_na_classe_anterior → Pôs na classe anterior um valor igual ao limite da seguinte
 g_ponto_medio → Tomou G como ponto médio de OH
 g_ponto_medio_oh → Tomou G como ponto médio de OH
 h_igual_3g → Usou H = 3G fora da origem
@@ -137,7 +141,7 @@ ignorou_sinais → Ignorou os sinais
 ignorou_sinal_mais → Ignorou o sinal de mais
 incluiu_extremo → Incluiu o extremo em «menos de»
 incluiu_quociente_seguinte → Incluiu um quociente a mais
-intervalo_aberto → Intervalo aberto
+intervalo_aberto → Deixou de fora o extremo, que pertence ao contradomínio
 intervalo_entre_extremos → Deu o intervalo entre os extremos em vez do conjunto finito
 inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
@@ -153,11 +157,11 @@ leu_acumulada → Leu a frequência acumulada em vez da absoluta
 limites_em_vez_de_partes → Aplicou cada taxa ao limite do escalão
 maior_media_maior_dispersao → Julgou que a maior média tem maior dispersão
 maior_partido → Deu o último mandato ao partido mais votado
-maioria_simples → Confundiu maioria simples com maioria absoluta
+maioria_simples → Escolheu o vencedor pelos primeiros lugares em vez de pelos pontos de Borda
 mais_votos_nao_chega → Julgou que ter mais votos dá maioria absoluta
-media_das_frequencias → Média das frequências
+media_das_frequencias → Fez a média das frequências em vez da média dos valores
 media_dos_extremos → Fez a média dos extremos
-media_dos_valores → Média dos valores
+media_dos_valores → Fez a média dos valores diferentes, sem contar as repetições
 media_em_vez_de_mediana → Deu a média em vez da mediana
 media_varia_diferenca → Esqueceu que a diferença se reparte por todos os valores
 mediana_afetada → Julgou que a mediana varia com o valor corrigido
@@ -170,8 +174,8 @@ meia_volta → Trocou o sinal das duas coordenadas, como numa meia-volta
 menos_dentro_do_quadrado → Pôs o sinal de menos dentro do quadrado
 menos_pontos → Deu a vitória a quem tem menos pontos
 menos_so_no_x → Pôs o sinal de menos só no x
-mesma_amplitude_mesma_dispersao → Mesma amplitude mesma dispersão
-metade → Metade
+mesma_amplitude_mesma_dispersao → Concluiu que a mesma amplitude dá a mesma dispersão
+metade → Tomou o baricentro como ponto médio da mediana
 metade_cateto → Dividiu um cateto por 2 em vez da hipotenusa
 metade_do_raio_inscrito → Deu metade do raio inscrito
 metade_nao_chega → Julgou que metade dos votos dá maioria absoluta
@@ -179,42 +183,44 @@ metodo_das_metades → Calculou o quartil pelo método das metades
 monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
 multiplicou → Multiplicou em vez de dividir
-multiplicou_abcissa → Multiplicou a abcissa
+multiplicou_abcissa → Multiplicou também a abcissa, que devia ficar igual
 multiplicou_em_vez_de_dividir → Multiplicou em vez de dividir
-multiplicou_pelo_declive → Multiplicou pelo declive
-multiplicou_pelo_fator → Multiplicou pelo fator
-multiplicou_por_2 → Multiplicou por 2
-multiplicou_por_5 → Multiplicou por 5
+multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
+multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
+multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
+multiplicou_por_5 → Multiplicou por 5 em vez de dividir
 nao_alterou → Esqueceu que o desvio padrão também é multiplicado
 nao_dividiu → Não fez a divisão final
-nao_dividiu_centro → Não dividiu centro
-nao_dividiu_coeficientes → Não dividiu coeficientes
-nao_dividiu_por_14 → Não dividiu por 14
+nao_dividiu_centro → Não dividiu por 2 a soma das coordenadas do centro
+nao_dividiu_coeficientes → Não dividiu os coeficientes por 2
+nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
 nao_dividiu_por_3 → Não dividiu por 3
 nao_isolou_o_modulo → Não isolou o módulo
-nao_multiplicou_boletins → Não multiplicou boletins
+nao_multiplicou_boletins → Contou cada tipo de boletim uma só vez
 nao_ordenou → Não ordenou os dados
 nao_passou_para_zero → Não passou tudo para o primeiro membro
 nao_rejeitou_negativa → Não rejeitou a solução negativa
-nao_subtraiu → Não subtraiu
+nao_subtraiu → Não subtraiu os votos que já tinha
 nao_trocou_sinal → Não trocou o sinal
 nao_verificou_condicao → Não verificou a condição do ramo
 nao_viu_absoluta → Disse maioria simples quando havia maioria absoluta
+nao_viu_conveniencia → Não viu que a amostra era por conveniência
+nao_viu_resposta_voluntaria → Não viu que a amostra era de resposta voluntária
 o_proprio_eixo → Deu o próprio eixo em vez da paralela por P
 oh_como_og → Tomou OH como OG
 ordem_das_operacoes → Fez a soma antes da multiplicação
-ordem_invertida → Ordem invertida
-ordem_trocada → Ordem trocada
+ordem_invertida → Deu os pontos pela ordem inversa
+ordem_trocada → Subtraiu os pontos pela ordem trocada
 ordenada_como_declive → Tomou a ordenada na origem por declive
 ordenada_como_fronteira → Tomou a ordenada na origem por fronteira
 ordenada_como_previsao → Deu a ordenada na origem como valor previsto
 ordenada_do_ponto → Tomou a ordenada de A por ordenada na origem
 ordenada_igual_a_c → Tomou c por ordenada do vértice
-ordenada_na_origem → Ordenada na origem
+ordenada_na_origem → Deu a ordenada na origem em vez do zero da função
 outro_angulo_reto_errado → Escolheu um vértice que não tem o ângulo reto
 outro_eixo → Deu o plano perpendicular ao outro eixo
-outro_metodo → Outro método
+outro_metodo → Usou o outro método de conversão de votos em mandatos
 p_inteiro_sem_media → Esqueceu a média quando p é inteiro
 par_so_um_valor → Usou só um valor quando há dois ao meio
 parou_um_antes → Parou um quociente antes
@@ -308,27 +314,27 @@ soma_catetos → Somou os catetos em vez de aplicar o teorema de Pitágoras
 soma_componentes → Somou as componentes em vez de usar o teorema de Pitágoras
 soma_das_normas → Somou as normas em vez de calcular a norma da soma
 somou_antes_de_multiplicar → Somou antes de multiplicar
-somou_b → Somou a constante ao desvio padrão
-somou_b_sem_a → Somou b sem a
-somou_coordenadas → Somou as coordenadas
+somou_b → Somou a constante ao desvio padrão depois de o multiplicar
+somou_b_sem_a → Somou a constante ao desvio padrão em vez de só o multiplicar
+somou_coordenadas → Somou as coordenadas em vez de as subtrair ou de usar Pitágoras
 somou_cota_a_diagonal → Somou a cota à diagonal da base
 somou_dois → Somou um voto a mais do que o necessário
 somou_em_vez_de_multiplicar → Somou em vez de multiplicar
 somou_lambda → Somou λ a cada coordenada
-somou_sem_multiplicar → Somou sem multiplicar
+somou_sem_multiplicar → Somou os valores sem os multiplicar pelas frequências
 somou_termo_quadratico → Somou o termo −5t² em vez de o subtrair
 ss_depois_irs → Aplicou a Segurança Social depois do IRS
 subtracao_trocada → Fez a subtração pela ordem trocada
 subtraiu_ao_contrario → Fez a subtração pela ordem trocada
 subtraiu_coordenadas → Subtraiu as coordenadas em vez de as somar
-subtraiu_o_vetor → Subtraiu o vetor
+subtraiu_o_vetor → Subtraiu o vetor ao ponto em vez de o somar
 subtraiu_percentagem → Retirou a percentagem ao montante em vez de dividir
 subtraiu_quadrados → Subtraiu os quadrados em vez de os somar
 subtraiu_taxa → Multiplicou por 1 − taxa em vez de dividir por 1 + taxa
-taxa_1_1 → Escreveu 11 % como 0,011
+taxa_1_1 → Pôs um zero a mais ao converter a taxa para decimal
 taxa_anual_por_periodo → Usou a taxa anual em vez da taxa de cada período
 taxa_da_entidade → Usou a taxa paga pela entidade patronal
-taxa_mal_convertida → Taxa mal convertida
+taxa_mal_convertida → Não converteu a taxa de percentagem para decimal
 taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendimento
 todos_os_reais → Deu ℝ em vez do contradomínio
 tres_meios → Multiplicou por 3/2 em vez de 2/3
@@ -347,8 +353,8 @@ trocou_variaveis → Trocou as variáveis
 ultimo_menos_primeiro → Subtraiu o último valor ao primeiro
 um_por_partido → Deu primeiro um mandato a cada partido
 um_sexto → Deu um sexto da mediana em vez de um terço
-um_terco → Um terço
-um_terco_do_vertice → Um terço do vértice
+um_terco → Deu um terço da mediana em vez de dois terços
+um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
 usou_c → Usou o termo independente c em vez da ordenada do vértice
 usou_h → Usou a abcissa do vértice em vez da ordenada
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
