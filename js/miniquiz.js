@@ -22,7 +22,7 @@ globalThis.Manual = globalThis.Manual || {};
     geradoresDe(disciplina, subtema).forEach(function (def) {
       def.formatos.forEach(function (formato) {
         Manual.geradores.contextosDe(def).forEach(function (contexto) {
-          r.push({ tipo: def.id, competencia: def.tipo, formato: formato, contexto: contexto, semente: semente(rng), gerador: def.id });
+          r.push({ tipo: def.id, competencia: def.tipo, formato: formato, contexto: contexto, semente: semente(rng), gerador: def.id, tema: def.tema });
         });
       });
     });

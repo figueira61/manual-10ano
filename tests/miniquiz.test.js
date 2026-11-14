@@ -157,3 +157,13 @@ test('render.perguntasMiniquiz: um erro ao procurar geradores devolve o banco do
   }
   assert.ok(M.render.perguntasMiniquiz('mat-a', sub).some((x) => x.gerador));
 });
+
+test('candidatos gerados levam o tema do gerador', () => {
+  const c = Q.candidatos('mat-a', SUB, [], rng(1)).filter((x) => x.gerador);
+  assert.ok(c.length > 0);
+  c.forEach((x) => {
+    const def = M.geradores.obter(x.gerador);
+    assert.ok(def.tema);
+    assert.equal(x.tema, def.tema);
+  });
+});

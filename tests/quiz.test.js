@@ -265,3 +265,34 @@ test('corrigir vf: afirmação falsa dada como verdadeira devolve o erro típico
   assert.equal(Manual.quiz.corrigir(p, false).erroTipico, null);
   assert.equal(Manual.quiz.corrigir({ tipo: 'vf', correta: false }, true).erroTipico, null);
 });
+
+test('construirTentativa aceita modo e ajuda no 8.º argumento', () => {
+  const c = { disciplina: 'd', tema: 't', subtema: 's' };
+  const p = { tipo: 'numerica' };
+  const t = Manual.quiz.construirTentativa(c, p, 0, 'certa', 10, 'x', null, { modo: 'treino', nivel_ajuda: 1, usou_pista: true });
+  assert.equal(t.modo, 'treino');
+  assert.equal(t.nivel_ajuda, 1);
+  assert.equal(t.usou_pista, true);
+  assert.equal(t.viu_resolucao, false);
+  const parcial = Manual.quiz.construirTentativa(c, p, 0, 'certa', 10, 'x', null, { modo: 'teste' });
+  assert.deepEqual([parcial.modo, parcial.nivel_ajuda, parcial.usou_pista, parcial.viu_resolucao], ['teste', 2, false, false]);
+});
+
+test('construirTentativa sem 8.º argumento mantém os valores do quiz', () => {
+  const c = { disciplina: 'd', tema: 't', subtema: 's' };
+  const t = Manual.quiz.construirTentativa(c, { tipo: 'numerica' }, 0, 'certa', 10, 'x');
+  assert.deepEqual([t.modo, t.nivel_ajuda, t.usou_pista, t.viu_resolucao], ['quiz', 2, false, false]);
+});
+
+test('construirTentativa leva contexto só quando é uma string', () => {
+  const c = { disciplina: 'd', tema: 't', subtema: 's' };
+  const f = (p) => Manual.quiz.construirTentativa(c, p, 0, 'certa', 10, 'x');
+  assert.equal(f({ tipo: 'numerica', contexto: 'deposito' }).contexto, 'deposito');
+  assert.ok(!('contexto' in f({ tipo: 'numerica' })));
+  assert.ok(!('contexto' in f({ tipo: 'numerica', contexto: null })));
+});
+
+test('construirTentativa rejeita um modo desconhecido', () => {
+  const c = { disciplina: 'd', tema: 't', subtema: 's' };
+  assert.throws(() => Manual.quiz.construirTentativa(c, { tipo: 'numerica' }, 0, 'certa', 10, 'x', null, { modo: 'exame' }), Error);
+});

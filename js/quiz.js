@@ -78,24 +78,31 @@ function limitarDuracao(ms) {
   return Math.min(DURACAO_MAXIMA_MS, Math.max(0, Math.round(ms)));
 }
 
-Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId, erroTipico) {
-  return {
+const MODOS = ['quiz', 'treino', 'teste'];
+
+// 8.º argumento (opcional): { modo, nivel_ajuda, usou_pista, viu_resolucao }. Um modo desconhecido é um erro de programação.
+Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado, duracaoMs, sessaoId, erroTipico, extra) {
+  const o = Object.assign({ modo: 'quiz', nivel_ajuda: 2, usou_pista: false, viu_resolucao: false }, extra);
+  if (MODOS.indexOf(o.modo) < 0) throw new Error('Modo de tentativa desconhecido: ' + o.modo);
+  const t = {
     disciplina: contexto.disciplina,
     tema: contexto.tema,
     subtema: contexto.subtema,
     tipo: pergunta.id || contexto.subtema + '#q' + indice,
     semente: Number.isInteger(pergunta.semente) ? pergunta.semente : null,
     formato: pergunta.formato || pergunta.tipo,
-    modo: 'quiz',
-    nivel_ajuda: 2,
+    modo: o.modo,
+    nivel_ajuda: o.nivel_ajuda,
     resultado: resultado,
     primeira_tentativa: true,
-    viu_resolucao: false,
-    usou_pista: false,
+    viu_resolucao: o.viu_resolucao,
+    usou_pista: o.usou_pista,
     erro_tipico: erroTipico ? erroTipico.codigo : null,
     duracao_ms: limitarDuracao(duracaoMs),
     sessao_id: sessaoId,
   };
+  if (typeof pergunta.contexto === 'string') t.contexto = pergunta.contexto;
+  return t;
 };
 
 // Resolução detalhada de um exercício gerado: cada passo "passo — porquê" e, por baixo, o cálculo

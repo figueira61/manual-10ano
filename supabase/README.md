@@ -8,6 +8,8 @@
 
 As alterações ao esquema estão em `supabase/migracoes/`, numeradas (`0001_…sql`, `0002_…sql`). Aplicam-se por ordem, uma vez, pelo conector Supabase (`apply_migration`) ou pelo editor SQL do painel.
 
+- `0004_contexto.sql` (coluna `contexto` em `tentativas`): **por aplicar**. Aplica-se antes de publicar o cliente que envia `contexto`.
+
 ## Testes de acesso (RLS)
 
 `supabase/testes/` tem scripts SQL que correm numa transação com `rollback` no fim: criam utilizadores de teste, simulam cada um e falham com exceção se alguma regra de acesso não se comportar como esperado. Não deixam dados.
