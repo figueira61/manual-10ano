@@ -112,3 +112,48 @@ test('ultimoErroDe: última tentativa do subtema errada num gerador -> competên
   assert.equal(Q.ultimoErroDe('mat-a', SUB, []), null);
   assert.equal(Q.ultimoErroDe('mat-a', SUB, null), null);
 });
+
+// Geradores de teste num subtema próprio: um lança sempre, os outros dão um exercício simples.
+const SUB_F = 'teste-falha';
+function registarTeste(id, falha) {
+  M.geradores.registar({
+    id, disciplina: 'mat-a', subtema: SUB_F, tipo: id, nome: id, formatos: ['numerica'],
+    gerar(semente) {
+      if (falha) throw new Error('gerador avariado');
+      return { enunciado: 'Quanto é ' + semente + '?', resposta: 1, tolerancia: 0, resolucao: [{ passo: 'p', porque: 'q' }], verificacao: { passo: 'v', calculo: '1', valor: 1 }, errosTipicos: [] };
+    },
+    verificarIndependente: () => true,
+    limites: () => true,
+  });
+}
+['falha-a', 'falha-b'].forEach((id) => registarTeste(id, true));
+['bom-a', 'bom-b', 'bom-c'].forEach((id) => registarTeste(id, false));
+const bancoF = (n) => Array.from({ length: n }, (_, i) => ({ id: SUB_F + '-q' + (i + 1), tipo: 'escolha', enunciado: '?', opcoes: ['a', 'b'], correta: 0 }));
+
+test('montarPerguntas: geradores que lançam são substituídos pelo banco e por outros geradores (n perguntas)', () => {
+  for (let s = 0; s < 40; s++) {
+    // 3 geradores bons + 2 do banco = 5 candidatos utilizáveis
+    const p = Q.montarPerguntas('mat-a', SUB_F, bancoF(2), [], { n: 5, rng: rng(s) });
+    assert.equal(p.length, 5, 'semente ' + s);
+    assert.equal(new Set(p.map((x) => x.id)).size, 5);
+    assert.ok(!p.some((x) => /^falha/.test(x.id)));
+  }
+  // Sem banco: só há 3 utilizáveis, o quiz fica com 3 (nunca com perguntas repetidas).
+  const p = Q.montarPerguntas('mat-a', SUB_F, [], [], { n: 5, rng: rng(1) });
+  assert.deepEqual(p.map((x) => x.id).sort(), ['bom-a', 'bom-b', 'bom-c']);
+});
+
+test('render.perguntasMiniquiz: um erro ao procurar geradores devolve o banco do subtema', () => {
+  const abs = path.join(RAIZ, 'js', 'render.js');
+  delete require.cache[abs];
+  require(abs);
+  const sub = { id: SUB, quiz: banco(3) };
+  const original = M.geradores.doSubtema;
+  M.geradores.doSubtema = () => { throw new Error('registo avariado'); };
+  try {
+    assert.equal(M.render.perguntasMiniquiz('mat-a', sub), sub.quiz);
+  } finally {
+    M.geradores.doSubtema = original;
+  }
+  assert.ok(M.render.perguntasMiniquiz('mat-a', sub).some((x) => x.gerador));
+});

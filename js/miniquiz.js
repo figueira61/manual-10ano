@@ -63,7 +63,33 @@ globalThis.Manual = globalThis.Manual || {};
       }
       extra.forEach(function (c) { if (escolha.length < n) escolha.push(c); });
     }
-    return escolha.map(materializar).filter(Boolean);
+    return completar(escolha, cands, hist, n, rng);
+  }
+
+  // Materializa a escolha; se algum exercício falhar, completa até n com outras perguntas do banco e depois
+  // com candidatos de outros geradores (sempre tipos ainda não usados), enquanto houver candidatos.
+  function completar(escolha, cands, hist, n, rng) {
+    const perguntas = [];
+    const usados = new Set();
+    const tentados = new Set();
+    function tentar(c) {
+      tentados.add(c);
+      if (usados.has(c.tipo)) return;
+      const p = materializar(c);
+      if (p) { perguntas.push(p); usados.add(c.tipo); }
+    }
+    escolha.forEach(tentar);
+    [function (c) { return !!c.banco; }, function (c) { return !!c.gerador; }].forEach(function (deste) {
+      while (perguntas.length < n) {
+        const resto = cands.filter(function (c) { return deste(c) && !tentados.has(c) && !usados.has(c.tipo); });
+        if (!resto.length) break;
+        const mais = Manual.selecao.escolher(resto, hist, { n: n - perguntas.length, rng: rng });
+        // escolher deixa de fora as sementes já vistas: o que sobra não serve
+        if (!mais.length) break;
+        mais.forEach(function (c) { if (perguntas.length < n) tentar(c); });
+      }
+    });
+    return perguntas;
   }
 
   // Competência e formato da última tentativa do subtema, quando foi errada num exercício gerado.

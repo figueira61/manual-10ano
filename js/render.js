@@ -298,10 +298,10 @@ globalThis.Manual = globalThis.Manual || {};
   // Perguntas do mini-quiz: com geradores para o subtema, 5 escolhidas pelo motor (novas sementes
   // em cada chamada); sem geradores, o banco do subtema tal como está.
   function perguntasMiniquiz(disciplinaId, subtema) {
-    const temGeradores = Manual.miniquiz && Manual.geradores
-      && Manual.geradores.doSubtema(disciplinaId, subtema.id).length > 0;
-    if (!temGeradores) return subtema.quiz;
     try {
+      const temGeradores = Manual.miniquiz && Manual.geradores
+        && Manual.geradores.doSubtema(disciplinaId, subtema.id).length > 0;
+      if (!temGeradores) return subtema.quiz;
       const historico = Manual.motor && typeof Manual.motor.historico === 'function' ? Manual.motor.historico() : [];
       const lista = Manual.miniquiz.montarPerguntas(disciplinaId, subtema.id, subtema.quiz, historico, {
         n: 5, ultimoErro: Manual.miniquiz.ultimoErroDe(disciplinaId, subtema.id, historico),
