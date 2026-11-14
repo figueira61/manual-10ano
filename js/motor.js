@@ -289,9 +289,19 @@ globalThis.Manual = globalThis.Manual || {};
       notificar();
     }
 
+    // Cópia das tentativas guardadas do dono atual (o mini-quiz lê daqui as sementes já vistas).
+    function historico() {
+      try {
+        return lerHistorico(infoConta().dono).map(function (t) { return Object.assign({}, t); });
+      } catch (erro) {
+        return [];
+      }
+    }
+
     return {
       registar: registar,
       estadoDe: estadoDe,
+      historico: historico,
       carregar: carregar,
       aoMudar: function (fn) {
         ouvintes.add(fn);

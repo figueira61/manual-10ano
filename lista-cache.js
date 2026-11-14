@@ -48,6 +48,7 @@ self.LISTA_CACHE = [
   "js/geradores/mat-a/geometria-sintetica.js",
   "js/geradores/registo.js",
   "js/icones.js",
+  "js/miniquiz.js",
   "js/motor.js",
   "js/nucleo.js",
   "js/pesquisa.js",
@@ -86,4 +87,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'ef46ccdf6e';
+self.VERSAO_CACHE = '80afb534bd';

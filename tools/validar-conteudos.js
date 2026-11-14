@@ -124,9 +124,19 @@ function validarSubtema(s, d, t, existeFicheiro, erros, idsPerguntas) {
   quiz.forEach((p, i) => validarPergunta(p, i, ctx, erros, idsPerguntas));
 }
 
+const MIN_GERADORES = 3;
+
+// geradores: { [disciplina]: def[] } — só as disciplinas presentes são verificadas.
+function validarGeradores(s, d, t, defs, erros) {
+  const n = defs.filter((g) => g && g.subtema === s.id).length;
+  if (n < MIN_GERADORES) {
+    erros.push(d + '/' + t + '/' + s.id + ': só ' + n + ' geradores registados (mínimo ' + MIN_GERADORES + ')');
+  }
+}
+
 const RESERVADOS = ['entrar', 'registar', 'conta', 'privacidade', 'progresso', 'treino', 'teste', 'encarregado'];
 
-function validar({ indice, temas, ae, existeFicheiro }) {
+function validar({ indice, temas, ae, existeFicheiro, geradores }) {
   const erros = [];
   for (const disc of indice) {
     const d = disc.id;
@@ -158,6 +168,7 @@ function validar({ indice, temas, ae, existeFicheiro }) {
       }
       for (const s of tema.subtemas) {
         validarSubtema(s, d, tema.id, existeFicheiro, erros, idsPerguntas);
+        if (geradores && Array.isArray(geradores[d])) validarGeradores(s, d, tema.id, geradores[d], erros);
         (s.ae || []).forEach((a) => cobertos.add(a));
       }
     }
@@ -217,8 +228,14 @@ function principal() {
         if (tema) temas[d].push(tema);
       }
     }
+    // Geradores (js/geradores/**): precisam de aleatorio e formatar; o cálculo já está carregado.
+    carregarScript('js/aleatorio.js');
+    if (existeFicheiro('esquemas/mat-a/formatar.js')) carregarScript('esquemas/mat-a/formatar.js');
+    const { ficheirosGeradores } = require('./verificar-geradores.js');
+    for (const f of ficheirosGeradores()) require(f);
+    const geradores = { 'mat-a': Manual.geradores.todos().filter((g) => g.disciplina === 'mat-a') };
     const indice = Manual.indice.filter((x) => x.disponivel);
-    const erros = validar({ indice, temas, ae, existeFicheiro });
+    const erros = validar({ indice, temas, ae, existeFicheiro, geradores });
     if (erros.length) {
       for (const e of erros) console.error(e);
       console.error(erros.length + ' erro(s).');
@@ -234,7 +251,8 @@ function principal() {
         }
       }
     }
-    console.log('Conteúdos válidos: ' + subtemas + ' subtemas, ' + perguntas + ' perguntas');
+    console.log('Conteúdos válidos: ' + subtemas + ' subtemas, ' + perguntas + ' perguntas, '
+      + geradores['mat-a'].length + ' geradores de Matemática A');
     return 0;
   } catch (e) {
     console.error('Erro ao carregar conteúdos: ' + (e && e.message ? e.message : e));

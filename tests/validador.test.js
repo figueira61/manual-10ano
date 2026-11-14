@@ -288,3 +288,15 @@ test('M4: errosTipicos que não é lista', () => {
   sub(c).quiz[1].errosTipicos = { codigo: 'x' };
   esperaErro(c, /errosTipicos/);
 });
+
+test('geradores: subtema de uma disciplina com geradores precisa de >= 3 registados', () => {
+  const c = base();
+  const def = (i, subtema) => ({ id: 'g' + i, disciplina: 'mat', subtema: subtema || 's1' });
+  c.geradores = { mat: [def(1), def(2), def(3, 'outro')] };
+  esperaErro(c, /mat\/t1\/s1: .*2 geradores.*3/);
+  c.geradores = { mat: [def(1), def(2), def(3)] };
+  assert.deepEqual(validar(c), []);
+  // disciplina sem entrada em `geradores` não é verificada
+  c.geradores = {};
+  assert.deepEqual(validar(c), []);
+});

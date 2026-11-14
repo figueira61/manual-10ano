@@ -140,6 +140,12 @@ globalThis.Manual = globalThis.Manual || {};
         const e = pergunta.errosTipicos.find((c) => c.opcao === resposta);
         return e ? { codigo: e.codigo, explicacao: e.explicacao } : null;
       }
+      if (pergunta.tipo === 'vf') {
+        // a afirmação falsa traz o erro típico de quem a toma por verdadeira
+        if (pergunta.correta !== false || resposta !== true) return null;
+        const e = pergunta.errosTipicos[0];
+        return e ? { codigo: e.codigo, explicacao: e.explicacao } : null;
+      }
     } catch (e) {
       // sem deteção nunca impede a correção
     }

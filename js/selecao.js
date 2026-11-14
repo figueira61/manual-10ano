@@ -82,7 +82,9 @@ globalThis.Manual = globalThis.Manual || {};
     const pesoGrupo = (tp) => pesoDe(grupos.get(tp)[0]);
 
     if (ultimoErro && n > 0 && grupos.size) {
-      const diferente = (c) => c.formato !== ultimoErro.formato || c.contexto !== ultimoErro.contexto;
+      // Contexto desconhecido (undefined): só o formato conta.
+      const diferente = (c) => c.formato !== ultimoErro.formato
+        || (ultimoErro.contexto !== undefined && c.contexto !== ultimoErro.contexto);
       const mesma = Array.from(grupos.keys()).filter((tp) => grupos.get(tp).some((c) => c.competencia === ultimoErro.competencia));
       const outro = mesma.filter((tp) => grupos.get(tp).some((c) => c.competencia === ultimoErro.competencia && diferente(c)));
       const alvo = outro.length ? outro : mesma;

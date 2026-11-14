@@ -162,3 +162,15 @@ test('M6: escolher e estratificar sem rng usam um gerador novo', () => {
   assert.equal(S.escolher(cands, [], undefined).length, 1);
   assert.equal(S.estratificar(cands, ['a', 'b'], 4).length, 4);
 });
+
+test('escolher: ultimoErro sem contexto conhecido compara só o formato (candidatos com contexto null)', () => {
+  const cands = [
+    { tipo: 'a', competencia: 'x', formato: 'num', contexto: null },
+    { tipo: 'b', competencia: 'x', formato: 'esc', contexto: null },
+    { tipo: 'c', competencia: 'y', formato: 'esc', contexto: null },
+  ];
+  for (let i = 0; i < 40; i++) {
+    const r = S.escolher(cands, [], { n: 1, rng: M.aleatorio.criar(i), ultimoErro: { competencia: 'x', formato: 'num' } });
+    assert.equal(r[0].tipo, 'b');
+  }
+});

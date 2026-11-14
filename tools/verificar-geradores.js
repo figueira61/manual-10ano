@@ -301,4 +301,4 @@ function principal(argv) {
 
 if (require.main === module) principal(process.argv.slice(2));
 
-module.exports = { verificar, extrairFormulas, carregarTudo };
+module.exports = { verificar, extrairFormulas, carregarTudo, ficheirosGeradores };

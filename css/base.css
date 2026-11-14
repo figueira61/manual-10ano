@@ -440,6 +440,9 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .resolucao { margin-top: 10px; }
 .passos { margin: 8px 0 0; padding-left: 1.4rem; }
 .passos li { margin-bottom: 4px; }
+.passo-texto { margin: 0; }
+.passo-calculo { max-width: 100%; overflow-x: auto; overflow-y: hidden; padding: 2px 0; }
+.verificacao { margin-top: 8px; }
 .lista-resumo { margin: 0; padding-left: 1.2rem; }
 .resumo { padding: 12px 14px; background: var(--superficie); border: 1px solid var(--borda); border-radius: 10px; }
 .resumo h2 { margin-bottom: 6px; }

@@ -219,3 +219,24 @@ test('corrigir escolha devolve erroTipico', () => {
   assert.deepEqual(Manual.quiz.corrigir(p, 2).erroTipico, { codigo: 'op2', explicacao: 'E' });
   assert.equal(Manual.quiz.corrigir(p, 0).erroTipico, null);
 });
+
+test('construirTentativa de um exercício gerado: tipo = id do gerador, semente e formato', () => {
+  const contexto = { disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' };
+  const p = { id: 'afim-zero', gerador: 'afim-zero', tipo: 'escolha', formato: 'escolha', semente: 42 };
+  const t = Manual.quiz.construirTentativa(contexto, p, 1, 'errada', 10, 's', { codigo: 'sinal_trocado', explicacao: 'e' });
+  assert.equal(t.tipo, 'afim-zero');
+  assert.equal(t.semente, 42);
+  assert.equal(t.formato, 'escolha');
+  assert.equal(t.erro_tipico, 'sinal_trocado');
+  assert.equal(t.modo, 'quiz');
+  // semente 0 é uma semente válida
+  assert.equal(Manual.quiz.construirTentativa(contexto, Object.assign({}, p, { semente: 0 }), 1, 'certa', 10, 's').semente, 0);
+});
+
+test('corrigir vf: afirmação falsa dada como verdadeira devolve o erro típico da afirmação', () => {
+  Manual = carregar('js/quiz.js', 'js/aprendizagem.js');
+  const p = { tipo: 'vf', correta: false, errosTipicos: [{ codigo: 'conf', explicacao: 'E' }] };
+  assert.deepEqual(Manual.quiz.corrigir(p, true).erroTipico, { codigo: 'conf', explicacao: 'E' });
+  assert.equal(Manual.quiz.corrigir(p, false).erroTipico, null);
+  assert.equal(Manual.quiz.corrigir({ tipo: 'vf', correta: false }, true).erroTipico, null);
+});

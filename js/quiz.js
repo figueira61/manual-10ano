@@ -72,8 +72,8 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
     tema: contexto.tema,
     subtema: contexto.subtema,
     tipo: pergunta.id || contexto.subtema + '#q' + indice,
-    semente: null,
-    formato: pergunta.tipo,
+    semente: Number.isInteger(pergunta.semente) ? pergunta.semente : null,
+    formato: pergunta.formato || pergunta.tipo,
     modo: 'quiz',
     nivel_ajuda: 2,
     resultado: resultado,
@@ -86,14 +86,68 @@ Manual.quiz.construirTentativa = function (contexto, pergunta, indice, resultado
   };
 };
 
+// Resolução detalhada de um exercício gerado: cada passo "passo — porquê" e, por baixo, o cálculo
+// (bloco: true → matemática de bloco). O cálculo fica numa caixa com scroll horizontal próprio.
+function resolucaoDetalhada(R, pai, lista) {
+  const ol = R.criar('ol', 'passos');
+  lista.forEach(function (p) {
+    const li = document.createElement('li');
+    const linha = R.criar('p', 'passo-texto');
+    linha.appendChild(R.criar('strong', '', ''));
+    R.texto(linha.lastChild, p.passo);
+    if (p.porque) R.texto(linha, ' — ' + p.porque);
+    li.appendChild(linha);
+    if (p.calculo) {
+      const calc = R.criar('div', 'passo-calculo');
+      R.texto(calc, p.bloco ? '$$' + p.calculo + '$$' : '$' + p.calculo + '$');
+      li.appendChild(calc);
+    }
+    ol.appendChild(li);
+  });
+  pai.appendChild(ol);
+}
+
+function verificacao(R, pai, v) {
+  if (!v || !v.passo) return;
+  const caixa = R.criar('div', 'verificacao');
+  const linha = R.criar('p', 'passo-texto');
+  linha.appendChild(R.criar('strong', '', 'Verifica: '));
+  R.texto(linha, v.passo);
+  caixa.appendChild(linha);
+  if (v.calculo) {
+    const calc = R.criar('div', 'passo-calculo');
+    R.texto(calc, v.bloco ? '$$' + v.calculo + '$$' : '$' + v.calculo + '$');
+    caixa.appendChild(calc);
+  }
+  pai.appendChild(caixa);
+}
+
 // Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total) no fim.
-Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
+// perguntas: lista ou função que devolve a lista (chamada de novo em cada "Repetir").
+// opcoes.montarEsquema(pai, esquema) -> { destruir }: mostra o esquema do exercício no feedback.
+Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoes) {
   const R = Manual.render;
+  const o = opcoes || {};
+  const obter = typeof perguntasOuFn === 'function' ? perguntasOuFn : function () { return perguntasOuFn; };
+  let perguntas = obter();
   let indice = 0;
   let certas = 0;
   let inicio = Date.now();
+  let esquemas = [];
+
+  function destruirEsquemas() {
+    esquemas.forEach(function (m) {
+      try {
+        if (m && typeof m.destruir === 'function') m.destruir();
+      } catch (erro) {
+        // ignora
+      }
+    });
+    esquemas = [];
+  }
 
   function novaPergunta(focar) {
+    destruirEsquemas();
     el.textContent = '';
     const pergunta = perguntas[indice];
     const cartao = R.criar('div', 'pergunta');
@@ -196,11 +250,25 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
         R.paragrafo(bloco, r.erroTipico.explicacao, 'explicacao');
         feedback.appendChild(bloco);
       }
-      if (r.resolucao.length) {
+      const detalhada = Array.isArray(pergunta.resolucaoDetalhada) && pergunta.resolucaoDetalhada.length
+        ? pergunta.resolucaoDetalhada : null;
+      if (detalhada) {
+        feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
+        resolucaoDetalhada(R, feedback, detalhada);
+        verificacao(R, feedback, pergunta.verificacao);
+      } else if (r.resolucao.length) {
         feedback.appendChild(R.criar('p', 'feedback-titulo', 'Resolução'));
         R.passos(feedback, r.resolucao);
       }
       if (r.explicacao) R.paragrafo(feedback, r.explicacao, 'explicacao');
+      // O esquema só aparece depois de verificar: pode mostrar a resposta.
+      if (pergunta.esquema && pergunta.esquema.id && typeof o.montarEsquema === 'function') {
+        try {
+          esquemas.push(o.montarEsquema(feedback, pergunta.esquema));
+        } catch (erro) {
+          // sem esquema
+        }
+      }
 
       const ultima = indice === perguntas.length - 1;
       botao.textContent = ultima ? 'Ver resultado' : 'Seguinte';
@@ -220,12 +288,14 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
   }
 
   function fim() {
+    destruirEsquemas();
     el.textContent = '';
     const cartao = R.criar('div', 'pergunta resultado');
     cartao.appendChild(R.criar('p', 'pontuacao', 'Acertaste ' + certas + ' de ' + perguntas.length + '.'));
     const repetir = R.criar('button', 'botao botao-principal', 'Repetir');
     repetir.type = 'button';
     repetir.addEventListener('click', function () {
+      perguntas = obter();
       indice = 0;
       certas = 0;
       novaPergunta(true);
@@ -237,4 +307,5 @@ Manual.quiz.montar = function (el, perguntas, aoTerminar, aoResponder) {
   }
 
   novaPergunta();
+  return { destruir: destruirEsquemas };
 };

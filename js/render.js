@@ -73,6 +73,36 @@ globalThis.Manual = globalThis.Manual || {};
       });
   }
 
+  // Esquema de um exercício gerado, no feedback do quiz. Se não existir ou falhar, não aparece nada.
+  function esquemaExercicio(pai, esquema, disciplinaId) {
+    const estado = { destruido: false, montado: null };
+    const fig = criar('figure', 'esquema');
+    const alvo = criar('div', 'esquema-area');
+    fig.appendChild(alvo);
+    pai.appendChild(fig);
+    function retirar() {
+      if (fig.parentNode) fig.parentNode.removeChild(fig);
+    }
+    Manual.carregarScript(Manual.ficheiroEsquema(disciplinaId, esquema.id))
+      .then(function () {
+        if (estado.destruido) return;
+        const def = Manual.esquemas.obter(esquema.id);
+        if (!def) throw new Error('Esquema não registado: ' + esquema.id);
+        estado.montado = def.montar(alvo, esquema.opcoes || {});
+      })
+      .catch(function () {
+        if (!estado.destruido) retirar();
+      });
+    return {
+      destruir: function () {
+        estado.destruido = true;
+        const m = estado.montado;
+        estado.montado = null;
+        if (m && typeof m.destruir === 'function') m.destruir();
+      },
+    };
+  }
+
   function blocoExemplo(pai, bloco) {
     const caixa = criar('div', 'bloco exemplo');
     caixa.appendChild(criar('div', 'bloco-titulo', 'Exemplo'));
@@ -257,8 +287,35 @@ globalThis.Manual = globalThis.Manual || {};
     return tentativa;
   }
 
+  // Regista a resposta a uma pergunta do mini-quiz (banco ou gerada). Só contas de aluna registam
+  // tentativas (e nada enquanto o papel de um encarregado que usou este dispositivo ainda não é conhecido).
+  function responderMiniquiz(contexto, r) {
+    if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return null;
+    if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return null;
+    return registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico));
+  }
+
+  // Perguntas do mini-quiz: com geradores para o subtema, 5 escolhidas pelo motor (novas sementes
+  // em cada chamada); sem geradores, o banco do subtema tal como está.
+  function perguntasMiniquiz(disciplinaId, subtema) {
+    const temGeradores = Manual.miniquiz && Manual.geradores
+      && Manual.geradores.doSubtema(disciplinaId, subtema.id).length > 0;
+    if (!temGeradores) return subtema.quiz;
+    try {
+      const historico = Manual.motor && typeof Manual.motor.historico === 'function' ? Manual.motor.historico() : [];
+      const lista = Manual.miniquiz.montarPerguntas(disciplinaId, subtema.id, subtema.quiz, historico, {
+        n: 5, ultimoErro: Manual.miniquiz.ultimoErroDe(disciplinaId, subtema.id, historico),
+      });
+      return lista.length ? lista : subtema.quiz;
+    } catch (erro) {
+      return subtema.quiz;
+    }
+  }
+
   Manual.render = {
     registarTentativa: registarTentativa,
+    responderMiniquiz: responderMiniquiz,
+    perguntasMiniquiz: perguntasMiniquiz,
     seloEstado: seloEstado,
     ligarSeloEstado: ligarSeloEstado,
     criar: criar,
@@ -326,16 +383,20 @@ globalThis.Manual = globalThis.Manual || {};
       const areaQuiz = criar('div', 'quiz');
       seccaoQuiz.appendChild(areaQuiz);
       artigo.appendChild(seccaoQuiz);
-      Manual.quiz.montar(areaQuiz, subtema.quiz, function (certas, total) {
+      const contextoQuiz = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
+      const quizMontado = Manual.quiz.montar(areaQuiz, function () {
+        return perguntasMiniquiz(disciplinaId, subtema);
+      }, function (certas, total) {
         progresso.registarQuiz(chave, certas, total);
       }, function (r) {
-        if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return;
-        // Só contas de aluna registam tentativas (e nada enquanto o papel de um encarregado
-        // que usou este dispositivo ainda não é conhecido).
-        if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return;
-        const contexto = { disciplina: disciplinaId, tema: temaId, subtema: subtema.id };
-        registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico));
+        responderMiniquiz(contextoQuiz, r);
+      }, {
+        montarEsquema: function (pai, esquema) {
+          if (estado.destruido) return null;
+          return esquemaExercicio(pai, esquema, disciplinaId);
+        },
       });
+      if (quizMontado) montados.push(quizMontado);
 
       const nav = criar('nav', 'nav-subtemas');
       nav.setAttribute('aria-label', 'Subtemas');

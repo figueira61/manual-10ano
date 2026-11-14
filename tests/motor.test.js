@@ -352,3 +352,64 @@ test('M3: pendente cujo estado nao se calcula nao e guardado', async () => {
   await c;
   assert.equal(guardados.length, 0);
 });
+
+test('historico(): devolve uma cópia das tentativas do dono atual (visitante e aluna separados)', async () => {
+  let papel = 'aluna', id = 'u1';
+  const { M, conta, arm } = ambiente('aluna', { estado: () => ({ papel, perfil: id ? { id } : null }) });
+  const m = M.criarMotor({ conta, armazenamento: arm, agora: AGORA });
+  await m.carregar();
+  assert.deepEqual(m.historico(), []);
+  m.registar(t('certa', 11, '2026-11-13T09:00:00Z', { tipo: 'afim-zero' }));
+  const h = m.historico();
+  assert.equal(h.length, 1);
+  assert.equal(h[0].semente, 11);
+  h.push({ id: 'intruso' });
+  h[0].semente = 99;
+  assert.equal(m.historico().length, 1);
+  assert.equal(m.historico()[0].semente, 11);
+  papel = null; id = null;
+  assert.deepEqual(m.historico(), []);
+  papel = 'aluna'; id = 'u1';
+  assert.equal(m.historico().length, 1);
+});
+
+test('C1 (gerado): resposta do mini-quiz a um exercício gerado chega ao motor com tipo, semente, formato e erro típico', () => {
+  const { carregarTudo } = require('../tools/verificar-geradores.js');
+  const path = require('node:path');
+  const M = carregarTudo();
+  for (const f of ['js/fila.js', 'js/quiz.js', 'js/aprendizagem.js', 'js/motor.js', 'js/render.js']) {
+    const abs = path.join(__dirname, '..', f);
+    delete require.cache[abs];
+    require(abs);
+  }
+  const enviados = [];
+  M.conta = {
+    estado: () => ({ papel: 'aluna', perfil: { id: 'u9' } }),
+    registaTentativas: () => true,
+    guardarTentativa: async (x) => { enviados.push(Object.assign({}, x)); return x; },
+    tentativas: async () => [], estados: async () => [], guardarEstado: async () => {},
+  };
+  const dados = {};
+  const arm = { getItem: (k) => (k in dados ? dados[k] : null), setItem: (k, v) => { dados[k] = v; } };
+  M.motor = M.criarMotor({ conta: M.conta, armazenamento: arm });
+  const p = M.geradores.gerar('afim-zero', 1234, { formato: 'numerica' });
+  const r = M.quiz.corrigir(p, String(p.errosTipicos[0].valor).replace('.', ','));
+  assert.equal(r.certa, false);
+  M.render.responderMiniquiz({ disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' },
+    { indice: 0, pergunta: p, resultado: 'errada', duracaoMs: 500, erroTipico: r.erroTipico });
+  const h = M.motor.historico();
+  assert.equal(h.length, 1);
+  assert.equal(h[0].tipo, 'afim-zero');
+  assert.equal(h[0].semente, 1234);
+  assert.equal(h[0].formato, 'numerica');
+  assert.equal(h[0].modo, 'quiz');
+  assert.equal(h[0].erro_tipico, p.errosTipicos[0].codigo);
+  assert.equal(enviados.length, 1);
+  assert.equal(enviados[0].id, h[0].id);
+  assert.ok(JSON.parse(dados[HIST + ':u9']).itens.some((i) => i.tipo === 'afim-zero' && i.semente === 1234));
+  // sem registo de tentativas (não é aluna): nada chega ao motor
+  M.conta.registaTentativas = () => false;
+  M.render.responderMiniquiz({ disciplina: 'mat-a', tema: 'funcoes', subtema: 'afim' },
+    { indice: 0, pergunta: p, resultado: 'certa', duracaoMs: 500, erroTipico: null });
+  assert.equal(M.motor.historico().length, 1);
+});
