@@ -71,35 +71,8 @@ globalThis.Manual = globalThis.Manual || {};
   const seg = (i, j) => NOMES[Math.min(i, j)] + NOMES[Math.max(i, j)];
   const par = (v) => (v < 0 ? '(' + tex(v) + ')' : tex(v));
   const somaTex = (vs) => vs.map((v, i) => (i === 0 ? tex(v) : (v < 0 ? ' - ' + tex(-v) : ' + ' + tex(v)))).join('');
-  // Os pontos escrevem-se com um separador provisório; notacaoPontos escolhe a notação do item inteiro:
-  // (a; b) se algum ponto do item tem uma coordenada não inteira, (a, b) caso contrário.
-  const SEP = '§';
-  const texPonto = (P) => '(' + tex(P[0]) + SEP + tex(P[1]) + ')';
-  function notacaoPontos(ex) {
-    const textos = [];
-    (function recolher(v) {
-      if (typeof v === 'string') textos.push(v);
-      else if (Array.isArray(v)) v.forEach(recolher);
-      else if (v && typeof v === 'object') Object.keys(v).forEach((k) => recolher(v[k]));
-    })(ex);
-    const decimal = textos.some((t) => (t.match(/\([^()§]*§[^()§]*\)/g) || []).some((p) => p.includes('{,}')));
-    const sep = decimal ? ';\\ ' : ', ';
-    return (function trocar(v) {
-      if (typeof v === 'string') return v.split(SEP).join(sep);
-      if (Array.isArray(v)) return v.map(trocar);
-      if (v && typeof v === 'object') {
-        const o = {};
-        Object.keys(v).forEach((k) => { o[k] = trocar(v[k]); });
-        return o;
-      }
-      return v;
-    })(ex);
-  }
-  // Leitura de uma opção "$(a, b)$" ou "$(a;\ b)$" (verificarIndependente compara números, não texto).
-  function lerPonto(t) {
-    const m = String(t).replace(/\$/g, '').replace(/\{,\}/g, '.').replace(/\\ /g, '').replace(/\s/g, '').match(/^\((-?[\d.]+)[,;](-?[\d.]+)\)$/);
-    return m ? [Number(m[1]), Number(m[2])] : null;
-  }
+  // Notação de pontos (uma só por item) e leitura de opções: Manual.geradores.ajudas.
+  const { texPonto, notacaoPontos, lerPonto } = AJ;
   const opPonto = (P) => '$' + texPonto(P) + '$';
   const nomeado = (n, P) => '$' + n + texPonto(P) + '$';
   const listaVertices = (vs) => nomeado('A', vs[0]) + ', ' + nomeado('B', vs[1]) + ' e ' + nomeado('C', vs[2]);

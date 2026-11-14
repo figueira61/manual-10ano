@@ -144,5 +144,71 @@ Manual.geradores.ajudas = (function () {
     return chave(p.opcoes[p.correta]) === chave(texto(valor));
   }
 
-  return { fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere };
+  // ---------------------------------------------------------------- frações e coeficientes em LaTeX
+  // v = n/d com d ≥ 1 mínimo (null se não houver d ≤ 1000).
+  function fracao(v) {
+    if (!Number.isFinite(v)) return null;
+    for (let d = 1; d <= 1000; d++) {
+      const n = v * d;
+      if (Math.abs(n - Math.round(n)) < 1e-7) return { n: Math.round(n) + 0, d };
+    }
+    return null;
+  }
+  // Número racional para LaTeX: inteiro ou \dfrac{n}{d}.
+  function texQ(v) {
+    const f = fracao(arred(v));
+    if (!f) throw new Error('texQ: valor não racional ' + v);
+    if (f.d === 1) return tex(f.n);
+    return (f.n < 0 ? '-' : '') + '\\dfrac{' + tex(Math.abs(f.n)) + '}{' + tex(f.d) + '}';
+  }
+  // Coeficiente vezes variável, sem o 1: cx(1, 'x') = 'x', cx(-1, 'x^2') = '-x^2', cx(3, 'x') = '3x'.
+  const cx = (k, v) => (k === 1 ? v : k === -1 ? '-' + v : texQ(k) + v);
+  // Produto k × X, com −X quando k = −1 e X quando k = 1.
+  const vezesTex = (k, X) => (k === 1 ? X : k === -1 ? '-' + X : texQ(k) + ' \\times ' + X);
+  // Igualdades encadeadas sem membros vazios nem repetidos seguidos: cadeia('a', 'b', 'b') = 'a = b'.
+  const cadeia = (...ps) => ps.filter((x, i, l) => x !== '' && (i === 0 || x !== l[i - 1])).join(' = ');
+  // n/d = resultado, sem «= …» repetido nem divisão por 1.
+  function divTex(n, d) {
+    const r = texQ(arred(n / d));
+    if (d === 1) return r;
+    const q = '\\dfrac{' + texQ(n) + '}{' + texQ(d) + '}';
+    return q === r ? r : q + ' = ' + r;
+  }
+
+  // ---------------------------------------------------------------- pontos (uma só notação por item)
+  // Os pontos (e vetores) escrevem-se com um separador provisório; notacaoPontos escolhe a notação do item inteiro:
+  // (a; b) ou (a; b; c) se algum ponto do item tem uma coordenada não inteira, (a, b) ou (a, b, c) caso contrário.
+  const SEP = '§';
+  const texPonto = (P) => '(' + P.map((v) => tex(v)).join(SEP) + ')';
+  function notacaoPontos(ex) {
+    const textos = [];
+    (function recolher(v) {
+      if (typeof v === 'string') textos.push(v);
+      else if (Array.isArray(v)) v.forEach(recolher);
+      else if (v && typeof v === 'object') Object.keys(v).forEach((k) => recolher(v[k]));
+    })(ex);
+    const decimal = textos.some((t) => (t.match(/\([^()§]*(?:§[^()§]*)+\)/g) || []).some((p) => p.includes('{,}')));
+    const sep = decimal ? ';\\ ' : ', ';
+    return (function trocar(v) {
+      if (typeof v === 'string') return v.split(SEP).join(sep);
+      if (Array.isArray(v)) return v.map(trocar);
+      if (v && typeof v === 'object') {
+        const o = {};
+        Object.keys(v).forEach((k) => { o[k] = trocar(v[k]); });
+        return o;
+      }
+      return v;
+    })(ex);
+  }
+  // Leitura de "$(a, b)$", "$(a;\ b)$", "$(a, b, c)$"… → [a, b, …] (null se não for um ponto).
+  function lerPonto(t) {
+    const s = String(t).replace(/\$/g, '').replace(/\{,\}/g, '.').replace(/\\ /g, '').replace(/\s/g, '');
+    const m = s.match(/^\((-?[\d.]+(?:[,;]-?[\d.]+)+)\)$/);
+    return m ? m[1].split(/[,;]/).map(Number) : null;
+  }
+
+  return {
+    fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere,
+    fracao, texQ, cx, vezesTex, cadeia, divTex, SEP, texPonto, notacaoPontos, lerPonto,
+  };
 })();

@@ -30,49 +30,22 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ---------------------------------------------------------------- frações e escrita
   const mdc = (a, b) => (b ? mdc(b, a % b) : Math.abs(a));
-  // v = n/d com d ≥ 1 mínimo (null se não houver d ≤ 1000).
-  function fracao(v) {
-    if (!Number.isFinite(v)) return null;
-    for (let d = 1; d <= 1000; d++) {
-      const n = v * d;
-      if (Math.abs(n - Math.round(n)) < 1e-7) return { n: Math.round(n) + 0, d };
-    }
-    return null;
-  }
+  // Frações e coeficientes em LaTeX (fracao, texQ, cx, vezesTex, cadeia, divTex): Manual.geradores.ajudas.
+  const { fracao, texQ, cx, vezesTex, cadeia, divTex } = AJ;
   // Fração "simpática": denominador ≤ 10.
   const simples = (v) => { const f = fracao(v); return !!f && f.d <= 10; };
   // Decimal com no máximo 2 casas (respostas numéricas que o aluno escreve).
   const decimal2 = (v) => Number.isFinite(v) && Math.abs(Math.round(v * 100) - v * 100) < 1e-6;
   const ehInteiro = (v) => Number.isFinite(v) && Number.isInteger(limpo(v));
 
-  // Número racional para LaTeX: inteiro ou \dfrac{n}{d}.
-  function texQ(v) {
-    const f = fracao(limpo(v));
-    if (!f) throw new Error('funções: valor não racional ' + v);
-    if (f.d === 1) return tex(f.n);
-    return (f.n < 0 ? '-' : '') + '\\dfrac{' + tex(Math.abs(f.n)) + '}{' + tex(f.d) + '}';
-  }
   // Entre parênteses se for negativo (para produtos e potências).
   const parQ = (v) => (v < 0 ? (ehInteiro(v) ? '(' + texQ(v) + ')' : '\\left(' + texQ(v) + '\\right)') : texQ(v));
   // Base de uma potência: frações sempre entre parênteses.
   const baseQ = (v) => (ehInteiro(v) && v >= 0 ? texQ(v) : ehInteiro(v) ? '(' + texQ(v) + ')' : '\\left(' + texQ(v) + '\\right)');
   // Parcela com sinal para continuar uma soma: " + 3", " - \dfrac{1}{2}".
   const maisQ = (v) => (v < 0 ? ' - ' + texQ(-v) : ' + ' + texQ(v));
-  // Coeficiente vezes variável, sem o 1: cx(1, 'x') = 'x', cx(-1, 'x^2') = '-x^2', cx(3, 'x') = '3x'.
-  const cx = (k, v) => (k === 1 ? v : k === -1 ? '-' + v : texQ(k) + v);
-  // Produto k × X, com −X quando k = −1 e X quando k = 1.
-  const vezesTex = (k, X) => (k === 1 ? X : k === -1 ? '-' + X : texQ(k) + ' \\times ' + X);
-  // Igualdades encadeadas sem membros vazios nem repetidos seguidos: cadeia('a', 'b', 'b') = 'a = b'.
-  const cadeia = (...ps) => ps.filter((x, i, l) => x !== '' && (i === 0 || x !== l[i - 1])).join(' = ');
   // Número com sinal explícito: '+2', '-3'.
   const sgnTex = (k) => (k > 0 ? '+' : '') + tex(k);
-  // n/d = resultado, sem «= …» repetido nem divisão por 1.
-  function divTex(n, d) {
-    const r = texQ(limpo(n / d));
-    if (d === 1) return r;
-    const q = '\\dfrac{' + texQ(n) + '}{' + texQ(d) + '}';
-    return q === r ? r : q + ' = ' + r;
-  }
   const somaNumTex = (vs) => vs.map((v, i) => (i === 0 ? texQ(v) : maisQ(v))).join('');
   const opQ = (v) => '$' + texQ(v) + '$';
   // Argumento de uma função: f(2), f\left(\dfrac{1}{2}\right).
