@@ -1,7 +1,6 @@
 // Geradores de Matemática A — Modelos Matemáticos para a Cidadania (js/geradores/mat-a/cidadania.js).
 const { test, before } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
 const { carregar } = require('./ajuda.js');
 
 const FICHEIROS = [
@@ -16,13 +15,10 @@ const IDS = [
   'juros-simples-montante', 'juros-composto-montante', 'juros-capital-inicial',
 ];
 
-let M, G, verificar;
+let M, G;
 before(() => {
   M = carregar(...FICHEIROS);
   G = M.geradores;
-  const harness = path.join(__dirname, '..', 'tools', 'verificar-geradores.js');
-  delete require.cache[harness];
-  verificar = require(harness).verificar;
 });
 
 test('regista os 16 geradores de cidadania, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
@@ -36,11 +32,7 @@ test('regista os 16 geradores de cidadania, cada um com ≥ 2 formatos ou ≥ 2 
   }
 });
 
-for (const id of IDS) {
-  test(id + ' passa a verificação (200 sementes)', () => {
-    assert.deepEqual(verificar(G.obter(id), { sementes: 200 }), []);
-  });
-}
+// A verificação de 200 sementes de cada gerador corre em tests/geradores-todos.test.js.
 
 // Snapshots pequenos (semente 7), conferidos à mão.
 test('snapshot: maiorias-limiar (votos), semente 7', () => {

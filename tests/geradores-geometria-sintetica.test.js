@@ -1,7 +1,6 @@
 // Geradores de Matemática A — Geometria sintética (js/geradores/mat-a/geometria-sintetica.js).
 const { test, before } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
 const { carregar } = require('./ajuda.js');
 
 const FICHEIROS = [
@@ -14,13 +13,10 @@ const IDS = [
   'euler-nove-pontos-centro-nove-pontos', 'euler-nove-pontos-raio-nove-pontos', 'euler-nove-pontos-razao-euler',
 ];
 
-let M, G, verificar;
+let M, G;
 before(() => {
   M = carregar(...FICHEIROS);
   G = M.geradores;
-  const harness = path.join(__dirname, '..', 'tools', 'verificar-geradores.js');
-  delete require.cache[harness];
-  verificar = require(harness).verificar;
 });
 
 // Aritmética própria do teste (exata: coordenadas inteiras ou meios).
@@ -62,11 +58,7 @@ test('regista os 9 geradores de geometria sintética, cada um com ≥ 2 formatos
   }
 });
 
-for (const id of IDS) {
-  test(id + ' passa a verificação (200 sementes)', () => {
-    assert.deepEqual(verificar(G.obter(id), { sementes: 200 }), []);
-  });
-}
+// A verificação de 200 sementes de cada gerador corre em tests/geradores-todos.test.js.
 
 // Snapshots pequenos (semente 7), conferidos à mão.
 test('snapshot: circuncentro-retangulo (coordenadas), semente 7', () => {

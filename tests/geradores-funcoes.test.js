@@ -1,7 +1,6 @@
 // Geradores de Matemática A — Funções (js/geradores/mat-a/funcoes.js).
 const { test, before } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
 const { carregar } = require('./ajuda.js');
 
 const FICHEIROS = [
@@ -17,13 +16,10 @@ const IDS = [
   'ramos-modulo-avaliar-ramos', 'ramos-modulo-equacao-modulo', 'ramos-modulo-zero-ramos',
 ];
 
-let M, G, verificar;
+let M, G;
 before(() => {
   M = carregar(...FICHEIROS);
   G = M.geradores;
-  const harness = path.join(__dirname, '..', 'tools', 'verificar-geradores.js');
-  delete require.cache[harness];
-  verificar = require(harness).verificar;
 });
 
 const proximo = (a, b) => Math.abs(a - b) < 1e-9;
@@ -68,11 +64,7 @@ test('regista os 18 geradores de funções, cada um com ≥ 2 formatos ou ≥ 2 
   }
 });
 
-for (const id of IDS) {
-  test(id + ' passa a verificação (200 sementes)', () => {
-    assert.deepEqual(verificar(G.obter(id), { sementes: 200 }), []);
-  });
-}
+// A verificação de 200 sementes de cada gerador corre em tests/geradores-todos.test.js.
 
 // ---------------------------------------------------------------- snapshots (semente 3), conferidos à mão
 test('snapshot: imagem (expressão), semente 3', () => {

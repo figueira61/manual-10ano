@@ -1,7 +1,6 @@
 // Geradores de Matemática A — Geometria analítica (js/geradores/mat-a/geometria-analitica.js).
 const { test, before } = require('node:test');
 const assert = require('node:assert/strict');
-const path = require('node:path');
 const { carregar } = require('./ajuda.js');
 
 const FICHEIROS = [
@@ -16,13 +15,10 @@ const IDS = [
   'reta-vetorial-ponto-lambda', 'reta-vetorial-pertence-reta', 'reta-vetorial-declive-vetor',
 ];
 
-let M, G, verificar;
+let M, G;
 before(() => {
   M = carregar(...FICHEIROS);
   G = M.geradores;
-  const harness = path.join(__dirname, '..', 'tools', 'verificar-geradores.js');
-  delete require.cache[harness];
-  verificar = require(harness).verificar;
 });
 
 // Aritmética e leitura próprias do teste (independentes do gerador).
@@ -72,11 +68,7 @@ test('regista os 15 geradores de geometria analítica, cada um com ≥ 2 formato
   }
 });
 
-for (const id of IDS) {
-  test(id + ' passa a verificação (200 sementes)', () => {
-    assert.deepEqual(verificar(G.obter(id), { sementes: 200 }), []);
-  });
-}
+// A verificação de 200 sementes de cada gerador corre em tests/geradores-todos.test.js.
 
 // Snapshots pequenos (semente 7), conferidos à mão.
 test('snapshot: distância (pontos), semente 7', () => {
