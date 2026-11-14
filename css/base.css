@@ -412,9 +412,9 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
   background: color-mix(in srgb, var(--c) 14%, var(--fundo));
   border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
 }
-.selo-estado.e-domina { --c: var(--certo); }
-.selo-estado.e-dificuldade { --c: var(--cor-5); }
-.selo-estado.e-nao_resolvido { --c: var(--errado); }
+.selo-estado.estado-domina { --c: var(--certo); }
+.selo-estado.estado-dificuldade { --c: var(--cor-5); }
+.selo-estado.estado-nao-resolvido { --c: var(--errado); }
 .suporte-estado:empty { display: none; }
 .selo { display: inline-flex; gap: 8px; color: var(--texto-suave); font-size: 0.9rem; }
 .selo .lido { color: var(--certo); font-weight: 700; }

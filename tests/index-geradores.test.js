@@ -39,12 +39,13 @@ test('lista-cache inclui cada ficheiro de js/geradores/**', () => {
 
 test('index.html: treino.js, teste.js e vistas-estudo.js depois de miniquiz.js e antes de app.js; todos em cache', () => {
   const lista = fs.readFileSync(path.join(RAIZ, 'lista-cache.js'), 'utf8');
-  for (const f of ['js/treino.js', 'js/teste.js', 'js/vistas-estudo.js']) {
+  for (const f of ['js/treino.js', 'js/teste.js', 'js/painel.js', 'js/vistas-estudo.js']) {
     assert.ok(pos(f) > pos('js/miniquiz.js'), f + ' depois de miniquiz.js');
     assert.ok(pos(f) < pos('js/app.js'), f + ' antes de app.js');
     assert.ok(lista.includes('"' + f + '"'), 'falta em lista-cache.js: ' + f);
   }
   assert.ok(pos('js/vistas-estudo.js') > pos('js/teste.js'), 'vistas-estudo.js depois de teste.js');
+  assert.ok(pos('js/painel.js') > pos('js/teste.js'), 'painel.js depois de teste.js');
   assert.ok(pos('js/vistas-estudo.js') > pos('js/render.js'), 'vistas-estudo.js depois de render.js');
   assert.ok(pos('js/vistas-estudo.js') > pos('js/motor.js'), 'vistas-estudo.js depois de motor.js');
 });

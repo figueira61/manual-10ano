@@ -51,6 +51,7 @@ self.LISTA_CACHE = [
   "js/miniquiz.js",
   "js/motor.js",
   "js/nucleo.js",
+  "js/painel.js",
   "js/pesquisa.js",
   "js/progresso.js",
   "js/quiz.js",
@@ -90,4 +91,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'f63201ab70';
+self.VERSAO_CACHE = '4d115bcb18';

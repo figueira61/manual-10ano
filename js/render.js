@@ -245,19 +245,13 @@ globalThis.Manual = globalThis.Manual || {};
     return sessaoId;
   }
 
-  const ROTULOS_ESTADO = {
-    domina: 'Domina',
-    dificuldade: 'Com dificuldade',
-    nao_resolvido: 'Não conseguiu resolver',
-  };
-
-  // Selo de estado de um subtema (texto + cor); null quando não há estado.
+  // Selo de estado de um subtema (texto + cor); null quando não há estado. O rótulo vem de Manual.painel.rotuloEstado.
   function seloEstado(estado) {
-    const rotulo = ROTULOS_ESTADO[estado];
-    if (!rotulo) return null;
-    const el = criar('span', 'selo-estado e-' + estado);
+    if (estado !== 'domina' && estado !== 'dificuldade' && estado !== 'nao_resolvido') return null;
+    const rotulo = Manual.painel.rotuloEstado(estado);
+    const el = criar('span', 'selo-estado ' + rotulo.classe);
     el.appendChild(criar('span', 'so-leitores', 'Estado: '));
-    el.appendChild(document.createTextNode(rotulo));
+    el.appendChild(document.createTextNode(rotulo.texto));
     return el;
   }
 
