@@ -420,6 +420,18 @@ test('regra 4: coeficiente 1 escrito numa fórmula', () => {
   assert.deepEqual(verificar(bom, { sementes: 5 }), []);
 });
 
+test('regra 4: coeficiente 1 antes de parênteses, \\vec, \\lambda, \\sqrt', () => {
+  for (const mau of ['$1(x + 4)^2 \\geq 0$', '$-1(x - 2)^2$', '$y = 1\\vec{u}$', '$1\\lambda = 2$', '$1\\sqrt{2}$', '$-1\\left(x + 1\\right)$']) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Fica ' + mau; });
+    assert.deepEqual(regras(verificar(d, { sementes: 5 })), ['4'], mau);
+  }
+  for (const bom of ['$11(x + 1)$', '$21(x - 3)$', '$0,1(x + 2)$', '$0{,}1(x + 2)$', '$f(1)(2)$', '$\\dfrac{1}{2}(x + 1)$', '$(1, 2)$', '$x^{1}$', '$\\sqrt{1}$']) {
+    const d = comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => { ex.resolucao[0].porque = 'Fica ' + bom; });
+    const e = verificar(d, { sementes: 5 }).filter((x) => /coeficiente 1/.test(x));
+    assert.deepEqual(e, [], bom);
+  }
+});
+
 test('regra 1: verificarIndependente que aceita tudo falha a mutação', () => {
   for (const def of [defSoma({ verificarIndependente: () => true }), defVf({ verificarIndependente: () => true })]) {
     const e = verificar(def, { sementes: 20 });

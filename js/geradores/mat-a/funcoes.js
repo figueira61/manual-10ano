@@ -939,8 +939,9 @@ globalThis.Manual = globalThis.Manual || {};
         { passo: 'Ver a concavidade', porque: 'Com $a = ' + tex(a) + '$, a concavidade está voltada para ' + (cima ? 'cima e o extremo é um mínimo.' : 'baixo e o extremo é um máximo.'), calculo: "D'_f = " + intervaloTex(certo) },
       ];
     const kv = limpo(-(b * b - 4 * a * c) / (4 * a));
+    const quadrado = '(x ' + (h < 0 ? '+ ' + tex(-h) : '- ' + tex(h)) + ')^2';
     const verif = canon
-      ? { passo: 'Confirmar com o quadrado', calculo: '(x ' + (h < 0 ? '+ ' + tex(-h) : '- ' + tex(h)) + ')^2 \\geq 0 \\Rightarrow ' + texQ(a) + '(x ' + (h < 0 ? '+ ' + tex(-h) : '- ' + tex(h)) + ')^2 ' + (cima ? '\\geq' : '\\leq') + ' 0 \\Rightarrow f(x) ' + (cima ? '\\geq' : '\\leq') + ' ' + tex(k) + ',\\quad f(' + tex(h) + ') = ' + tex(k) }
+      ? { passo: 'Confirmar com o quadrado', calculo: quadrado + ' \\geq 0 \\Rightarrow ' + (a === 1 ? '' : cx(a, quadrado) + ' ' + (cima ? '\\geq' : '\\leq') + ' 0 \\Rightarrow ') + 'f(x) ' + (cima ? '\\geq' : '\\leq') + ' ' + tex(k) + ',\\quad f(' + tex(h) + ') = ' + tex(k) }
       : { passo: 'Confirmar o extremo com $k = -\\dfrac{\\Delta}{4a}$', calculo: deltaTex(a, b, c) + ',\\quad k = -\\dfrac{' + tex(Q.delta) + '}{' + tex(4 * a) + '} = ' + tex(kv) };
     const ex = { enunciado: 'Considera a função quadrática $f$ definida por $f(x) = ' + expr + '$. Qual é o contradomínio de $f$?', resolucao, verificacao: verif, dados: { contexto, a, h, k }, esquema: esquemaParabola(a, h, k, false) };
     const prioridade = erros.slice(0, 1).concat(baralhar(rng, erros.slice(1)));

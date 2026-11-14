@@ -20,8 +20,9 @@ const CONTROLO = /[\t\r\f\v\b]/;
 // '\neq', '\nabla', '\nu', '\not', '\neg', '\newline' perdidos numa string JS: mudança de linha seguida do resto do comando.
 // (Dentro de $…$ qualquer mudança de linha conta; ver regra4.)
 const NOVA_LINHA_PERDIDA = /\n(?:eq|abla|ot|eg|ewline|ewcommand|u)(?![A-Za-zÀ-ÖØ-öø-ÿ])/;
-// Coeficiente 1 escrito numa fórmula ("1x", "-1x^2"): escreve-se x, -x, x^2.
-const COEFICIENTE_UM = /(?<![\d,.{}A-Za-z_\\])1[a-z](?![A-Za-z])/;
+// Coeficiente 1 escrito numa fórmula ("1x", "-1x^2", "1(x + 4)^2", "-1\vec{u}", "1\sqrt{2}"): escreve-se x, -x, (x + 4)^2…
+// Não conta se o 1 faz parte de outro número (11(, 0,1(, 0{,}1() ou de um índice/expoente (x_1, {1}).
+const COEFICIENTE_UM = /(?<![\d,.{}A-Za-z_\\])1(?:[a-z](?![A-Za-z])|\(|\\(?:vec|lambda|sqrt|left)(?![A-Za-z]))/;
 const LETRA = 'A-Za-zÀ-ÖØ-öø-ÿ';
 // Com { ( [ | a seguir nenhuma palavra portuguesa coincide: basta não ter a barra antes ("fleft(" apanha f\left().
 // As palavras soltas (times, le, ge…) exigem fronteira de palavra dos dois lados.
