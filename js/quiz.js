@@ -123,7 +123,7 @@ function verificacao(R, pai, v) {
   if (!v || !v.passo) return;
   const caixa = R.criar('div', 'verificacao');
   const linha = R.criar('p', 'passo-texto');
-  linha.appendChild(R.criar('strong', '', 'Verifica: '));
+  linha.appendChild(R.criar('strong', '', 'Verificação: '));
   R.texto(linha, v.passo);
   caixa.appendChild(linha);
   if (v.calculo) {
