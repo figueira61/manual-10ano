@@ -642,3 +642,10 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .aviso-versao p { margin: 0; font-weight: 600; }
 .aviso-versao-acoes { display: flex; gap: 8px; }
 .aviso-autenticacao { margin-bottom: 16px; }
+
+/* Treino e Teste: escolhas */
+.escolha-grupo { border: 1px solid var(--borda); border-radius: 12px; margin: 0 0 12px; padding: 8px 12px 10px; min-width: 0; }
+.escolha-grupo legend { font-weight: 700; padding: 0 6px; }
+.escolha-linha { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; min-height: 28px; cursor: pointer; overflow-wrap: anywhere; }
+.escolha-linha input { margin-top: 4px; flex: none; }
+.pergunta.resultado .acoes { margin-top: 14px; }

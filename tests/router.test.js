@@ -104,3 +104,16 @@ test('erroAutenticacao lê o erro do hash do Supabase; null nos outros casos', (
   assert.equal(Manual.router.erroAutenticacao('#/mat-a'), null);
   assert.equal(Manual.router.erroAutenticacao(''), null);
 });
+
+test('treino aceita ?s= com um subtema válido e o caminho faz o inverso', () => {
+  assert.deepEqual(Manual.router.analisar('#/treino?s=mat-a/funcoes/afim'), { vista: 'treino', subtema: 'mat-a/funcoes/afim' });
+  assert.equal(Manual.router.caminho({ vista: 'treino', subtema: 'mat-a/funcoes/afim' }), '#/treino?s=mat-a/funcoes/afim');
+  assert.equal(Manual.router.caminho({ vista: 'treino' }), '#/treino');
+});
+
+test('treino com ?s= inválido ignora o parâmetro', () => {
+  for (const h of ['#/treino?s=mat-a/funcoes', '#/treino?s=a/b/c/d', '#/treino?s=A/b/c', '#/treino?s=', '#/treino?x=1']) {
+    assert.deepEqual(Manual.router.analisar(h), { vista: 'treino' }, h);
+  }
+  assert.deepEqual(Manual.router.analisar('#/teste?s=mat-a/funcoes/afim'), { vista: 'teste' });
+});

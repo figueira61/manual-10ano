@@ -456,8 +456,10 @@ globalThis.Manual = globalThis.Manual || {};
   const TITULOS_BREVE = { progresso: 'O meu progresso', treino: 'Treino', teste: 'Teste', encarregado: 'Encarregado' };
 
   // Devolve { destruir } quando a vista precisa de limpeza.
-  function montar(vista, principal) {
+  function montar(vista, principal, rota) {
     switch (vista) {
+      case 'treino': return Manual.vistasEstudo.treino(principal, rota);
+      case 'teste': return Manual.vistasEstudo.teste(principal, rota);
       case 'entrar': vistaEntrar(principal); return null;
       case 'registar': vistaRegistar(principal); return null;
       case 'privacidade': vistaPrivacidade(principal); return null;
@@ -492,10 +494,16 @@ globalThis.Manual = globalThis.Manual || {};
       const menu = criar('div', 'menu-conta');
       menu.id = 'menu-conta';
       menu.hidden = true;
-      const minha = ligacao('#/conta', 'A minha conta', 'menu-item');
       const sair = criar('button', 'menu-item', 'Sair');
       sair.type = 'button';
-      menu.appendChild(minha);
+      const entradas = est.papel === 'encarregado'
+        ? [['#/encarregado', 'Educandas'], ['#/conta', 'A minha conta']]
+        : [['#/progresso', 'O meu progresso'], ['#/treino', 'Treino'], ['#/teste', 'Teste'], ['#/conta', 'A minha conta']];
+      const ligacoes = entradas.map(function (e) {
+        const a = ligacao(e[0], e[1], 'menu-item');
+        menu.appendChild(a);
+        return a;
+      });
       menu.appendChild(sair);
       zona.appendChild(botao);
       zona.appendChild(menu);
@@ -505,7 +513,7 @@ globalThis.Manual = globalThis.Manual || {};
         botao.setAttribute('aria-expanded', String(abrir));
       }
       botao.addEventListener('click', function (e) { e.stopPropagation(); alternar(menu.hidden); });
-      minha.addEventListener('click', function () { alternar(false); });
+      ligacoes.forEach(function (a) { a.addEventListener('click', function () { alternar(false); }); });
       sair.addEventListener('click', function () {
         alternar(false);
         Promise.resolve(Manual.conta.sair()).then(function () { irPara('#/'); });

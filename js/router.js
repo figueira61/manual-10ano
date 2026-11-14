@@ -35,6 +35,11 @@ globalThis.Manual = globalThis.Manual || {};
         return { vista: 'pesquisa', termo: termo };
       }
 
+      if (partes.length === 1 && partes[0] === 'treino') {
+        const s = new URLSearchParams(query).get('s') || '';
+        const p = s.split('/');
+        return p.length === 3 && p.every((x) => SEGMENTO.test(x)) ? { vista: 'treino', subtema: s } : { vista: 'treino' };
+      }
       if (partes.length === 1 && RESERVADOS.indexOf(partes[0]) !== -1) return { vista: partes[0] };
 
       const [disciplina, segundo, terceiro] = partes;
@@ -70,6 +75,8 @@ globalThis.Manual = globalThis.Manual || {};
           return '#/' + rota.disciplina + '/' + rota.tema + '/' + rota.subtema;
         case 'pesquisa':
           return '#/pesquisa?q=' + encodeURIComponent(rota.termo || '');
+        case 'treino':
+          return '#/treino' + (rota.subtema ? '?s=' + rota.subtema : '');
         default:
           if (RESERVADOS.indexOf(rota.vista) !== -1) return '#/' + rota.vista;
           return '#/';

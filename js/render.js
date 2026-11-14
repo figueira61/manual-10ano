@@ -289,10 +289,10 @@ globalThis.Manual = globalThis.Manual || {};
 
   // Regista a resposta a uma pergunta do mini-quiz (banco ou gerada). Só contas de aluna registam
   // tentativas (e nada enquanto o papel de um encarregado que usou este dispositivo ainda não é conhecido).
-  function responderMiniquiz(contexto, r) {
+  function responderMiniquiz(contexto, r, modo) {
     if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return null;
     if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return null;
-    return registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico));
+    return registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico, modo || undefined));
   }
 
   // Perguntas do mini-quiz: com geradores para o subtema, 5 escolhidas pelo motor (novas sementes
@@ -315,6 +315,7 @@ globalThis.Manual = globalThis.Manual || {};
   Manual.render = {
     registarTentativa: registarTentativa,
     responderMiniquiz: responderMiniquiz,
+    esquemaExercicio: esquemaExercicio,
     perguntasMiniquiz: perguntasMiniquiz,
     seloEstado: seloEstado,
     ligarSeloEstado: ligarSeloEstado,
@@ -388,6 +389,13 @@ globalThis.Manual = globalThis.Manual || {};
         return perguntasMiniquiz(disciplinaId, subtema);
       }, function (certas, total) {
         progresso.registarQuiz(chave, certas, total);
+        // O cartão final acaba de ser desenhado por quiz.js (e é refeito a cada "Repetir").
+        const cartaoFinal = areaQuiz.querySelector ? areaQuiz.querySelector('.resultado') : null;
+        if (cartaoFinal) {
+          const treinar = criar('a', 'botao', 'Treinar este subtema');
+          treinar.href = Manual.router.caminho({ vista: 'treino', subtema: chave });
+          cartaoFinal.appendChild(treinar);
+        }
       }, function (r) {
         responderMiniquiz(contextoQuiz, r);
       }, {

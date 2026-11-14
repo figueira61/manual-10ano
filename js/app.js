@@ -132,6 +132,8 @@ globalThis.Manual = globalThis.Manual || {};
       acoes.appendChild(comecar);
       acoes.appendChild(ligacao(hashDe('resumos', { disciplina: primeira.id }), 'Resumos', 'botao botao-grande'));
     }
+    acoes.appendChild(ligacao('#/treino', 'Treino', 'botao botao-grande'));
+    acoes.appendChild(ligacao('#/teste', 'Teste', 'botao botao-grande'));
     destaque.appendChild(acoes);
     principal.appendChild(destaque);
 
