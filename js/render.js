@@ -287,12 +287,14 @@ globalThis.Manual = globalThis.Manual || {};
     return tentativa;
   }
 
-  // Regista a resposta a uma pergunta do mini-quiz (banco ou gerada). Só contas de aluna registam
-  // tentativas (e nada enquanto o papel de um encarregado que usou este dispositivo ainda não é conhecido).
-  function responderMiniquiz(contexto, r, modo) {
+  // Regista a resposta a uma pergunta do mini-quiz, do Treino ou do Teste (banco ou gerada). `extra` é o
+  // objeto de construirTentativa ({ modo, nivel_ajuda, usou_pista, viu_resolucao }). Regista quem tem conta de
+  // aluna e quem não tem conta (visitante, só no histórico local); não regista a conta de encarregado, nem
+  // enquanto o último papel usado neste dispositivo for de encarregado (Manual.conta.registaTentativas).
+  function responderMiniquiz(contexto, r, extra) {
     if (!Manual.conta || typeof Manual.conta.guardarTentativa !== 'function') return null;
     if (typeof Manual.conta.registaTentativas === 'function' && !Manual.conta.registaTentativas()) return null;
-    return registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico, modo || undefined));
+    return registarTentativa(Manual.quiz.construirTentativa(contexto, r.pergunta, r.indice, r.resultado, r.duracaoMs, idSessao(), r.erroTipico, extra));
   }
 
   // Perguntas do mini-quiz: com geradores para o subtema, 5 escolhidas pelo motor (novas sementes

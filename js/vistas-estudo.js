@@ -1,8 +1,8 @@
 globalThis.Manual = globalThis.Manual || {};
 
 // Vistas Treino e Teste. Só DOM e texto (sem innerHTML); a lógica está em Manual.treino e Manual.teste.
-// Funcionam sem conta: o histórico local vem de Manual.motor, e só as contas de aluna registam tentativas
-// (a regra está em Manual.render.responderMiniquiz).
+// Funcionam sem conta: o histórico local vem de Manual.motor. As tentativas são registadas por
+// Manual.render.responderMiniquiz (contas de aluna e visitantes; não as de encarregado).
 (function () {
   const Manual = globalThis.Manual;
   const R = Manual.render;
@@ -263,11 +263,13 @@ globalThis.Manual = globalThis.Manual || {};
       iniciar.disabled = true;
       const aviso = criar('p', 'campo-ajuda', '');
       aviso.setAttribute('aria-live', 'polite');
+      aviso.hidden = true;
       function atualizar() {
         const n = caixas.filter(function (x) { return x.input.checked; }).length;
         caixas.forEach(function (x) { x.input.disabled = n >= 3 && !x.input.checked; });
         iniciar.disabled = n === 0;
         aviso.textContent = n >= 3 ? 'Já escolheste 3 subtemas.' : '';
+        aviso.hidden = n < 3;
       }
       caixas.forEach(function (x) { x.input.addEventListener('change', atualizar); });
       iniciar.addEventListener('click', function () {
@@ -415,13 +417,18 @@ globalThis.Manual = globalThis.Manual || {};
       const cron = caixa(c, 'teste-cronometro', 'Com cronómetro');
       const aviso = criar('p', 'aviso-form aviso-erro', '');
       aviso.setAttribute('aria-live', 'polite');
+      aviso.hidden = true;
       const ir = botao('Começar o teste', 'botao-principal');
-      function atualizar() { ir.disabled = !caixas.some(function (x) { return x.input.checked; }); }
+      function atualizar() {
+        const algum = caixas.some(function (x) { return x.input.checked; });
+        ir.disabled = !algum;
+        if (algum) { aviso.textContent = ''; aviso.hidden = true; }
+      }
       caixas.forEach(function (x) { x.input.addEventListener('change', atualizar); });
       atualizar();
       ir.addEventListener('click', function () {
         const temas = caixas.filter(function (x) { return x.input.checked; }).map(function (x) { return x.tema; });
-        if (!temas.length) { aviso.textContent = 'Escolhe pelo menos um tema.'; return; }
+        if (!temas.length) { aviso.textContent = 'Escolhe pelo menos um tema.'; aviso.hidden = false; return; }
         const sel = radios.find(function (r) { return r.checked; });
         comecar(disc.id, temas, sel ? parseInt(sel.value, 10) : Manual.teste.TAMANHOS[0], cron.checked);
       });
