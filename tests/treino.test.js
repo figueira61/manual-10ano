@@ -115,3 +115,77 @@ test('montarTreino: 9 perguntas únicas em todas as chaves e várias sementes', 
     }
   }
 });
+
+const histDe = (chave, perguntas, resultado, extra) => {
+  const [disciplina, tema, subtema] = chave.split('/');
+  return perguntas.map((q, i) => Object.assign({
+    disciplina, tema, subtema, tipo: q.id, semente: q.semente, formato: q.formato, contexto: q.contexto,
+    modo: 'treino', resultado, criado_em: new Date(Date.UTC(2026, 10, 1, 10, i)).toISOString(),
+  }, extra));
+};
+
+test('montarTreino: nunca repete uma semente já vista no mesmo tipo', () => {
+  for (const k of [k1, k4]) {
+    const antes = T.montarTreino([k], [], { n: 9, rng: rng(7) });
+    const hist = histDe(k, antes, 'certa');
+    const vistos = new Set(antes.map((q) => q.id + ':' + q.semente));
+    for (let s = 0; s < 10; s++) {
+      const depois = T.montarTreino([k], hist, { n: 9, rng: rng(s) });
+      assert.ok(depois.length > 0);
+      depois.forEach((q) => assert.ok(!vistos.has(q.id + ':' + q.semente), 'repetido ' + q.id + ':' + q.semente));
+    }
+  }
+});
+
+// subtema com um gerador de vários formatos, para o erro poder mudar de formato
+const kMulti = comGeradores.find((k) => M.geradores.doSubtema('mat-a', k.split('/')[2]).some((d) => d.formatos.length > 1));
+const defMulti = M.geradores.doSubtema('mat-a', kMulti.split('/')[2]).find((d) => d.formatos.length > 1);
+const erroEm = (formato) => histDe(kMulti, [{ id: defMulti.id, semente: 123456, formato }], 'errada')[0];
+
+test('montarTreino: a primeira pergunta depois de um erro tem a mesma competência noutro formato', () => {
+  const hist = [erroEm(defMulti.formatos[0])];
+  for (let s = 0; s < 20; s++) {
+    const p = T.montarTreino([kMulti], hist, { n: 9, rng: rng(s) });
+    assert.equal(p[0].competencia, defMulti.tipo);
+    assert.notEqual(p[0].formato, defMulti.formatos[0]);
+  }
+});
+
+test('aposErro: troca a próxima pergunta da mesma chave, mantendo o tamanho', () => {
+  for (let s = 0; s < 10; s++) {
+    const ps = T.montarTreino([kMulti, k1], [], { n: 9, rng: rng(s) });
+    const i = ps.findIndex((q) => q.chave === kMulti);
+    const j = ps.findIndex((q, x) => x > i && q.chave === kMulti);
+    const copia = ps.slice();
+    const ref = ps;
+    assert.equal(T.aposErro(ps, i, [], rng(s + 100)), true);
+    assert.equal(ps, ref);
+    assert.equal(ps.length, copia.length);
+    ps.forEach((q, x) => { if (x !== j) assert.equal(q, copia[x], 'só o índice ' + j + ' muda'); });
+    const nova = ps[j];
+    assert.equal(nova.chave, kMulti);
+    assert.equal(nova.competencia, copia[i].competencia);
+    const mesmoPar = (a) => a.id + ':' + a.semente;
+    assert.equal(copia.concat(ps.filter((_, x) => x !== j)).filter((q) => mesmoPar(q) === mesmoPar(nova)).length, 0);
+    const defs = M.geradores.doSubtema('mat-a', kMulti.split('/')[2]);
+    const variantes = defs.some((d) => d.tipo === copia[i].competencia && (d.formatos.length > 1 || M.geradores.contextosDe(d).length > 1));
+    if (variantes) assert.ok(nova.formato !== copia[i].formato || nova.contexto !== copia[i].contexto);
+  }
+});
+
+test('aposErro: false e array intacto sem pergunta posterior da mesma chave', () => {
+  const ps = T.montarTreino([kMulti, k1], [], { n: 9, rng: rng(5) });
+  const ultimo = ps.map((q) => q.chave).lastIndexOf(kMulti);
+  const copia = ps.slice();
+  assert.equal(T.aposErro(ps, ultimo, [], rng(1)), false);
+  assert.deepEqual(ps, copia);
+  assert.equal(T.aposErro(ps, 99, [], rng(1)), false);
+});
+
+test('aposErro: não devolve pares presentes no histórico', () => {
+  const ps = T.montarTreino([kMulti], [], { n: 9, rng: rng(3) });
+  const hist = histDe(kMulti, T.montarTreino([kMulti], [], { n: 9, rng: rng(4) }), 'certa');
+  const vistos = new Set(hist.map((t) => t.tipo + ':' + t.semente));
+  assert.equal(T.aposErro(ps, 0, hist, rng(9)), true);
+  assert.ok(!vistos.has(ps[1].id + ':' + ps[1].semente));
+});

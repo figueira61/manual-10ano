@@ -84,7 +84,7 @@ globalThis.Manual = globalThis.Manual || {};
 
     const fontes = unicas.map(function (chave) {
       const p = partir(chave);
-      const doSubtema = hist.filter(function (t) { return t && t.disciplina === p.disciplina && t.subtema === p.subtema; });
+      const doSubtema = hist.filter(function (t) { return t && t.disciplina === p.disciplina && t.tema === p.tema && t.subtema === p.subtema; });
       return {
         chave: chave, hist: doSubtema, rondas: 0, pares: new Set(), perguntas: [], tipos: new Set(), tentados: new Set(), esgotada: false,
         cands: Manual.miniquiz.candidatos(p.disciplina, p.subtema, [], rng),
@@ -158,6 +158,41 @@ globalThis.Manual = globalThis.Manual || {};
     return saida;
   }
 
+  // Depois de uma resposta errada em perguntas[indice], troca no próprio array a próxima pergunta da mesma
+  // chave por outra da mesma competência (noutro formato/contexto, se possível), sem repetir pares já vistos.
+  function aposErro(perguntas, indice, historico, rng) {
+    if (!Array.isArray(perguntas)) return false;
+    const errada = perguntas[indice];
+    if (!errada || !errada.chave) return false;
+    let alvo = -1;
+    for (let i = indice + 1; i < perguntas.length; i++) {
+      if (perguntas[i] && perguntas[i].chave === errada.chave) { alvo = i; break; }
+    }
+    if (alvo < 0) return false;
+    const p = partir(errada.chave);
+    const hist = (Array.isArray(historico) ? historico : []).filter(function (t) {
+      return t && t.disciplina === p.disciplina && t.tema === p.tema && t.subtema === p.subtema;
+    });
+    const usados = new Set(perguntas.filter(Boolean).map(function (q) { return q.id + ':' + q.semente; }));
+    hist.forEach(function (t) { usados.add(t.tipo + ':' + t.semente); });
+    let pool = Manual.miniquiz.candidatos(p.disciplina, p.subtema, [], rng).filter(function (c) {
+      return !usados.has(c.tipo + ':' + c.semente);
+    });
+    const ultimoErro = { competencia: errada.competencia, formato: errada.formato, contexto: errada.contexto };
+    while (pool.length) {
+      const escolha = Manual.selecao.escolher(pool, hist, { n: 1, rng: rng, ultimoErro: ultimoErro });
+      if (!escolha.length) return false;
+      const c = escolha[0];
+      const nova = materializar(c);
+      if (nova) {
+        perguntas[alvo] = Object.assign({}, nova, { chave: errada.chave });
+        return true;
+      }
+      pool = pool.filter(function (x) { return x !== c; });
+    }
+    return false;
+  }
+
   function resumo(respostas, estadosAntes, estadosDepois) {
     const antes = estadosAntes || {}, depois = estadosDepois || {};
     const chaves = [];
@@ -179,5 +214,5 @@ globalThis.Manual = globalThis.Manual || {};
     return { melhorias: melhorias, dificuldades: dificuldades, proximas: proximas };
   }
 
-  Manual.treino = { nivelInicial: nivelInicial, nivelAtual: nivelAtual, sugestao: sugestao, montarTreino: montarTreino, resumo: resumo };
+  Manual.treino = { nivelInicial: nivelInicial, nivelAtual: nivelAtual, sugestao: sugestao, montarTreino: montarTreino, aposErro: aposErro, resumo: resumo };
 })();
