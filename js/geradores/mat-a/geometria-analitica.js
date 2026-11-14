@@ -594,7 +594,7 @@ globalThis.Manual = globalThis.Manual || {};
       const viz = Cc.map((c, i) => (c < 0 ? i : -1)).filter((i) => i >= 0);
       const dd = d.map((v, i) => (Cc[i] < 0 ? P[i] + Cc[i] : v));
       erros = [
-        { codigo: 'sinais_trocados', texto: eqCirc(vezes(-1, Cc), tex(rr)), explicacao: 'Trocaste os sinais do centro: essa circunferência tem centro ' + opPonto(vezes(-1, Cc)) + '. Com centro $C' + texPonto(Cc) + '$ escreve-se $' + fatorTex('x', Cc[0]) + '$ e $' + fatorTex('y', Cc[1]) + '$.' },
+        { codigo: 'centro_sinais_trocados', texto: eqCirc(vezes(-1, Cc), tex(rr)), explicacao: 'Trocaste os sinais do centro: essa circunferência tem centro ' + opPonto(vezes(-1, Cc)) + '. Com centro $C' + texPonto(Cc) + '$ escreve-se $' + fatorTex('x', Cc[0]) + '$ e $' + fatorTex('y', Cc[1]) + '$.' },
         { codigo: 'raio_no_segundo_membro', texto: eqCirc(Cc, raizTex(rr)), explicacao: 'Escreveste o raio, $r = ' + raizCadeia(rr) + '$, no segundo membro. O segundo membro é o quadrado do raio, $r^2 = ' + tex(rr) + '$.' },
         { codigo: 'centro_no_ponto', texto: eqCirc(P, tex(rr)), explicacao: 'Usaste o ponto $P' + texPonto(P) + '$ como centro. O centro é $C' + texPonto(Cc) + '$; $P$ é um ponto da circunferência.' },
         viz.length ? { codigo: 'sinal_negativo_no_raio', texto: eqCirc(Cc, tex(soma2(dd))), explicacao: 'Enganaste-te no raio ao subtrair um número negativo: ' + viz.map((i) => 'em $' + difTex(P[i], Cc[i]) + '$ fizeste $' + tex(P[i]) + ' - ' + tex(-Cc[i]) + ' = ' + tex(dd[i]) + '$').join(' e ') + ', e obtiveste $r^2 = ' + somaQuad(dd) + ' = ' + tex(soma2(dd)) + '$. Subtrair um negativo é somar: $r^2 = ' + tex(rr) + '$.' } : null,
@@ -618,7 +618,7 @@ globalThis.Manual = globalThis.Manual || {};
         { passo: 'Escrever a equação', porque: 'A circunferência de centro $(a' + SEP + 'b)$ e raio $r$ tem equação $(x - a)^2 + (y - b)^2 = r^2$.', calculo: eqCirc(Cc, tex(rr)) },
       ];
       erros = [
-        { codigo: 'sinais_trocados', texto: eqCirc(vezes(-1, Cc), tex(rr)), explicacao: 'Trocaste os sinais do centro: essa circunferência tem centro ' + opPonto(vezes(-1, Cc)) + '. O centro é o ponto médio de $[AB]$, $C' + texPonto(Cc) + '$, e escreve-se $' + fatorTex('x', Cc[0]) + '$ e $' + fatorTex('y', Cc[1]) + '$.' },
+        { codigo: 'centro_sinais_trocados', texto: eqCirc(vezes(-1, Cc), tex(rr)), explicacao: 'Trocaste os sinais do centro: essa circunferência tem centro ' + opPonto(vezes(-1, Cc)) + '. O centro é o ponto médio de $[AB]$, $C' + texPonto(Cc) + '$, e escreve-se $' + fatorTex('x', Cc[0]) + '$ e $' + fatorTex('y', Cc[1]) + '$.' },
         { codigo: 'diametro_como_raio', texto: eqCirc(Cc, tex(4 * rr)), explicacao: 'Usaste o diâmetro como raio: $\\overline{AB}^2 = ' + somaQuad(d) + ' = ' + tex(4 * rr) + '$. O raio é metade do diâmetro, $r^2 = \\overline{CA}^2 = ' + tex(rr) + '$.' },
         { codigo: 'nao_dividiu_centro', texto: eqCirc(mais(A, B), tex(rr)), explicacao: 'Somaste as coordenadas de A e de B, ' + opPonto(mais(A, B)) + ', mas não dividiste por 2. O centro é o ponto médio, $C' + texPonto(Cc) + '$.' },
         { codigo: 'raio_no_segundo_membro', texto: eqCirc(Cc, raizTex(rr)), explicacao: 'Escreveste o raio, $r = ' + raizCadeia(rr) + '$, no segundo membro. O segundo membro é o quadrado do raio, $r^2 = ' + tex(rr) + '$.' },
@@ -1020,7 +1020,7 @@ globalThis.Manual = globalThis.Manual || {};
     }
     const anti = vezes(-1, C);
     const erros = [
-      { codigo: 'sinais_trocados', texto: opEsfera(anti, rr), explicacao: contexto === 'reduzida' ? 'Trocaste os sinais do centro. Em $' + fatorTex('x', C[0]) + '$ a abcissa do centro é $' + tex(C[0]) + '$: o centro é $C' + texPonto(C) + '$.' : 'Trocaste os sinais do centro. Ao completar os quadrados, ' + [0, 1, 2].filter((i) => lin[i] !== 0).map((i) => 'de $' + polTex([[1, VAR[i] + '^2'], [lin[i], VAR[i]]]) + '$ vem $' + fatorTex(VAR[i], C[i]) + '$').join(', ') + ': o centro é $C' + texPonto(C) + '$.' },
+      { codigo: 'centro_sinais_trocados', texto: opEsfera(anti, rr), explicacao: contexto === 'reduzida' ? 'Trocaste os sinais do centro. Em $' + fatorTex('x', C[0]) + '$ a abcissa do centro é $' + tex(C[0]) + '$: o centro é $C' + texPonto(C) + '$.' : 'Trocaste os sinais do centro. Ao completar os quadrados, ' + [0, 1, 2].filter((i) => lin[i] !== 0).map((i) => 'de $' + polTex([[1, VAR[i] + '^2'], [lin[i], VAR[i]]]) + '$ vem $' + fatorTex(VAR[i], C[i]) + '$').join(', ') + ': o centro é $C' + texPonto(C) + '$.' },
       { codigo: 'raio_e_o_segundo_membro', texto: opEsfera(C, rr * rr), explicacao: 'Tomaste $' + tex(rr) + '$ como raio. Esse número é $r^2$, por isso $r = ' + raizCadeia(rr) + '$.' },
     ];
     if (contexto === 'reduzida') {

@@ -141,7 +141,7 @@ globalThis.Manual = globalThis.Manual || {};
         const f = Math.floor(T / 2);
         const erros = [
           { codigo: 'esqueceu_mais_um', valor: f, explicacao: 'Com ' + votosTxt(f) + ' não se tem mais de metade de ' + fmt(T) + ': a maioria absoluta exige mais de metade, por isso soma-se 1 à parte inteira de metade.' },
-          { codigo: 'dois_tercos', valor: Math.ceil((2 * T) / 3), explicacao: 'Calculaste dois terços do total; a maioria absoluta é só mais de metade dos votos.' },
+          { codigo: 'dois_tercos_dos_votos', valor: Math.ceil((2 * T) / 3), explicacao: 'Calculaste dois terços do total; a maioria absoluta é só mais de metade dos votos.' },
         ];
         if (votos) {
           const semUltimo = T - votos[votos.length - 1];

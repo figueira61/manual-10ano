@@ -1753,7 +1753,7 @@ globalThis.Manual = globalThis.Manual || {};
         if (Math.abs(b - am) < 1e-9) return null;
         const certa = interpretacao(ctx, m);
         const pool = baralhar(rng, [
-          { codigo: 'sinal_trocado', texto: interpretacao(ctx, -m), explicacao: 'O declive é ' + (m > 0 ? 'positivo' : 'negativo') + ' (' + fmt(m) + '): quando x aumenta, y ' + (m > 0 ? 'aumenta' : 'diminui') + '.' },
+          { codigo: 'sinal_do_declive_trocado', texto: interpretacao(ctx, -m), explicacao: 'O declive é ' + (m > 0 ? 'positivo' : 'negativo') + ' (' + fmt(m) + '): quando x aumenta, y ' + (m > 0 ? 'aumenta' : 'diminui') + '.' },
           { codigo: 'trocou_variaveis', texto: maiuscula(ctx.incY) + ', ' + ctx.xPrev + (m > 0 ? ' aumenta ' : ' diminui ') + ctx.xUnid(am) + '.', explicacao: 'O declive diz quanto varia y (' + semParenteses(ctx.yNome) + ') por cada unidade a mais de x (' + semParenteses(ctx.xNome) + '), não o contrário.' },
           { codigo: 'causalidade', texto: ctx.causal(am), explicacao: 'A reta dá valores previstos (uma tendência média): não garante o que acontece em cada caso nem prova que x causa y.' },
           { codigo: 'ordenada_como_declive', texto: maiuscula(ctx.incX) + ', ' + ctx.yPrev + (m > 0 ? ' aumenta ' : ' diminui ') + ctx.yUnid(b) + '.', explicacao: fmt(b) + ' é a ordenada na origem (o valor previsto ' + ctx.zero + '); a variação por cada unidade de x é dada pelo declive, ' + fmt(m) + '.' },
