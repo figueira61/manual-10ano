@@ -214,5 +214,5 @@ globalThis.Manual = globalThis.Manual || {};
     return { melhorias: melhorias, dificuldades: dificuldades, proximas: proximas };
   }
 
-  Manual.treino = { nivelInicial: nivelInicial, nivelAtual: nivelAtual, sugestao: sugestao, montarTreino: montarTreino, aposErro: aposErro, resumo: resumo };
+  Manual.treino = { nivelInicial: nivelInicial, nivelAtual: nivelAtual, sugestao: sugestao, montarTreino: montarTreino, aposErro: aposErro, resumo: resumo, materializar: materializar };
 })();
