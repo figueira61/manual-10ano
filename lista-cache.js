@@ -8,6 +8,8 @@ self.LISTA_CACHE = [
   "conteudos/mat-a/geometria-analitica.js",
   "conteudos/mat-a/geometria-sintetica.js",
   "css/base.css",
+  "esquemas/fqa/calculo-dados.js",
+  "esquemas/fqa/calculo-quimica.js",
   "esquemas/mat-a/afim.js",
   "esquemas/mat-a/borda.js",
   "esquemas/mat-a/calculo-cidadania.js",
@@ -92,4 +94,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'f631ef5fbd';
+self.VERSAO_CACHE = 'fa14350ecc';
