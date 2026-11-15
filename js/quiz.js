@@ -5,12 +5,32 @@ Manual.quiz = Manual.quiz || {};
 
 // Lê um número escrito pelo aluno. NaN se inválido.
 // Aceita sinal inicial e um único separador decimal (vírgula ou ponto); espaços são ignorados.
-Manual.quiz.lerNumero = function (texto) {
-  if (typeof texto !== 'string') return NaN;
-  const limpo = texto.replace(/−/g, '-').replace(/\s/g, '');
-  if (!/^[+-]?(\d+[.,]?\d*|[.,]\d+)$/.test(limpo)) return NaN;
-  return Number(limpo.replace(',', '.'));
-};
+// Aceita também notação científica: 6,02e23, 6.02E23, 6,02×10^23, 6,02 x 10^23, 6,02*10^23, 6,02×10²³, 1,6×10⁻¹⁹.
+Manual.quiz.lerNumero = (function () {
+  const SOBRESCRITOS = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', '⁻': '-', '⁺': '+' };
+  const MANT = String.raw`(?:\d+[.,]?\d*|[.,]\d+)`;
+  const RE_SIMPLES = new RegExp(String.raw`^([+-]?${MANT})$`);
+  const RE_E = new RegExp(String.raw`^([+-]?${MANT})[eE]([+-]?\d+)$`);
+  const RE_POTENCIA = new RegExp(String.raw`^([+-]?${MANT})[×x*·⋅]10\^\(?([+-]?\d+)\)?$`);
+  const RE_SOBRESCRITO = new RegExp(String.raw`^([+-]?${MANT})[×x*·⋅]10([⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)$`);
+
+  return function (texto) {
+    if (typeof texto !== 'string') return NaN;
+    const limpo = texto.replace(/−/g, '-').replace(/\s/g, '');
+    let m = RE_SIMPLES.exec(limpo);
+    let r;
+    if (m) {
+      r = Number(m[1].replace(',', '.'));
+    } else if ((m = RE_E.exec(limpo)) || (m = RE_POTENCIA.exec(limpo))) {
+      r = Number(m[1].replace(',', '.') + 'e' + m[2]);
+    } else if ((m = RE_SOBRESCRITO.exec(limpo))) {
+      r = Number(m[1].replace(',', '.') + 'e' + m[2].replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/g, (c) => SOBRESCRITOS[c]));
+    } else {
+      return NaN;
+    }
+    return Number.isFinite(r) ? r : NaN;
+  };
+})();
 
 // Permutação aleatória de 0..n-1 (Fisher–Yates). `aleatorio` devolve um número em [0,1).
 Manual.quiz.ordemOpcoes = function (n, aleatorio) {
@@ -29,6 +49,13 @@ Manual.quiz.ordemOpcoes = function (n, aleatorio) {
 // Perguntas do banco (e sem Manual.formatar carregado): a apresentação de sempre, vírgula no lugar do ponto.
 Manual.quiz.textoNumero = function (pergunta) {
   const v = pergunta.resposta;
+  if (pergunta.gerador && pergunta.toleranciaRelativa !== undefined && typeof v === 'number' && v !== 0
+    && (Math.abs(v) >= 1e5 || Math.abs(v) < 1e-3)) {
+    // Notação científica legível e que lerNumero aceita: 6,02×10²³.
+    const [mant, exp] = v.toExponential().split('e');
+    const sup = String(Number(exp)).replace(/[-\d]/g, (c) => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+    return mant.replace('.', ',').replace('-', '−') + '×10' + sup;
+  }
   if (!pergunta.gerador || !Manual.formatar || typeof v !== 'number') return String(v).replace('.', ',').replace('-', '−');
   if (pergunta.unidade === '€') {
     return Manual.formatar.arred(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/-/g, '−');
@@ -53,12 +80,16 @@ Manual.quiz.corrigir = function (pergunta, resposta) {
     valida = typeof resposta === 'boolean';
     certa = valida && resposta === pergunta.correta;
   } else if (pergunta.tipo === 'numerica') {
-    const tolerancia = pergunta.tolerancia === undefined ? 1e-9 : pergunta.tolerancia;
+    const temRelativa = pergunta.toleranciaRelativa !== undefined;
+    const tolerancia = pergunta.tolerancia === undefined && !temRelativa ? 1e-9 : pergunta.tolerancia;
     respostaCorreta = Manual.quiz.textoNumero(pergunta);
     if (pergunta.unidade) respostaCorreta += ' ' + pergunta.unidade;
     const x = Manual.quiz.lerNumero(resposta);
     valida = !Number.isNaN(x);
-    certa = valida && Math.abs(x - pergunta.resposta) <= tolerancia + 1e-12;
+    const dif = Math.abs(x - pergunta.resposta);
+    // Com as duas tolerâncias (absoluta e relativa) basta cumprir uma.
+    certa = valida && ((tolerancia !== undefined && dif <= tolerancia + 1e-12)
+      || (temRelativa && dif <= pergunta.toleranciaRelativa * Math.abs(pergunta.resposta) * (1 + 1e-9)));
   }
 
   let erroTipico = null;
@@ -151,6 +182,18 @@ function passosDe(pergunta) {
     ? pergunta.resolucaoDetalhada : null;
 }
 
+// Figura no enunciado (só quando a pergunta tem figuraEnunciado): por baixo do enunciado, antes das opções.
+// Não revela a resposta; destrói-se com os outros esquemas (registarEsquema).
+function figuraDoEnunciado(pai, pergunta, o, registarEsquema) {
+  const fig = pergunta.figuraEnunciado;
+  if (!fig || !fig.id || typeof o.montarEsquema !== 'function') return;
+  try {
+    registarEsquema(o.montarEsquema(pai, fig, pergunta));
+  } catch (erro) {
+    // sem figura
+  }
+}
+
 // O feedback de uma pergunta corrigida: veredicto, resposta correta, erro típico, resolução, verificação,
 // esquema e ligação "Rever no manual". Usado no quiz (depois de Verificar) e na revisão do teste.
 // r: resultado de Manual.quiz.corrigir. registarEsquema(montagem) guarda o que é preciso destruir.
@@ -182,7 +225,7 @@ function construirFeedback(R, feedback, pergunta, r, o, registarEsquema) {
   // O esquema só aparece depois de verificar: pode mostrar a resposta.
   if (pergunta.esquema && pergunta.esquema.id && typeof o.montarEsquema === 'function') {
     try {
-      registarEsquema(o.montarEsquema(feedback, pergunta.esquema));
+      registarEsquema(o.montarEsquema(feedback, pergunta.esquema, pergunta));
     } catch (erro) {
       // sem esquema
     }
@@ -209,7 +252,8 @@ function doisAlgarismos(n) {
 // Monta o quiz no DOM: uma pergunta de cada vez. aoTerminar(certas, total, respostas) no fim.
 // perguntas: lista ou função que devolve a lista (chamada de novo em cada "Repetir").
 // opcoes (todas opcionais; sem elas o comportamento é o do mini-quiz):
-//   montarEsquema(pai, esquema) -> { destruir }: mostra o esquema do exercício no feedback.
+//   montarEsquema(pai, esquema, pergunta) -> { destruir }: mostra o esquema do exercício no feedback e a figura do enunciado
+//     (pergunta.figuraEnunciado, por baixo do enunciado).
 //   modo: 'quiz' (por omissão), 'treino' ou 'teste' (sem feedback até ao fim; revisão no fim).
 //   nivel(pergunta) -> 0|1|2 (treino): 1 = pista, 0 = por passos, 2 (ou outro valor) = sem ajuda.
 //   cronometro: boolean (teste): mm:ss a contar.
@@ -297,6 +341,7 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
     numero.tabIndex = -1;
     cartao.appendChild(numero);
     R.paragrafo(cartao, pergunta.enunciado, 'enunciado');
+    figuraDoEnunciado(cartao, pergunta, o, registarEsquema);
 
     const nomeGrupo = 'q' + Math.random().toString(36).slice(2);
     const opcoes = [];
@@ -465,6 +510,7 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       const item = R.criar('div', 'revisao-item');
       item.appendChild(R.criar('p', 'pergunta-n', 'Pergunta ' + (i + 1) + ' de ' + respostas.length));
       R.paragrafo(item, x.pergunta.enunciado, 'enunciado');
+      figuraDoEnunciado(item, x.pergunta, o, registarEsquema);
       const feedback = R.criar('div', 'feedback');
       const r = Manual.quiz.corrigir(x.pergunta, x.resposta);
       construirFeedback(R, feedback, x.pergunta, r, o, registarEsquema);

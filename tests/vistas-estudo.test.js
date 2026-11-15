@@ -21,6 +21,13 @@ afterEach(() => { delete globalThis.document; delete globalThis.katex; });
 
 function texto(no) { return no.textContent; }
 
+// Escolhe a disciplina na configuração do Teste (os temas só aparecem depois).
+function escolherDisciplina(principal, id) {
+  const radio = principal.querySelectorAll('input').find((i) => i.type === 'radio' && i.value === id);
+  radio.checked = true;
+  radio.dispatch('change');
+}
+
 test('treino sem subtema mostra a sugestão e a escolha livre', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.treino(principal, {});
@@ -42,6 +49,7 @@ test('teste: configuração, começa e mostra a pergunta', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
   assert.match(texto(principal), /Com cronómetro/);
+  escolherDisciplina(principal, 'mat-a');
   const botoes = principal.querySelectorAll('button').filter((b) => /Começar o teste/.test(b.textContent));
   assert.equal(botoes.length, 1);
   botoes[0].click();

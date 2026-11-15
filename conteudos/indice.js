@@ -163,7 +163,86 @@ Manual.registarIndice([
       },
     ],
   },
-  { id: 'fqa', nome: 'Física e Química A', disponivel: false, temas: [] },
+  {
+    id: 'fqa',
+    nome: 'Física e Química A',
+    disponivel: false,
+    porFazer: ['Física'],
+    temas: [
+      {
+        id: 'elementos',
+        titulo: 'Elementos químicos e sua organização',
+        subtemas: [
+          {
+            id: 'atomo',
+            titulo: 'Constituição do átomo',
+            palavras: ['protão', 'neutrão', 'eletrão', 'número atómico', 'número de massa', 'isótopos', 'escala atómica', 'nanotecnologia'],
+          },
+          {
+            id: 'mole',
+            titulo: 'Massa atómica e quantidade de matéria',
+            palavras: ['massa atómica relativa', 'massa molecular relativa', 'quantidade de matéria', 'mole', 'constante de Avogadro', 'massa molar', 'unidade de massa atómica', 'algarismos significativos'],
+          },
+          {
+            id: 'espectros',
+            titulo: 'Espectros e energia dos eletrões',
+            palavras: ['espectro eletromagnético', 'energia do fotão', 'espectro de emissão', 'espectro de absorção', 'espectro do hidrogénio', 'transições eletrónicas', 'níveis de energia', 'ionização'],
+          },
+          {
+            id: 'configuracao',
+            titulo: 'Configuração eletrónica',
+            palavras: ['nuvem eletrónica', 'subníveis', 'orbitais', 'configuração eletrónica', 'princípio da energia mínima', 'princípio de exclusão de Pauli', 'regra de Hund', 'eletrões de valência'],
+          },
+          {
+            id: 'tabela-periodica',
+            titulo: 'Tabela Periódica',
+            palavras: ['grupos', 'períodos', 'blocos s p d', 'energia de ionização', 'raio atómico', 'elementos representativos', 'propriedades periódicas', 'metais e não metais'],
+          },
+        ],
+      },
+      {
+        id: 'materia',
+        titulo: 'Propriedades e transformações da matéria',
+        subtemas: [
+          {
+            id: 'ligacao',
+            titulo: 'Ligação química',
+            palavras: ['ligação covalente', 'ligação iónica', 'ligação metálica', 'energia de ligação', 'comprimento de ligação', 'estrutura de Lewis', 'ligação simples dupla tripla', 'regra do octeto'],
+          },
+          {
+            id: 'geometria',
+            titulo: 'Geometria e polaridade das moléculas',
+            palavras: ['geometria molecular', 'linear', 'angular', 'tetraédrica', 'piramidal trigonal', 'polaridade', 'momento dipolar', 'ligação de hidrogénio', 'forças intermoleculares'],
+          },
+          {
+            id: 'carbono',
+            titulo: 'Compostos de carbono',
+            palavras: ['hidrocarbonetos', 'alcanos', 'alcenos', 'alcinos', 'álcoois', 'aldeídos', 'cetonas', 'ácidos carboxílicos', 'grupos funcionais', 'isomeria'],
+          },
+          {
+            id: 'gases',
+            titulo: 'Gases',
+            palavras: ['lei de Avogadro', 'volume molar', 'massa volúmica', 'fração molar', 'composição da atmosfera', 'poluentes', 'efeito de estufa', 'PTN'],
+          },
+          {
+            id: 'solucoes',
+            titulo: 'Soluções e dispersões',
+            palavras: ['soluções', 'coloides', 'suspensões', 'concentração', 'concentração em massa', 'percentagem em massa', 'partes por milhão', 'diluição', 'fator de diluição'],
+          },
+          {
+            id: 'entalpia',
+            titulo: 'Energia nas reações químicas',
+            palavras: ['entalpia', 'variação de entalpia', 'reação exotérmica', 'reação endotérmica', 'energias de ligação', 'quebra e formação de ligações', 'calor de reação'],
+          },
+          {
+            id: 'fotoquimica',
+            titulo: 'Reações fotoquímicas e ozono',
+            palavras: ['reações fotoquímicas', 'fotodecomposição', 'cloreto de prata', 'ozono', 'estratosfera', 'troposfera', 'CFC', 'radiação ultravioleta'],
+          },
+        ],
+      },
+    ],
+  },
   { id: 'bg', nome: 'Biologia e Geologia', disponivel: false, temas: [] },
   { id: 'port', nome: 'Português', disponivel: false, temas: [] },
   { id: 'fil', nome: 'Filosofia', disponivel: false, temas: [] },

@@ -191,6 +191,7 @@ globalThis.Manual = globalThis.Manual || {};
       sec.appendChild(listaSubtemas(d, t));
       principal.appendChild(sec);
     });
+    R.notaPorFazer(principal, d);
     return undefined;
   }
 

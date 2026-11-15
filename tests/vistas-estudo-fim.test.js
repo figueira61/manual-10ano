@@ -18,6 +18,12 @@ const K = 'mat-a/funcoes/afim';
 
 let Manual, estados, tentativas;
 
+function escolherDisciplina(principal, id) {
+  const radio = principal.querySelectorAll('input').find((i) => i.type === 'radio' && i.value === id);
+  radio.checked = true;
+  radio.dispatch('change');
+}
+
 function ligarStubs() {
   Manual.conta = {
     guardarTentativa: (t) => { tentativas.push(t); return Promise.resolve(); },
@@ -125,6 +131,7 @@ test('Treino: responderMiniquiz recebe o objeto do modo treino', () => {
 test('Teste: nota com vírgula decimal (14,0 / 70 %)', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
+  escolherDisciplina(principal, 'mat-a');
   botaoComTexto(principal, /Começar o teste/).click();
   const res = jogar(principal, (i) => i < 7);
   assert.ok(res.length >= 10); // a revisão volta a corrigir cada resposta
@@ -135,6 +142,7 @@ test('Teste: nota com vírgula decimal (14,0 / 70 %)', () => {
 test('Teste: "Temas a rever" liga a #/treino?s= e as tentativas levam o modo teste', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
+  escolherDisciplina(principal, 'mat-a');
   botaoComTexto(principal, /Começar o teste/).click();
   jogar(principal, () => false);
   const cartao = principal.querySelector('.resultado');

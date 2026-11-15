@@ -300,3 +300,11 @@ test('geradores: subtema de uma disciplina com geradores precisa de >= 3 regista
   c.geradores = {};
   assert.deepEqual(validar(c), []);
 });
+
+test('disciplina não disponível sem ficheiros de tema (fqa): nada a validar; com ficheiros, valida-se', () => {
+  const c = base();
+  c.indice.push({ id: 'fqa', nome: 'FQ', disponivel: false, porFazer: ['Física'], temas: [{ id: 'elementos', titulo: 'E', subtemas: [{ id: 'atomo', titulo: 'A', palavras: [] }] }] });
+  assert.deepEqual(validar(c), []);
+  c.temas.fqa = [{ id: 'elementos', subtemas: [{ id: 'atomo', titulo: 'A' }] }];
+  assert.ok(validar(c).some((e) => /^fqa\/elementos\/atomo/.test(e)));
+});

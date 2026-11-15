@@ -308,7 +308,20 @@ globalThis.Manual = globalThis.Manual || {};
     }
   }
 
+  // Página da disciplina: por baixo dos temas, uma nota "X — em breve" (sem ligação) por cada entrada de d.porFazer.
+  function notaPorFazer(pai, disciplina) {
+    const lista = disciplina && Array.isArray(disciplina.porFazer) ? disciplina.porFazer : [];
+    if (!lista.length) return null;
+    const ul = criar('ul', 'por-fazer');
+    lista.forEach(function (nome) {
+      ul.appendChild(criar('li', 'por-fazer-item', nome + ' — em breve'));
+    });
+    pai.appendChild(ul);
+    return ul;
+  }
+
   Manual.render = {
+    notaPorFazer: notaPorFazer,
     registarTentativa: registarTentativa,
     responderMiniquiz: responderMiniquiz,
     esquemaExercicio: esquemaExercicio,

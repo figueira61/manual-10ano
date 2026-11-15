@@ -112,6 +112,11 @@ globalThis.Manual = globalThis.Manual || {};
     return n.toFixed(1).replace('.', ',');
   }
 
+  // Disciplina da chave da pergunta (cada pergunta tem a sua); sem chave, a de recurso.
+  function disciplinaDe(pergunta, recurso) {
+    return pergunta && pergunta.chave ? partir(pergunta.chave).disciplina : recurso;
+  }
+
   function ligacaoRever(pergunta) {
     return pergunta && pergunta.chave ? '#/' + pergunta.chave : null;
   }
@@ -218,8 +223,8 @@ globalThis.Manual = globalThis.Manual || {};
           return Manual.treino.nivelAtual(historico(), chave, e ? e.estado : null);
         },
         ligacaoRever: ligacaoRever,
-        montarEsquema: function (pai, esquema) {
-          return vivo ? R.esquemaExercicio(pai, esquema, disciplinaId) : null;
+        montarEsquema: function (pai, esquema, pergunta) {
+          return vivo ? R.esquemaExercicio(pai, esquema, disciplinaDe(pergunta, disciplinaId)) : null;
         },
         fim: function (cartaoFinal, certas, total, respostas) {
           mostrarResumo(cartaoFinal, certas, total, respostas.map(function (x) {
@@ -270,6 +275,7 @@ globalThis.Manual = globalThis.Manual || {};
       c2.appendChild(criar('p', 'campo-ajuda', 'Escolhe até 3 subtemas.'));
       const caixas = [];
       disciplinasComGeradores().forEach(function (d) {
+        c2.appendChild(criar('h3', 'escolha-disciplina', d.nome));
         (d.temas || []).forEach(function (t) {
           const subs = subtemasComGeradores(d, t);
           if (!subs.length) return;
@@ -277,7 +283,7 @@ globalThis.Manual = globalThis.Manual || {};
           grupo.appendChild(criar('legend', '', t.titulo));
           subs.forEach(function (s) {
             const chave = d.id + '/' + t.id + '/' + s.id;
-            caixas.push({ chave: chave, input: caixa(grupo, 'treino-' + t.id + '-' + s.id, s.titulo) });
+            caixas.push({ chave: chave, input: caixa(grupo, 'treino-' + d.id + '-' + t.id + '-' + s.id, s.titulo) });
           });
           c2.appendChild(grupo);
         });
@@ -389,8 +395,8 @@ globalThis.Manual = globalThis.Manual || {};
         modo: 'teste',
         cronometro: !!cronometro,
         ligacaoRever: ligacaoRever,
-        montarEsquema: function (pai, esquema) {
-          return vivo ? R.esquemaExercicio(pai, esquema, disciplinaId) : null;
+        montarEsquema: function (pai, esquema, pergunta) {
+          return vivo ? R.esquemaExercicio(pai, esquema, disciplinaDe(pergunta, disciplinaId)) : null;
         },
         fim: function (cartaoFinal, certas, total, respostas) {
           fimDoTeste(cartaoFinal, certas, total, respostas, disciplinaId);
@@ -401,22 +407,36 @@ globalThis.Manual = globalThis.Manual || {};
     function configurar() {
       parar();
       corpo.textContent = '';
-      const disc = disciplinasComGeradores()[0];
+      const disciplinas = disciplinasComGeradores();
       const c = cartao(corpo, 'Configura o teste');
-      if (!disc) {
+      if (!disciplinas.length) {
         c.appendChild(criar('p', '', 'Ainda não há exercícios para um teste.'));
         return;
       }
-      c.appendChild(criar('p', 'campo-ajuda', disc.nome + '. Sem ajudas: só vês o resultado no fim.'));
-      const grupoTemas = criar('fieldset', 'escolha-grupo');
-      grupoTemas.appendChild(criar('legend', '', 'Temas'));
-      const caixas = [];
-      (disc.temas || []).forEach(function (t) {
-        if (!subtemasComGeradores(disc, t).length) return;
-        const input = caixa(grupoTemas, 'teste-tema-' + t.id, t.titulo);
-        input.checked = true;
-        caixas.push({ tema: t.id, input: input });
+      c.appendChild(criar('p', 'campo-ajuda', 'Sem ajudas: só vês o resultado no fim.'));
+
+      // Disciplina: só as disponíveis com geradores. Sem escolha, não há temas.
+      let escolhida = null;
+      let caixas = [];
+      const grupoDisc = criar('fieldset', 'escolha-grupo');
+      grupoDisc.appendChild(criar('legend', '', 'Disciplina'));
+      const radiosDisc = [];
+      disciplinas.forEach(function (d) {
+        const linha = criar('label', 'escolha-linha');
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'teste-disciplina';
+        input.value = d.id;
+        input.id = 'teste-disciplina-' + d.id;
+        linha.appendChild(input);
+        linha.appendChild(criar('span', '', ' ' + d.nome));
+        grupoDisc.appendChild(linha);
+        radiosDisc.push({ disciplina: d, input: input });
       });
+      c.appendChild(grupoDisc);
+
+      const grupoTemas = criar('fieldset', 'escolha-grupo');
+      grupoTemas.hidden = true;
       c.appendChild(grupoTemas);
 
       const grupoN = criar('fieldset', 'escolha-grupo');
@@ -443,17 +463,38 @@ globalThis.Manual = globalThis.Manual || {};
       aviso.hidden = true;
       const ir = botao('Começar o teste', 'botao-principal');
       function atualizar() {
-        const algum = caixas.some(function (x) { return x.input.checked; });
+        const algum = !!escolhida && caixas.some(function (x) { return x.input.checked; });
         ir.disabled = !algum;
         if (algum) { aviso.textContent = ''; aviso.hidden = true; }
       }
-      caixas.forEach(function (x) { x.input.addEventListener('change', atualizar); });
+
+      // Os temas da disciplina escolhida (todos marcados à partida).
+      function mostrarTemas(d) {
+        escolhida = d;
+        caixas = [];
+        grupoTemas.textContent = '';
+        grupoTemas.appendChild(criar('legend', '', 'Temas'));
+        (d.temas || []).forEach(function (t) {
+          if (!subtemasComGeradores(d, t).length) return;
+          const input = caixa(grupoTemas, 'teste-tema-' + d.id + '-' + t.id, t.titulo);
+          input.checked = true;
+          input.addEventListener('change', atualizar);
+          caixas.push({ tema: t.id, input: input });
+        });
+        grupoTemas.hidden = false;
+        atualizar();
+      }
+      radiosDisc.forEach(function (x) {
+        x.input.addEventListener('change', function () { if (x.input.checked) mostrarTemas(x.disciplina); });
+      });
       atualizar();
+
       ir.addEventListener('click', function () {
+        if (!escolhida) { aviso.textContent = 'Escolhe uma disciplina.'; aviso.hidden = false; return; }
         const temas = caixas.filter(function (x) { return x.input.checked; }).map(function (x) { return x.tema; });
         if (!temas.length) { aviso.textContent = 'Escolhe pelo menos um tema.'; aviso.hidden = false; return; }
         const sel = radios.find(function (r) { return r.checked; });
-        comecar(disc.id, temas, sel ? parseInt(sel.value, 10) : Manual.teste.TAMANHOS[0], cron.checked);
+        comecar(escolhida.id, temas, sel ? parseInt(sel.value, 10) : Manual.teste.TAMANHOS[0], cron.checked);
       });
       c.appendChild(aviso);
       c.appendChild(ir);

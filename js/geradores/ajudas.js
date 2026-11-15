@@ -108,7 +108,21 @@ Manual.geradores.ajudas = (function () {
     throw new Error(tema + ': sem parâmetros válidos ao fim de 500 tentativas');
   }
 
+  // Tolerância absoluta de meia unidade do último algarismo significativo de valor arredondado a `as` algarismos
+  // (p. ex. tolMeiaUnidade(0.5, 2) = 0,005 e tolMeiaUnidade(1234, 2) = 50).
+  function tolMeiaUnidade(valor, as) {
+    if (!Number.isFinite(valor) || valor === 0) throw new Error('tolMeiaUnidade: valor inválido');
+    const expoente = Math.floor(Math.log10(Math.abs(Number(valor.toPrecision(as)))));
+    return Number((0.5 * Math.pow(10, expoente - as + 1)).toPrecision(12));
+  }
+
+  // Tolerância absoluta efetiva de uma resposta: a maior entre a absoluta e a relativa (quando existem).
+  function tolEfetiva(resposta, tol, rel) {
+    return Math.max(tol === undefined ? 0 : tol, rel === undefined ? 0 : rel * Math.abs(resposta));
+  }
+
   // Erros numéricos utilizáveis: valor finito, fora da tolerância da resposta e distinto dos anteriores.
+  // tol é a tolerância absoluta (ou o resultado de tolEfetiva).
   function filtrarErros(resposta, tol, lista) {
     const r = [];
     for (const e of lista) {
@@ -121,12 +135,14 @@ Manual.geradores.ajudas = (function () {
   }
 
   // Fecha um exercício numérico ou de escolha múltipla (null = re-sortear: numérica sem erros típicos utilizáveis).
-  // o: { resposta, tolerancia, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
+  // o: { resposta, tolerancia | toleranciaRelativa, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
   function fechar(rng, formato, ex, o) {
-    const erros = filtrarErros(o.resposta, o.tolerancia, o.erros);
+    const erros = filtrarErros(o.resposta, tolEfetiva(o.resposta, o.tolerancia, o.toleranciaRelativa), o.erros);
     if (formato === 'numerica') {
       if (!erros.length) return null;
-      Object.assign(ex, { resposta: o.resposta, tolerancia: o.tolerancia, unidade: o.unidade, errosTipicos: erros, verificacao: o.verificacao });
+      Object.assign(ex, { resposta: o.resposta, unidade: o.unidade, errosTipicos: erros, verificacao: o.verificacao });
+      if (o.tolerancia !== undefined) ex.tolerancia = o.tolerancia;
+      if (o.toleranciaRelativa !== undefined) ex.toleranciaRelativa = o.toleranciaRelativa;
     } else {
       const e = escolhaDeErros(rng, o.texto(o.resposta), erros.map((x) => Object.assign({}, x, { texto: o.texto(x.valor) })));
       const alvo = chave(o.texto(o.verificacao.valor));
@@ -145,7 +161,7 @@ Manual.geradores.ajudas = (function () {
 
   // Confere a resposta de um exercício numérico/escolha com o valor obtido por outro método.
   function confere(p, valor, texto) {
-    if (p.formato === 'numerica') return Math.abs(p.resposta - valor) <= p.tolerancia + 1e-9;
+    if (p.formato === 'numerica') return Math.abs(p.resposta - valor) <= tolEfetiva(p.resposta, p.tolerancia, p.toleranciaRelativa) + 1e-9;
     return chave(p.opcoes[p.correta]) === chave(texto(valor));
   }
 
@@ -213,7 +229,7 @@ Manual.geradores.ajudas = (function () {
   }
 
   return {
-    fmt, tex, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere,
+    fmt, tex, tolMeiaUnidade, tolEfetiva, chave, entre, diferenteDe, escolhaDeErros, vfDe, tentar, filtrarErros, fechar, fecharTexto, confere,
     fracao, texQ, cx, vezesTex, cadeia, divTex, SEP, texPonto, notacaoPontos, lerPonto, limpo, proximo, r2,
   };
 })();

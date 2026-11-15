@@ -71,7 +71,14 @@ function textosDe(p) {
   return r;
 }
 
-function verificarEstrutura(p) {
+// Tolerância absoluta efetiva da resposta: a maior entre tolerancia e toleranciaRelativa·|resposta|.
+function tolDe(p) {
+  const abs = typeof p.tolerancia === 'number' ? p.tolerancia : 0;
+  const rel = typeof p.toleranciaRelativa === 'number' ? p.toleranciaRelativa * Math.abs(p.resposta) : 0;
+  return Math.max(abs, rel);
+}
+
+function verificarEstrutura(p, def) {
   const e = [];
   if (typeof p.enunciado !== 'string' || p.enunciado.trim() === '') e.push('enunciado vazio');
   if (!Array.isArray(p.resolucaoDetalhada) || p.resolucaoDetalhada.length === 0) e.push('resolução vazia');
@@ -87,21 +94,37 @@ function verificarEstrutura(p) {
   if (!Array.isArray(p.errosTipicos)) e.push('errosTipicos não é lista');
   if (p.formato === 'numerica') {
     if (typeof p.resposta !== 'number' || !Number.isFinite(p.resposta)) e.push('resposta numérica inválida');
-    if (typeof p.tolerancia !== 'number' || !(p.tolerancia >= 0)) e.push('tolerancia inválida');
+    const temAbs = p.tolerancia !== undefined;
+    const temRel = p.toleranciaRelativa !== undefined;
+    if (!temAbs && !temRel) e.push('numérica sem tolerancia nem toleranciaRelativa');
+    if (temAbs && (typeof p.tolerancia !== 'number' || !(p.tolerancia >= 0))) e.push('tolerancia inválida');
+    if (temRel && (typeof p.toleranciaRelativa !== 'number' || !(p.toleranciaRelativa > 0))) e.push('toleranciaRelativa inválida (número > 0)');
   } else if (p.formato === 'escolha') {
     if (!Array.isArray(p.opcoes) || p.opcoes.length < 2 || p.opcoes.some((o) => typeof o !== 'string')) e.push('opcoes inválidas');
     else if (!Number.isInteger(p.correta) || p.correta < 0 || p.correta >= p.opcoes.length) e.push('correta fora das opções');
   } else if (p.formato === 'vf') {
     if (typeof p.correta !== 'boolean') e.push('correta de vf não é booleano');
   }
+  if (p.figuraEnunciado !== undefined) {
+    const f = p.figuraEnunciado;
+    if (!f || typeof f.id !== 'string' || !f.id.trim()) e.push('figuraEnunciado sem id');
+    else if (!existeEsquema(def && def.disciplina, f.id)) e.push('figuraEnunciado: esquema "' + f.id + '" não existe');
+    if (f && f.opcoes !== undefined && (typeof f.opcoes !== 'object' || f.opcoes === null)) e.push('figuraEnunciado.opcoes inválidas');
+  }
   return e;
+}
+
+function existeEsquema(disciplina, id) {
+  const M = globalThis.Manual;
+  const rel = M && M.ficheiroEsquema ? M.ficheiroEsquema(disciplina, id) : 'esquemas/' + disciplina + '/' + id + '.js';
+  return fs.existsSync(path.join(RAIZ, rel));
 }
 
 // Regra 2: verificacao.valor coincide com a resposta.
 function regra2(p) {
   const v = p.verificacao.valor;
   if (p.formato === 'numerica') {
-    if (typeof v !== 'number' || !(Math.abs(v - p.resposta) <= p.tolerancia + 1e-9)) {
+    if (typeof v !== 'number' || !(Math.abs(v - p.resposta) <= tolDe(p) + 1e-9)) {
       return ['verificacao.valor ' + v + ' ≠ resposta ' + p.resposta];
     }
   } else if (v !== p.correta) {
@@ -120,12 +143,12 @@ function regra3(p, def, chave) {
   if (p.formato === 'numerica') {
     if (p.errosTipicos.length === 0) e.push('numérica sem erros típicos');
     p.errosTipicos.forEach((t, i) => {
-      const j = p.errosTipicos.findIndex((u) => typeof u.valor === 'number' && Math.abs(u.valor - t.valor) <= p.tolerancia + 1e-9);
+      const j = p.errosTipicos.findIndex((u) => typeof u.valor === 'number' && Math.abs(u.valor - t.valor) <= tolDe(p) + 1e-9);
       if (j >= 0 && j < i) e.push('erros ' + p.errosTipicos[j].codigo + ' e ' + t.codigo + ' com o mesmo valor ' + t.valor);
     });
     for (const t of p.errosTipicos) {
       if (typeof t.valor !== 'number' || !Number.isFinite(t.valor)) e.push('erro ' + t.codigo + ' sem valor numérico');
-      else if (Math.abs(t.valor - p.resposta) <= p.tolerancia + 1e-9) e.push('erro ' + t.codigo + ' dá a resposta certa (' + t.valor + ')');
+      else if (Math.abs(t.valor - p.resposta) <= tolDe(p) + 1e-9) e.push('erro ' + t.codigo + ' dá a resposta certa (' + t.valor + ')');
     }
   } else if (p.formato === 'escolha') {
     const n = def.nOpcoes || 4;
@@ -221,7 +244,7 @@ function verificar(def, opcoes = {}) {
           reportar('gerar', ctx, ['exceção: ' + err.message]);
           continue;
         }
-        const estrutura = verificarEstrutura(p);
+        const estrutura = verificarEstrutura(p, def);
         if (estrutura.length) { reportar('estrutura', ctx, estrutura); continue; }
         if (formato === 'vf') respostasVf.add(p.correta);
         const independente = chamar(def.verificarIndependente, p);
@@ -229,7 +252,7 @@ function verificar(def, opcoes = {}) {
         else {
           // Mutação: com a resposta errada, o segundo método tem de rejeitar.
           const m = structuredClone(p);
-          if (formato === 'numerica') m.resposta = p.resposta + Math.max(1, 10 * p.tolerancia);
+          if (formato === 'numerica') m.resposta = p.resposta + Math.max(1, 10 * tolDe(p));
           else if (formato === 'escolha') m.correta = (p.correta + 1) % p.opcoes.length;
           else m.correta = !p.correta;
           if (chamar(def.verificarIndependente, m) === true) reportar('regra 1', ctx, ['verificarIndependente aceita uma resposta errada (mutação)']);
@@ -268,9 +291,16 @@ function ficheirosGeradores() {
 
 function carregarTudo() {
   delete globalThis.Manual;
-  const mat = path.join(RAIZ, 'esquemas', 'mat-a');
-  const calculo = fs.readdirSync(mat).filter((f) => /^calculo-.*\.js$/.test(f)).sort().map((f) => path.join(mat, f));
-  const ficheiros = [path.join(RAIZ, 'js', 'aleatorio.js'), ...calculo, path.join(mat, 'formatar.js'), ...ficheirosGeradores()];
+  const esq = path.join(RAIZ, 'esquemas');
+  const calculo = [];
+  for (const sub of fs.readdirSync(esq, { withFileTypes: true }).filter((d) => d.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const f of fs.readdirSync(path.join(esq, sub.name)).filter((n) => /^calculo-.*\.js$/.test(n)).sort()) {
+      calculo.push(path.join(esq, sub.name, f));
+    }
+  }
+  const formatar = path.join(esq, 'mat-a', 'formatar.js');
+  const ficheiros = [path.join(RAIZ, 'js', 'nucleo.js'), path.join(RAIZ, 'js', 'aleatorio.js'), ...calculo, formatar, ...ficheirosGeradores()];
+  for (const f of ficheiros) delete require.cache[f];
   for (const f of ficheiros) require(f);
   return globalThis.Manual;
 }

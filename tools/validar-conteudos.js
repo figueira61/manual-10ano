@@ -144,6 +144,8 @@ function validar({ indice, temas, ae, existeFicheiro, geradores }) {
       erros.push(d + ': id de disciplina reservado (rota da aplicação)');
     }
     const ficheiros = (temas && temas[d]) || [];
+    // Disciplina ainda não disponível e sem ficheiros de tema: nada a validar (p. ex. fqa antes do conteúdo existir).
+    if (!disc.disponivel && ficheiros.length === 0) continue;
     const cobertos = new Set();
     const idsTema = new Set();
     const idsPerguntas = new Set();
@@ -215,26 +217,28 @@ function principal() {
     const temas = {};
     const ae = {};
     for (const disc of Manual.indice) {
-      if (!disc.disponivel) continue;
       const d = disc.id;
-      if (existeFicheiro('conteudos/' + d + '/ae.js')) carregarScript('conteudos/' + d + '/ae.js');
-      ae[d] = (Manual.ae && Manual.ae[d]) || [];
       temas[d] = [];
-      for (const t of disc.temas) {
+      for (const t of disc.temas || []) {
         const f = Manual.ficheiroTema(d, t.id);
         if (!existeFicheiro(f)) continue;
         carregarScript(f);
         const tema = Manual.obterTema(d, t.id);
         if (tema) temas[d].push(tema);
       }
+      // Disponível, ou ainda não disponível mas já com ficheiros de tema: valida-se (ae incluídos).
+      if (!disc.disponivel && temas[d].length === 0) { delete temas[d]; continue; }
+      if (existeFicheiro('conteudos/' + d + '/ae.js')) carregarScript('conteudos/' + d + '/ae.js');
+      ae[d] = (Manual.ae && Manual.ae[d]) || [];
     }
     // Geradores (js/geradores/**): precisam de aleatorio e formatar; o cálculo já está carregado.
     carregarScript('js/aleatorio.js');
     if (existeFicheiro('esquemas/mat-a/formatar.js')) carregarScript('esquemas/mat-a/formatar.js');
     const { ficheirosGeradores } = require('./verificar-geradores.js');
     for (const f of ficheirosGeradores()) require(f);
-    const geradores = { 'mat-a': Manual.geradores.todos().filter((g) => g.disciplina === 'mat-a') };
-    const indice = Manual.indice.filter((x) => x.disponivel);
+    const geradores = {};
+    for (const d of Object.keys(temas)) geradores[d] = Manual.geradores.todos().filter((g) => g.disciplina === d);
+    const indice = Manual.indice.filter((x) => x.disponivel || temas[x.id]);
     const erros = validar({ indice, temas, ae, existeFicheiro, geradores });
     if (erros.length) {
       for (const e of erros) console.error(e);
@@ -252,7 +256,7 @@ function principal() {
       }
     }
     console.log('Conteúdos válidos: ' + subtemas + ' subtemas, ' + perguntas + ' perguntas, '
-      + geradores['mat-a'].length + ' geradores de Matemática A');
+      + Object.keys(geradores).map((d) => geradores[d].length + ' geradores de ' + d).join(', '));
     return 0;
   } catch (e) {
     console.error('Erro ao carregar conteúdos: ' + (e && e.message ? e.message : e));
