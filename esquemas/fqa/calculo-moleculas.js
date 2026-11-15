@@ -13,7 +13,9 @@ globalThis.Manual = globalThis.Manual || {};
 //         centros: [{ atomo, geometria, angulo }] dá a geometria à volta de cada átomo central.
 //   - excecaoOcteto: true quando há um átomo sem octeto completo (B em BF3).
 //   - ressonancia: true quando se desenha só uma das estruturas de ressonância (O3).
-//   - atomos3d: opcional, preenchido pela Task 6 (geometria 3D); a sua ausência é válida.
+//   - atomos3d: opcional; coordenadas 3D [{ el, x, y, z }] alinhadas com atomos (comprimento de ligação = 1, ângulos
+//     reais da geometria; z para cima). Só as moléculas com um átomo central (ou diatómicas) a têm; ausência é válida.
+//   - paresAngulos: opcional, { índiceDoÁtomo: [graus, ...] } força a direção 2D dos pares não ligantes (só desenho).
 // Os eletrões de valência vêm de Manual.dadosQuimicos / Manual.quimica.configuracao (resolvidos só ao chamar).
 Manual.moleculas = (function () {
   const A = (el, x, y, pares) => ({ el, x, y, pares });
@@ -25,6 +27,20 @@ Manual.moleculas = (function () {
   const tetra = (atomo) => ({ atomo, geometria: 'tetraédrica', angulo: 109.5 });
   const plana = (atomo) => ({ atomo, geometria: 'triangular plana', angulo: 120 });
   const angularO = (atomo) => ({ atomo, geometria: 'angular', angulo: 105 });
+
+
+  // ---------- coordenadas 3D (átomo central na origem, ligações de comprimento 1) ----------
+  const RAD = Math.PI / 180;
+  const P3 = (el, x, y, z) => ({ el, x: Math.round(x * 1e4) / 1e4, y: Math.round(y * 1e4) / 1e4, z: Math.round(z * 1e4) / 1e4 });
+  // Pirâmide trigonal com o vértice no centro: 3 ligações a `ang` graus umas das outras, a apontar para baixo.
+  function piramide(ang) {
+    const c2 = (0.5 + Math.cos(ang * RAD)) / 1.5; // cos² do ângulo entre cada ligação e o eixo
+    const c = Math.sqrt(c2), s = Math.sqrt(1 - c2);
+    return [0, 1, 2].map((k) => [s * Math.cos(k * 120 * RAD), s * Math.sin(k * 120 * RAD), -c]);
+  }
+  // Duas ligações no plano xz, a `ang` graus uma da outra, simétricas em torno do eixo z (a apontar para baixo).
+  const angular = (ang) => [[Math.sin(ang / 2 * RAD), 0, -Math.cos(ang / 2 * RAD)], [-Math.sin(ang / 2 * RAD), 0, -Math.cos(ang / 2 * RAD)]];
+  const T = 1 / Math.sqrt(3);
 
   const catalogo = {
     H2: {
@@ -40,7 +56,7 @@ Manual.moleculas = (function () {
       geometria: 'linear', angulo: null, polar: false, grupoFuncional: null, tipo: null,
     },
     N2: {
-      nome: 'azoto', formula: '\\mathrm{N_2}',
+      nome: 'nitrogénio', formula: '\\mathrm{N_2}',
       atomos: [A('N', 0, 0, 1), A('N', 1, 0, 1)],
       ligacoes: [[0, 1, 3]],
       geometria: 'linear', angulo: null, polar: false, grupoFuncional: null, tipo: null,
@@ -55,6 +71,7 @@ Manual.moleculas = (function () {
       nome: 'cloreto de hidrogénio', formula: '\\mathrm{HCl}',
       atomos: [A('H', 0, 0, 0), A('Cl', 1, 0, 3)],
       ligacoes: [[0, 1, 1]],
+      atomos3d: [P3('H', 0, 0, 0), P3('Cl', 1, 0, 0)],
       geometria: 'linear', angulo: null, polar: true, grupoFuncional: null, tipo: null,
     },
     HF: {
@@ -67,30 +84,36 @@ Manual.moleculas = (function () {
       nome: 'água', formula: '\\mathrm{H_2O}',
       atomos: [A('O', 0, 0, 2), A('H', -0.79, 0.61, 0), A('H', 0.79, 0.61, 0)],
       ligacoes: [[0, 1, 1], [0, 2, 1]],
+      atomos3d: [P3('O', 0, 0, 0), ...angular(104.5).map((v) => P3('H', ...v))],
+      paresAngulos: { 0: [215, 325] },
       geometria: 'angular', angulo: 104.5, polar: true, grupoFuncional: null, tipo: null,
     },
     NH3: {
       nome: 'amoníaco', formula: '\\mathrm{NH_3}',
       atomos: [A('N', 0, 0, 1), A('H', -0.95, 0.4, 0), A('H', 0.95, 0.4, 0), A('H', 0, 1, 0)],
       ligacoes: [[0, 1, 1], [0, 2, 1], [0, 3, 1]],
+      atomos3d: [P3('N', 0, 0, 0), ...piramide(107).map((v) => P3('H', ...v))],
       geometria: 'piramidal trigonal', angulo: 107, polar: true, grupoFuncional: null, tipo: null,
     },
     CH4: {
       nome: 'metano', formula: '\\mathrm{CH_4}',
       atomos: [A('C', 0, 0, 0), A('H', 0, -1, 0), A('H', 1, 0, 0), A('H', 0, 1, 0), A('H', -1, 0, 0)],
       ligacoes: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]],
+      atomos3d: [P3('C', 0, 0, 0), ...[[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]].map((v) => P3('H', v[0] * T, v[1] * T, v[2] * T))],
       geometria: 'tetraédrica', angulo: 109.5, polar: false, grupoFuncional: null, tipo: 'hidrocarboneto-saturado',
     },
     CO2: {
       nome: 'dióxido de carbono', formula: '\\mathrm{CO_2}',
       atomos: [A('O', 0, 0, 2), A('C', 1, 0, 0), A('O', 2, 0, 2)],
       ligacoes: [[0, 1, 2], [1, 2, 2]],
+      atomos3d: [P3('O', -1, 0, 0), P3('C', 0, 0, 0), P3('O', 1, 0, 0)],
       geometria: 'linear', angulo: 180, polar: false, grupoFuncional: null, tipo: null,
     },
     BF3: {
       nome: 'trifluoreto de boro', formula: '\\mathrm{BF_3}',
       atomos: [A('B', 0, 0, 0), A('F', 0, -1, 3), A('F', 0.87, 0.5, 3), A('F', -0.87, 0.5, 3)],
       ligacoes: [[0, 1, 1], [0, 2, 1], [0, 3, 1]],
+      atomos3d: [P3('B', 0, 0, 0), ...[0, 1, 2].map((k) => P3('F', Math.cos(k * 120 * RAD), Math.sin(k * 120 * RAD), 0))],
       geometria: 'triangular plana', angulo: 120, polar: false, grupoFuncional: null, tipo: null,
       excecaoOcteto: true, // o boro fica com 6 eletrões
     },
@@ -98,6 +121,7 @@ Manual.moleculas = (function () {
       nome: 'cianeto de hidrogénio', formula: '\\mathrm{HCN}',
       atomos: [A('H', 0, 0, 0), A('C', 1, 0, 0), A('N', 2, 0, 1)],
       ligacoes: [[0, 1, 1], [1, 2, 3]],
+      atomos3d: [P3('H', -1, 0, 0), P3('C', 0, 0, 0), P3('N', 1, 0, 0)],
       geometria: 'linear', angulo: 180, polar: true, grupoFuncional: null, tipo: null,
     },
     C2H6: {
@@ -194,6 +218,7 @@ Manual.moleculas = (function () {
       nome: 'ozono', formula: '\\mathrm{O_3}',
       atomos: [A('O', 0.15, 0.52, 2), A('O', 1, 0, 1), A('O', 1.85, 0.52, 3)],
       ligacoes: [[0, 1, 2], [1, 2, 1]],
+      atomos3d: [P3('O', ...angular(117)[0]), P3('O', 0, 0, 0), P3('O', ...angular(117)[1])],
       geometria: 'angular', angulo: 117, polar: true, grupoFuncional: null, tipo: null,
       ressonancia: true,
     },
@@ -274,7 +299,12 @@ Manual.moleculas = (function () {
       if (!Manual.dadosQuimicos.elementos[a.el]) erros.push('elemento desconhecido ' + a.el);
       if (!Number.isInteger(a.pares) || a.pares < 0) erros.push('pares inválidos no átomo ' + i);
     });
-    if (m.atomos3d !== undefined && !Array.isArray(m.atomos3d)) erros.push('atomos3d tem de ser uma lista');
+    if (m.atomos3d !== undefined) {
+      if (!Array.isArray(m.atomos3d) || m.atomos3d.length !== n) erros.push('atomos3d tem de ser uma lista alinhada com atomos');
+      else m.atomos3d.forEach((a, i) => {
+        if (a.el !== m.atomos[i].el || ![a.x, a.y, a.z].every(Number.isFinite)) erros.push('atomos3d inválido no átomo ' + i);
+      });
+    }
     if (erros.length) return erros;
     const c = contar(id);
     if (c.eletroesValencia !== 2 * (c.paresLigantes + c.paresNaoLigantes)) erros.push('eletrões de valência não batem');
@@ -297,6 +327,7 @@ Manual.moleculas = (function () {
   function angulosPares(m, i) {
     const a = m.atomos[i];
     if (!a.pares) return [];
+    if (m.paresAngulos && m.paresAngulos[i]) return m.paresAngulos[i].slice();
     const dirs = [];
     for (const [p, q] of m.ligacoes) {
       const o = p === i ? q : q === i ? p : -1;

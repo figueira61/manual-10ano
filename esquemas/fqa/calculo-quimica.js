@@ -290,7 +290,24 @@ Manual.quimica = (function () {
     return h * c / porMolecula;
   }
 
+  // ---------- energia potencial de uma ligação (modelo de Morse, ilustrativo) ----------
+
+  // Constante de forma ilustrativa: a = MORSE_K / r_e. Escolhida para a curva ter o aspeto dos manuais
+  // (poço estreito à esquerda, patamar suave à direita); não é o ajuste espectroscópico de cada molécula.
+  const MORSE_K = 1.8;
+
+  // V(r) = De[(1 − e^(−a(r − re)))² − 1]; De = energia de ligação (kJ/mol) e re = comprimento de ligação (pm)
+  // da tabela de ligações; r em pm. Zero de energia = átomos separados (r → ∞).
+  function potencialMorse(chave, r) {
+    const l = D().ligacoes[chave];
+    if (!l) throw new Error(`quimica: ligação desconhecida ${chave}`);
+    const De = l.energia, re = l.comprimento, a = MORSE_K / re;
+    const x = 1 - Math.exp(-a * (positivo(r, 'a distância') - re));
+    return { V: De * (x * x - 1), De, re, a };
+  }
+
   return {
+    potencialMorse, MORSE_K,
     massaAtomicaMedia, massaMolar, nDeMassa, massaDeN, entidades, nDeEntidades, atomosNaAmostra,
     energiaFotao, zonaEspectro, energiaNivelH, transicaoH,
     configuracao, posicaoTP, densidadeRelativa, Z_MAX_CONFIG: Z_MAX,

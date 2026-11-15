@@ -87,16 +87,22 @@ test('a fórmula molecular corresponde aos átomos (contagem de C e H)', () => {
   }
 });
 
-test('validar: o catálogo todo é válido e atomos3d é opcional', () => {
+test('validar: o catálogo todo é válido e atomos3d é opcional (só H2O, NH3, CH4, CO2, BF3, HCN, HCl, O3 o têm)', () => {
+  const COM3D = ['H2O', 'NH3', 'CH4', 'CO2', 'BF3', 'HCN', 'HCl', 'O3'];
   for (const id of Object.keys(Mol.catalogo)) {
-    assert.equal(Mol.catalogo[id].atomos3d, undefined, id);
+    assert.equal(Mol.catalogo[id].atomos3d !== undefined, COM3D.includes(id), id);
     assert.deepEqual(Mol.validar(id), [], id);
   }
+  const guarda = Mol.catalogo.H2O.atomos3d;
   Mol.catalogo.H2O.atomos3d = [[0, 0, 0], [1, 0, 0], [0, 1, 0]];
-  assert.deepEqual(Mol.validar('H2O'), []);
+  assert.ok(Mol.validar('H2O').length > 0);
   Mol.catalogo.H2O.atomos3d = 'x';
   assert.ok(Mol.validar('H2O').length > 0);
-  delete Mol.catalogo.H2O.atomos3d;
+  Mol.catalogo.H2O.atomos3d = guarda;
+  assert.deepEqual(Mol.validar('H2O'), []);
+  Mol.catalogo.H2.atomos3d = [{ el: 'H', x: 0, y: 0, z: 0 }, { el: 'H', x: 1, y: 0, z: 0 }];
+  assert.deepEqual(Mol.validar('H2'), []);
+  delete Mol.catalogo.H2.atomos3d;
 });
 
 test('geometria: nomes PT-PT; diatómicas lineares sem ângulo; mais de um centro → null + centros', () => {
@@ -254,7 +260,7 @@ test('fqa-molecula: não revela nome, geometria nem polaridade por omissão', ()
   assert.match(alt, /^Estrutura de uma molécula/);
   assert.ok(!/água|angular|polar|H2O/i.test(alt), alt);
   assert.match(alt, /3 átomos/);
-  assert.match(alt, /2 ligações simples/);
+  assert.match(alt, /O ligado a 2 H/);
   assert.match(alt, /2 pares não ligantes/);
   assert.equal(svg.getAttribute('role'), 'img');
   assert.ok(!/água|angular|polar/i.test(el.textContent), el.textContent);

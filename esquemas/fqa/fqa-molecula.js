@@ -52,19 +52,60 @@ Manual.esquemas.registar('fqa-molecula', {
     const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
     const juntar = (itens) => (itens.length < 2 ? itens.join('') : itens.slice(0, -1).join(', ') + ' e ' + itens[itens.length - 1]);
 
+    // Texto alternativo: átomos e ligações (e pares não ligantes em Lewis), sem nome, geometria nem polaridade.
+    // Descrevem-se os átomos centrais (≥ 2 vizinhos, sem H); numa diatómica, um dos átomos (não H, se houver).
+    // Átomos do mesmo elemento (exceto H) são distinguidos por "1.º", "2.º", ... pela ordem do catálogo.
     function textoEstrutura() {
-      const c = Mol.contar(id);
+      const todos = m.atomos.map((a, i) => i);
+      const total = {}, visto = {}, rotulo = {};
+      for (const i of todos) total[m.atomos[i].el] = (total[m.atomos[i].el] || 0) + 1;
+      for (const i of todos) {
+        const s = m.atomos[i].el;
+        visto[s] = (visto[s] || 0) + 1;
+        rotulo[i] = s !== 'H' && total[s] > 1 ? visto[s] + '.º ' + s : s;
+      }
+      const vizinhos = todos.map((i) => m.ligacoes.filter(([p, q]) => p === i || q === i).length);
+      let sujeitos = todos.filter((i) => m.atomos[i].el !== 'H' && vizinhos[i] >= 2);
+      if (!sujeitos.length) sujeitos = [todos.find((i) => m.atomos[i].el !== 'H') !== undefined ? todos.find((i) => m.atomos[i].el !== 'H') : 0];
+      const ORDEM = { 1: '', 2: ' por ligação dupla', 3: ' por ligação tripla' };
       const partes = [];
-      if (c.ligacoesSimples) partes.push(plural(c.ligacoesSimples, 'ligação simples', 'ligações simples'));
-      if (c.duplas) partes.push(plural(c.duplas, 'ligação dupla', 'ligações duplas'));
-      if (c.triplas) partes.push(plural(c.triplas, 'ligação tripla', 'ligações triplas'));
-      if (lewis) partes.push(c.paresNaoLigantes ? plural(c.paresNaoLigantes, 'par não ligante', 'pares não ligantes') : 'nenhum par não ligante');
-      return 'Estrutura de uma molécula com ' + plural(m.atomos.length, 'átomo', 'átomos') + ', ' + juntar(partes) + '.';
+      for (const i of sujeitos) {
+        const grupos = {};
+        for (const [p, q, ordem] of m.ligacoes) {
+          const j = p === i ? q : q === i ? p : -1;
+          if (j < 0) continue;
+          const nome = sujeitos.includes(j) ? rotulo[j] : m.atomos[j].el;
+          const k = nome + '|' + ordem;
+          grupos[k] = grupos[k] || { nome, ordem, n: 0 };
+          grupos[k].n++;
+        }
+        const itens = Object.values(grupos).map((g) => (g.n > 1 ? g.n + ' ' : '') + g.nome + ORDEM[g.ordem]);
+        partes.push(rotulo[i] + ' ligado a ' + juntar(itens));
+      }
+      if (lewis) {
+        const pares = [];
+        const feitos = new Set();
+        for (const i of todos) {
+          const s = m.atomos[i].el, n = m.atomos[i].pares;
+          if (!n || feitos.has(s)) continue;
+          const mesmos = todos.filter((j) => m.atomos[j].el === s);
+          if (mesmos.length > 1 && mesmos.every((j) => m.atomos[j].pares === n)) {
+            feitos.add(s);
+            pares.push(plural(n, 'par não ligante', 'pares não ligantes') + ' em cada ' + s);
+          } else {
+            pares.push(plural(n, 'par não ligante', 'pares não ligantes') + ' no ' + rotulo[i]);
+          }
+        }
+        partes.push(...(pares.length ? pares : ['nenhum par não ligante']));
+      }
+      return 'Estrutura de uma molécula com ' + plural(m.atomos.length, 'átomo', 'átomos') + ': ' + partes.join('; ') + '.';
     }
 
     function textoInfo() {
       const cab = m.nome.charAt(0).toUpperCase() + m.nome.slice(1) + ' (' + formulaTexto(m.formula) + ')';
-      const pol = m.polar ? 'molécula polar' : 'molécula apolar';
+      const pol = (m.polar ? 'molécula polar' : 'molécula apolar')
+        + (m.polarNota ? ' (' + m.polarNota + ')' : '')
+        + (m.ressonancia ? '; só se desenha uma das estruturas de ressonância (a outra tem a ligação dupla do lado oposto) e as duas ligações O–O são equivalentes' : '');
       if (m.geometria !== null) {
         return cab + ': geometria ' + m.geometria + (m.angulo !== null ? ', ângulo ≈ ' + num(m.angulo) + '°' : '') + '; ' + pol + '.';
       }
@@ -150,7 +191,11 @@ Manual.esquemas.registar('fqa-molecula', {
       t.textContent = a.el;
     }
 
-    if (mostrarInfo) raiz.appendChild(p(textoInfo(), 'mol-info'));
+    if (mostrarInfo) {
+      const info = p(textoInfo(), 'mol-info');
+      info.style.padding = '8px 12px';
+      raiz.appendChild(info);
+    }
 
     return { destruir() { el.textContent = ''; } };
   },
