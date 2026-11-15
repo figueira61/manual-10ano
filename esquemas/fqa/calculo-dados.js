@@ -129,6 +129,12 @@ Manual.dadosQuimicos = (function () {
   // Descendo no grupo, a EI do Ga é ligeiramente maior que a do Al (contração devida aos eletrões 3d).
   const excecoesEIGrupo = ['Ga>Al'];
 
+  // Riscas visíveis de emissão (comprimento de onda no ar, em nm) de elementos além do H (o H calcula-se com transicaoH).
+  const riscas = {
+    Na: { nome: 'Sódio', linhas: [589.0, 589.6] },
+    He: { nome: 'Hélio', linhas: [447.1, 471.3, 501.6, 587.6, 667.8] },
+  };
+
   const fontes = {
     elementos: 'Nomes em português (IUPAC, como nos manuais portugueses); grupo (1–18, numeração IUPAC), período e bloco '
       + 'da Tabela Periódica da IUPAC. O hélio (1s²) é do bloco s pela configuração, mas fica no grupo 18.',
@@ -149,9 +155,11 @@ Manual.dadosQuimicos = (function () {
       + 'energia de Rydberg 2,180 × 10⁻¹⁸ J), como nos manuais portugueses.',
     espectro: 'Fronteiras convencionais aproximadas entre as zonas do espetro (visível 400–700 nm, como nos manuais); '
       + 'as fronteiras não são nítidas, por isso os exercícios devem usar valores afastados delas.',
+    riscas: 'NIST Atomic Spectra Database, Lines (Na I: dupleto D, 588,995 e 589,592 nm; He I: 447,148, 471,314, '
+      + '501,567, 587,562 e 667,815 nm; comprimentos de onda no ar), arredondados a 0,1 nm. Só riscas visíveis (400–700 nm).',
     excecoesEI: 'Derivadas dos valores de ei1 (NIST): pares de Z consecutivos dos períodos 2–4 em que a EI desce.',
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };
 
-  return { elementos, isotopos, ligacoes, constantes, espectro, excecoesEI, excecoesEIGrupo, fontes };
+  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, excecoesEI, excecoesEIGrupo, fontes };
 })();

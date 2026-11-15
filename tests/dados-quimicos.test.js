@@ -179,3 +179,16 @@ test('espectro: zonas contíguas, por ordem crescente de comprimento de onda', (
   assert.equal(z[z.length - 1].max, Infinity);
   for (let i = 1; i < z.length; i++) assert.equal(z[i].min, z[i - 1].max);
 });
+
+test('riscas: Na e He com linhas visíveis (400–700 nm) por ordem crescente e fonte', () => {
+  assert.deepEqual(Object.keys(D.riscas).sort(), ['He', 'Na']);
+  assert.deepEqual(D.riscas.Na.linhas, [589.0, 589.6]);
+  for (const r of Object.values(D.riscas)) {
+    assert.ok(r.nome && r.linhas.length >= 2);
+    r.linhas.forEach((l, i) => {
+      assert.ok(l >= 400 && l < 700);
+      if (i) assert.ok(l > r.linhas[i - 1]);
+    });
+  }
+  assert.ok(/NIST/.test(D.fontes.riscas));
+});
