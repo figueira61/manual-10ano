@@ -113,7 +113,7 @@ Manual.dadosQuimicos = (function () {
   // NA em mol⁻¹, h em J s, c em m s⁻¹, Vm em dm³ mol⁻¹ (PTN), EnH em J (E_n = EnH/n² no átomo de H)
   const constantes = { NA: 6.02e23, h: 6.63e-34, c: 3.0e8, Vm: 22.4, EnH: -2.18e-18 };
 
-  // Zonas do espetro eletromagnético por comprimento de onda (m), intervalos [min, max[.
+  // Zonas do espectro eletromagnético por comprimento de onda (m), intervalos [min, max[.
   const espectro = [
     { zona: 'gama', min: 0, max: 1e-11 },
     { zona: 'X', min: 1e-11, max: 1e-8 },
@@ -153,10 +153,10 @@ Manual.dadosQuimicos = (function () {
     constantes: 'NA, c e Vm (PTN): Tabela de constantes do IAVE (Anexo 1 da Informação-Prova 715, 2025). h e EnH não '
       + 'constam dos anexos do IAVE: valores CODATA arredondados a 3 algarismos significativos (h = 6,626 × 10⁻³⁴ J s; '
       + 'energia de Rydberg 2,180 × 10⁻¹⁸ J), como nos manuais portugueses.',
-    espectro: 'Fronteiras convencionais aproximadas entre as zonas do espetro (visível 400–700 nm, como nos manuais); '
+    espectro: 'Fronteiras convencionais aproximadas entre as zonas do espectro (visível 400–700 nm, como nos manuais); '
       + 'as fronteiras não são nítidas, por isso os exercícios devem usar valores afastados delas.',
     riscas: 'NIST Atomic Spectra Database, Lines (Na I: dupleto D, 588,995 e 589,592 nm; He I: 447,148, 471,314, '
-      + '501,567, 587,562 e 667,815 nm; comprimentos de onda no ar), arredondados a 0,1 nm. Só riscas visíveis (400–700 nm).',
+      + '501,567, 587,562 e 667,815 nm; comprimentos de onda no ar), arredondados a 0,1 nm. Seleção das riscas visíveis mais intensas (400–700 nm), não a lista completa.',
     excecoesEI: 'Derivadas dos valores de ei1 (NIST): pares de Z consecutivos dos períodos 2–4 em que a EI desce.',
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };

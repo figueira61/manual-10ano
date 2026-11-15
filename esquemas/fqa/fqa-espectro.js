@@ -11,7 +11,10 @@ Manual.esquemas.registar('fqa-espectro', {
     const D = Manual.dadosQuimicos;
     const Q = Manual.quimica;
     const NS = 'http://www.w3.org/2000/svg';
-    const L_MIN = -11, L_MAX = 0;
+    const L_MIN = -12, L_MAX = 0; // 1 pm a 1 m
+    const vis = D.espectro.find((z) => z.zona === 'visivel');
+    const VMIN = Math.round(vis.min * 1e9), VMAX = Math.round(vis.max * 1e9), VSPAN = VMAX - VMIN; // limites do visível, em nm
+    const TICKS = [VMIN, VMIN + 100, VMIN + 200, VMAX];
     const NOMES = { gama: 'Raios gama', X: 'Raios X', UV: 'Ultravioleta', visivel: 'Visível', IV: 'Infravermelho', 'micro-ondas': 'Micro-ondas', radio: 'Ondas de rádio' };
     const fmtNum = (v, d) => Number(v).toLocaleString('pt-PT', { maximumFractionDigits: d });
 
@@ -76,27 +79,27 @@ Manual.esquemas.registar('fqa-espectro', {
       const b = Math.min(L_MAX, Number.isFinite(z.max) ? Math.log10(z.max) : L_MAX);
       if (b <= a) return;
       svgEl('rect', { class: 'zona-' + z.zona, x: X(a), y: 6, width: X(b) - X(a), height: 30, fill: zonasCor[z.zona], 'fill-opacity': 0.28, stroke: 'var(--texto)', 'stroke-width': 0.6 }, svg);
-      if (X(b) - X(a) > 28) {
+      if (X(b) - X(a) > 22) {
         const t = svgEl('text', { x: (X(a) + X(b)) / 2, y: 25, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--texto)' }, svg);
-        t.textContent = z.zona === 'visivel' ? 'Visível' : z.zona === 'micro-ondas' ? 'Micro-ondas' : NOMES[z.zona];
+        t.textContent = z.zona === 'gama' ? 'γ' : NOMES[z.zona];
       }
     });
     // marcas de década
-    for (let l = -11; l <= 0; l += 1) {
+    for (let l = L_MIN; l <= L_MAX; l += 1) {
       svgEl('line', { x1: X(l), y1: 36, x2: X(l), y2: 40, stroke: 'var(--cor-eixos)', 'stroke-width': 0.8 }, svg);
     }
-    [[-11, '10 pm'], [-9, '1 nm'], [-6, '1 µm'], [-3, '1 mm'], [0, '1 m']].forEach(([l, s]) => {
+    [[-12, '1 pm'], [-11, '10 pm'], [-9, '1 nm'], [-6, '1 µm'], [-3, '1 mm'], [0, '1 m']].forEach(([l, s]) => {
       const t = svgEl('text', { x: Math.min(Math.max(X(l), 14), 286), y: 50, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svg);
       t.textContent = s;
     });
     const marca = svgEl('line', { class: 'marca-lambda', x1: 0, y1: 2, x2: 0, y2: 42, stroke: 'var(--cor-2)', 'stroke-width': 2.5 }, svg);
-    // faixa do visível (400–700 nm, escala linear)
+    // faixa do visível (limites de dadosQuimicos.espectro, escala linear)
     const defs = svgEl('defs', {}, svg);
     const grad = svgEl('linearGradient', { id: 'grad-visivel-' + Math.round(Math.random() * 1e6), x1: 0, x2: 1, y1: 0, y2: 0 }, defs);
-    for (let nm = 400; nm <= 700; nm += 25) svgEl('stop', { offset: (nm - 400) / 300, 'stop-color': cor(nm) }, grad);
+    for (let nm = VMIN; nm <= VMAX; nm += 25) svgEl('stop', { offset: (nm - VMIN) / VSPAN, 'stop-color': cor(nm) }, grad);
     svgEl('rect', { class: 'faixa-visivel', x: 20, y: 66, width: 260, height: 18, fill: 'url(#' + grad.getAttribute('id') + ')', stroke: 'var(--texto)', 'stroke-width': 0.6 }, svg);
-    [400, 500, 600, 700].forEach((nm) => {
-      const x = 20 + ((nm - 400) / 300) * 260;
+    TICKS.forEach((nm) => {
+      const x = 20 + ((nm - VMIN) / VSPAN) * 260;
       svgEl('line', { x1: x, y1: 84, x2: x, y2: 88, stroke: 'var(--cor-eixos)', 'stroke-width': 0.8 }, svg);
       const t = svgEl('text', { x, y: 98, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svg);
       t.textContent = nm + ' nm';
@@ -119,6 +122,7 @@ Manual.esquemas.registar('fqa-espectro', {
       o.value = s;
       sel.appendChild(o);
     });
+    const optHe = sel.querySelectorAll('option').find((o) => o.value === 'He');
     labEl.appendChild(sel);
     barraRiscas.appendChild(labEl);
     const bE = criar('button', 'btn', 'Emissão');
@@ -153,37 +157,44 @@ Manual.esquemas.registar('fqa-espectro', {
     }
 
     function atualizarRiscas() {
-      const ls = linhasDe(est.elemento);
       const emissao = est.modo === 'emissao';
+      // o He no estado fundamental só absorve no ultravioleta: sem riscas de absorção visíveis
+      optHe.disabled = !emissao;
+      if (!emissao && est.elemento === 'He') { est.elemento = 'H'; sel.value = 'H'; }
+      const ls = linhasDe(est.elemento);
       bE.setAttribute('aria-pressed', emissao ? 'true' : 'false');
       bA.setAttribute('aria-pressed', emissao ? 'false' : 'true');
       svgR.textContent = '';
       const defsR = svgEl('defs', {}, svgR);
       const g2 = svgEl('linearGradient', { id: 'grad-riscas-' + Math.round(Math.random() * 1e6), x1: 0, x2: 1, y1: 0, y2: 0 }, defsR);
-      for (let nm = 400; nm <= 700; nm += 25) svgEl('stop', { offset: (nm - 400) / 300, 'stop-color': cor(nm) }, g2);
+      for (let nm = VMIN; nm <= VMAX; nm += 25) svgEl('stop', { offset: (nm - VMIN) / VSPAN, 'stop-color': cor(nm) }, g2);
       svgEl('rect', { x: 10, y: 4, width: 280, height: 30, fill: emissao ? '#111' : 'url(#' + g2.getAttribute('id') + ')', stroke: 'var(--texto)', 'stroke-width': 0.6 }, svgR);
       ls.forEach((l) => {
-        const x = 10 + ((l.nm - 400) / 300) * 280;
+        const x = 10 + ((l.nm - VMIN) / VSPAN) * 280;
         svgEl('line', { class: 'risca', x1: x, y1: 4, x2: x, y2: 34, stroke: emissao ? cor(l.nm) : '#111', 'stroke-width': 2 }, svgR);
       });
-      [400, 500, 600, 700].forEach((nm) => {
-        const t = svgEl('text', { x: 10 + ((nm - 400) / 300) * 280, y: 46, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svgR);
+      TICKS.forEach((nm) => {
+        const t = svgEl('text', { x: 10 + ((nm - VMIN) / VSPAN) * 280, y: 46, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svgR);
         t.textContent = nm + ' nm';
       });
       const nome = est.elemento === 'H' ? 'hidrogénio' : D.riscas[est.elemento].nome.toLowerCase();
-      svgR.setAttribute('aria-label', 'Espetro de ' + (emissao ? 'emissão' : 'absorção') + ' do ' + nome + ' com ' + ls.length + ' riscas visíveis.');
+      svgR.setAttribute('aria-label', 'Espectro de ' + (emissao ? 'emissão' : 'absorção') + ' do ' + nome + ' com ' + ls.length + ' riscas visíveis.');
       zonaRiscas.textContent = '';
       const dl = criar('dl', 'painel-valores');
+      const d1 = est.elemento === 'H' ? 0 : 1; // H: 3 algarismos significativos das constantes; Na, He: 0,1 nm
       ls.forEach((l) => {
         dl.appendChild(criar('dt', '', 'Risca' + (l.nota ? ' (' + l.nota + ')' : '')));
-        dl.appendChild(criar('dd', '', 'λ ≈ ' + Number(l.nm).toLocaleString('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' nm'));
+        dl.appendChild(criar('dd', '', 'λ ≈ ' + Number(l.nm).toLocaleString('pt-PT', { minimumFractionDigits: d1, maximumFractionDigits: d1 }) + ' nm'));
       });
       zonaRiscas.appendChild(dl);
       zonaRiscas.appendChild(criar('p', '', emissao
-        ? 'No espetro de emissão, cada risca colorida corresponde a um fotão emitido numa transição para um nível de menor energia.'
-        : 'No espetro de absorção, as riscas escuras estão exatamente nos comprimentos de onda das riscas de emissão do mesmo elemento.'));
+        ? 'No espectro de emissão, cada risca colorida corresponde a um fotão emitido numa transição para um nível de menor energia.'
+        : 'No espectro de absorção, as riscas escuras estão exatamente nos comprimentos de onda das riscas de emissão do mesmo elemento.'));
+      if (!emissao && est.elemento === 'H') {
+        zonaRiscas.appendChild(criar('p', 'esq-nota', 'As riscas de absorção visíveis do H (série de Balmer) só se observam em átomos que já estão no nível n = 2, como nas atmosferas das estrelas; o H no estado fundamental absorve no ultravioleta (série de Lyman).'));
+      }
       zonaRiscas.appendChild(criar('p', 'fonte', est.elemento === 'H'
-        ? 'Riscas do H calculadas pelas transições para n = 2 (série de Balmer) com os valores de constantes dos dados.'
+        ? 'Riscas do H calculadas pelas transições para n = 2 (série de Balmer) com as constantes dos dados (3 algarismos significativos).'
         : 'Fonte: ' + D.fontes.riscas));
     }
 
@@ -196,7 +207,7 @@ Manual.esquemas.registar('fqa-espectro', {
       marca.setAttribute('x2', x);
       const nm = lambda * 1e9;
       if (zona === 'visivel') {
-        const xv = 20 + ((nm - 400) / 300) * 260;
+        const xv = 20 + ((nm - VMIN) / VSPAN) * 260;
         marcaVis.setAttribute('x1', xv);
         marcaVis.setAttribute('x2', xv);
         marcaVis.setAttribute('visibility', 'visible');

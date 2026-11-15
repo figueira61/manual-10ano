@@ -113,12 +113,23 @@ test('fqa-espectro: λ = 500 nm mostra zona, f e E (cientifico, 3 a.s.); riscas 
   assert.equal(el.querySelectorAll('line.risca').length, 5);
   botao(el, 'Absorção');
   assert.ok(ver(el).includes('riscas escuras'));
+  assert.equal(sel.value, 'H'); // He sem absorção visível: volta ao H
+  assert.ok(ver(el).includes('já estão no nível n = 2'));
+  assert.ok(sel.querySelectorAll('option').find((o) => o.value === 'He').disabled);
+  sel.value = 'Na';
+  sel.dispatch('change');
+  assert.ok(ver(el).includes('589,0 nm') && !ver(el).includes('já estão no nível'));
+  botao(el, 'Emissão');
+  assert.ok(!sel.querySelectorAll('option').find((o) => o.value === 'He').disabled);
+  mexer(el, 0, -12);
+  assert.ok(ver(el).includes('Raios gama'));
   ciclo('fqa-espectro', {});
 });
 
-test('fqa-espectro: riscas de Balmer do H vêm de transicaoH (656 nm)', () => {
-  const { el } = montar('fqa-espectro', {});
-  assert.ok(ver(el).includes('λ ≈ 656,'));
+test('fqa-espectro: riscas de Balmer do H vêm de transicaoH, com λ a 1 nm', () => {
+  const { M, el } = montar('fqa-espectro', {});
+  const nm = Math.round(M.quimica.transicaoH(3, 2).lambda * 1e9);
+  assert.ok(ver(el).includes('λ ≈ ' + nm + ' nm'));
   assert.ok(ver(el).includes('n = 3 → 2'));
 });
 
@@ -225,4 +236,74 @@ test('fqa-tabela: nenhuma comparação afirma uma tendência contrária aos dado
       }
     }
   }
+});
+
+test('fqa-tabela: select de elemento e setas (roving tabindex)', () => {
+  const { el } = montar('fqa-tabela', {});
+  const sel = el.querySelector('select');
+  assert.equal(sel.querySelectorAll('option').length, 37);
+  assert.ok(sel.querySelectorAll('option').some((o) => o.textContent === '1 — H — Hidrogénio'));
+  sel.value = 'Na';
+  sel.dispatch('change');
+  assert.ok(ver(el).includes('grupo 1, período 3'));
+  const cel = (s) => el.querySelectorAll('button.tp-el').find((x) => x.getAttribute('data-simbolo') === s);
+  assert.equal(el.querySelectorAll('button.tp-el').filter((b) => b.getAttribute('tabindex') === '0').length, 1);
+  assert.equal(cel('Na').getAttribute('tabindex'), '0');
+  cel('Na').dispatch('keydown', { key: 'ArrowRight' });
+  assert.ok(ver(el).includes('Mg (magnésio)'));
+  assert.equal(cel('Mg').getAttribute('tabindex'), '0');
+  cel('Mg').dispatch('keydown', { key: 'ArrowDown' });
+  assert.ok(ver(el).includes('Ca (cálcio)'));
+  cel('Ca').dispatch('keydown', { key: 'ArrowLeft' });
+  assert.ok(ver(el).includes('K (potássio)'));
+  cel('K').dispatch('keydown', { key: 'ArrowUp' });
+  assert.ok(ver(el).includes('Na (sódio)'));
+  assert.equal(sel.value, 'Na');
+  // letra do bloco no modo blocos
+  assert.ok(cel('Na').querySelector('small.tp-bloco'));
+  modo(el, 'ei');
+  assert.ok(!cel('Na').querySelector('small.tp-bloco'));
+});
+
+test('fqa-configuracao: caixas dentro do viewBox (Z = 21–23) e mensagens corretas (1s/2s sem Hund)', () => {
+  for (const z of [21, 22, 23]) {
+    const { el } = montar('fqa-configuracao', { z });
+    const larg = Number(el.querySelector('svg').getAttribute('viewBox').split(' ')[2]);
+    const caixas = el.querySelectorAll('rect.caixa');
+    assert.equal(caixas.length, 15);
+    for (const c of caixas) assert.ok(Number(c.getAttribute('x')) >= 0 && Number(c.getAttribute('x')) + Number(c.getAttribute('width')) <= larg, 'z=' + z);
+  }
+  const { el } = montar('fqa-configuracao', { z: 6 });
+  const regra = (k) => { botao(el, 'Todos os eletrões'); while (el.textContent.includes('Eletrões colocados: ' + k + ' de') === false) botao(el, 'Retirar eletrão'); return el.querySelector('p.config-regra').textContent; };
+  const r1 = regra(1);
+  assert.ok(r1.includes('subnível 1s') && !r1.includes('Hund'));
+  const r3 = regra(3);
+  assert.ok(r3.includes('subnível 2s') && !r3.includes('Hund'));
+  const r5 = regra(5);
+  assert.ok(r5.includes('subnível 2p') && r5.includes('Hund'));
+  const r6 = regra(6);
+  assert.ok(r6.includes('2p') && r6.includes('Hund'));
+});
+
+test('fqa-atomo: carga limitada a Z; singular/plural; nota sem escala', () => {
+  const { el } = montar('fqa-atomo', { z: 3, carga: 3 });
+  mexer(el, 0, 1); // H: a carga desce para +1
+  assert.equal(Number(slider(el, 2).value), 1);
+  assert.ok(ver(el).includes('catião (perdeu 1 eletrão)'));
+  assert.equal(el.querySelectorAll('circle.eletrao').length, 0);
+  mexer(el, 2, 3); // tentativa de +3 com Z = 1
+  assert.equal(Number(slider(el, 2).value), 1);
+  mexer(el, 2, -1);
+  assert.ok(ver(el).includes('anião (ganhou 1 eletrão)'));
+  mexer(el, 2, -2);
+  assert.ok(ver(el).includes('ganhou 2 eletrões'));
+  assert.ok(ver(el).includes('Representação sem escala'));
+  assert.ok(!ver(el).includes('menos de zero'));
+});
+
+test('fqa-isotopos: notação {}^{A}X em KaTeX e "massa isotópica relativa"', () => {
+  const { el } = montar('fqa-isotopos', { elemento: 'Cl' });
+  assert.ok(ver(el).includes('{}^{35}\\mathrm{Cl}'));
+  assert.ok(ver(el).includes('Massa isotópica relativa'));
+  assert.ok(ver(el).includes('34{,}9689'));
 });

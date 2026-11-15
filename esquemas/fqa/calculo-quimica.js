@@ -293,7 +293,7 @@ Manual.quimica = (function () {
   return {
     massaAtomicaMedia, massaMolar, nDeMassa, massaDeN, entidades, nDeEntidades, atomosNaAmostra,
     energiaFotao, zonaEspectro, energiaNivelH, transicaoH,
-    configuracao, posicaoTP, densidadeRelativa,
+    configuracao, posicaoTP, densidadeRelativa, Z_MAX_CONFIG: Z_MAX,
     concentracao, concentracaoMassica, percentagemMassa, percentagemVolume, ppm, diluicao,
     volumeGasPTN, nDeVolumePTN, massaVolumicaGas, fracaoMolar,
     deltaHLigacoes, lambdaParaQuebrarLigacao,

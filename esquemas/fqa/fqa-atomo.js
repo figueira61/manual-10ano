@@ -14,6 +14,7 @@ Manual.esquemas.registar('fqa-atomo', {
 
     const est = { z: lim(opcoes.z, 1, 36, 6), a: 0, carga: lim(opcoes.carga, -3, 3, 0) };
     est.a = Math.max(lim(opcoes.a, 1, 90, est.z * 2), est.z);
+    est.carga = Math.min(est.carga, est.z); // a carga positiva nunca passa de Z (eletrões ≥ 0)
 
     function criar(tag, classe, texto) {
       const e = document.createElement(tag);
@@ -41,13 +42,17 @@ Manual.esquemas.registar('fqa-atomo', {
     const zonaSliders = criar('div');
     raiz.appendChild(zonaSliders);
     let aguarda = false; // evita recursão ao corrigir A
+    function corrigirCarga() {
+      if (est.carga > est.z && !aguarda) { aguarda = true; est.carga = est.z; sQ.definir(est.z); aguarda = false; }
+    }
     function corrigirA() {
       if (est.a < est.z && !aguarda) { aguarda = true; est.a = est.z; sA.definir(est.z); aguarda = false; }
     }
-    const sZ = N.slider(zonaSliders, { rotulo: 'Número atómico Z', min: 1, max: 36, passo: 1, valor: est.z, aoMudar: (v) => { est.z = Math.round(v); corrigirA(); atualizar(); } });
+    const sZ = N.slider(zonaSliders, { rotulo: 'Número atómico Z', min: 1, max: 36, passo: 1, valor: est.z, aoMudar: (v) => { est.z = Math.round(v); corrigirA(); corrigirCarga(); atualizar(); } });
     const sA = N.slider(zonaSliders, { rotulo: 'Número de massa A', min: 1, max: 90, passo: 1, valor: est.a, aoMudar: (v) => { est.a = Math.round(v); corrigirA(); if (!aguarda) atualizar(); } });
-    const sQ = N.slider(zonaSliders, { rotulo: 'Carga da espécie', min: -3, max: 3, passo: 1, valor: est.carga, aoMudar: (v) => { est.carga = Math.round(v); atualizar(); } });
+    const sQ = N.slider(zonaSliders, { rotulo: 'Carga da espécie', min: -3, max: 3, passo: 1, valor: est.carga, aoMudar: (v) => { est.carga = Math.round(v); corrigirCarga(); if (!aguarda) atualizar(); } });
 
+    zonaSliders.appendChild(criar('p', 'esq-nota', 'Podes escolher qualquer A ≥ Z; os botões abaixo mostram os isótopos que existem na realidade. Representação sem escala: o núcleo é muito menor do que o átomo e os eletrões não seguem órbitas.'));
     const zonaIsotopos = criar('div', 'esq-linha');
     raiz.appendChild(zonaIsotopos);
     const svg = svgEl('svg', { viewBox: '0 0 280 220', width: '100%', role: 'img', class: 'atomo-svg' });
@@ -122,7 +127,7 @@ Manual.esquemas.registar('fqa-atomo', {
         ['Neutrões', 'N = A − Z = ' + a + ' − ' + z + ' = ' + n],
         ['Número de massa', 'A = Z + N = ' + z + ' + ' + n + ' = ' + a],
         ['Eletrões', e < 0 ? 'não pode haver menos de zero: diminui a carga' : e + (q === 0 ? ' (átomo neutro: tantos como protões)' : ' (Z − carga = ' + z + ' − (' + q + '))')],
-        ['Tipo de espécie', q === 0 ? 'átomo neutro' : q > 0 ? 'catião (perdeu ' + q + ' eletrões)' : 'anião (ganhou ' + (-q) + ' eletrões)'],
+        ['Tipo de espécie', q === 0 ? 'átomo neutro' : q > 0 ? 'catião (perdeu ' + q + (q === 1 ? ' eletrão)' : ' eletrões)') : 'anião (ganhou ' + (-q) + (q === -1 ? ' eletrão)' : ' eletrões)')],
       ]);
     }
 

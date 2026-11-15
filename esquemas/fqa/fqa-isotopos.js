@@ -20,6 +20,12 @@ Manual.esquemas.registar('fqa-isotopos', {
       if (texto !== undefined) e.textContent = texto;
       return e;
     }
+    function latex(pai, t) {
+      if (Manual.render && Manual.render.texto) Manual.render.texto(pai, '$' + t + '$');
+      else pai.appendChild(document.createTextNode(t));
+    }
+    const nuclideo = (a) => '{}^{' + a + '}\\mathrm{' + simbolo + '}';
+    const sup = (a) => String(a).replace(/\d/g, (c) => '⁰¹²³⁴⁵⁶⁷⁸⁹'[Number(c)]);
     function svgEl(nome, atributos, pai) {
       const e = document.createElementNS(NS, nome);
       for (const k in atributos) e.setAttribute(k, atributos[k]);
@@ -78,8 +84,12 @@ Manual.esquemas.registar('fqa-isotopos', {
       const lista = D.isotopos[simbolo];
       abund = lista.map((i) => i.abundancia);
       lista.slice(0, -1).forEach((iso, k) => {
+        const tit = criar('p', 'esq-subtitulo');
+        tit.appendChild(document.createTextNode('Isótopo '));
+        latex(tit, nuclideo(iso.a));
+        zonaSliders.appendChild(tit);
         sliders.push(N.slider(zonaSliders, {
-          rotulo: 'Abundância de ' + iso.a + simbolo + ' (%)', min: 0, max: 100, passo: 0.01, valor: abund[k],
+          rotulo: 'Abundância (%)', min: 0, max: 100, passo: 0.01, valor: abund[k],
           aoMudar: (v) => {
             if (aguarda) return;
             const outros = abund.reduce((t, x, j) => (j === k || j === lista.length - 1 ? t : t + x), 0);
@@ -115,20 +125,19 @@ Manual.esquemas.registar('fqa-isotopos', {
         const h = Math.round((i.abundancia / 100) * 70);
         svgEl('rect', { class: 'barra-iso', x, y: 80 - h, width: larg, height: h, fill: cores[k % 3] }, svg);
         const t = svgEl('text', { x: x + larg / 2, y: 98, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--texto)' }, svg);
-        t.textContent = i.a + simbolo + ' ' + fmt(i.abundancia, 2) + ' %';
+        t.textContent = sup(i.a) + simbolo + ' ' + fmt(i.abundancia, 2) + ' %';
       });
       svg.setAttribute('aria-label', 'Barras das abundâncias dos isótopos de ' + nome + '.');
 
       zonaTexto.textContent = '';
       const soma = iso.map((i) => fmt(i.massa, 4) + ' × ' + fmt(i.abundancia, 2)).join(' + ');
-      const painel = criar('div');
-      zonaTexto.appendChild(painel);
-      N.painelValores(painel).definir([
-        ['Massas isotópicas relativas', iso.map((i) => 'm(' + i.a + simbolo + ') = ' + fmt(i.massa, 4)).join('; ')],
-        ['Média ponderada', 'Ar = (' + soma + ') / 100'],
-        ['Massa atómica relativa', 'Ar(' + simbolo + ') = ' + fmt(ar, 2)],
-        ['Tabela Periódica', 'Ar(' + simbolo + ') = ' + fmt(D.elementos[simbolo].massaAtomica, 2)],
-      ]);
+      const dl = criar('dl', 'painel-valores');
+      const linha = (rot, f) => { dl.appendChild(criar('dt', '', rot)); const dd = criar('dd'); f(dd); dl.appendChild(dd); };
+      iso.forEach((i) => linha('Massa isotópica relativa', (dd) => latex(dd, 'm(' + nuclideo(i.a) + ') = ' + fmt(i.massa, 4).replace(',', '{,}'))));
+      linha('Média ponderada', (dd) => { dd.textContent = 'Ar = (' + soma + ') / 100'; });
+      linha('Massa atómica relativa', (dd) => { dd.textContent = 'Ar(' + simbolo + ') = ' + fmt(ar, 2); });
+      linha('Tabela Periódica', (dd) => { dd.textContent = 'Ar(' + simbolo + ') = ' + fmt(D.elementos[simbolo].massaAtomica, 2); });
+      zonaTexto.appendChild(dl);
       zonaTexto.appendChild(criar('p', '', 'A soma das abundâncias é 100 %: a última é o que falta. Quanto mais abundante é um isótopo, mais perto dele fica a massa atómica relativa.'));
     }
 

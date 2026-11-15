@@ -15,7 +15,8 @@ Manual.esquemas.registar('fqa-tabela', {
     const E = (s) => D.elementos[s];
     const fmt = (v) => Number(v).toLocaleString('pt-PT');
     const MODOS = [['blocos', 'Blocos'], ['ei', 'Energia de ionização'], ['raio', 'Raio atómico']];
-    const est = { modo: MODOS.some((m) => m[0] === opcoes.modo) ? opcoes.modo : 'blocos', sel: simbolos.includes(opcoes.simbolo) ? opcoes.simbolo : null };
+    const est = { modo: MODOS.some((m) => m[0] === opcoes.modo) ? opcoes.modo : 'blocos', sel: simbolos.includes(opcoes.simbolo) ? opcoes.simbolo : null, foco: null };
+    est.foco = est.sel || 'H';
 
     function criar(tag, classe, texto) {
       const e = document.createElement(tag);
@@ -69,6 +70,24 @@ Manual.esquemas.registar('fqa-tabela', {
       return r;
     }
 
+    // Navegação por setas: esquerda/direita no mesmo período; cima/baixo para o período vizinho, na coluna mais próxima.
+    function vizinho(s, tecla) {
+      const e = E(s);
+      const doPeriodo = (p) => simbolos.filter((x) => E(x).periodo === p);
+      if (tecla === 'ArrowRight' || tecla === 'ArrowLeft') {
+        const linha = doPeriodo(e.periodo);
+        const i = linha.indexOf(s) + (tecla === 'ArrowRight' ? 1 : -1);
+        return linha[i] || null;
+      }
+      if (tecla === 'ArrowDown' || tecla === 'ArrowUp') {
+        const p = e.periodo + (tecla === 'ArrowDown' ? 1 : -1);
+        const linha = doPeriodo(p);
+        if (!linha.length) return null;
+        return linha.reduce((m, x) => (Math.abs(E(x).grupo - e.grupo) < Math.abs(E(m).grupo - e.grupo) ? x : m));
+      }
+      return null;
+    }
+
     // ---------- estrutura ----------
     el.textContent = '';
     const raiz = criar('div', 'esq-tabela');
@@ -84,6 +103,23 @@ Manual.esquemas.registar('fqa-tabela', {
       return b;
     });
     raiz.appendChild(barra);
+
+    const linhaSel = criar('div', 'esq-controlos');
+    const labSel = criar('label', '', 'Escolher elemento: ');
+    const selEl = criar('select', 'tp-select');
+    const opVazia = criar('option', '', '—');
+    opVazia.value = '';
+    selEl.appendChild(opVazia);
+    simbolos.forEach((s) => {
+      const o = criar('option', '', E(s).z + ' — ' + s + ' — ' + E(s).nome);
+      o.value = s;
+      selEl.appendChild(o);
+    });
+    labSel.appendChild(selEl);
+    linhaSel.appendChild(labSel);
+    raiz.appendChild(linhaSel);
+    const aoSelect = () => { est.sel = selEl.value || null; if (est.sel) est.foco = est.sel; atualizar(); };
+    selEl.addEventListener('change', aoSelect);
 
     const grelha = criar('div', 'tp-grelha');
     grelha.style.display = 'grid';
@@ -107,9 +143,20 @@ Manual.esquemas.registar('fqa-tabela', {
       b.style.color = 'var(--texto)';
       b.style.cursor = 'pointer';
       b.title = e.nome;
-      const fn = () => { est.sel = s; atualizar(); };
+      const fn = () => { est.sel = s; est.foco = s; atualizar(); };
       b.addEventListener('click', fn);
       regs.push([b, 'click', fn]);
+      const tecla = (ev) => {
+        const alvo = vizinho(s, ev.key);
+        if (!alvo) return;
+        if (ev.preventDefault) ev.preventDefault();
+        est.sel = alvo;
+        est.foco = alvo;
+        atualizar();
+        celulas[alvo].focus();
+      };
+      b.addEventListener('keydown', tecla);
+      regs.push([b, 'keydown', tecla]);
       grelha.appendChild(b);
       celulas[s] = b;
     });
@@ -155,9 +202,19 @@ Manual.esquemas.registar('fqa-tabela', {
         b.style.borderWidth = s === est.sel ? '3px' : '1px';
         b.setAttribute('aria-label', desc);
         b.setAttribute('aria-pressed', s === est.sel ? 'true' : 'false');
+        b.setAttribute('tabindex', s === est.foco ? '0' : '-1');
+        b.textContent = s;
+        if (modo === 'blocos') {
+          const l = criar('small', 'tp-bloco', e.bloco);
+          l.style.opacity = '0.6';
+          l.style.fontSize = '0.6rem';
+          l.style.marginLeft = '1px';
+          b.appendChild(l);
+        }
       });
+      selEl.value = est.sel || '';
       legenda.textContent = modo === 'blocos'
-        ? 'Cor por bloco: s (azul), p (laranja), d (verde). Os valores aparecem ao tocar num elemento.'
+        ? 'Cor e letra por bloco: s (azul), p (laranja), d (verde). Os valores aparecem ao tocar num elemento.'
         : (modo === 'ei' ? 'Energia de ionização' : 'Raio atómico') + ': do mais claro (' + fmt(min) + (modo === 'ei' ? ' kJ/mol' : ' pm')
           + ') ao mais escuro (' + fmt(max) + (modo === 'ei' ? ' kJ/mol' : ' pm') + '). Tracejado = sem valor.';
 
@@ -181,13 +238,13 @@ Manual.esquemas.registar('fqa-tabela', {
         ['Raio atómico', e.raio !== undefined ? e.raio + ' pm' : 'sem valor'],
       ]);
       const pc = criar('p', 'tp-config');
-      if (e.z <= 23) {
+      if (e.z <= Q.Z_MAX_CONFIG) {
         const c = Q.configuracao(e.z);
         pc.appendChild(document.createTextNode('Configuração eletrónica: '));
         latex(pc, c.spd);
         zonaSel.appendChild(pc);
       } else {
-        pc.textContent = 'Configuração eletrónica: configuração fora do programa (Z > 23).';
+        pc.textContent = 'Configuração eletrónica: configuração fora do programa (Z > ' + Q.Z_MAX_CONFIG + ').';
         zonaSel.appendChild(pc);
       }
       const cs = comparar(s, modo);
@@ -201,6 +258,7 @@ Manual.esquemas.registar('fqa-tabela', {
 
     return {
       destruir() {
+        selEl.removeEventListener('change', aoSelect);
         regs.splice(0).forEach((r) => r[0].removeEventListener(r[1], r[2]));
         el.textContent = '';
       },

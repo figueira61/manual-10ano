@@ -10,7 +10,7 @@ Manual.esquemas.registar('fqa-configuracao', {
     const D = Manual.dadosQuimicos;
     const Q = Manual.quimica;
     const NS = 'http://www.w3.org/2000/svg';
-    const Z_MAX = 23;
+    const Z_MAX = Q.Z_MAX_CONFIG;
     const simbolos = Object.keys(D.elementos);
     const zIni = Math.round(Number(opcoes.z));
     const est = { z: Number.isInteger(zIni) && zIni >= 1 && zIni <= Z_MAX ? zIni : 8, k: 0 };
@@ -53,7 +53,12 @@ Manual.esquemas.registar('fqa-configuracao', {
     bSeg.addEventListener('click', aoSeg);
     bTodos.addEventListener('click', aoTodos);
 
-    const svg = svgEl('svg', { viewBox: '0 0 340 96', width: '100%', role: 'img', class: 'config-svg' }, raiz);
+    const TAM = 18, FOLGA = 2, SEP = 10;
+    // largura do conteúdo no caso mais largo (Z máximo): as caixas nunca saem do desenho
+    const cMax = Q.configuracao(Z_MAX).caixas;
+    const larguraMax = cMax.reduce((t, c) => t + c.orbitais.length * (TAM + FOLGA) - FOLGA, 0) + (cMax.length - 1) * (SEP + FOLGA);
+    const VB = Math.ceil(larguraMax) + 8;
+    const svg = svgEl('svg', { viewBox: '0 0 ' + VB + ' 96', width: '100%', role: 'img', class: 'config-svg' }, raiz);
     svg.style.maxWidth = '560px';
     svg.style.height = 'auto';
     svg.style.display = 'block';
@@ -62,12 +67,10 @@ Manual.esquemas.registar('fqa-configuracao', {
     zonaTexto.setAttribute('aria-live', 'polite');
     raiz.appendChild(zonaTexto);
 
-    const TAM = 18, FOLGA = 2, SEP = 10;
     function desenhar(completa, parcial) {
       svg.textContent = '';
-      const n = completa.caixas.reduce((t, c) => t + c.orbitais.length, 0) + (completa.caixas.length - 1) * (SEP / (TAM + FOLGA));
-      const larg = n * (TAM + FOLGA);
-      let x = Math.max(4, (340 - larg) / 2);
+      const larg = completa.caixas.reduce((t, c) => t + c.orbitais.length * (TAM + FOLGA) - FOLGA, 0) + (completa.caixas.length - 1) * (SEP + FOLGA);
+      let x = Math.max(4, (VB - larg) / 2);
       const parcByNome = {};
       if (parcial) parcial.caixas.forEach((c) => { parcByNome[c.subnivel] = c; });
       const resumo = [];
@@ -113,8 +116,11 @@ Manual.esquemas.registar('fqa-configuracao', {
           return !a || a.eletroes !== s.eletroes;
         });
         const novaCaixa = parcial.orbitaisOcupadas > antes.orbitaisOcupadas;
+        const varias = dep.nome.slice(-1) !== 's'; // p e d têm várias caixas; s só uma
         zonaTexto.appendChild(criar('p', 'config-regra', 'O eletrão ' + k + ' entra no subnível ' + dep.nome + ': ' + (novaCaixa
-          ? 'ocupa uma caixa vazia (regra de Hund: primeiro um eletrão em cada caixa do subnível, com o mesmo spin).'
+          ? (varias
+            ? 'ocupa uma caixa vazia (regra de Hund: primeiro um eletrão em cada caixa do subnível, com o mesmo spin).'
+            : 'ocupa a caixa vazia do subnível de menor energia ainda por preencher.')
           : 'emparelha numa caixa já ocupada, com spin oposto (princípio de exclusão de Pauli).')));
       }
       const c = parcial;
