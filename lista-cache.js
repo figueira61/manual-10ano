@@ -31,6 +31,7 @@ self.LISTA_CACHE = [
   "esquemas/mat-a/vetores.js",
   "esquemas/nucleo/controlos.js",
   "esquemas/nucleo/desenho.js",
+  "esquemas/nucleo/figura.js",
   "esquemas/nucleo/ponto.js",
   "esquemas/nucleo/proj3d.js",
   "esquemas/nucleo/referencial.js",
@@ -94,4 +95,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '42b0ff51bf';
+self.VERSAO_CACHE = 'cfdd75dd77';

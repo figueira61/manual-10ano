@@ -23,6 +23,7 @@ class Elemento extends No {
     this.ouvintes = {};
     this.classes = new Set();
     this.onclick = null;
+    this.style = {};
     const self = this;
     this.classList = {
       add(...c) { c.forEach((x) => self.classes.add(x)); },
@@ -60,6 +61,11 @@ class Elemento extends No {
   getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
 
   addEventListener(tipo, fn) { (this.ouvintes[tipo] = this.ouvintes[tipo] || []).push(fn); }
+  removeEventListener(tipo, fn) {
+    const l = this.ouvintes[tipo] || [];
+    const i = l.indexOf(fn);
+    if (i >= 0) l.splice(i, 1);
+  }
 
   // Dispara um evento: os ouvintes registados e, no clique, o onclick.
   dispatch(tipo, extra) {
@@ -117,6 +123,7 @@ function serializar(no) {
 function criarDocumento() {
   return {
     createElement: (t) => new Elemento(t),
+    createElementNS: (ns, t) => new Elemento(t),
     createTextNode: (t) => new Texto(t),
   };
 }

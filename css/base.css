@@ -667,3 +667,38 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .tabela-evolucao .celula-barra { min-width: 9em; }
 .celula-barra .barra-pista { height: 12px; margin-bottom: 2px; }
 .celula-barra .barra-valor { grid-column: auto; display: block; }
+
+/* ---------- figura legendada com vista explodida ---------- */
+.figura { margin: 12px 0; max-width: 100%; }
+.figura-barra { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.figura-barra .btn { min-height: 44px; padding: 8px 14px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); font: inherit; cursor: pointer; }
+.figura-barra .btn:hover { border-color: var(--destaque); }
+.figura-svg { display: block; max-width: 100%; height: auto; background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px; }
+.figura-parte { cursor: pointer; fill: var(--definicao-fundo); stroke: var(--cor-eixos); stroke-width: 1.5; transition: transform 0.35s ease, opacity 0.2s ease; }
+.figura-parte:focus { outline: none; }
+.figura-parte:focus-visible { outline: 3px solid var(--destaque); outline-offset: 2px; }
+.figura-parte.figura-esbatida, .figura-legenda.figura-esbatida { opacity: 0.25; }
+.figura-parte.figura-foco { stroke: var(--destaque); stroke-width: 3; }
+.figura-num-fundo { fill: var(--destaque); stroke: none; }
+.figura-num { fill: var(--destaque-texto); stroke: none; font-weight: 700; font-family: inherit; }
+.figura-contorno { fill: none; stroke: var(--cor-2); stroke-width: 3; stroke-dasharray: 5 3; }
+.figura-legenda { cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.35s ease; }
+.figura-legenda text { fill: var(--texto); stroke: none; }
+.figura-ligacao { stroke: var(--texto-suave); stroke-width: 1; opacity: 0; transition: opacity 0.35s ease; }
+.figura-legenda.figura-visivel { opacity: 1; pointer-events: auto; }
+.figura-legenda.figura-visivel.figura-esbatida { opacity: 0.25; }
+.figura-ligacao.figura-visivel { opacity: 1; }
+.figura-descricao { min-height: 1.4em; margin: 8px 0; color: var(--texto); }
+.figura-lista { margin: 8px 0; padding-left: 0; list-style: none; counter-reset: figura; display: flex; flex-wrap: wrap; gap: 6px; }
+.figura-li { counter-increment: figura; }
+.figura-item { min-height: 44px; padding: 6px 12px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); font: inherit; cursor: pointer; }
+.figura-item::before { content: counter(figura) ". "; font-weight: 700; color: var(--destaque); }
+.figura-exercicio .figura-item::before { content: none; }
+.figura-item.figura-foco { border-color: var(--destaque); outline: 2px solid var(--destaque); }
+.figura-dialogo { position: fixed; inset: 0; margin: auto; width: min(96vw, 900px); max-height: 94vh; overflow: auto; padding: 12px; background: var(--fundo); color: var(--texto); border: 1px solid var(--borda); border-radius: 12px; z-index: 1000; box-sizing: border-box; }
+.figura-dialogo::backdrop { background: rgba(0, 0, 0, 0.55); }
+.figura-dialogo-sobreposto { box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.55); }
+.figura-dialogo .figura-fechar { min-height: 44px; padding: 8px 14px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); font: inherit; cursor: pointer; margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .figura-parte, .figura-legenda, .figura-ligacao { transition: none; }
+}
