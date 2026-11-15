@@ -2,11 +2,19 @@
 // Só o que js/quiz.js e js/render.js usam: createElement, createTextNode, appendChild, textContent,
 // className/classList, setAttribute, addEventListener, onclick, click(), querySelector(All) por classe/etiqueta.
 
+// Lista como a do navegador: length, item(i), índices, forEach (só NodeList) e iterador; sem find/some/map/filter.
+function listaNo(itens, comForEach) {
+  const l = { length: itens.length, item: (i) => itens[i] || null, [Symbol.iterator]: () => itens[Symbol.iterator]() };
+  itens.forEach((x, i) => { l[i] = x; });
+  if (comForEach) l.forEach = (fn, este) => itens.forEach((x, i) => fn.call(este, x, i, l));
+  return l;
+}
+
 class No {
   constructor() { this.childNodes = []; this.parentNode = null; }
   get firstChild() { return this.childNodes[0] || null; }
   get lastChild() { return this.childNodes[this.childNodes.length - 1] || null; }
-  get children() { return this.childNodes.filter((n) => n instanceof Elemento); }
+  get children() { return listaNo(this.childNodes.filter((n) => n instanceof Elemento), false); }
 }
 
 class Texto extends No {
@@ -110,9 +118,9 @@ class Elemento extends No {
       }
       return k < 0;
     };
-    const ir = (no) => no.children.forEach((f) => { if (casa(f)) r.push(f); ir(f); });
+    const ir = (no) => Array.from(no.children).forEach((f) => { if (casa(f)) r.push(f); ir(f); });
     ir(this);
-    return r;
+    return listaNo(r, true);
   }
 
   querySelector(sel) { return this.querySelectorAll(sel)[0] || null; }

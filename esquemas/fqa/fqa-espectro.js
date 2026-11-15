@@ -122,7 +122,7 @@ Manual.esquemas.registar('fqa-espectro', {
       o.value = s;
       sel.appendChild(o);
     });
-    const optHe = sel.querySelectorAll('option').find((o) => o.value === 'He');
+    const optHe = Array.from(sel.querySelectorAll('option')).find((o) => o.value === 'He');
     labEl.appendChild(sel);
     barraRiscas.appendChild(labEl);
     const bE = criar('button', 'btn', 'Emissão');

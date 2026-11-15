@@ -23,7 +23,7 @@ function montar(id, opcoes) {
 const ver = (el) => el.textContent;
 const slider = (el, k) => el.querySelectorAll('input')[k];
 function mexer(el, k, v) { const s = slider(el, k); s.value = String(v); s.dispatch('input'); }
-function botao(el, txt) { const b = el.querySelectorAll('button').find((x) => x.textContent.includes(txt)); assert.ok(b, txt); b.click(); }
+function botao(el, txt) { const b = Array.from(el.querySelectorAll('button')).find((x) => x.textContent.includes(txt)); assert.ok(b, txt); b.click(); }
 
 function ciclo(id, opcoes) {
   const { el, montado, ouvintes } = montar(id, opcoes);
@@ -57,7 +57,7 @@ test('fqa-atomo: aumentar Z acima de A corrige A; botão de isótopo muda A', ()
   mexer(el, 0, 20);
   assert.ok(ver(el).includes('Z = 20') && ver(el).includes('N = 0'));
   mexer(el, 0, 17);
-  const b = el.querySelectorAll('button').find((x) => x.textContent.includes('A = 37'));
+  const b = Array.from(el.querySelectorAll('button')).find((x) => x.textContent.includes('A = 37'));
   b.click();
   assert.ok(ver(el).includes('N = 20'));
 });
@@ -115,12 +115,12 @@ test('fqa-espectro: λ = 500 nm mostra zona, f e E (cientifico, 3 a.s.); riscas 
   assert.ok(ver(el).includes('riscas escuras'));
   assert.equal(sel.value, 'H'); // He sem absorção visível: volta ao H
   assert.ok(ver(el).includes('já estão no nível n = 2'));
-  assert.ok(sel.querySelectorAll('option').find((o) => o.value === 'He').disabled);
+  assert.ok(Array.from(sel.querySelectorAll('option')).find((o) => o.value === 'He').disabled);
   sel.value = 'Na';
   sel.dispatch('change');
   assert.ok(ver(el).includes('589,0 nm') && !ver(el).includes('já estão no nível'));
   botao(el, 'Emissão');
-  assert.ok(!sel.querySelectorAll('option').find((o) => o.value === 'He').disabled);
+  assert.ok(!Array.from(sel.querySelectorAll('option')).find((o) => o.value === 'He').disabled);
   mexer(el, 0, -12);
   assert.ok(ver(el).includes('Raios gama'));
   ciclo('fqa-espectro', {});
@@ -170,11 +170,11 @@ test('fqa-configuracao: Z = 23 mostra a cadeia spd de configuracao(23); passo a 
 });
 
 function escolher(el, sim) {
-  const b = el.querySelectorAll('button.tp-el').find((x) => x.getAttribute('data-simbolo') === sim);
+  const b = Array.from(el.querySelectorAll('button.tp-el')).find((x) => x.getAttribute('data-simbolo') === sim);
   assert.ok(b, sim);
   b.click();
 }
-const modo = (el, id) => el.querySelectorAll('button.tp-modo').find((x) => x.getAttribute('data-modo') === id).click();
+const modo = (el, id) => Array.from(el.querySelectorAll('button.tp-modo')).find((x) => x.getAttribute('data-modo') === id).click();
 
 test('fqa-tabela: desenha Z 1–36 e, ao escolher Na, mostra grupo 1 e período 3', () => {
   const { el } = montar('fqa-tabela', {});
@@ -193,7 +193,7 @@ test('fqa-tabela: Z > 23 não mostra configuração; sem valor de raio é dito',
   assert.ok(!ver(el).includes('1s^2'));
   assert.ok(ver(el).includes('Raio atómicosem valor'));
   modo(el, 'raio');
-  const fe = el.querySelectorAll('button.tp-el').find((x) => x.getAttribute('data-simbolo') === 'Fe');
+  const fe = Array.from(el.querySelectorAll('button.tp-el')).find((x) => x.getAttribute('data-simbolo') === 'Fe');
   assert.ok(fe.getAttribute('aria-label').includes('sem valor'));
   assert.equal(fe.style.borderStyle, 'dashed');
 });
@@ -242,12 +242,12 @@ test('fqa-tabela: select de elemento e setas (roving tabindex)', () => {
   const { el } = montar('fqa-tabela', {});
   const sel = el.querySelector('select');
   assert.equal(sel.querySelectorAll('option').length, 37);
-  assert.ok(sel.querySelectorAll('option').some((o) => o.textContent === '1 — H — Hidrogénio'));
+  assert.ok(Array.from(sel.querySelectorAll('option')).some((o) => o.textContent === '1 — H — Hidrogénio'));
   sel.value = 'Na';
   sel.dispatch('change');
   assert.ok(ver(el).includes('grupo 1, período 3'));
-  const cel = (s) => el.querySelectorAll('button.tp-el').find((x) => x.getAttribute('data-simbolo') === s);
-  assert.equal(el.querySelectorAll('button.tp-el').filter((b) => b.getAttribute('tabindex') === '0').length, 1);
+  const cel = (s) => Array.from(el.querySelectorAll('button.tp-el')).find((x) => x.getAttribute('data-simbolo') === s);
+  assert.equal(Array.from(el.querySelectorAll('button.tp-el')).filter((b) => b.getAttribute('tabindex') === '0').length, 1);
   assert.equal(cel('Na').getAttribute('tabindex'), '0');
   cel('Na').dispatch('keydown', { key: 'ArrowRight' });
   assert.ok(ver(el).includes('Mg (magnésio)'));

@@ -36,11 +36,11 @@ test('quiz: figuraEnunciado monta-se antes de Verificar, depois do enunciado e a
     },
   });
   assert.deepEqual(chamadas, ['fig-teste']);
-  const filhos = el.querySelector('.pergunta').children.map((c) => String(c.className).split(' ')[0]);
+  const filhos = Array.from(el.querySelector('.pergunta').children).map((c) => String(c.className).split(' ')[0]);
   assert.ok(filhos.indexOf('enunciado') >= 0 && filhos.indexOf('enunciado') < filhos.indexOf('esq-fig-teste'), filhos.join());
   assert.ok(filhos.indexOf('esq-fig-teste') < filhos.indexOf('opcoes'), filhos.join());
   el.querySelector('input.campo-numero').value = '5';
-  el.querySelectorAll('button').find((b) => b.textContent === 'Verificar').click();
+  Array.from(el.querySelectorAll('button')).find((b) => b.textContent === 'Verificar').click();
   assert.deepEqual(chamadas, ['fig-teste', 'esq-resposta']);
   ctl.destruir();
   assert.deepEqual(chamadas.slice(2).sort(), ['destruir esq-resposta', 'destruir fig-teste']);

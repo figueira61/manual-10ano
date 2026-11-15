@@ -38,7 +38,7 @@ function escrever(el, valor) {
   el.querySelector('input.campo-numero').value = valor;
 }
 function carregarBotao(el, texto) {
-  return el.querySelectorAll('button').find((b) => b.textContent === texto);
+  return Array.from(el.querySelectorAll('button')).find((b) => b.textContent === texto);
 }
 
 // ---- Sem opções novas: o DOM e o fluxo ficam como estavam (capturado antes da alteração). ----

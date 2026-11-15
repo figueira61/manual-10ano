@@ -267,7 +267,7 @@ test('legendas escondidas não aparecem esbatidas em montada+foco', () => {
   for (const l of el.querySelectorAll('.figura-legenda')) assert.ok(!l.classList.contains('figura-esbatida'));
   el.querySelector('.figura-separar').click();
   el.querySelectorAll('.figura-parte')[0].click();
-  const esb = el.querySelectorAll('.figura-legenda').filter((l) => l.classList.contains('figura-esbatida'));
+  const esb = Array.from(el.querySelectorAll('.figura-legenda')).filter((l) => l.classList.contains('figura-esbatida'));
   assert.equal(esb.length, 2);
 });
 

@@ -23,7 +23,7 @@ function texto(no) { return no.textContent; }
 
 // Escolhe a disciplina na configuração do Teste (os temas só aparecem depois).
 function escolherDisciplina(principal, id) {
-  const radio = principal.querySelectorAll('input').find((i) => i.type === 'radio' && i.value === id);
+  const radio = Array.from(principal.querySelectorAll('input')).find((i) => i.type === 'radio' && i.value === id);
   radio.checked = true;
   radio.dispatch('change');
 }
@@ -50,7 +50,7 @@ test('teste: configuração, começa e mostra a pergunta', () => {
   const v = Manual.vistasEstudo.teste(principal);
   assert.match(texto(principal), /Com cronómetro/);
   escolherDisciplina(principal, 'mat-a');
-  const botoes = principal.querySelectorAll('button').filter((b) => /Começar o teste/.test(b.textContent));
+  const botoes = Array.from(principal.querySelectorAll('button')).filter((b) => /Começar o teste/.test(b.textContent));
   assert.equal(botoes.length, 1);
   botoes[0].click();
   assert.ok(principal.querySelector('.pergunta'));
@@ -68,10 +68,10 @@ test('treino: a sugestão refaz-se quando o motor muda, mantém as caixas marcad
   };
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.treino(principal, {});
-  const sugestao = () => principal.querySelectorAll('section').find((c) => /Sugestão de hoje/.test(c.textContent)).querySelectorAll('li').map((li) => li.textContent);
+  const sugestao = () => Array.from(Array.from(principal.querySelectorAll('section')).find((c) => /Sugestão de hoje/.test(c.textContent)).querySelectorAll('li')).map((li) => li.textContent);
   const antes = sugestao();
   assert.ok(antes.length > 0);
-  const caixa = principal.querySelectorAll('input').find((i) => i.type === 'checkbox');
+  const caixa = Array.from(principal.querySelectorAll('input')).find((i) => i.type === 'checkbox');
   caixa.checked = true;
   assert.equal(typeof ouvinte, 'function');
   const ultima = 'mat-a/funcoes/afim';
@@ -80,7 +80,7 @@ test('treino: a sugestão refaz-se quando o motor muda, mantém as caixas marcad
   const depois = sugestao();
   assert.notDeepEqual(depois, antes);
   assert.ok(depois.length > 0);
-  assert.equal(principal.querySelectorAll('input').find((i) => i.type === 'checkbox').checked, true, 'a escolha livre mantém-se');
+  assert.equal(Array.from(principal.querySelectorAll('input')).find((i) => i.type === 'checkbox').checked, true, 'a escolha livre mantém-se');
   assert.equal(desligou, 0);
   v.destruir();
   assert.equal(desligou, 1);
@@ -91,7 +91,7 @@ test('treino: começar a sessão desliga a subscrição do motor', () => {
   Manual.motor = { historico: () => [], estadoDe: () => null, aoMudar: () => () => { desligou += 1; } };
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.treino(principal, {});
-  principal.querySelectorAll('button').find((b) => b.textContent === 'Começar').click();
+  Array.from(principal.querySelectorAll('button')).find((b) => b.textContent === 'Começar').click();
   assert.equal(desligou, 1);
   v.destruir();
   assert.equal(desligou, 1);

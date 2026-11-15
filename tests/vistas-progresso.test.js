@@ -58,13 +58,13 @@ test('encarregado com duas ligações: seletor com etiqueta e troca de educanda'
   await esperar(); await esperar(); await esperar();
   const sel = principal.querySelector('select');
   assert.ok(sel, 'há um select');
-  const label = principal.querySelectorAll('label').find((l) => l.htmlFor === sel.id);
+  const label = Array.from(principal.querySelectorAll('label')).find((l) => l.htmlFor === sel.id);
   assert.equal(label.textContent, 'Educanda');
-  assert.deepEqual(sel.children.map((o) => o.textContent), ['Ana', 'Educanda sem nome']);
+  assert.deepEqual(Array.from(sel.children).map((o) => o.textContent), ['Ana', 'Educanda sem nome']);
   assert.deepEqual(pedidos.tentativas.map((p) => p.alunaId), ['a']);
   assert.ok(pedidos.tentativas[0].desde, 'envia desde');
   assert.match(principal.textContent, /Última atividade: \d\d\/\d\d\/\d{4}/);
-  assert.equal(principal.querySelectorAll('a').filter((a) => a.textContent === 'Treinar').length, 0, 'sem Treinar');
+  assert.equal(Array.from(principal.querySelectorAll('a')).filter((a) => a.textContent === 'Treinar').length, 0, 'sem Treinar');
   assert.equal(principal.querySelectorAll('button').length, 0, 'sem botões');
   sel.value = 'b';
   sel.dispatch('change');
@@ -100,7 +100,7 @@ test('encarregado: papel diferente vê o aviso e a ligação para entrar', () =>
   const principal = document.createElement('main');
   const v = Manual.vistasProgresso.encarregado(principal);
   assert.match(principal.textContent, /Esta página é para encarregados de educação\./);
-  assert.ok(principal.querySelectorAll('a').some((a) => a.href === '#/entrar'));
+  assert.ok(Array.from(principal.querySelectorAll('a')).some((a) => a.href === '#/entrar'));
   v.destruir();
 });
 
@@ -109,7 +109,7 @@ test('progresso como visitante: aviso local e ligação «Criar conta»', () => 
   const principal = document.createElement('main');
   const v = Manual.vistasProgresso.progresso(principal);
   assert.match(principal.textContent, /Este progresso só está guardado neste dispositivo\./);
-  assert.ok(principal.querySelectorAll('a').some((a) => a.textContent === 'Criar conta'));
+  assert.ok(Array.from(principal.querySelectorAll('a')).some((a) => a.textContent === 'Criar conta'));
   assert.match(principal.textContent, /Domina/);
   assert.match(principal.textContent, /Sem tentativas/);
   assert.match(principal.textContent, /Semana de \d\d\/\d\d/);
@@ -129,7 +129,7 @@ test('progresso: subtema com dificuldade mostra o rótulo em texto e «Treinar»
   Manual.motor.estadoDe = (k) => (k === 'mat-a/funcoes/afim' ? { estado: 'dificuldade', proxima_revisao: null } : null);
   const principal = document.createElement('main');
   const v = Manual.vistasProgresso.progresso(principal);
-  assert.ok(principal.querySelectorAll('span.estado-dificuldade').some((s) => s.textContent === 'Com dificuldade'));
-  assert.ok(principal.querySelectorAll('a').some((a) => a.textContent === 'Treinar' && a.href === '#/treino?s=mat-a/funcoes/afim'));
+  assert.ok(Array.from(principal.querySelectorAll('span.estado-dificuldade')).some((s) => s.textContent === 'Com dificuldade'));
+  assert.ok(Array.from(principal.querySelectorAll('a')).some((a) => a.textContent === 'Treinar' && a.href === '#/treino?s=mat-a/funcoes/afim'));
   v.destruir();
 });

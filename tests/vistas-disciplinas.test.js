@@ -28,7 +28,7 @@ beforeEach(() => {
 afterEach(() => { delete globalThis.document; delete globalThis.katex; });
 
 function escolherDisciplina(principal, id) {
-  const radio = principal.querySelectorAll('input').find((i) => i.type === 'radio' && i.value === id);
+  const radio = Array.from(principal.querySelectorAll('input')).find((i) => i.type === 'radio' && i.value === id);
   radio.checked = true;
   radio.dispatch('change');
 }
@@ -47,15 +47,15 @@ function juntarFqa() {
 test('teste: com uma só disciplina disponível, vem escolhida e com os 5 temas à vista; fqa (indisponível) não é oferecida', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
-  const radios = principal.querySelectorAll('input').filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
+  const radios = Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
   assert.deepEqual(radios.map((r) => r.value), ['mat-a']);
   assert.match(principal.textContent, /Disciplina/);
   assert.equal(radios[0].checked, true);
-  const temas = principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id));
+  const temas = Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id));
   assert.equal(temas.length, 5);
   assert.ok(temas.every((t) => t.checked));
   assert.doesNotMatch(principal.textContent, /Física e Química/);
-  const ir = principal.querySelectorAll('button').find((b) => /Começar o teste/.test(b.textContent));
+  const ir = Array.from(principal.querySelectorAll('button')).find((b) => /Começar o teste/.test(b.textContent));
   assert.equal(ir.disabled, false);
   v.destruir();
 });
@@ -64,13 +64,13 @@ test('teste: com duas disciplinas, trocar de disciplina troca os temas', () => {
   juntarFqa();
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
-  const radios = principal.querySelectorAll('input').filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
+  const radios = Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
   assert.deepEqual(radios.map((r) => r.value), ['mat-a', 'fqa']);
   assert.equal(radios.some((r) => r.checked), false, 'com duas disciplinas não há nenhuma escolhida');
-  assert.equal(principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).length, 0);
-  assert.equal(principal.querySelectorAll('button').find((b) => /Começar o teste/.test(b.textContent)).disabled, true);
+  assert.equal(Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).length, 0);
+  assert.equal(Array.from(principal.querySelectorAll('button')).find((b) => /Começar o teste/.test(b.textContent)).disabled, true);
   escolherDisciplina(principal, 'fqa');
-  const rotulos = () => principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).map((i) => i.id);
+  const rotulos = () => Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).map((i) => i.id);
   assert.deepEqual(rotulos(), ['teste-tema-fqa-elementos']);
   escolherDisciplina(principal, 'mat-a');
   assert.equal(rotulos().length, 5);
@@ -81,9 +81,9 @@ test('treino: a escolha livre agrupa por disciplina, com o título por cima dos 
   juntarFqa();
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.treino(principal, {});
-  const titulos = principal.querySelectorAll('h3').map((h) => h.textContent);
+  const titulos = Array.from(principal.querySelectorAll('h3')).map((h) => h.textContent);
   assert.deepEqual(titulos, ['Matemática A', 'Física e Química A']);
-  const legendas = principal.querySelectorAll('legend').map((l) => l.textContent);
+  const legendas = Array.from(principal.querySelectorAll('legend')).map((l) => l.textContent);
   assert.ok(legendas.indexOf('Elementos químicos e sua organização') > legendas.indexOf('Funções'));
   v.destruir();
 });
@@ -100,8 +100,8 @@ test('treino: o esquema do feedback usa a disciplina da chave de cada pergunta',
   const v = Manual.vistasEstudo.treino(principal, { subtema: 'mat-a/funcoes/afim' });
   for (let i = 0; i < 2; i++) {
     principal.querySelector('input.campo-numero').value = '1';
-    principal.querySelectorAll('button').find((b) => b.textContent === 'Verificar').click();
-    const seg = principal.querySelectorAll('button').find((b) => /Seguinte|Ver resultado/.test(b.textContent));
+    Array.from(principal.querySelectorAll('button')).find((b) => b.textContent === 'Verificar').click();
+    const seg = Array.from(principal.querySelectorAll('button')).find((b) => /Seguinte|Ver resultado/.test(b.textContent));
     seg.click();
   }
   assert.deepEqual(usadas, ['e1@fqa', 'e2@mat-a']);
@@ -141,7 +141,7 @@ test('app: a página da disciplina fqa (disponível forçado) mostra os temas e 
   const principal = abrirApp('#/fqa', true);
   assert.match(principal.textContent, /Física e Química A/);
   assert.match(principal.textContent, /Elementos químicos e sua organização/);
-  const itens = principal.querySelectorAll('li').filter((li) => li.textContent === 'Física — em breve');
+  const itens = Array.from(principal.querySelectorAll('li')).filter((li) => li.textContent === 'Física — em breve');
   assert.equal(itens.length, 1);
   assert.equal(itens[0].querySelectorAll('a').length, 0);
 });
