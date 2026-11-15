@@ -45,14 +45,15 @@ Manual.formatar = (function () {
   const aprox = (v) => (Math.abs(Math.round(v * 1000) / 1000 - v) > 1e-9 ? '≈ ' : '');
 
   // Notação científica em LaTeX: mantissa em [1, 10) com `as` algarismos significativos e vírgula
-  // decimal, ex.: cientifico(6.022e23, 3) → '6{,}02 \times 10^{23}'.
+  // decimal, ex.: cientifico(6.022e23, 3) → '6{,}02 \times 10^{23}'. Com expoente 0 só a mantissa.
   function cientifico(x, as = 3) {
     if (!Number.isFinite(x)) throw new Error('cientifico: valor não finito');
     if (!Number.isInteger(as) || as < 1) throw new Error('cientifico: algarismos significativos inválidos');
     if (x === 0) return '0';
     // toExponential arredonda a mantissa e já trata 9,999… → 1,00 × 10^(e+1)
     const [mant, exp] = Math.abs(x).toExponential(as - 1).split('e');
-    return (x < 0 ? '-' : '') + mant.replace('.', '{,}') + ' \\times 10^{' + Number(exp) + '}';
+    const m = (x < 0 ? '-' : '') + mant.replace('.', '{,}');
+    return Number(exp) === 0 ? m : m + ' \\times 10^{' + Number(exp) + '}';
   }
 
   return { arred, num, soma, polinomio, canonica, fator, aprox, cientifico };

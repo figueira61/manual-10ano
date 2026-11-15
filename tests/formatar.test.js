@@ -26,7 +26,11 @@ test('cientifico: LaTeX com mantissa em [1, 10), vírgula e algarismos significa
   assert.equal(T.cientifico(656.9e-9, 2), '6{,}6 \\times 10^{-7}');
   assert.equal(T.cientifico(-2.18e-18, 3), '-2{,}18 \\times 10^{-18}');
   assert.equal(T.cientifico(22.4, 1), '2 \\times 10^{1}');
-  assert.equal(T.cientifico(1.5, 2), '1{,}5 \\times 10^{0}');
+  // expoente 0: só a mantissa
+  assert.equal(T.cientifico(1.5, 2), '1{,}5');
+  assert.equal(T.cientifico(-9.81, 3), '-9{,}81');
+  assert.equal(T.cientifico(9.996, 3), '1{,}00 \\times 10^{1}');
+  assert.equal(T.cientifico(0.9996, 3), '1{,}00');
   assert.equal(T.cientifico(0, 3), '0');
   assert.throws(() => T.cientifico(Infinity, 3));
   assert.throws(() => T.cientifico(1, 0));

@@ -44,6 +44,18 @@ test('n, m, N e átomos na amostra', () => {
   assert.throws(() => Q.nDeMassa(1, 0));
 });
 
+test('massaDeN e atomosNaAmostra: validam as entradas', () => {
+  assert.equal(Q.massaDeN(0, 18.02), 0);
+  for (const n of [-1, NaN, Infinity, undefined]) {
+    assert.throws(() => Q.massaDeN(n, 18.02), /n/);
+    assert.throws(() => Q.atomosNaAmostra(n, { H: 2 }, 'H'), /n/);
+  }
+  for (const M of [0, -18, NaN, Infinity]) assert.throws(() => Q.massaDeN(1, M), /M/);
+  assert.throws(() => Q.atomosNaAmostra(1, null, 'H'), /fórmula/);
+  assert.throws(() => Q.atomosNaAmostra(1, { H: -2 }, 'H'));
+  assert.throws(() => Q.atomosNaAmostra(1, { H: 1.5 }, 'H'));
+});
+
 // ---------- radiação e átomo de hidrogénio ----------
 
 test('energiaFotao: a partir de λ ou de f', () => {
@@ -183,10 +195,17 @@ test('posicaoTP: a partir da configuração, coerente com os dados (Z = 1–23)'
   assert.deepEqual(Q.posicaoTP(20), { grupo: 2, periodo: 4, bloco: 's' });
   assert.deepEqual(Q.posicaoTP(22), { grupo: 4, periodo: 4, bloco: 'd' });
   for (const e of Object.values(D.elementos)) {
-    if (e.z > 23) continue;
     assert.deepEqual(Q.posicaoTP(e.z), { grupo: e.grupo, periodo: e.periodo, bloco: e.bloco }, 'Z=' + e.z);
   }
-  assert.throws(() => Q.posicaoTP(24));
+});
+
+test('posicaoTP: Z = 24–36 a partir dos dados; erro fora de 1–36', () => {
+  assert.deepEqual(Q.posicaoTP(35), { grupo: 17, periodo: 4, bloco: 'p' }); // Br
+  assert.deepEqual(Q.posicaoTP(36), { grupo: 18, periodo: 4, bloco: 'p' }); // Kr
+  assert.deepEqual(Q.posicaoTP(30), { grupo: 12, periodo: 4, bloco: 'd' }); // Zn
+  assert.deepEqual(Q.posicaoTP(24), { grupo: 6, periodo: 4, bloco: 'd' }); // Cr
+  for (const z of [0, 37, 2.5, -1]) assert.throws(() => Q.posicaoTP(z), /1–36/);
+  assert.throws(() => Q.configuracao(24), /23/); // configuracao mantém o limite
 });
 
 // ---------- AL: densidade relativa ----------

@@ -45,10 +45,20 @@ Manual.quimica = (function () {
   }
 
   const nDeMassa = (m, M) => m / positivo(M, 'M');
-  const massaDeN = (n, M) => n * M;
+  const naoNegativo = (v, nome) => {
+    if (!Number.isFinite(v) || v < 0) throw new Error(`quimica: ${nome} tem de ser um número não negativo`);
+    return v;
+  };
+  const massaDeN = (n, M) => naoNegativo(n, 'n') * positivo(M, 'M');
   const entidades = (n) => n * K().NA;
   const nDeEntidades = (N) => N / K().NA;
-  const atomosNaAmostra = (n, formula, simbolo) => n * (formula[simbolo] || 0) * K().NA;
+  function atomosNaAmostra(n, formula, simbolo) {
+    naoNegativo(n, 'n');
+    if (!formula || typeof formula !== 'object') throw new Error('quimica: fórmula inválida');
+    const indice = formula[simbolo] === undefined ? 0 : formula[simbolo];
+    if (indice !== 0) inteiroPositivo(indice, `o índice de ${simbolo}`);
+    return n * indice * K().NA;
+  }
 
   // ---------- radiação e átomo de hidrogénio ----------
 
@@ -188,7 +198,13 @@ Manual.quimica = (function () {
   }
 
   // Grupo (1–18), período e bloco a partir da configuração do átomo neutro.
+  // Z ≤ 23: derivada da configuração; Z = 24–36: lida dos dados (configuracao só vai até 23).
   function posicaoTP(z) {
+    if (!Number.isInteger(z) || z < 1 || z > 36) throw new Error('quimica: posicaoTP só para Z = 1–36');
+    if (z > Z_MAX) {
+      const e = Object.values(D().elementos).find((x) => x.z === z);
+      return { grupo: e.grupo, periodo: e.periodo, bloco: e.bloco };
+    }
     const c = configuracao(z);
     const ultimo = c.subniveis[c.subniveis.length - 1].nome;
     const bloco = ultimo.slice(-1);

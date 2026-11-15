@@ -91,7 +91,8 @@ Manual.dadosQuimicos = (function () {
     'C-H': { energia: 411, comprimento: 109 },
     'O-H': { energia: 459, comprimento: 96 },
     'N-H': { energia: 386, comprimento: 101 },
-    'C=O': { energia: 799, comprimento: 120 }, // valor em CO2
+    // energia: valor de C=O em CO2 (nota de Huheey/CRC); comprimento: C=O genérico (em CO2 é 116 pm)
+    'C=O': { energia: 799, comprimento: 120 },
     'C-O': { energia: 358, comprimento: 143 },
     'H-Cl': { energia: 428, comprimento: 127 },
     'Cl-Cl': { energia: 240, comprimento: 199 },
@@ -141,7 +142,8 @@ Manual.dadosQuimicos = (function () {
       + 'representativas da IUPAC CIAAW); abundância em percentagem de átomos.',
     ligacoes: 'Tabela de energias médias de ligação (kJ/mol) e comprimentos de ligação (pm) de J. E. Huheey, E. A. Keiter '
       + 'e R. L. Keiter, Inorganic Chemistry, 4.ª ed., HarperCollins, 1993, Apêndice E (pp. A-21 a A-34), tal como '
-      + 'transcrita em wiredchemist.com. C=O é o valor em CO₂.',
+      + 'transcrita em wiredchemist.com. C=O: a energia (799 kJ/mol) é a da ligação C=O em CO₂ '
+      + '(nota de Huheey/CRC); o comprimento (120 pm) é um comprimento genérico de C=O (em CO₂ é 116 pm).',
     constantes: 'NA, c e Vm (PTN): Tabela de constantes do IAVE (Anexo 1 da Informação-Prova 715, 2025). h e EnH não '
       + 'constam dos anexos do IAVE: valores CODATA arredondados a 3 algarismos significativos (h = 6,626 × 10⁻³⁴ J s; '
       + 'energia de Rydberg 2,180 × 10⁻¹⁸ J), como nos manuais portugueses.',
