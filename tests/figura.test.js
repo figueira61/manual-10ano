@@ -43,10 +43,9 @@ test('proximoEstado: máquina de estados', () => {
   assert.equal(figura.proximoEstado('montada', 'esc'), 'montada');
 });
 
-test('posicoes: 375 px não passa a largura e usa lista', () => {
+test('posicoes: 375 px usa lista (modo e legendas)', () => {
   const { figura } = carregar(...FICHEIROS);
   const p = figura.posicoes(def(), 'explodida', 375);
-  for (const id of Object.keys(p)) assert.ok(p[id].legenda.x + p[id].legenda.largura <= 375, id);
   assert.equal(figura.modoLegendas(375), 'lista');
   assert.equal(figura.modoLegendas(700), 'lateral');
   for (const id of Object.keys(p)) assert.equal(p[id].legenda.lista, true);
@@ -172,4 +171,139 @@ test('modo exercício esconde rótulos e marca o destaque', () => {
   const nums = el.querySelectorAll('.figura-num');
   assert.equal(nums.length, 1);
   assert.equal(nums[0].textContent, '2');
+});
+
+// ---------- ronda de correções 1 ----------
+
+function montarLargura(w, opcoes, extra) {
+  const M = carregar(...FICHEIROS);
+  globalThis.document = criarDocumento();
+  const el = document.createElement('div');
+  el.clientWidth = w;
+  const inst = M.figura.criarEsquema(def(extra)).montar(el, opcoes || {});
+  return { M, el, inst };
+}
+
+test('375 px: modo lista com itens numerados e sem legendas laterais', () => {
+  const { el } = montarLargura(375);
+  assert.equal(el.querySelectorAll('.figura-legenda').length, 0);
+  const itens = el.querySelectorAll('.figura-item');
+  assert.equal(itens.length, 3);
+  itens.forEach((it, i) => assert.ok(it.textContent.startsWith((i + 1) + '. '), it.textContent));
+});
+
+test('>= 480 px: cada caixa de legenda cabe na largura', () => {
+  const { figura } = carregar(...FICHEIROS);
+  for (const w of [480, 600, 900]) {
+    const p = figura.posicoes(def(), 'explodida', w);
+    for (const id of Object.keys(p)) {
+      const l = p[id].legenda;
+      assert.equal(l.lista, false);
+      assert.ok(l.largura > 0 && l.x >= 0 && l.x + l.largura <= w, w + ' ' + id);
+    }
+  }
+  const { el } = montarLargura(600);
+  assert.equal(el.querySelectorAll('.figura-legenda').length, 3);
+});
+
+test('toque na legenda e no item da lista foca a parte (com propagação)', () => {
+  const { el, inst } = montar();
+  el.querySelector('.figura-separar').click();
+  el.querySelectorAll('.figura-legenda')[0].dispatch('click', { bubbles: true });
+  assert.equal(typeof inst.estado(), 'object');
+  assert.equal(inst.estado().anterior, 'explodida');
+  el.querySelector('.figura-svg').dispatch('click', { bubbles: true });
+  assert.equal(inst.estado(), 'explodida');
+  el.querySelectorAll('.figura-item')[2].dispatch('click', { bubbles: true });
+  assert.equal(inst.estado().foco, 'eletrao');
+  el.querySelectorAll('.figura-parte')[0].dispatch('click', { bubbles: true });
+  assert.equal(inst.estado().foco, 'nucleo');
+});
+
+test('Esc com o foco em qualquer ponto do componente', () => {
+  const { el, inst } = montar();
+  el.querySelectorAll('.figura-parte')[0].click();
+  el.querySelector('.figura-item').dispatch('keydown', { key: 'Escape', bubbles: true });
+  assert.equal(inst.estado(), 'montada');
+});
+
+test('tocar fora (pointerdown no documento) volta; dentro não; destruir remove o ouvinte', () => {
+  const { el, inst } = montar();
+  const doc = globalThis.document;
+  assert.equal(doc.ouvintes.pointerdown.length, 1);
+  el.querySelectorAll('.figura-parte')[0].click();
+  doc.dispatch('pointerdown', { target: el.querySelector('.figura-descricao') });
+  assert.equal(typeof inst.estado(), 'object');
+  doc.dispatch('pointerdown', { target: { parentNode: null } });
+  assert.equal(inst.estado(), 'montada');
+  inst.destruir();
+  assert.equal(doc.ouvintes.pointerdown.length, 0);
+});
+
+test('destruir fecha o diálogo aberto sem mexer no foco', () => {
+  const { el, inst } = montar();
+  const amp = el.querySelector('.figura-ampliar');
+  amp.click();
+  assert.equal(globalThis.document.activeElement, el.querySelector('.figura-fechar'));
+  inst.destruir();
+  assert.equal(el.querySelector('.figura-dialogo'), null);
+  assert.equal(el.querySelector('.figura'), null);
+  assert.notEqual(globalThis.document.activeElement, amp);
+});
+
+test('modo exercício não revela o rótulo, o id nem a descrição (também no diálogo)', () => {
+  const { el } = montar({ modo: 'exercicio', destacar: 'nuvem' });
+  const { serializar } = require('./dom-minimo');
+  el.querySelectorAll('.figura-parte')[1].click();
+  assert.equal(el.querySelector('.figura-descricao').textContent, '');
+  el.querySelector('.figura-ampliar').click();
+  const tudo = serializar(el);
+  assert.ok(!/nuvem|eletrónica|Núcleo|nucleo|Eletrão|eletrao|Zona dos|Protões/i.test(tudo), tudo);
+});
+
+test('legendas escondidas não aparecem esbatidas em montada+foco', () => {
+  const { el } = montar();
+  el.querySelectorAll('.figura-parte')[0].click();
+  for (const l of el.querySelectorAll('.figura-legenda')) assert.ok(!l.classList.contains('figura-esbatida'));
+  el.querySelector('.figura-separar').click();
+  el.querySelectorAll('.figura-parte')[0].click();
+  const esb = el.querySelectorAll('.figura-legenda').filter((l) => l.classList.contains('figura-esbatida'));
+  assert.equal(esb.length, 2);
+});
+
+test('falha ao construir não deixa nós na página', () => {
+  const M = carregar(...FICHEIROS);
+  globalThis.document = criarDocumento();
+  const el = document.createElement('div');
+  const mau = def();
+  mau.partes[1] = { id: 'x', rotulo: 'X', explodir: { dx: 0, dy: 0 }, svg: '<circle r="2"/>' };
+  const esq = M.figura.criarEsquema(mau);
+  assert.throws(() => esq.montar(el, {}));
+  assert.equal(el.childNodes.length, 0);
+  assert.equal((globalThis.document.ouvintes.pointerdown || []).length, 0);
+});
+
+test('arvoreSegura: prefixo de espaço de nomes, style, on*, href externo', () => {
+  const { figura } = carregar(...FICHEIROS);
+  const n = (localName, attrs, filhos) => ({
+    localName,
+    attributes: (attrs || []).map(([name, value]) => ({ name, localName: name.split(':').pop(), value })),
+    childNodes: filhos || [],
+  });
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('g', [['fill', 'red']], [n('circle')])])), true);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('use', [['xlink:href', '#a']])])), true);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('script')])), false);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('g', [], [n('foreignObject')])])), false);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('style')])), false);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('g', [['onclick', 'x()']])])), false);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('image', [['xlink:href', 'http://x']])])), false);
+  assert.equal(figura.arvoreSegura(n('svg', [], [n('image', [['href', 'a.png']])])), false);
+});
+
+test('svgSeguro: prefixo de espaço de nomes e style/@import', () => {
+  const { figura } = carregar(...FICHEIROS);
+  assert.equal(figura.svgSeguro('<s:script xmlns:s="http://www.w3.org/2000/svg">x</s:script>'), false);
+  assert.equal(figura.svgSeguro('<s:foreignObject xmlns:s="http://www.w3.org/2000/svg"/>'), false);
+  assert.equal(figura.svgSeguro('<style>@import "http://x/a.css";</style>'), false);
+  assert.equal(figura.svgSeguro('<g style="fill:url(http://x)"/>'), false);
 });

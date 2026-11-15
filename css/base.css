@@ -689,11 +689,8 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .figura-legenda.figura-visivel.figura-esbatida { opacity: 0.25; }
 .figura-ligacao.figura-visivel { opacity: 1; }
 .figura-descricao { min-height: 1.4em; margin: 8px 0; color: var(--texto); }
-.figura-lista { margin: 8px 0; padding-left: 0; list-style: none; counter-reset: figura; display: flex; flex-wrap: wrap; gap: 6px; }
-.figura-li { counter-increment: figura; }
+.figura-lista { margin: 8px 0; padding-left: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
 .figura-item { min-height: 44px; padding: 6px 12px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--texto); font: inherit; cursor: pointer; }
-.figura-item::before { content: counter(figura) ". "; font-weight: 700; color: var(--destaque); }
-.figura-exercicio .figura-item::before { content: none; }
 .figura-item.figura-foco { border-color: var(--destaque); outline: 2px solid var(--destaque); }
 .figura-dialogo { position: fixed; inset: 0; margin: auto; width: min(96vw, 900px); max-height: 94vh; overflow: auto; padding: 12px; background: var(--fundo); color: var(--texto); border: 1px solid var(--borda); border-radius: 12px; z-index: 1000; box-sizing: border-box; }
 .figura-dialogo::backdrop { background: rgba(0, 0, 0, 0.55); }

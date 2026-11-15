@@ -57,7 +57,10 @@ class Elemento extends No {
     return no;
   }
 
-  setAttribute(k, v) { this.attrs[k] = String(v); }
+  setAttribute(k, v) {
+    this.attrs[k] = String(v);
+    if (k === 'class') this.className = v;
+  }
   getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; }
 
   addEventListener(tipo, fn) { (this.ouvintes[tipo] = this.ouvintes[tipo] || []).push(fn); }
@@ -68,10 +71,16 @@ class Elemento extends No {
   }
 
   // Dispara um evento: os ouvintes registados e, no clique, o onclick.
+  // Com { bubbles: true } o evento sobe pelos pais até alguém chamar stopPropagation().
   dispatch(tipo, extra) {
-    const ev = Object.assign({ type: tipo, target: this }, extra);
-    (this.ouvintes[tipo] || []).slice().forEach((fn) => fn(ev));
-    if (tipo === 'click' && typeof this.onclick === 'function') this.onclick(ev);
+    const ev = Object.assign({ type: tipo, target: this, stopPropagation() { this.parada = true; } }, extra);
+    this.entregar(ev);
+  }
+
+  entregar(ev) {
+    (this.ouvintes[ev.type] || []).slice().forEach((fn) => fn(ev));
+    if (ev.type === 'click' && typeof this.onclick === 'function') this.onclick(ev);
+    if (ev.bubbles && !ev.parada && this.parentNode && this.parentNode.entregar) this.parentNode.entregar(ev);
   }
 
   click() { if (!this.disabled) this.dispatch('click'); }
@@ -121,7 +130,12 @@ function serializar(no) {
 }
 
 function criarDocumento() {
+  const ouvintes = {};
   return {
+    ouvintes,
+    addEventListener(t, fn) { (ouvintes[t] = ouvintes[t] || []).push(fn); },
+    removeEventListener(t, fn) { const l = ouvintes[t] || []; const i = l.indexOf(fn); if (i >= 0) l.splice(i, 1); },
+    dispatch(t, extra) { const ev = Object.assign({ type: t }, extra); (ouvintes[t] || []).slice().forEach((fn) => fn(ev)); },
     createElement: (t) => new Elemento(t),
     createElementNS: (ns, t) => new Elemento(t),
     createTextNode: (t) => new Texto(t),

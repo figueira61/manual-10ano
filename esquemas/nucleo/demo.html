@@ -44,6 +44,17 @@
     });
     desenhar();
     atualizarPainel();
+    const circ = (cx, cy, r) => (g, cs) => g.appendChild(cs('circle', { cx, cy, r }));
+    Manual.figura.criarEsquema({
+      titulo: 'Átomo (demo)', largura: 240, altura: 160,
+      partes: [
+        { id: 'nuvem', rotulo: 'Nuvem eletrónica', descricao: 'Zona onde é provável encontrar os eletrões.', explodir: { dx: 0, dy: 10 }, desenhar: circ(120, 80, 70) },
+        { id: 'nucleo', rotulo: 'Núcleo', descricao: 'Contém protões e neutrões.', explodir: { dx: 0, dy: -50 }, desenhar: circ(120, 80, 20) },
+        { id: 'eletrao', rotulo: 'Eletrão', descricao: 'Carga negativa.', explodir: { dx: 40, dy: 40 }, desenhar: circ(190, 80, 6) },
+        { id: 'orbita', rotulo: 'Órbita', descricao: 'Trajetória indicativa (parte escrita em SVG).', explodir: { dx: -40, dy: 40 },
+          svg: '<ellipse cx="120" cy="80" rx="100" ry="30" fill="none" stroke-dasharray="4 3"/>' },
+      ],
+    }).montar(document.getElementById('figura'), {});
   </script>
 </body>
 </html>

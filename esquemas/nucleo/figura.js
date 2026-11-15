@@ -83,13 +83,33 @@ globalThis.Manual = globalThis.Manual || {};
   // foreignObject, entidades/doctype nem referências externas.
   function svgSeguro(texto) {
     const t = String(texto);
-    if (/<\s*(script|foreignobject|iframe|object|embed)\b/i.test(t)) return false;
+    if (/<\s*(?:[\w-]+:)?(script|foreignobject|style|iframe|object|embed)\b/i.test(t)) return false;
+    if (/@import/i.test(t)) return false;
     if (/<!\s*(doctype|entity)/i.test(t)) return false;
     if (/[\s"'/]on[a-z]+\s*=/i.test(t)) return false;
     if (/javascript\s*:/i.test(t)) return false;
     if (/\bdata\s*:/i.test(t)) return false;
     for (const m of t.matchAll(/(?:^|[\s"'/:])href\s*=\s*["']?\s*([^"'\s>]*)/gi)) if (m[1].charAt(0) !== '#') return false;
     for (const m of t.matchAll(/url\(\s*["']?\s*([^"')\s]*)/gi)) if (m[1].charAt(0) !== '#') return false;
+    return true;
+  }
+
+  // Verificação da árvore já analisada (apanha prefixos de espaço de nomes que o texto não vê).
+  const PROIBIDOS = ['script', 'foreignobject', 'style', 'iframe', 'object', 'embed'];
+  function arvoreSegura(no) {
+    if (!no) return true;
+    const nome = String(no.localName || '').toLowerCase();
+    if (PROIBIDOS.includes(nome)) return false;
+    for (const a of Array.from(no.attributes || [])) {
+      const n = String(a.localName || a.name || '').toLowerCase();
+      const nomeCompleto = String(a.name || '').toLowerCase();
+      const v = String(a.value);
+      if (n.startsWith('on') || nomeCompleto.startsWith('on')) return false;
+      if ((n === 'href' || nomeCompleto.endsWith(':href')) && v.trim().charAt(0) !== '#') return false;
+      if (/javascript\s*:|@import/i.test(v)) return false;
+      if (n === 'style' && /url\(\s*["']?\s*[^#"'\s)]/i.test(v)) return false;
+    }
+    for (const f of Array.from(no.childNodes || [])) if (!arvoreSegura(f)) return false;
     return true;
   }
 
@@ -123,18 +143,20 @@ globalThis.Manual = globalThis.Manual || {};
     const doc = new DOMParser().parseFromString(
       '<svg xmlns="' + NS + '" xmlns:xlink="http://www.w3.org/1999/xlink">' + texto + '</svg>', 'image/svg+xml');
     if (doc.getElementsByTagName('parsererror').length) throw new Error('SVG inválido');
+    if (!arvoreSegura(doc.documentElement)) throw new Error('SVG inseguro');
     const filhos = Array.from(doc.documentElement.childNodes);
     for (const f of filhos) g.appendChild(document.importNode(f, true));
   }
 
-  function emParte(no) {
-    for (let n = no; n; n = n.parentNode) if (n.classes && n.classes.has && n.classes.has('figura-parte')) return true;
+  // Verdadeiro se o nó está dentro de uma parte, legenda ou ligação (toques que não são "fora").
+  function emElementoDaFigura(no) {
+    for (let n = no; n; n = n.parentNode) {
+      if (n.classList && (n.classList.contains('figura-parte') || n.classList.contains('figura-legenda') || n.classList.contains('figura-ligacao'))) return true;
+    }
     return false;
   }
-  function emParteReal(no) {
-    for (let n = no; n; n = n.parentNode) {
-      if (n.classList && n.classList.contains('figura-parte')) return true;
-    }
+  function contem(raiz, no) {
+    for (let n = no; n; n = n.parentNode) if (n === raiz) return true;
     return false;
   }
 
@@ -173,7 +195,6 @@ globalThis.Manual = globalThis.Manual || {};
     raiz.appendChild(barra);
 
     const svg = criarSvg('svg', { class: 'figura-svg', role: 'group', 'aria-label': def.titulo || 'Figura' });
-    svg.classList.add('figura-svg');
     raiz.appendChild(svg);
 
     const descricao = criar('p', 'figura-descricao', '');
@@ -213,8 +234,7 @@ globalThis.Manual = globalThis.Manual || {};
       svg.appendChild(ligacoes); svg.appendChild(corpo); svg.appendChild(legendas);
 
       def.partes.forEach((p, i) => {
-        const g = criarSvg('g', { tabindex: '0', role: 'button', 'aria-label': nomeParte(p, i) + (esconder ? '' : ', parte ' + (i + 1)), 'data-id': p.id });
-        g.classList.add('figura-parte');
+        const g = criarSvg('g', { tabindex: '0', role: 'button', 'aria-label': nomeParte(p, i) + (esconder ? '' : ', parte ' + (i + 1)), 'data-parte': i, class: 'figura-parte' });
         if (typeof p.svg === 'string') importarSvg(g, p.svg); else p.desenhar(g, criarSvg);
         const mostraNum = exercicio ? opcoes.destacar === p.id : !esconder;
         if (opcoes.destacar === p.id) g.classList.add('figura-destaque');
@@ -227,7 +247,6 @@ globalThis.Manual = globalThis.Manual || {};
           const num = criarSvg('g', { class: 'figura-num-grupo', 'aria-hidden': 'true' });
           num.appendChild(criarSvg('circle', { class: 'figura-num-fundo', cx: a.x, cy: a.y, r: 10 / s }));
           const t = criarSvg('text', { class: 'figura-num', x: a.x, y: a.y, 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': 11 / s });
-          t.classList.add('figura-num');
           t.textContent = String(i + 1);
           num.appendChild(t);
           g.appendChild(num);
@@ -259,7 +278,7 @@ globalThis.Manual = globalThis.Manual || {};
         }
 
         const li = criar('li', 'figura-li');
-        const b = criar('button', 'figura-item', esconder ? 'Parte ' + (i + 1) : p.rotulo);
+        const b = criar('button', 'figura-item', (i + 1) + '. ' + (esconder ? 'Parte ' + (i + 1) : p.rotulo));
         b.type = 'button';
         li.appendChild(b);
         lista.appendChild(li);
@@ -286,7 +305,7 @@ globalThis.Manual = globalThis.Manual || {};
         g.classList.toggle('figura-esbatida', !!foco && foco !== p.id);
         if (legendasEl[p.id]) {
           legendasEl[p.id].classList.toggle('figura-visivel', !!explodida);
-          legendasEl[p.id].classList.toggle('figura-esbatida', !!foco && foco !== p.id);
+          legendasEl[p.id].classList.toggle('figura-esbatida', !!explodida && !!foco && foco !== p.id);
           ligacoesEl[p.id].classList.toggle('figura-visivel', !!explodida);
           const a = geo.posicoes[p.id].ancora;
           ligacoesEl[p.id].setAttribute('x2', String(a.x + q.x * geo.escala));
@@ -320,13 +339,13 @@ globalThis.Manual = globalThis.Manual || {};
       }
     });
     ouvir(svg, 'click', (ev) => {
-      if (emParteReal(ev.target) || emParte(ev.target)) return;
+      if (emElementoDaFigura(ev.target)) return;
       if (estado && typeof estado === 'object') aplicar('fora');
       else if (estado === 'montada') aplicar('separar');
     });
 
     // ---------- Ampliar ----------
-    function fechar() {
+    function fechar(semFoco) {
       if (!dialogo) return;
       const d = dialogo;
       dialogo = null;
@@ -334,7 +353,7 @@ globalThis.Manual = globalThis.Manual || {};
       for (const r of d.regs) r[0].removeEventListener(r[1], r[2]);
       if (d.nativo && d.no.open && d.no.close) { try { d.no.close(); } catch (e) { /* ignorar */ } }
       if (d.no.parentNode) d.no.parentNode.removeChild(d.no);
-      if (btnAmp) { btnAmp.setAttribute('aria-expanded', 'false'); btnAmp.focus(); }
+      if (btnAmp) { btnAmp.setAttribute('aria-expanded', 'false'); if (semFoco !== true) btnAmp.focus(); }
     }
 
     function abrir() {
@@ -354,7 +373,7 @@ globalThis.Manual = globalThis.Manual || {};
       no.appendChild(corpo);
       const d = { no, nativo, regs: [] };
       const reg = (alvo, tipo, fn) => { alvo.addEventListener(tipo, fn); d.regs.push([alvo, tipo, fn]); };
-      reg(fechaBtn, 'click', fechar);
+      reg(fechaBtn, 'click', () => fechar());
       reg(no, 'keydown', (ev) => {
         if (ev.key === 'Escape') {
           if (instAmpliada && instAmpliada.estado() && typeof instAmpliada.estado() === 'object') return; // o Esc interno desfaz o foco
@@ -373,9 +392,16 @@ globalThis.Manual = globalThis.Manual || {};
     if (btnAmp) ouvir(btnAmp, 'click', abrir);
 
     // ---------- arranque ----------
+    // Constrói primeiro; só se tudo correr bem é que entra na página.
+    largura = Math.floor((el && el.clientWidth) || 600);
+    construir();
     el.appendChild(raiz);
     relayout();
-    if (!largura) { largura = 600; construir(); }
+    if (typeof document !== 'undefined' && document.addEventListener) {
+      ouvir(document, 'pointerdown', (ev) => {
+        if (estado && typeof estado === 'object' && !contem(raiz, ev.target)) aplicar('esc');
+      });
+    }
     if (typeof ResizeObserver !== 'undefined') {
       observador = new ResizeObserver(() => relayout());
       observador.observe(raiz);
@@ -384,7 +410,7 @@ globalThis.Manual = globalThis.Manual || {};
     return {
       estado: () => estado,
       destruir() {
-        fechar();
+        fechar(true);
         if (observador) { observador.disconnect(); observador = null; }
         limparOuvintesDinamicos();
         for (const [alvo, tipo, fn] of regs) alvo.removeEventListener(tipo, fn);
@@ -401,5 +427,5 @@ globalThis.Manual = globalThis.Manual || {};
     };
   }
 
-  Manual.figura = { criarEsquema, posicoes, proximoEstado, svgSeguro, modoLegendas, geometria };
+  Manual.figura = { criarEsquema, posicoes, proximoEstado, svgSeguro, arvoreSegura, modoLegendas, geometria };
 })();
