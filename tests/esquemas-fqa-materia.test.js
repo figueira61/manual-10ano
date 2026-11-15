@@ -227,3 +227,54 @@ test('fqa-diluicao: monta com opções vazias e desmonta sem ouvintes', () => {
   ciclo('fqa-diluicao', {});
   ciclo('fqa-diluicao', { ci: 0.5, Vi: 10, Vf: 50 });
 });
+
+// ---------- fqa-entalpia ----------
+
+test('fqa-entalpia: síntese do HCl mostra o ΔH de deltaHLigacoes (−184 kJ/mol)', () => {
+  const { M, el } = montar('fqa-entalpia', { reacao: 'HCl' });
+  const r = M.quimica.deltaHLigacoes({ quebradas: { 'H-H': 1, 'Cl-Cl': 1 }, formadas: { 'H-Cl': 2 } });
+  assert.equal(r.deltaH, -184);
+  const t = ver(el);
+  assert.ok(t.includes('ΔH = 672 − 856 = −184 kJ/mol'), t);
+  assert.ok(t.includes('1 × H–H (432 kJ/mol) + 1 × Cl–Cl (240 kJ/mol) = 672 kJ'));
+  assert.ok(t.includes('2 × H–Cl (428 kJ/mol) = 856 kJ'));
+  assert.ok(t.includes('exotérmica') && t.includes('aproximado'));
+  assert.equal(el.querySelectorAll('line.nivel-energia').length, 3);
+});
+
+test('fqa-entalpia: as quatro reações dão o ΔH de deltaHLigacoes com as ligações contadas do catálogo', () => {
+  const { M, el } = montar('fqa-entalpia', {});
+  const esperado = {
+    HCl: { q: { 'H-H': 1, 'Cl-Cl': 1 }, f: { 'H-Cl': 2 } },
+    H2O: { q: { 'H-H': 2, 'O=O': 1 }, f: { 'O-H': 4 } },
+    CH4: { q: { 'C-H': 4, 'O=O': 2 }, f: { 'C=O': 2, 'O-H': 4 } },
+    NH3: { q: { 'N≡N': 1, 'H-H': 3 }, f: { 'N-H': 6 } },
+  };
+  assert.equal(el.querySelectorAll('option').length, 4);
+  for (const id of Object.keys(esperado)) {
+    escolher(el, 0, id);
+    const d = M.quimica.deltaHLigacoes({ quebradas: esperado[id].q, formadas: esperado[id].f }).deltaH;
+    assert.ok(ver(el).includes('= ' + (d < 0 ? '−' : '') + Math.abs(d) + ' kJ/mol'), id + ' ' + d);
+    assert.ok(el.querySelector('svg').getAttribute('aria-label').includes('ΔH'), id);
+    assert.ok(ver(el).includes({ HCl: '−184', H2O: '−478', CH4: '−802', NH3: '−78' }[id]), id);
+  }
+});
+
+test('fqa-entalpia: ciclo sem ouvintes', () => {
+  ciclo('fqa-entalpia', {});
+});
+
+// ---------- figuras explodidas ----------
+
+test('fig-material-solucao: tem as 9 partes da spec §6 e desmonta sem ouvintes', () => {
+  const { el } = montar('fig-material-solucao', {});
+  for (const r of ['Balança', 'Espátula', 'Vidro de relógio', 'Gobelé', 'Funil', 'Balão volumétrico', 'Pipeta', 'Pompete', 'Esguicho']) assert.ok(ver(el).includes(r), r);
+  botao(el, 'Separar');
+  ciclo('fig-material-solucao', {});
+});
+
+test('fig-picnometro: tem corpo, tampa com capilar e marca e desmonta sem ouvintes', () => {
+  const { el } = montar('fig-picnometro', {});
+  for (const r of ['Corpo', 'Tampa com capilar', 'Marca']) assert.ok(ver(el).includes(r), r);
+  ciclo('fig-picnometro', {});
+});
