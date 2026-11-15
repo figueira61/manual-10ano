@@ -215,7 +215,7 @@ globalThis.Manual = globalThis.Manual || {};
     const d = disciplina(rota.disciplina);
     const t = d && d.temas.find(function (x) { return x.id === rota.tema; });
     const s = t && t.subtemas.find(function (x) { return x.id === rota.subtema; });
-    if (!d.disponivel || !s) return vistaNaoEncontrado();
+    if (!d || !d.disponivel || !s) return vistaNaoEncontrado();
     titulo(s.titulo);
     principal.appendChild(criar('p', 'a-carregar', 'A carregar…'));
     garantirTema(d.id, t.id)

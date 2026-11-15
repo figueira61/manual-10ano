@@ -169,3 +169,10 @@ test('índice: fqa com 2 temas e 12 subtemas, ainda indisponível', () => {
     'entalpia', 'fotoquimica']);
   assert.ok(fqa.temas.every((t) => t.subtemas.every((s) => s.titulo && Array.isArray(s.palavras) && s.palavras.length)));
 });
+
+test('app: disciplina desconhecida (#/xyz/a/b, #/xyz/a) dá "Página não encontrada" sem lançar', () => {
+  for (const hash of ['#/xyz/a/b', '#/xyz/a']) {
+    const principal = abrirApp(hash, false);
+    assert.match(principal.textContent, /Página não encontrada/, hash);
+  }
+});
