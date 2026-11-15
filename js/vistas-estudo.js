@@ -487,6 +487,11 @@ globalThis.Manual = globalThis.Manual || {};
       radiosDisc.forEach(function (x) {
         x.input.addEventListener('change', function () { if (x.input.checked) mostrarTemas(x.disciplina); });
       });
+      if (disciplinas.length === 1) {
+        // Só uma disciplina disponível: já vem escolhida, com os temas à vista.
+        radiosDisc[0].input.checked = true;
+        mostrarTemas(disciplinas[0]);
+      }
       atualizar();
 
       ir.addEventListener('click', function () {

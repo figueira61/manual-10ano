@@ -28,7 +28,10 @@ Manual.quiz.lerNumero = (function () {
     } else {
       return NaN;
     }
-    return Number.isFinite(r) ? r : NaN;
+    // Infinito ou underflow para 0 (1e-999) não são números válidos.
+    if (!Number.isFinite(r)) return NaN;
+    if (r === 0 && /[1-9]/.test(m[1])) return NaN;
+    return r;
   };
 })();
 

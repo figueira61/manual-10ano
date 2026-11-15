@@ -44,23 +44,13 @@ function juntarFqa() {
   return fqa;
 }
 
-test('teste: só há disciplinas disponíveis com geradores; sem escolha não há temas', () => {
+test('teste: com uma só disciplina disponível, vem escolhida e com os 5 temas à vista; fqa (indisponível) não é oferecida', () => {
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
   const radios = principal.querySelectorAll('input').filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
   assert.deepEqual(radios.map((r) => r.value), ['mat-a']);
   assert.match(principal.textContent, /Disciplina/);
-  assert.equal(radios.some((r) => r.checked), false);
-  assert.equal(principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).length, 0);
-  const ir = principal.querySelectorAll('button').find((b) => /Começar o teste/.test(b.textContent));
-  assert.equal(ir.disabled, true);
-  v.destruir();
-});
-
-test('teste: escolher mat-a mostra os 5 temas; fqa (indisponível) não é oferecida', () => {
-  const principal = document.createElement('main');
-  const v = Manual.vistasEstudo.teste(principal);
-  escolherDisciplina(principal, 'mat-a');
+  assert.equal(radios[0].checked, true);
   const temas = principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id));
   assert.equal(temas.length, 5);
   assert.ok(temas.every((t) => t.checked));
@@ -76,6 +66,9 @@ test('teste: com duas disciplinas, trocar de disciplina troca os temas', () => {
   const v = Manual.vistasEstudo.teste(principal);
   const radios = principal.querySelectorAll('input').filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
   assert.deepEqual(radios.map((r) => r.value), ['mat-a', 'fqa']);
+  assert.equal(radios.some((r) => r.checked), false, 'com duas disciplinas não há nenhuma escolhida');
+  assert.equal(principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).length, 0);
+  assert.equal(principal.querySelectorAll('button').find((b) => /Começar o teste/.test(b.textContent)).disabled, true);
   escolherDisciplina(principal, 'fqa');
   const rotulos = () => principal.querySelectorAll('input').filter((i) => i.type === 'checkbox' && /teste-tema/.test(i.id)).map((i) => i.id);
   assert.deepEqual(rotulos(), ['teste-tema-fqa-elementos']);
@@ -115,15 +108,56 @@ test('treino: o esquema do feedback usa a disciplina da chave de cada pergunta',
   v.destruir();
 });
 
-test('disciplina fqa: a página mostra "Física — em breve" sem ligação (índice declara porFazer)', () => {
-  const fqa = Manual.indice.find((d) => d.id === 'fqa');
-  assert.deepEqual(fqa.porFazer, ['Física']);
-  assert.equal(fqa.disponivel, false);
-  fqa.disponivel = true; // forçado no teste
-  const pai = document.createElement('main');
-  Manual.render.notaPorFazer(pai, fqa);
-  assert.equal(pai.textContent, 'Física — em breve');
-  assert.equal(pai.querySelectorAll('a').length, 0);
+// Carrega o js/app.js a sério (documento e janela falsos) com o hash dado; devolve o <main>.
+function abrirApp(hash, forcarFqa) {
+  const path = require('node:path');
+  const principal = document.createElement('main');
+  const el = {};
+  globalThis.window = { location: { hash }, addEventListener() {}, scrollTo() {}, localStorage: null };
+  globalThis.location = { protocol: 'file:', hash };
+  globalThis.history = { replaceState() {} };
+  globalThis.navigator = {};
+  document.getElementById = (id) => (id === 'principal' ? principal : (el[id] = el[id] || document.createElement('div')));
+  document.body = document.createElement('body');
+  Object.assign(Object.getPrototypeOf(document.createElement('div')), { insertBefore(n) { this.appendChild(n); return n; } });
+  document.createElementNS = (ns, tag) => document.createElement(tag);
+  Object.assign(Manual, {
+    conta: { iniciar: () => Promise.resolve(), aoMudar() {}, registaTentativas: () => true },
+    criarMotor: () => ({ carregar() {}, aoMudar: () => () => {}, historico: () => [], estadoDe: () => null }),
+    vistasConta: { montarTopo() {}, montar() { return null; } },
+    tema: { ligar() {} },
+  });
+  Manual.carregarScript = () => Promise.reject(new Error('sem rede'));
+  const f = path.join(__dirname, '..', 'js', 'app.js');
+  const extra = ['js/icones.js', 'js/progresso.js', 'js/pesquisa.js'];
+  for (const e of extra) { const abs = path.join(__dirname, '..', e); delete require.cache[abs]; require(abs); }
+  if (forcarFqa) Manual.indice.find((d) => d.id === 'fqa').disponivel = true;
+  delete require.cache[f];
+  require(f);
+  return principal;
+}
+
+test('app: a página da disciplina fqa (disponível forçado) mostra os temas e "Física — em breve" sem ligação', () => {
+  const principal = abrirApp('#/fqa', true);
+  assert.match(principal.textContent, /Física e Química A/);
+  assert.match(principal.textContent, /Elementos químicos e sua organização/);
+  const itens = principal.querySelectorAll('li').filter((li) => li.textContent === 'Física — em breve');
+  assert.equal(itens.length, 1);
+  assert.equal(itens[0].querySelectorAll('a').length, 0);
+});
+
+test('app: com fqa indisponível, o tema e o subtema dão "Página não encontrada"; a disciplina diz "Em breve"', () => {
+  for (const hash of ['#/fqa/elementos', '#/fqa/elementos/atomo']) {
+    const principal = abrirApp(hash, false);
+    assert.match(principal.textContent, /Página não encontrada/, hash);
+    assert.doesNotMatch(principal.textContent, /Constituição do átomo|A carregar/, hash);
+  }
+  assert.doesNotMatch(abrirApp('#/fqa', false).textContent, /Física — em breve/);
+});
+
+test('app: com fqa disponível forçado, a página do tema lista os subtemas', () => {
+  const principal = abrirApp('#/fqa/elementos', true);
+  assert.match(principal.textContent, /Constituição do átomo/);
 });
 
 test('índice: fqa com 2 temas e 12 subtemas, ainda indisponível', () => {

@@ -56,7 +56,7 @@ test('o texto de cada código bate com o snapshot (ATUALIZAR_SNAPSHOT=1 para o r
     fs.writeFileSync(SNAPSHOT, atual);
   }
   assert.ok(fs.existsSync(SNAPSHOT), 'falta o snapshot; corre: ATUALIZAR_SNAPSHOT=1 node --test tests/painel.test.js');
-  assert.equal(fs.readFileSync(SNAPSHOT, 'utf8'), atual, 'snapshot desatualizado; corre: ATUALIZAR_SNAPSHOT=1 node --test tests/painel.test.js e relê o ficheiro');
+  assert.equal(fs.readFileSync(SNAPSHOT, 'utf8').split(String.fromCharCode(13)).join(''), atual, 'snapshot desatualizado; corre: ATUALIZAR_SNAPSHOT=1 node --test tests/painel.test.js e relê o ficheiro');
 });
 
 test('humanizarErro usa a forma acentuada', () => {

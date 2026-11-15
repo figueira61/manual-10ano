@@ -649,6 +649,8 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .escolha-grupo legend { font-weight: 700; padding: 0 6px; }
 .escolha-linha { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; min-height: 28px; cursor: pointer; overflow-wrap: anywhere; }
 .escolha-linha input { margin-top: 4px; flex: none; }
+.escolha-disciplina { margin: 16px 0 8px; font-size: 1.05rem; }
+.por-fazer { list-style: none; margin: 16px 0 0; padding: 0; color: var(--texto-suave); }
 .pergunta.resultado .acoes { margin-top: 14px; }
 
 /* ---------- progresso ---------- */

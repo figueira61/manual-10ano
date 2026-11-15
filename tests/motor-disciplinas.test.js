@@ -1,9 +1,8 @@
 // Fase 3A, tarefa 1: várias disciplinas, notação científica com tolerância relativa e figura no enunciado.
-const { test, beforeEach, afterEach } = require('node:test');
+const { test, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { carregar } = require('./ajuda.js');
-const { criarDocumento } = require('./dom-minimo.js');
 
 const CAMINHO_HARNESS = path.join(__dirname, '..', 'tools', 'verificar-geradores.js');
 
@@ -22,7 +21,7 @@ test('lerNumero: notação científica (E, e, ×10^, x 10^, ×10 em sobrescrito)
 
 test('lerNumero: notações científicas incompletas ou absurdas dão NaN', () => {
   const M = carregar('js/quiz.js');
-  for (const t of ['6,02×10^', '6,02e', '×10^3', '6,02×10', '6,02×10^2,5', '1e999', 'e23', '6,02×10²a']) {
+  for (const t of ['6,02×10^', '6,02e', '×10^3', '6,02×10', '6,02×10^2,5', '1e999', '1e-999', '1,5e-999', 'e23', '6,02×10²a']) {
     assert.ok(Number.isNaN(M.quiz.lerNumero(t)), t);
   }
 });

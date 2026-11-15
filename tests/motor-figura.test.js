@@ -65,13 +65,3 @@ test('quiz em modo teste e treino também mostram a figura do enunciado', () => 
     assert.deepEqual(chamadas, ['fig-teste'], modo);
   }
 });
-
-test('render: notaPorFazer mostra "Física — em breve" sem ligação, só se o índice o declara', () => {
-  const pai = document.createElement('div');
-  Q.render.notaPorFazer(pai, { id: 'fqa', porFazer: ['Física'] });
-  assert.equal(pai.textContent, 'Física — em breve');
-  assert.equal(pai.querySelectorAll('a').length, 0);
-  const vazio = document.createElement('div');
-  Q.render.notaPorFazer(vazio, { id: 'mat-a' });
-  assert.equal(vazio.textContent, '');
-});
