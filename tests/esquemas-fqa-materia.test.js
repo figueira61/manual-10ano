@@ -139,3 +139,91 @@ test('fqa-energia-distancia: outras ligações usam os dados; teclado altera r; 
   assert.ok(ver(el).includes('132 pm'));
   ciclo('fqa-energia-distancia', {});
 });
+
+// ---------- fqa-geometria ----------
+
+test('fqa-geometria: NH3 mostra piramidal trigonal, polar, 1 par não ligante e 107°', () => {
+  const { el } = montar('fqa-geometria', { molecula: 'NH3' });
+  const t = ver(el);
+  assert.ok(t.includes('piramidal trigonal'));
+  assert.ok(t.includes('molécula polar'));
+  assert.ok(t.includes('≈ 107°'));
+  assert.equal(el.querySelectorAll('circle.atomo3d').length, 4);
+  assert.equal(el.querySelectorAll('line.ligacao3d').length, 3);
+  assert.equal(el.querySelectorAll('circle.par-nl').length, 1);
+});
+
+test('fqa-geometria: todas as moléculas da lista (≥ 8) têm lóbulos = pares não ligantes e ligações = soma das ordens', () => {
+  const { el, M } = montar('fqa-geometria', {});
+  const opcoes = Array.from(el.querySelectorAll('option'));
+  assert.ok(opcoes.length >= 8);
+  for (const o of opcoes) {
+    escolher(el, 0, o.value);
+    const m = M.moleculas.catalogo[o.value];
+    const c = M.moleculas.centrais(o.value)[0];
+    const centro = c !== undefined ? c : m.atomos.findIndex((a) => a.el !== 'H');
+    assert.equal(el.querySelectorAll('circle.par-nl').length, m.atomos[centro].pares, o.value);
+    assert.equal(el.querySelectorAll('circle.atomo3d').length, m.atomos.length, o.value);
+    const ordens = m.ligacoes.reduce((s, l) => s + l[2], 0);
+    assert.equal(el.querySelectorAll('line.ligacao3d').length, ordens, o.value);
+    assert.ok(ver(el).includes(m.geometria), o.value);
+    assert.ok(ver(el).includes(m.polar ? 'molécula polar' : 'molécula apolar'), o.value);
+  }
+});
+
+test('fqa-geometria: H2O (angular, 104,5°, 2 pares), CO2 (apolar, 180°) e BF3 (exceção ao octeto)', () => {
+  const { el } = montar('fqa-geometria', { molecula: 'H2O' });
+  assert.ok(ver(el).includes('angular') && ver(el).includes('104,5°'));
+  assert.ok(ver(el).includes('Pares não ligantes no O'));
+  escolher(el, 0, 'CO2');
+  assert.ok(ver(el).includes('linear') && ver(el).includes('180°') && ver(el).includes('molécula apolar'));
+  escolher(el, 0, 'BF3');
+  assert.ok(ver(el).includes('triangular plana') && ver(el).includes('6 eletrões'));
+});
+
+test('fqa-geometria: roda com botões e teclado; o aria-label muda; ciclo sem ouvintes', () => {
+  const { el } = montar('fqa-geometria', { molecula: 'CH4' });
+  const svg = el.querySelector('svg');
+  const antes = svg.getAttribute('aria-label');
+  botao(el, '▶');
+  const depois = svg.getAttribute('aria-label');
+  assert.notEqual(antes, depois);
+  svg.ouvintes.keydown[0]({ key: 'ArrowUp', preventDefault() {} });
+  assert.notEqual(svg.getAttribute('aria-label'), depois);
+  botao(el, 'Repor vista');
+  assert.equal(svg.getAttribute('aria-label'), antes);
+  assert.equal(svg.getAttribute('role'), 'group');
+  ciclo('fqa-geometria', {});
+});
+
+// ---------- fqa-diluicao ----------
+
+test('fqa-diluicao: ci = 0,5, Vi = 10 e Vf = 50 dão cf = 0,1 mol/dm³ e fator 5', () => {
+  const { el } = montar('fqa-diluicao', { ci: 0.5, Vi: 10, Vf: 50 });
+  const dd = Array.from(el.querySelectorAll('dd')).map((x) => x.textContent);
+  assert.ok(dd.includes('0,1 mol/dm³'), dd.join(' | '));
+  assert.ok(dd.includes('5'), dd.join(' | '));
+  assert.ok(ver(el).includes('0,5 mol/dm³') && ver(el).includes('10 mL') && ver(el).includes('50 mL'));
+  assert.equal(el.querySelectorAll('circle.soluto').length, 32, 'o mesmo número de partículas antes e depois');
+  assert.equal(el.querySelectorAll('rect.liquido').length, 1);
+});
+
+test('fqa-diluicao: o slider de Vi e o balão atualizam cf e o fator; Vi nunca passa de Vf', () => {
+  const { el } = montar('fqa-diluicao', { ci: 1, Vi: 10, Vf: 100 });
+  assert.ok(ver(el).includes('0,1 mol/dm³'));
+  mexer(el, 1, 25);
+  assert.ok(Array.from(el.querySelectorAll('dd')).some((x) => x.textContent === '0,25 mol/dm³'));
+  escolher(el, 0, '50');
+  assert.ok(Array.from(el.querySelectorAll('dd')).some((x) => x.textContent === '0,5 mol/dm³'));
+  assert.ok(Array.from(el.querySelectorAll('dd')).some((x) => x.textContent === '2'));
+  assert.equal(slider(el, 1).max, '50');
+  mexer(el, 0, 2);
+  assert.ok(Array.from(el.querySelectorAll('dd')).some((x) => x.textContent === '1 mol/dm³'));
+});
+
+test('fqa-diluicao: monta com opções vazias e desmonta sem ouvintes', () => {
+  const { el } = montar('fqa-diluicao', {});
+  assert.ok(el.querySelector('svg').getAttribute('aria-label').includes('fator de diluição'));
+  ciclo('fqa-diluicao', {});
+  ciclo('fqa-diluicao', { ci: 0.5, Vi: 10, Vf: 50 });
+});
