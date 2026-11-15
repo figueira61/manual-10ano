@@ -104,8 +104,8 @@ Manual.esquemas.registar('fqa-diluicao', {
 
       // vaso da solução pipetada (esquerda): altura proporcional a Vi/Vf na mesma escala do balão
       const HB = 120, YB = 60; // altura útil do balão (até à marca) e topo
-      const hVi = Math.max(6, HB * (est.Vi / est.Vf));
-      svgEl('rect', { x: 28, y: YB + HB - hVi - 0, width: 52, height: hVi, rx: 2, fill: 'var(--cor-1)', 'fill-opacity': 0.55, stroke: 'none' }, svg);
+      const hVi = Math.max(24, HB * (est.Vi / est.Vf)); // mínimo para os pontos não se sobreporem
+      svgEl('rect', { x: 28, y: YB + HB - hVi - 0, width: 52, height: hVi, rx: 2, fill: 'var(--cor-1)', 'fill-opacity': Math.round((0.12 + 0.55) * 100) / 100, stroke: 'none' }, svg);
       svgEl('path', { d: 'M28 ' + (YB + HB - 100) + 'V' + (YB + HB) + 'H80V' + (YB + HB - 100), fill: 'none', stroke: 'var(--texto)', 'stroke-width': 2 }, svg);
       pontos(svg, 28, YB + HB - hVi, 52, hVi, 'var(--texto)');
       const t1 = svgEl('text', { x: 54, y: YB + HB + 16, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--texto)' }, svg);

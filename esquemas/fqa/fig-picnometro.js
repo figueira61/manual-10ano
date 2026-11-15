@@ -35,7 +35,7 @@ Manual.esquemas = Manual.esquemas || {};
             explodir: { dx: 0, dy: 20 }, ancora: { x: 130, y: 165 }, desenhar: corpo },
           { id: 'tampa', rotulo: 'Tampa com capilar', descricao: 'Rolha de vidro esmerilada atravessada por um tubo fino (capilar): ao fechar, o excesso de líquido sai pelo capilar e o volume fica sempre o mesmo.',
             explodir: { dx: 0, dy: -35 }, ancora: { x: 130, y: 40 }, desenhar: tampa },
-          { id: 'marca', rotulo: 'Marca', descricao: 'Risca no gargalo que indica o nível até onde se enche; garante o mesmo volume em todas as pesagens.',
+          { id: 'marca', rotulo: 'Marca', descricao: 'Risca no gargalo. Em alguns picnómetros enche-se até à marca; no de tampa com capilar, o volume fica definido pelo capilar cheio. Em ambos o volume é o mesmo em todas as pesagens.',
             explodir: { dx: 70, dy: 0 }, ancora: { x: 154, y: 92 }, desenhar: marca },
         ],
       };

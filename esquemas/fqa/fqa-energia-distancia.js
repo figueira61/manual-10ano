@@ -61,7 +61,7 @@ Manual.esquemas.registar('fqa-energia-distancia', {
     raiz.appendChild(zonaSlider);
     let slider = null;
 
-    const svg = svgEl('svg', { viewBox: '0 0 ' + L + ' ' + ALT, width: '100%', role: 'img', tabindex: '0', class: 'energia-distancia-svg' }, raiz);
+    const svg = svgEl('svg', { viewBox: '0 0 ' + L + ' ' + ALT, width: '100%', role: 'group', tabindex: '0', class: 'energia-distancia-svg' }, raiz);
     svg.style.maxWidth = '460px';
     svg.style.height = 'auto';
     svg.style.display = 'block';
@@ -173,7 +173,7 @@ Manual.esquemas.registar('fqa-energia-distancia', {
       const d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[ev.key];
       if (!d) return;
       ev.preventDefault();
-      definirR(est.r + d * (ev.shiftKey ? 1 : 5));
+      definirR(est.r + d * (ev.shiftKey ? 10 : 1));
     };
     svg.addEventListener('pointerdown', aoPremir);
     svg.addEventListener('pointermove', aoMover);

@@ -215,7 +215,9 @@ Manual.esquemas.registar('fqa-geometria', {
       const ang = m.angulo === null ? 'não se aplica (molécula diatómica)' : '≈ ' + num(m.angulo) + '°';
       const polarPorque = m.atomos.length === 2
         ? (m.polar ? 'a ligação é polar e não há outra para a compensar' : 'os dois átomos são iguais (ligação apolar)')
-        : (m.polar ? 'os dipolos das ligações não se anulam, por causa da geometria e dos pares não ligantes' : 'os dipolos das ligações anulam-se, por causa da geometria');
+        : (m.polar
+          ? (nPares > 0 ? 'os dipolos das ligações não se anulam, por causa da geometria angular/piramidal e dos pares não ligantes' : 'as ligações têm dipolos diferentes e não se anulam')
+          : 'os dipolos das ligações, iguais, anulam-se por simetria da geometria');
 
       svg.setAttribute('aria-label', 'Modelo 3D de ' + m.nome + ' (' + formulaTexto(m.formula) + '): geometria ' + geo + (m.angulo !== null ? ', ângulo ≈ ' + num(m.angulo) + '°' : '') + '; ' + nPares + ' pares não ligantes no ' + centroSimbolo + '; molécula ' + polarTxt + '. Vista com azimute ' + Math.round(est.azimute * 180 / Math.PI) + '° e elevação ' + Math.round(est.elevacao * 180 / Math.PI) + '°.');
 

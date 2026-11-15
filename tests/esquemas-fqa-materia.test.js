@@ -136,7 +136,10 @@ test('fqa-energia-distancia: outras ligações usam os dados; teclado altera r; 
   assert.ok(ver(el).includes('mínimo: 127 pm; −428 kJ/mol'));
   const svg = el.querySelector('svg');
   svg.ouvintes.keydown[0]({ key: 'ArrowRight', preventDefault() {}, shiftKey: false });
-  assert.ok(ver(el).includes('132 pm'));
+  assert.ok(ver(el).includes('128 pm'));
+  svg.ouvintes.keydown[0]({ key: 'ArrowRight', preventDefault() {}, shiftKey: true });
+  assert.ok(ver(el).includes('138 pm'));
+  assert.equal(svg.getAttribute('role'), 'group');
   ciclo('fqa-energia-distancia', {});
 });
 
@@ -277,4 +280,26 @@ test('fig-picnometro: tem corpo, tampa com capilar e marca e desmonta sem ouvint
   const { el } = montar('fig-picnometro', {});
   for (const r of ['Corpo', 'Tampa com capilar', 'Marca']) assert.ok(ver(el).includes(r), r);
   ciclo('fig-picnometro', {});
+});
+
+test('fqa-geometria: o motivo da polaridade é específico de cada molécula', () => {
+  const { el } = montar('fqa-geometria', {});
+  const razao = (id) => { escolher(el, 0, id); return Array.from(el.querySelectorAll('dd')).map((x) => x.textContent).find((t) => /^molécula (a)?polar/.test(t)); };
+  for (const id of ['H2O', 'NH3', 'O3']) assert.match(razao(id), /^molécula polar .*pares não ligantes/, id);
+  assert.match(razao('HCN'), /dipolos diferentes/);
+  assert.ok(!/pares não ligantes/.test(razao('HCN')));
+  for (const id of ['CO2', 'CH4', 'BF3']) assert.match(razao(id), /^molécula apolar .*anulam-se por simetria/, id);
+  assert.match(razao('HCl'), /não há outra/);
+});
+
+test('fqa-diluicao: pipetado usa a mesma intensidade de cor que a solução inicial; pontos sem sobreposição', () => {
+  const { el } = montar('fqa-diluicao', { ci: 1, Vi: 1, Vf: 1000 });
+  const rects = Array.from(el.querySelectorAll('rect'));
+  assert.equal(rects[0].getAttribute('fill-opacity'), '0.67');
+  assert.ok(Number(rects[0].getAttribute('height')) >= 24);
+});
+
+test('fig-picnometro: a marca não contradiz o capilar', () => {
+  montar('fig-picnometro', {});
+  assert.ok(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'esquemas/fqa/fig-picnometro.js'), 'utf8').includes('capilar cheio'));
 });
