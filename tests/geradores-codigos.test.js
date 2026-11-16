@@ -5,7 +5,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const PASTA = path.join(__dirname, '..', 'js', 'geradores', 'mat-a');
+// Todas as pastas de temas de geradores (mat-a, fqa, …): um código partilhado entre disciplinas também tem de ter o mesmo significado.
+const BASE = path.join(__dirname, '..', 'js', 'geradores');
+const FICHEIROS = fs.readdirSync(BASE, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()
+  .flatMap((d) => fs.readdirSync(path.join(BASE, d)).filter((x) => x.endsWith('.js')).sort().map((f) => path.join(BASE, d, f)));
 
 // Códigos com o mesmo significado em mais de um tema.
 const PARTILHADOS = {
@@ -20,13 +23,15 @@ const PARTILHADOS = {
   subtraiu_coordenadas: 'subtraiu as coordenadas em vez de as somar (ponto médio)',
   nao_dividiu_por_2: 'somou as coordenadas sem dividir por 2 (ponto médio)',
   razao_invertida: 'inverteu uma razão (proporção ou razão de Euler)',
+  multiplicou_em_vez_de_dividir: 'multiplicou onde devia dividir (abcissa pelo fator, picómetros por 1000)',
 };
 
 // Tabela código → ficheiros de geradores que o usam (leitura estática de «codigo: …», incluindo ternários).
 function tabela() {
   const t = {};
-  for (const f of fs.readdirSync(PASTA).filter((x) => x.endsWith('.js')).sort()) {
-    const s = fs.readFileSync(path.join(PASTA, f), 'utf8');
+  for (const abs of FICHEIROS) {
+    const f = path.basename(abs);
+    const s = fs.readFileSync(abs, 'utf8');
     for (const m of s.matchAll(/codigo: ([^,}]+)/g)) {
       for (const q of m[1].matchAll(/'([a-z0-9_]+)'/g)) (t[q[1]] = t[q[1]] || new Set()).add(f);
     }

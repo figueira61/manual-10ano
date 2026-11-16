@@ -6,6 +6,10 @@ const { carregar } = require('./ajuda.js');
 
 const RAIZ = path.join(__dirname, '..');
 const PASTA = path.join(RAIZ, 'js', 'geradores', 'mat-a');
+// Ficheiros de temas de geradores de todas as disciplinas (mat-a, fqa, …).
+const BASE = path.join(RAIZ, 'js', 'geradores');
+const FICHEIROS = fs.readdirSync(BASE, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()
+  .flatMap((d) => fs.readdirSync(path.join(BASE, d)).filter((x) => x.endsWith('.js')).sort().map((f) => path.join(BASE, d, f)));
 const SNAPSHOT = path.join(__dirname, 'fixtures', 'erros-humanizados.txt');
 
 function M() {
@@ -16,8 +20,8 @@ function M() {
 // Mesma leitura estática de «codigo: …» que geradores-codigos.test.js; ignora fragmentos de códigos compostos (p. ex. 'escolheu_' + x).
 function codigos() {
   const t = new Set();
-  for (const f of fs.readdirSync(PASTA).filter((x) => x.endsWith('.js')).sort()) {
-    const s = fs.readFileSync(path.join(PASTA, f), 'utf8');
+  for (const abs of FICHEIROS) {
+    const s = fs.readFileSync(abs, 'utf8');
     for (const m of s.matchAll(/codigo: ([^,}]+)/g)) for (const q of m[1].matchAll(/'([a-z0-9_]+)'/g)) t.add(q[1]);
     for (const m of s.matchAll(/^\s+([a-z][a-z0-9_]*): '/gm)) if (/_/.test(m[1])) t.add(m[1]);
   }
@@ -31,7 +35,7 @@ function codigos() {
 }
 
 const PARTILHADOS = ['nao_dividiu', 'dividiu_por_2', 'dividiu_ao_contrario', 'esqueceu_raiz', 'sem_raiz', 'subtraiu_ao_contrario',
-  'sinal_trocado', 'soma_catetos', 'subtraiu_coordenadas', 'nao_dividiu_por_2', 'razao_invertida'];
+  'sinal_trocado', 'soma_catetos', 'subtraiu_coordenadas', 'nao_dividiu_por_2', 'razao_invertida', 'multiplicou_em_vez_de_dividir'];
 
 test('todos os códigos dos geradores dão um texto simples', () => {
   const { painel } = M();

@@ -178,8 +178,11 @@ function validar({ indice, temas, ae, existeFicheiro, geradores }) {
       }
       for (const s of tema.subtemas) {
         validarSubtema(s, d, tema.id, existeFicheiro, erros, idsPerguntas);
-        // Disciplina ainda não disponível e ainda sem geradores (conteúdo antes dos geradores): não se exige o mínimo.
-        const comGeradores = geradores && Array.isArray(geradores[d]) && (disc.disponivel || geradores[d].length > 0);
+        // Disciplina ainda não disponível: o mínimo só se exige nos temas que já têm geradores (os geradores entram
+        // tema a tema, p. ex. fqa: elementos antes de materia).
+        const idsDoTema = new Set(tema.subtemas.map((x) => x.id));
+        const comGeradores = geradores && Array.isArray(geradores[d])
+          && (disc.disponivel || geradores[d].some((g) => g && idsDoTema.has(g.subtema)));
         if (comGeradores) validarGeradores(s, d, tema.id, geradores[d], erros);
         (s.ae || []).forEach((a) => cobertos.add(a));
       }

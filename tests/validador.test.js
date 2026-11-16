@@ -326,6 +326,17 @@ test('disciplina não disponível com parte dos temas: os temas sem ficheiro e a
   // com geradores de fqa já registados, o mínimo volta a valer
   c.geradores.fqa = [{ id: 'g1', disciplina: 'fqa', subtema: 'atomo' }];
   assert.ok(validar(c).some((e) => /^fqa\/elementos\/atomo: .*1 geradores/.test(e)));
+  // … mas só nos temas que já têm geradores: um tema com ficheiro e ainda sem geradores não é erro
+  const s2 = JSON.parse(JSON.stringify(s));
+  s2.id = 'ligacao';
+  s2.quiz.forEach((q, i) => { q.id = 'ligacao-q0' + (i + 1); });
+  c.temas.fqa.push({ id: 'materia', subtemas: [s2] });
+  c.geradores.fqa = ['g1', 'g2', 'g3'].map((id) => ({ id, disciplina: 'fqa', subtema: 'atomo' }));
+  assert.deepEqual(validar(c).filter((e) => e.startsWith('fqa')), []);
+  c.geradores.fqa.push({ id: 'g4', disciplina: 'fqa', subtema: 'ligacao' });
+  assert.ok(validar(c).some((e) => /^fqa\/materia\/ligacao: .*1 geradores/.test(e)));
+  c.geradores.fqa.pop();
+  c.temas.fqa.pop();
   // disponível: o tema sem ficheiro volta a ser erro
   fqa.disponivel = true;
   assert.ok(validar(c).some((e) => /^fqa\/materia: tema do índice sem ficheiro/.test(e)));

@@ -78,6 +78,21 @@ function tolDe(p) {
   return Math.max(abs, rel);
 }
 
+// Folga das comparações: 1e-9, ou relativa à resposta quando só há toleranciaRelativa (valores muito pequenos,
+// p. ex. 3,98 × 10⁻¹⁹ J, em que 1e-9 absoluto tornaria todos os valores iguais).
+function folgaDe(p) {
+  return p.tolerancia === undefined && typeof p.toleranciaRelativa === 'number' ? 1e-9 * Math.abs(p.resposta) : 1e-9;
+}
+
+// Dois erros típicos com o mesmo valor: dentro da tolerância da resposta; com só toleranciaRelativa, em relação ao maior
+// dos dois (2 × 10⁻²² e 2 × 10⁻²⁸ são valores diferentes, embora ambos muito menores que a tolerância absoluta da resposta).
+function mesmoValor(p, a, b) {
+  if (p.tolerancia === undefined && typeof p.toleranciaRelativa === 'number') {
+    return Math.abs(a - b) <= (p.toleranciaRelativa + 1e-9) * Math.max(Math.abs(a), Math.abs(b));
+  }
+  return Math.abs(a - b) <= tolDe(p) + folgaDe(p);
+}
+
 function verificarEstrutura(p, def) {
   const e = [];
   if (typeof p.enunciado !== 'string' || p.enunciado.trim() === '') e.push('enunciado vazio');
@@ -99,6 +114,16 @@ function verificarEstrutura(p, def) {
     if (!temAbs && !temRel) e.push('numérica sem tolerancia nem toleranciaRelativa');
     if (temAbs && (typeof p.tolerancia !== 'number' || !(p.tolerancia >= 0))) e.push('tolerancia inválida');
     if (temRel && (typeof p.toleranciaRelativa !== 'number' || !(p.toleranciaRelativa > 0))) e.push('toleranciaRelativa inválida (número > 0)');
+    // «com N algarismos significativos»: a resposta já vem arredondada a esses algarismos (é o que a correção mostra).
+    if (p.algarismos !== undefined) {
+      if (!Number.isInteger(p.algarismos) || p.algarismos < 1 || p.algarismos > 21) e.push('algarismos inválido (inteiro de 1 a 21)');
+      else if (typeof p.resposta === 'number' && Number.isFinite(p.resposta) && p.resposta !== 0) {
+        const arredondada = Number(p.resposta.toPrecision(p.algarismos));
+        if (Math.abs(arredondada - p.resposta) > 1e-12 * Math.abs(p.resposta)) {
+          e.push('resposta ' + p.resposta + ' não está arredondada a ' + p.algarismos + ' algarismos significativos (' + arredondada + ')');
+        }
+      }
+    }
   } else if (p.formato === 'escolha') {
     if (!Array.isArray(p.opcoes) || p.opcoes.length < 2 || p.opcoes.some((o) => typeof o !== 'string')) e.push('opcoes inválidas');
     else if (!Number.isInteger(p.correta) || p.correta < 0 || p.correta >= p.opcoes.length) e.push('correta fora das opções');
@@ -124,7 +149,7 @@ function existeEsquema(disciplina, id) {
 function regra2(p) {
   const v = p.verificacao.valor;
   if (p.formato === 'numerica') {
-    if (typeof v !== 'number' || !(Math.abs(v - p.resposta) <= tolDe(p) + 1e-9)) {
+    if (typeof v !== 'number' || !(Math.abs(v - p.resposta) <= tolDe(p) + folgaDe(p))) {
       return ['verificacao.valor ' + v + ' ≠ resposta ' + p.resposta];
     }
   } else if (v !== p.correta) {
@@ -143,12 +168,12 @@ function regra3(p, def, chave) {
   if (p.formato === 'numerica') {
     if (p.errosTipicos.length === 0) e.push('numérica sem erros típicos');
     p.errosTipicos.forEach((t, i) => {
-      const j = p.errosTipicos.findIndex((u) => typeof u.valor === 'number' && Math.abs(u.valor - t.valor) <= tolDe(p) + 1e-9);
+      const j = p.errosTipicos.findIndex((u) => typeof u.valor === 'number' && mesmoValor(p, u.valor, t.valor));
       if (j >= 0 && j < i) e.push('erros ' + p.errosTipicos[j].codigo + ' e ' + t.codigo + ' com o mesmo valor ' + t.valor);
     });
     for (const t of p.errosTipicos) {
       if (typeof t.valor !== 'number' || !Number.isFinite(t.valor)) e.push('erro ' + t.codigo + ' sem valor numérico');
-      else if (Math.abs(t.valor - p.resposta) <= tolDe(p) + 1e-9) e.push('erro ' + t.codigo + ' dá a resposta certa (' + t.valor + ')');
+      else if (Math.abs(t.valor - p.resposta) <= tolDe(p) + folgaDe(p)) e.push('erro ' + t.codigo + ' dá a resposta certa (' + t.valor + ')');
     }
   } else if (p.formato === 'escolha') {
     const n = def.nOpcoes || 4;

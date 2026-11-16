@@ -170,6 +170,15 @@ test('detetarErro e agregarErros', () => {
   const tol = { tipo: 'numerica', resposta: 2, tolerancia: 0.01, errosTipicos: [{ codigo: 'a', valor: -2, explicacao: 'e' }] };
   assert.equal(D.detetarErro(tol, '-2,005').codigo, 'a');
   assert.equal(D.detetarErro(tol, '-2,5'), null);
+  // Notação científica (toleranciaRelativa): valores pequenos distinguem-se em relação a cada alvo.
+  const sci = { tipo: 'numerica', resposta: 3.98e-19, toleranciaRelativa: 0.005, errosTipicos: [
+    { codigo: 'usou_h_sobre_lambda', valor: 1.33e-27, explicacao: 'h' },
+    { codigo: 'nao_converteu_nm_em_m', valor: 3.98e-28, explicacao: 'n' },
+  ] };
+  assert.equal(D.detetarErro(sci, '3,98e-19'), null);
+  assert.equal(D.detetarErro(sci, '1,33e-27').codigo, 'usou_h_sobre_lambda');
+  assert.equal(D.detetarErro(sci, '3,98×10^-28').codigo, 'nao_converteu_nm_em_m');
+  assert.equal(D.detetarErro(sci, '5e-19'), null);
   const esc = { tipo: 'escolha', opcoes: ['a', 'b', 'c'], correta: 0, errosTipicos: [{ codigo: 'op2', opcao: 2, explicacao: 'e' }] };
   assert.equal(D.detetarErro(esc, 2).codigo, 'op2');
   assert.equal(D.detetarErro(esc, 1), null);

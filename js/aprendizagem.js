@@ -130,9 +130,13 @@ globalThis.Manual = globalThis.Manual || {};
       if (pergunta.tipo === 'numerica') {
         const x = Manual.quiz.lerNumero(resposta);
         if (Number.isNaN(x)) return null;
-        const tol = (pergunta.tolerancia === undefined ? 1e-9 : pergunta.tolerancia) + 1e-12;
-        if (Math.abs(x - pergunta.resposta) <= tol) return null;
-        const e = pergunta.errosTipicos.find((c) => typeof c.valor === 'number' && Math.abs(x - c.valor) <= tol);
+        // Com toleranciaRelativa (valores muito grandes ou pequenos), a proximidade mede-se em relação a cada alvo.
+        const rel = typeof pergunta.toleranciaRelativa === 'number' ? pergunta.toleranciaRelativa : null;
+        const abs = pergunta.tolerancia === undefined ? (rel === null ? 1e-9 : 0) : pergunta.tolerancia;
+        const perto = (alvo) => Math.abs(x - alvo) <= Math.max(abs, rel === null ? 0 : rel * Math.abs(alvo))
+          + (rel !== null && pergunta.tolerancia === undefined ? 1e-12 * Math.abs(alvo) : 1e-12);
+        if (perto(pergunta.resposta)) return null;
+        const e = pergunta.errosTipicos.find((c) => typeof c.valor === 'number' && perto(c.valor));
         return e ? { codigo: e.codigo, explicacao: e.explicacao } : null;
       }
       if (pergunta.tipo === 'escolha') {

@@ -21,9 +21,15 @@ test('index.html inclui cada ficheiro de js/geradores/**', () => {
 test('index.html: registo.js, depois ajudas.js, depois os temas, e só depois miniquiz.js e render.js', () => {
   const registo = pos('js/geradores/registo.js');
   const ajudas = pos('js/geradores/ajudas.js');
-  const temas = geradores.filter((f) => f.startsWith('js/geradores/mat-a/')).map(pos);
+  const temas = geradores.filter((f) => /^js\/geradores\/[^/]+\//.test(f)).map(pos);
   assert.ok(registo >= 0 && registo < ajudas, 'registo.js antes de ajudas.js');
   for (const t of temas) assert.ok(ajudas < t, 'ajudas.js antes dos temas');
+  // Química depois de todos os geradores de Matemática A.
+  const matA = geradores.filter((f) => f.startsWith('js/geradores/mat-a/')).map(pos);
+  const fqa = geradores.filter((f) => f.startsWith('js/geradores/fqa/')).map(pos);
+  assert.ok(fqa.length >= 1, 'há geradores de fqa');
+  for (const q of fqa) assert.ok(q > Math.max(...matA), 'geradores de fqa depois dos de Matemática A');
+  assert.ok(pos('js/geradores/fqa/elementos.js') < pos('js/miniquiz.js'), 'elementos.js antes de miniquiz.js');
   const ultimo = Math.max(...temas);
   for (const consumidor of ['js/miniquiz.js', 'js/render.js']) {
     assert.ok(pos(consumidor) > ultimo, consumidor + ' depois de todos os geradores');

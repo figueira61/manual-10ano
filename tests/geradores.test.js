@@ -495,6 +495,54 @@ test('regra 3: numérica sem erros típicos ou com dois erros do mesmo valor', (
   assert.deepEqual(regras(verificar(iguais, { sementes: 5 })), ['3']);
 });
 
+test('estrutura: numérica com algarismos exige a resposta já arredondada a esses algarismos significativos', () => {
+  const comAS = (resposta, algarismos) => comAlteracao(defSoma({ formatos: ['numerica'] }), (ex) => {
+    Object.assign(ex, { resposta, algarismos, tolerancia: 0.005, verificacao: { ...ex.verificacao, valor: resposta } });
+    ex.errosTipicos = [{ codigo: 'outro', valor: resposta + 10, explicacao: 'x' }];
+  });
+  const ok = comAS(0.5, 3);
+  ok.verificarIndependente = (p) => p.resposta === 0.5;
+  assert.deepEqual(verificar(ok, { sementes: 5 }).filter((e) => /estrutura/.test(e)), []);
+  const mau = comAS(0.49989, 3);
+  const e = verificar(mau, { sementes: 5 });
+  assert.ok(e.some((x) => /\[estrutura\].*não está arredondada a 3 algarismos significativos/.test(x)), e[0]);
+  const invalido = comAS(0.5, 0);
+  assert.ok(verificar(invalido, { sementes: 5 }).some((x) => /algarismos inválido/.test(x)));
+});
+
+test('toleranciaRelativa com valores muito pequenos: a folga é relativa (erros distintos não contam como a resposta)', () => {
+  const A = G.ajudas;
+  const def = {
+    id: 'teste-foton', disciplina: 'fqa', tema: 'testes', subtema: 'luz', tipo: 'foton', nome: 'Fotão',
+    formatos: ['numerica', 'escolha'], contextos: [],
+    gerar(semente, { formato, rng }) {
+      const k = A.entre(rng, 2, 9);
+      const E = k * 1e-19;
+      return A.fechar(rng, formato, { enunciado: 'E?', resolucao: [{ passo: 'p', porque: 'q' }], dados: { k } }, {
+        resposta: E, toleranciaRelativa: 0.005, texto: (v) => '$' + M.formatar.cientifico(v, 3) + '$',
+        erros: [
+          { codigo: 'a', valor: E * 1e-9, explicacao: 'a' },
+          { codigo: 'b', valor: E / 1000, explicacao: 'b' },
+          { codigo: 'c', valor: E * 1.5, explicacao: 'c' },
+        ],
+        verificacao: { passo: 'v', calculo: 'E', valor: k / 1e19 },
+      });
+    },
+    verificarIndependente: (p) => A.confere(p, p.dados.k / 1e19, (v) => '$' + M.formatar.cientifico(v, 3) + '$'),
+    limites: () => true,
+  };
+  assert.deepEqual(verificar(def, { sementes: 30 }), []);
+  const p = G.gerarDe(def, 1, { formato: 'numerica' });
+  assert.deepEqual(p.errosTipicos.map((e) => e.codigo), ['a', 'b', 'c']);
+  assert.ok(!A.confere(p, p.resposta * 1.01, String));
+  assert.ok(A.confere(p, p.resposta * 1.001, String));
+  assert.ok(Math.abs(A.folga(2e-19, undefined, 0.01) - 2e-28) < 1e-40);
+  assert.equal(A.folga(2, 0.1, undefined), 1e-9);
+  // Um erro igual à resposta (dentro da tolerância relativa) continua a ser apanhado.
+  const igual = comAlteracao(def, (ex, o) => { if (o.formato === 'numerica') ex.errosTipicos.push({ codigo: 'igual', valor: ex.resposta * 1.001, explicacao: 'i' }); });
+  assert.deepEqual(regras(verificar(igual, { sementes: 5 })), ['3']);
+});
+
 test('regra 3: vf falsa sem erro típico, ou sempre a mesma resposta', () => {
   const semErro = comAlteracao(defVf(), (ex) => { ex.errosTipicos = []; });
   assert.deepEqual(regras(verificar(semErro, { sementes: 50 })), ['3']);

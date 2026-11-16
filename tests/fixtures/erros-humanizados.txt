@@ -1,6 +1,8 @@
 a_ao_quadrado → Multiplicou o desvio padrão por a ao quadrado
+achou_que_mudava_de_nivel_no_periodo → Julgou que, no mesmo período, os eletrões de valência mudam de nível
 ag_como_metade → Tomou AG como metade da mediana
 ag_como_terco → Tomou AG como um terço da mediana
+agua_deslocada_sem_somar_o_metal → Calculou a água deslocada sem somar a massa do metal
 alargada_como_amostra → Tomou a população alargada como se fosse a amostra
 aleatoria_vista_como_enviesada → Julgou enviesada uma amostra aleatória
 alinhado_como_perfeito → Tomou pontos quase alinhados como correlação perfeita
@@ -10,6 +12,7 @@ amostra_como_populacao → Tomou a amostra como se fosse a população
 amostra_como_variavel → Tomou a amostra como se fosse a variável
 amplitude_total → Deu a amplitude em vez da amplitude interquartil
 angulo_reto_errado → Errou o ângulo reto
+aplicou_a_carga_aos_neutroes → Aplicou a carga do ião ao número de neutrões
 aplicou_b_antes → Somou a constante antes de multiplicar
 aplicou_dois_tercos → Multiplicou AG por 2/3 em vez de dividir por 2/3
 aplicou_na_abcissa → Aplicou o fator à abcissa
@@ -17,8 +20,10 @@ aplicou_na_ordenada → Aplicou o fator à ordenada
 area_como_perimetro → Usou a fórmula do perímetro em vez da da área
 area_sem_metade → Esqueceu de dividir por 2 no cálculo da área
 area_sobre_perimetro → Dividiu a área pelo perímetro em vez do semiperímetro
+arredondou_a_menos_algarismos → Arredondou a menos algarismos significativos do que os dados permitem
 arredondou_e_somou_um → Arredondou e somou um a mais
 arredondou_p_para_baixo → Arredondou a posição p para baixo
+associou_a_zona_errada → Associou a série de riscas à zona errada do espectro
 assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
 assumiu_divergencia → Assumiu que os dois métodos dão vencedores diferentes
 baricentro → Deu o baricentro em vez do circuncentro
@@ -38,17 +43,51 @@ cobrou_todas_as_horas → Cobrou todas as horas, e não só as que ultrapassam o
 codigo_numerico_como_quantitativa → Tomou um código numérico por variável quantitativa
 coeficiente_trocado → Multiplicou x pelo coeficiente errado
 comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
+completou_o_nivel_ganhando_eletroes → Fez o metal ganhar eletrões até completar o nível
 concavidade_trocada → Trocou o sentido da concavidade
+configuracao_de_estado_excitado → Escolheu a configuração de um estado excitado
+confundiu_as_series → Confundiu as séries de riscas do hidrogénio
+confundiu_com_a_nuvem_eletronica → Confundiu a parte assinalada com a nuvem eletrónica
 confundiu_com_baricentro → Deu o baricentro em vez do centro dos nove pontos
+confundiu_com_o_eletrao → Confundiu a parte assinalada com o eletrão
+confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
+confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
+confundiu_com_o_protao → Confundiu a parte assinalada com o protão
+confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
+confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
+confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
 contagem_como_categoria → Tomou a contagem por categoria
 contagem_em_vez_de_percentagem → Deu a contagem em vez da percentagem
 continua_como_discreta → Tomou uma variável contínua por discreta
 continua_como_qualitativa → Tomou uma variável contínua por qualitativa
+contou_atomos_em_vez_de_moleculas → Contou os átomos em vez das moléculas
+contou_mal_os_eletroes → Julgou de outro átomo uma configuração com Z eletrões
+contou_moleculas_em_vez_de_atomos → Contou as moléculas em vez dos átomos
 contou_o_complementar → Contou o contrário do pedido
+contou_os_elementos_em_vez_dos_atomos → Multiplicou pelo número de elementos em vez do número de átomos
+contou_os_eletroes_4s → Contou os eletrões 4s como desemparelhados
+contou_os_eletroes_de_valencia → Deu o número de eletrões de valência em vez dos desemparelhados
+contou_os_eletroes_do_cerne → Contou os eletrões do cerne em vez dos de valência
+contou_os_eletroes_do_ultimo_subnivel → Tomou todos os eletrões do último subnível por desemparelhados
+contou_os_eletroes_em_vez_das_orbitais → Contou os eletrões em vez das orbitais
+contou_os_zeros_a_esquerda → Contou os zeros à esquerda como algarismos significativos
+contou_so_as_casas_decimais → Contou as casas decimais em vez dos algarismos significativos
+contou_so_as_orbitais_do_ultimo_nivel → Contou só as orbitais do último nível
+contou_so_os_algarismos_diferentes_de_zero → Não contou os zeros significativos
+contou_so_os_eletroes_p → Contou só os eletrões p do último nível
+contou_so_os_eletroes_s → Contou só os eletrões s do último nível
+contou_so_um_elemento → Contou só os átomos de um dos elementos
+contou_subniveis_em_vez_de_orbitais → Contou os subníveis em vez das orbitais
+contou_todos_os_atomos → Contou todos os átomos em vez dos do elemento pedido
+contou_todos_os_eletroes → Contou todos os eletrões em vez dos de valência
+contou_um_eletrao_a_mais → Escreveu a configuração com um eletrão a mais
+contou_um_eletrao_a_menos → Escreveu a configuração com um eletrão a menos
 contou_valores → Contou os valores diferentes em vez das observações
 contou_valores_diferentes → Contou os valores diferentes em vez das observações
 conveniencia → Julgou aleatória uma amostra por conveniência
+converteu_m_em_nm_ao_contrario → Converteu de metros para nanómetros no sentido errado
+converteu_nm_como_micrometro → Usou 1 nm = 10⁻⁶ m
 coordenada_errada → Usou a coordenada errada
 coordenadas_trocadas → Trocou as coordenadas
 cruzou_mal → Multiplicou em cruz os termos errados
@@ -57,9 +96,18 @@ declive_e_termo_trocados → Trocou o declive com a ordenada na origem
 declive_invertido → Dividiu u₁ por u₂ em vez de u₂ por u₁
 delta_sem_sinal → Esqueceu o sinal de menos em Δ/4a
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
+deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
+deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
+deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
+deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
+deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_o_contradominio → Deu o contradomínio em vez do domínio
 deu_o_dominio → Deu o domínio em vez do contradomínio
 deu_o_juro → Deu o juro em vez do capital
+deu_o_numero_atomico → Deu o número atómico em vez do número de neutrões
+deu_o_numero_de_massa → Deu o número de massa em vez do número de neutrões
+deu_o_numero_de_neutroes → Deu o número de neutrões em vez do pedido
+deu_o_numero_do_ultimo_nivel → Deu o número do último nível em vez dos eletrões de valência
 deu_o_restante → Deu o que sobra depois do desconto
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
@@ -71,12 +119,17 @@ direcao_trocada → Aplicou o efeito na direção errada
 discreta_como_continua → Tomou uma variável discreta por contínua
 discreta_como_qualitativa → Tomou uma variável discreta por qualitativa
 distancia_do_baricentro → Deu a distância do baricentro ao lado
+dividiu_a_massa_molar_por_n → Dividiu a massa molar pela quantidade de matéria
 dividiu_a_ordenada → Dividiu a ordenada pelo fator
 dividiu_antes → Dividiu antes de isolar o termo em x
 dividiu_ao_contrario → Dividiu pela ordem trocada
+dividiu_em_vez_de_multiplicar → Dividiu em vez de multiplicar
 dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
+dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
+dividiu_pelo_indice → Dividiu pelo índice em vez de multiplicar
 dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
+dividiu_por_100 → Dividiu por 100 em vez de 1000
 dividiu_por_2 → Dividiu por 2 onde não devia
 dividiu_por_n → Dividiu por n em vez de por n − 1
 dividiu_so_a_raiz → Dividiu só a raiz, e não o resto
@@ -88,7 +141,12 @@ dois_tercos → Deu dois terços da mediana em vez de um terço
 dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
 eixo_reflexao_trocado → Trocou o eixo da reflexão
+emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocupar as orbitais vazias
+energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
+errou_o_expoente_na_notacao_cientifica → Errou o expoente ao passar a notação científica
 escalao_errado → Usou a taxa de outro escalão
+escolheu_a_zona_de_maior_comprimento_de_onda → Escolheu a zona vizinha de maior comprimento de onda
+escolheu_a_zona_de_menor_comprimento_de_onda → Escolheu a zona vizinha de menor comprimento de onda
 escolheu_baricentro → Escolheu o baricentro
 escolheu_circuncentro → Escolheu o circuncentro
 escolheu_incentro → Escolheu o incentro
@@ -104,6 +162,7 @@ esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
+esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
@@ -117,6 +176,8 @@ esqueceu_subtrair → Esqueceu de subtrair
 esqueceu_ultimo_escalao → Esqueceu o último escalão
 esqueceu_um_candidato → Esqueceu os votos de um candidato
 esqueceu_valor_base → Esqueceu o valor base
+excitado_como_impossivel → Julgou impossível uma configuração de um estado excitado
+excitado_julgado_de_outro_atomo → Julgou de outro átomo a configuração de um estado excitado
 excluiu_extremo → Excluiu o extremo em «no máximo»
 expoente_em_anos → Pôs o número de anos no expoente, em vez do de períodos
 extremo_errado → Errou o extremo
@@ -131,14 +192,28 @@ fraca_como_nula → Tomou uma correlação fraca por nula
 frequencia_absoluta → Deu a frequência absoluta em vez da relativa
 fronteira_estrita → Errou se a fronteira pertence à região
 fronteira_na_classe_anterior → Pôs na classe anterior um valor igual ao limite da seguinte
+fundamental_como_excitado → Tomou o estado fundamental por um estado excitado
+fundamental_como_impossivel → Julgou impossível a configuração do estado fundamental
 g_ponto_medio → Tomou G como ponto médio de OH
 g_ponto_medio_oh → Tomou G como ponto médio de OH
+ganhou_eletroes_a_mais → Fez o não metal ganhar eletrões a mais
+ganhou_em_vez_de_perder → Fez o metal ganhar eletrões em vez de os perder
+ganhou_so_um_eletrao → Fez o não metal ganhar só um eletrão
+grupo_pelos_eletroes_de_valencia → Deu o grupo pelos eletrões de valência no hélio
+grupo_pelos_eletroes_p → Deu o grupo só pelos eletrões p
+grupo_sem_somar_10 → Esqueceu de somar 10 ao grupo no bloco p
+grupo_so_pelos_eletroes_3d → Deu o grupo só pelos eletrões 3d
 h_igual_3g → Usou H = 3G fora da origem
 hipotenusa_como_raio → Tomou a hipotenusa por raio
 ignorou_a → Ignorou o número dentro do módulo
+ignorou_a_carga → Ignorou a carga do ião
 ignorou_fator → Ignorou o fator
 ignorou_sinais → Ignorou os sinais
 ignorou_sinal_mais → Ignorou o sinal de mais
+impossivel_como_excitado → Tomou uma configuração impossível por um estado excitado
+impossivel_julgado_de_outro_atomo → Julgou de outro átomo uma configuração impossível
+incerteza_na_casa_decimal_anterior → Pôs a incerteza na casa decimal anterior
+incerteza_na_casa_decimal_seguinte → Pôs a incerteza numa casa decimal que o mostrador não tem
 incluiu_extremo → Incluiu o extremo em «menos de»
 incluiu_quociente_seguinte → Incluiu um quociente a mais
 intervalo_aberto → Deixou de fora o extremo, que pertence ao contradomínio
@@ -147,22 +222,29 @@ inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
 inverteu_razao → Inverteu a razão
 irs_depois_ss → Aplicou o IRS depois de descontar a Segurança Social
+isotopos_com_os_mesmos_neutroes → Julgou que isótopos têm o mesmo número de neutrões
 juro_composto → Usou juro composto em vez de juro simples
 juro_de_um_ano → Deu o juro de um só ano
 juro_simples → Usou juro simples em vez de juro composto
+justificou_com_a_carga_nuclear_ao_contrario → Justificou o raio com a carga nuclear ao contrário
+justificou_pela_repulsao_entre_eletroes → Justificou a energia de ionização só pela repulsão entre eletrões
+justificou_pelo_numero_de_eletroes_de_valencia → Justificou pelo número de eletrões de valência, que é igual no grupo
 lado_trocado → Escolheu o lado errado do zero
 lambda_no_ponto → Multiplicou λ pelo ponto em vez de pelo vetor
 letra_do_plano → Escolheu a letra errada na equação do plano
 leu_acumulada → Leu a frequência acumulada em vez da absoluta
 limites_em_vez_de_partes → Aplicou cada taxa ao limite do escalão
+maior_comprimento_de_onda_maior_energia → Julgou que maior comprimento de onda dá mais energia
 maior_media_maior_dispersao → Julgou que a maior média tem maior dispersão
 maior_partido → Deu o último mandato ao partido mais votado
+maior_raio_maior_energia_de_ionizacao → Julgou que um átomo maior tem maior energia de ionização
 maioria_simples → Escolheu o vencedor pelos primeiros lugares em vez de pelos pontos de Borda
 mais_votos_nao_chega → Julgou que ter mais votos dá maioria absoluta
 media_das_frequencias → Fez a média das frequências em vez da média dos valores
 media_dos_extremos → Fez a média dos extremos
 media_dos_valores → Fez a média dos valores diferentes, sem contar as repetições
 media_em_vez_de_mediana → Deu a média em vez da mediana
+media_simples_sem_abundancias → Fez a média simples sem pesar pelas abundâncias
 media_varia_diferenca → Esqueceu que a diferença se reparte por todos os valores
 mediana_afetada → Julgou que a mediana varia com o valor corrigido
 mediana_em_vez_de_media → Deu a mediana em vez da média
@@ -171,10 +253,12 @@ medias_diferentes_nao_comparam → Julgou que médias diferentes impedem a compa
 mediatriz_horizontal → Escolheu a mediatriz horizontal
 mediatriz_vertical → Escolheu a mediatriz vertical
 meia_volta → Trocou o sinal das duas coordenadas, como numa meia-volta
+menor_frequencia_maior_energia → Julgou que menor frequência dá mais energia
 menos_dentro_do_quadrado → Pôs o sinal de menos dentro do quadrado
 menos_pontos → Deu a vitória a quem tem menos pontos
 menos_so_no_x → Pôs o sinal de menos só no x
 mesma_amplitude_mesma_dispersao → Concluiu que a mesma amplitude dá a mesma dispersão
+mesmo_numero_de_massa → Tomou átomos com o mesmo número de massa por isótopos
 metade → Tomou o baricentro como ponto médio da mediana
 metade_cateto → Dividiu um cateto por 2 em vez da hipotenusa
 metade_do_raio_inscrito → Deu metade do raio inscrito
@@ -184,28 +268,41 @@ monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
 multiplicou → Multiplicou em vez de dividir
 multiplicou_abcissa → Multiplicou também a abcissa, que devia ficar igual
+multiplicou_c_por_lambda → Multiplicou c pelo comprimento de onda
 multiplicou_em_vez_de_dividir → Multiplicou em vez de dividir
+multiplicou_massa_pela_massa_molar → Multiplicou a massa pela massa molar
 multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
 multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
 multiplicou_por_5 → Multiplicou por 5 em vez de dividir
 nao_alterou → Esqueceu que o desvio padrão também é multiplicado
+nao_arredondou → Não arredondou o resultado da calculadora
+nao_contou_o_zero_final → Não contou o zero final como algarismo significativo
+nao_contou_os_eletroes → Não contou os eletrões da configuração
+nao_contou_os_zeros_do_meio → Não contou os zeros do meio como algarismos significativos
+nao_converteu_m_em_nm → Deu o comprimento de onda em metros em vez de nanómetros
+nao_converteu_massa_em_quantidade → Usou a massa sem a converter em quantidade de matéria
+nao_converteu_nm_em_m → Não converteu os nanómetros em metros
 nao_dividiu → Não fez a divisão final
 nao_dividiu_centro → Não dividiu por 2 a soma das coordenadas do centro
 nao_dividiu_coeficientes → Não dividiu os coeficientes por 2
+nao_dividiu_por_100 → Não dividiu as abundâncias por 100
 nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
 nao_dividiu_por_3 → Não dividiu por 3
 nao_isolou_o_modulo → Não isolou o módulo
+nao_maximizou_os_desemparelhados → Não maximizou os eletrões desemparelhados (regra de Hund)
 nao_multiplicou_boletins → Contou cada tipo de boletim uma só vez
 nao_ordenou → Não ordenou os dados
 nao_passou_para_zero → Não passou tudo para o primeiro membro
+nao_reconheceu_o_estado_excitado → Não reconheceu um estado excitado
 nao_rejeitou_negativa → Não rejeitou a solução negativa
 nao_subtraiu → Não subtraiu os votos que já tinha
 nao_trocou_sinal → Não trocou o sinal
 nao_verificou_condicao → Não verificou a condição do ramo
 nao_viu_absoluta → Disse maioria simples quando havia maioria absoluta
 nao_viu_conveniencia → Não viu que a amostra era por conveniência
+nao_viu_o_limite_de_eletroes → Não viu que um subnível tem eletrões a mais
 nao_viu_resposta_voluntaria → Não viu que a amostra era de resposta voluntária
 o_proprio_eixo → Deu o próprio eixo em vez da paralela por P
 oh_como_og → Tomou OH como OG
@@ -219,17 +316,27 @@ ordenada_do_ponto → Tomou a ordenada de A por ordenada na origem
 ordenada_igual_a_c → Tomou c por ordenada do vértice
 ordenada_na_origem → Deu a ordenada na origem em vez do zero da função
 outro_angulo_reto_errado → Escolheu um vértice que não tem o ângulo reto
+outro_atomo_julgado_excitado → Tomou a configuração de outro átomo por um estado excitado
+outro_atomo_julgado_impossivel → Julgou impossível a configuração de outro átomo
 outro_eixo → Deu o plano perpendicular ao outro eixo
 outro_metodo → Usou o outro método de conversão de votos em mandatos
+p_com_mais_de_seis_eletroes → Pôs mais de seis eletrões num subnível p
 p_inteiro_sem_media → Esqueceu a média quando p é inteiro
 par_so_um_valor → Usou só um valor quando há dois ao meio
 parou_um_antes → Parou um quociente antes
+passou_ao_subnivel_seguinte_sem_completar → Passou ao subnível seguinte sem completar o anterior
 pe_da_altura → Deu o pé da altura em vez do ortocentro
 penultimo_mandato → Deu o penúltimo mandato em vez do último
 percentagem_como_euros → Tomou a percentagem por euros
 percentagem_sem_dividir → Não dividiu a percentagem por 100
+perdeu_eletroes_a_mais → Fez o metal perder eletrões a mais
+perdeu_em_vez_de_ganhar → Fez o não metal perder eletrões em vez de os ganhar
+perdeu_os_eletroes_de_valencia → Fez o não metal perder os eletrões de valência
+perdeu_so_um_eletrao → Fez o metal perder só um eletrão
 perdeu_zero_nulo → Perdeu a solução x = 0
 periodo_a_menos → Contou um período a menos
+periodo_pelo_cerne → Deu o período do gás nobre do cerne
+periodo_pelo_subnivel_3d → Deu o período pelo subnível 3d
 plano_coordenado → Deu o plano coordenado em vez do plano por P
 ponto_medio_cateto → Deu o ponto médio de um cateto
 ponto_medio_de_am → Deu o ponto médio de AM
@@ -243,6 +350,7 @@ populacao_alargada → Escolheu a população alargada
 populacao_como_amostra → Tomou a população por amostra
 populacao_como_variavel → Tomou a população por variável
 posicao_como_valor → Deu a posição em vez do valor
+preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
 proporcional_restos_maiores → Usou o método dos restos maiores
 quadrado_da_soma → Fez o quadrado da soma em vez da soma dos quadrados
 quadrado_de_negativo → Errou o sinal ao elevar um número negativo ao quadrado
@@ -253,7 +361,9 @@ qualitativa_como_quantitativa → Tomou uma variável qualitativa por quantitati
 quatro_semanas → Contou 4 semanas por mês
 quociente_de_um_ponto → Dividiu a ordenada pela abcissa de um só ponto
 quociente_menor → Deu o mandato a um quociente menor
+raio_aumenta_ao_longo_do_periodo → Julgou que o raio aumenta ao longo do período
 raio_circunscrito → Deu o raio da circunferência circunscrita
+raio_diminui_ao_descer_no_grupo → Julgou que o raio diminui ao descer no grupo
 raio_e_o_segundo_membro → Tomou o segundo membro, r², por raio
 raio_inscrito → Deu o raio da circunferência inscrita
 raio_no_segundo_membro → Escreveu o raio, e não o seu quadrado, no segundo membro
@@ -276,6 +386,7 @@ segundo_com_simples → Deu maioria simples ao segundo mais votado
 sem_raiz → Esqueceu a raiz quadrada
 sem_subtrair_minimo → Esqueceu de subtrair o mínimo
 sentido_horizontal_trocado → Deslocou o gráfico para o lado errado
+serie_pelo_nivel_inicial → Deu a série pelo nível inicial da transição
 simetrico_de_o → Pôs G a meio de OH
 sinais_trocados → Trocou os sinais
 sinal_ao_isolar → Errou o sinal ao isolar
@@ -296,6 +407,7 @@ sinal_no_zero_do_2_ramo → Errou o sinal do zero do 2.º ramo
 sinal_produto → Errou o sinal do produto de dois números negativos
 sinal_trocado → Não trocou o sinal ao passar para o outro membro
 so_a_segunda_coordenada → Tomou a segunda coordenada do vetor por declive
+so_contou_a_carga_nuclear → Só teve em conta a carga nuclear, sem o número de níveis
 so_descontos → Deu o total dos descontos em vez do líquido
 so_horas_semana → Dividiu pelas horas de uma só semana
 so_juro → Deu só o juro
@@ -313,20 +425,27 @@ so_uma_solucao → Deu só uma das soluções
 soma_catetos → Somou os catetos em vez de aplicar o teorema de Pitágoras
 soma_componentes → Somou as componentes em vez de usar o teorema de Pitágoras
 soma_das_normas → Somou as normas em vez de calcular a norma da soma
+somou_10_no_bloco_s → Somou 10 ao grupo no bloco s
+somou_a_com_z → Somou A e Z em vez de subtrair
 somou_antes_de_multiplicar → Somou antes de multiplicar
+somou_as_energias_dos_niveis → Somou as energias dos dois níveis
 somou_b → Somou a constante ao desvio padrão depois de o multiplicar
 somou_b_sem_a → Somou a constante ao desvio padrão em vez de só o multiplicar
 somou_coordenadas → Somou as coordenadas em vez de as subtrair ou de usar Pitágoras
 somou_cota_a_diagonal → Somou a cota à diagonal da base
 somou_dois → Somou um voto a mais do que o necessário
+somou_eletroes_e_neutroes → Somou os eletrões aos neutrões
 somou_em_vez_de_multiplicar → Somou em vez de multiplicar
 somou_lambda → Somou λ a cada coordenada
+somou_os_eletroes → Somou os eletrões ao número de massa
 somou_sem_multiplicar → Somou os valores sem os multiplicar pelas frequências
 somou_termo_quadratico → Somou o termo −5t² em vez de o subtrair
 ss_depois_irs → Aplicou a Segurança Social depois do IRS
 subtracao_trocada → Fez a subtração pela ordem trocada
+subtraiu_a_carga_ao_numero_de_massa → Contou os eletrões a partir do número de massa
 subtraiu_ao_contrario → Fez a subtração pela ordem trocada
 subtraiu_coordenadas → Subtraiu as coordenadas em vez de as somar
+subtraiu_em_vez_de_somar → Subtraiu em vez de somar
 subtraiu_o_vetor → Subtraiu o vetor ao ponto em vez de o somar
 subtraiu_percentagem → Retirou a percentagem ao montante em vez de dividir
 subtraiu_quadrados → Subtraiu os quadrados em vez de os somar
@@ -336,17 +455,25 @@ taxa_anual_por_periodo → Usou a taxa anual em vez da taxa de cada período
 taxa_da_entidade → Usou a taxa paga pela entidade patronal
 taxa_mal_convertida → Não converteu a taxa de percentagem para decimal
 taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendimento
+tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
+tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
+trocou_as_abundancias → Trocou as abundâncias dos isótopos
 trocou_as_condicoes → Trocou as condições dos dois ramos
 trocou_coordenadas → Trocou as coordenadas
 trocou_eixos → Trocou os eixos
+trocou_emissao_com_absorcao → Trocou emissão com absorção
 trocou_h_k → Trocou h com k
 trocou_m_b → Trocou m com b
 trocou_media_mediana → Trocou a média com a mediana
 trocou_o_eixo → Trocou o eixo
 trocou_o_sentido → Trocou o sentido
+trocou_o_sentido_do_espectro → Trocou o sentido do espectro
+trocou_o_sinal_da_carga → Trocou o sinal da carga do ião
+trocou_o_sinal_do_expoente → Trocou o sinal do expoente
+trocou_periodo_com_grupo → Trocou o período com o grupo
 trocou_q1_q3 → Trocou Q1 com Q3
 trocou_sinal → Trocou o sinal
 trocou_variaveis → Trocou as variáveis
@@ -355,9 +482,26 @@ um_por_partido → Deu primeiro um mandato a cada partido
 um_sexto → Deu um sexto da mediana em vez de um terço
 um_terco → Deu um terço da mediana em vez de dois terços
 um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
+usou_a_agua_do_picnometro_cheio → Usou a água do picnómetro cheio em vez da água deslocada
+usou_a_divisao_inteira_num_analogico → Usou a menor divisão inteira num instrumento analógico
+usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
+usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quociente
+usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
 usou_c → Usou o termo independente c em vez da ordenada do vértice
 usou_h → Usou a abcissa do vértice em vez da ordenada
+usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
+usou_h_sobre_lambda → Calculou E = h/λ sem a velocidade da luz
+usou_metade_da_divisao_num_digital → Usou metade da divisão num instrumento digital
+usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
+usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
+usou_os_numeros_de_massa → Usou os números de massa em vez das massas isotópicas
+usou_so_a_energia_do_nivel_final → Usou só a energia do nível final
+usou_so_a_energia_do_nivel_inicial → Usou só a energia do nível inicial
+usou_so_o_isotopo_mais_abundante → Usou só a massa do isótopo mais abundante
+usou_um_quarto_da_divisao → Usou um quarto da menor divisão
+usou_uma_unidade_inteira → Usou uma unidade inteira como incerteza
+usou_z_em_vez_da_massa_atomica → Usou o número atómico em vez da massa atómica relativa
 variavel_como_amostra → Tomou a variável por amostra
 variavel_como_populacao → Tomou a variável por população
 vertice_angulo_reto → Deu o vértice do ângulo reto em vez do ponto pedido
