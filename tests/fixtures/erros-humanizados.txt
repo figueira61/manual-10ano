@@ -2,6 +2,7 @@ a_ao_quadrado → Multiplicou o desvio padrão por a ao quadrado
 achou_a_agua_linear → Tomou a molécula de água por linear
 achou_a_dispersao_mais_forte → Julgou a dispersão de London a interação mais forte
 achou_apolares_as_ligacoes → Julgou apolares ligações entre átomos diferentes
+achou_iguais_as_massas_volumicas → Julgou iguais as massas volúmicas de gases diferentes à mesma pressão e temperatura
 achou_polar_uma_molecula_de_atomos_iguais → Julgou polar uma molécula de dois átomos iguais
 achou_que_mais_pares_alongam_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais comprida
 achou_que_mais_pares_enfraquecem_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais fraca
@@ -125,10 +126,14 @@ delta_sem_sinal → Esqueceu o sinal de menos em Δ/4a
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
+deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
 deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_massa_molar → Deu a massa molar em vez da massa volúmica
+deu_a_percentagem → Deu a percentagem em vez da fração molar
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
+deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
@@ -141,6 +146,7 @@ deu_o_numero_de_neutroes → Deu o número de neutrões em vez do pedido
 deu_o_numero_de_pares → Deu o número de pares em vez do número de eletrões
 deu_o_numero_do_ultimo_nivel → Deu o número do último nível em vez dos eletrões de valência
 deu_o_restante → Deu o que sobra depois do desconto
+deu_o_volume_de_uma_mole → Deu o volume de uma mole em vez do volume pedido
 deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
 deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
 devolveu_a_soma → Somou as coordenadas de M e de A
@@ -161,9 +167,12 @@ dividiu_ao_contrario → Dividiu pela ordem trocada
 dividiu_em_vez_de_multiplicar → Dividiu em vez de multiplicar
 dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
+dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
+dividiu_pela_quantidade_do_outro_componente → Dividiu pela quantidade do outro componente em vez da total
 dividiu_pelo_indice → Dividiu pelo índice em vez de multiplicar
 dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
+dividiu_pelo_volume_molar → Dividiu pelo volume molar em vez de multiplicar
 dividiu_por_100 → Dividiu por 100 em vez de 1000
 dividiu_por_2 → Dividiu por 2 onde não devia
 dividiu_por_n → Dividiu por n em vez de por n − 1
@@ -199,6 +208,7 @@ esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
+esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da fórmula
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
@@ -320,6 +330,7 @@ multiplicou_em_vez_de_dividir → Multiplicou em vez de dividir
 multiplicou_massa_pela_massa_molar → Multiplicou a massa pela massa molar
 multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
 multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
+multiplicou_pelo_volume_molar → Multiplicou pelo volume molar em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
 multiplicou_por_5 → Multiplicou por 5 em vez de dividir
 nao_alterou → Esqueceu que o desvio padrão também é multiplicado
@@ -327,10 +338,12 @@ nao_arredondou → Não arredondou o resultado da calculadora
 nao_contou_o_zero_final → Não contou o zero final como algarismo significativo
 nao_contou_os_eletroes → Não contou os eletrões da configuração
 nao_contou_os_zeros_do_meio → Não contou os zeros do meio como algarismos significativos
+nao_converteu_cm3_em_dm3 → Não converteu cm³ em dm³
 nao_converteu_m_em_nm → Deu o comprimento de onda em metros em vez de nanómetros
 nao_converteu_massa_em_quantidade → Usou a massa sem a converter em quantidade de matéria
 nao_converteu_nm_em_m → Não converteu os nanómetros em metros
 nao_dividiu → Não fez a divisão final
+nao_dividiu_a_percentagem_por_100 → Não dividiu a percentagem por 100
 nao_dividiu_centro → Não dividiu por 2 a soma das coordenadas do centro
 nao_dividiu_coeficientes → Não dividiu os coeficientes por 2
 nao_dividiu_por_100 → Não dividiu as abundâncias por 100
@@ -340,6 +353,7 @@ nao_dividiu_por_3 → Não dividiu por 3
 nao_isolou_o_modulo → Não isolou o módulo
 nao_maximizou_os_desemparelhados → Não maximizou os eletrões desemparelhados (regra de Hund)
 nao_multiplicou_boletins → Contou cada tipo de boletim uma só vez
+nao_multiplicou_pela_fracao → Deu a quantidade de toda a mistura sem multiplicar pela fração
 nao_ordenou → Não ordenou os dados
 nao_passou_para_zero → Não passou tudo para o primeiro membro
 nao_reconheceu_o_estado_excitado → Não reconheceu um estado excitado
@@ -498,6 +512,7 @@ ss_depois_irs → Aplicou a Segurança Social depois do IRS
 subtracao_trocada → Fez a subtração pela ordem trocada
 subtraiu_a_carga_ao_numero_de_massa → Contou os eletrões a partir do número de massa
 subtraiu_ao_contrario → Fez a subtração pela ordem trocada
+subtraiu_as_massas_molares → Subtraiu as massas molares em vez de as dividir
 subtraiu_coordenadas → Subtraiu as coordenadas em vez de as somar
 subtraiu_em_vez_de_somar → Subtraiu em vez de somar
 subtraiu_o_vetor → Subtraiu o vetor ao ponto em vez de o somar
@@ -546,6 +561,7 @@ usou_a_formula_do_alcino → Usou a fórmula geral dos alcinos
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
 usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quociente
 usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
+usou_as_massas_em_vez_de_n → Usou as massas em vez das quantidades de matéria
 usou_c → Usou o termo independente c em vez da ordenada do vértice
 usou_h → Usou a abcissa do vértice em vez da ordenada
 usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
@@ -555,6 +571,7 @@ usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
+usou_o_volume_molar_com_a_massa → Usou o volume molar com a massa, sem calcular a quantidade de matéria
 usou_os_numeros_de_massa → Usou os números de massa em vez das massas isotópicas
 usou_so_a_energia_do_nivel_final → Usou só a energia do nível final
 usou_so_a_energia_do_nivel_inicial → Usou só a energia do nível inicial

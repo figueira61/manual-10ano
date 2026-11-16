@@ -978,4 +978,290 @@ globalThis.Manual = globalThis.Manual || {};
       return HCS.some(([n, f]) => n === p.dados.n && f === p.dados.fam);
     },
   });
+
+  // ================================================================ gases
+  const AS3 = ' Apresenta o resultado com três algarismos significativos.';
+  function valor3AS(rng, faixas) {
+    const [min, max, passo] = escolher(rng, faixas);
+    return A.entre(rng, min, max, passo);
+  }
+  // Gases (fórmula como objeto para Manual.quimica.massaMolar): [id, nome, { elemento: índice }].
+  const GASES = [
+    ['O_2', 'oxigénio', { O: 2 }], ['N_2', 'nitrogénio', { N: 2 }], ['CO_2', 'dióxido de carbono', { C: 1, O: 2 }],
+    ['CH_4', 'metano', { C: 1, H: 4 }], ['H_2', 'hidrogénio', { H: 2 }], ['Cl_2', 'cloro', { Cl: 2 }],
+    ['NH_3', 'amoníaco', { N: 1, H: 3 }], ['SO_2', 'dióxido de enxofre', { S: 1, O: 2 }], ['C_3H_8', 'propano', { C: 3, H: 8 }],
+  ];
+  const gasTex = (g) => '$\\mathrm{' + g[0] + '}$';
+  const dadosAr = (f) => Object.keys(f).map((s) => '$A_r(\\mathrm{' + s + '}) = ' + texF(el(s).massaAtomica, 2) + '$').join(', ');
+  const texM = (f) => Object.keys(f).map((s) => (f[s] === 1 ? '' : f[s] + ' \\times ') + texF(el(s).massaAtomica, 2)).join(' + ');
+  const temIndice = (f) => Object.keys(f).some((s) => f[s] > 1);
+  const massaSemIndices = (f) => Math.round(soma(Object.keys(f).map((s) => el(s).massaAtomica)) * 100) / 100;
+  // Massa molar somada átomo a átomo (verificação independente de Manual.quimica.massaMolar).
+  const massaAtomoAAtomo = (f) => {
+    let m = 0;
+    for (const s of Object.keys(f)) for (let i = 0; i < f[s]; i++) m += D().elementos[s].massaAtomica;
+    return Math.round(m * 100) / 100;
+  };
+  const VmTex = () => tex(K().Vm, 1);
+  const dadoVm = () => '$V_m = ' + VmTex() + '\\,\\mathrm{dm^3\\,mol^{-1}}$';
+  const passoMM = (g) => ({
+    passo: 'Calcular a massa molar', porque: 'Soma das massas atómicas relativas, cada uma multiplicada pelo seu índice.',
+    calculo: 'M(\\mathrm{' + g[0] + '}) = ' + A.cadeia(texM(g[2]), texF(Q().massaMolar(g[2]), 2)) + '\\,\\mathrm{g\\,mol^{-1}}',
+  });
+  // Fecha um item numérico (ou de escolha) com resposta arredondada a 3 a.s.; null se o arredondamento for ambíguo.
+  function fechar3(rng, formato, ex, exato, o) {
+    if (ambiguo(exato, 3)) return null;
+    const resposta = aAS(exato, 3);
+    const tol = A.tolMeiaUnidade(resposta, 3);
+    const grande = Math.abs(resposta) >= 1e4 || Math.abs(resposta) < 1e-3;
+    const erros = o.erros.map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) }));
+    return fechar(rng, formato, ex, Object.assign({ resposta, algarismos: 3, unidade: o.unidade, texto: o.texto, erros, verificacao: o.verificacao(resposta) },
+      grande ? { toleranciaRelativa: tol / resposta } : { tolerancia: tol }));
+  }
+
+  registar({
+    subtema: 'gases', tipo: 'volume-molar', nome: 'Volume, quantidade de matéria e massa de um gás em PTN',
+    formatos: ['numerica', 'escolha'], contextos: ['V-de-n', 'n-de-V', 'V-de-m'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const g = escolher(rng, GASES);
+        const Vm = K().Vm;
+        const G_ = gasTex(g);
+        const t = (u) => (v) => '$' + texAS(v, 3) + '\\,' + u + '$';
+        let ex, exato, erros, unidade, texto, verificacao;
+        if (contexto === 'V-de-n') {
+          const n = valor3AS(rng, [[0.1, 0.999, 0.001], [1, 9.99, 0.01]]);
+          exato = n * Vm;
+          unidade = 'dm³';
+          texto = t('\\mathrm{dm^3}');
+          ex = {
+            enunciado: 'Que volume ocupam $' + texAS(n, 3) + '\\,\\mathrm{mol}$ de ' + g[1] + ', ' + G_ + ', em condições PTN (' + dadoVm() + ')?' + AS3,
+            resolucao: [{ passo: 'Multiplicar a quantidade de matéria pelo volume molar', porque: 'Em PTN cada mole de qualquer gás ocupa $' + VmTex() + '\\,\\mathrm{dm^3}$: $V = n\\,V_m$.', calculo: 'V = ' + texAS(n, 3) + ' \\times ' + VmTex() + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{dm^3}' }],
+          };
+          erros = [
+            { codigo: 'dividiu_pelo_volume_molar', valor: n / Vm, explicacao: 'Dividiste $n$ pelo volume molar e obtiveste ' + txtAS(n / Vm, 3) + '; o volume é $V = n\\,V_m$ (mais moles, mais volume).' },
+            { codigo: 'deu_o_volume_de_uma_mole', valor: Vm, explicacao: VmTex().replace('{,}', ',') + ' dm³ é o volume de uma mole; para ' + texAS(n, 3).replace('{,}', ',') + ' mol multiplica-se: V = n × V_m.' },
+            { codigo: 'dividiu_o_volume_molar_por_n', valor: Vm / n, explicacao: 'Calculaste $V_m / n \\approx ' + texAS(Vm / n, 3) + '$; o volume é $V = n\\,V_m$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Voltar à quantidade de matéria', calculo: 'n = \\dfrac{' + texAS(r, 3) + '}{' + VmTex() + '} \\approx ' + texAS(r / Vm, 3) + '\\,\\mathrm{mol}', valor: aAS(Q().volumeGasPTN(n), 3) });
+          ex.dados = { gas: g[0], n, contexto };
+        } else if (contexto === 'n-de-V') {
+          const emCm3 = rng() < 0.5;
+          const Vd = emCm3 ? valor3AS(rng, [[100, 999, 1]]) : valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
+          const V = emCm3 ? Vd / 1000 : Vd;
+          exato = V / Vm;
+          unidade = 'mol';
+          texto = t('\\mathrm{mol}');
+          ex = {
+            enunciado: 'Que quantidade de ' + g[1] + ', ' + G_ + ', há em $' + texAS(Vd, 3) + '\\,\\mathrm{' + (emCm3 ? 'cm^3' : 'dm^3') + '}$ desse gás, em condições PTN (' + dadoVm() + ')?' + AS3,
+            resolucao: (emCm3 ? [{ passo: 'Passar o volume a decímetros cúbicos', porque: 'O volume molar está em $\\mathrm{dm^3\\,mol^{-1}}$ e $1\\,\\mathrm{dm^3} = 1000\\,\\mathrm{cm^3}$.', calculo: texAS(Vd, 3) + '\\,\\mathrm{cm^3} = ' + texAS(V, 3) + '\\,\\mathrm{dm^3}' }] : []).concat([
+              { passo: 'Dividir o volume pelo volume molar', porque: '$V = n\\,V_m$, logo $n = \\dfrac{V}{V_m}$.', calculo: 'n = \\dfrac{' + texAS(V, 3) + '}{' + VmTex() + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol}' },
+            ]),
+          };
+          erros = [
+            { codigo: 'multiplicou_pelo_volume_molar', valor: V * Vm, explicacao: 'Multiplicaste pelo volume molar e obtiveste ' + txtAS(V * Vm, 3) + '; a quantidade de matéria é $n = V / V_m$.' },
+            { codigo: 'dividiu_ao_contrario', valor: Vm / V, explicacao: 'Calculaste $V_m / V \\approx ' + texAS(Vm / V, 3) + '$; é ao contrário: $n = V / V_m$.' },
+          ];
+          if (emCm3) erros.push({ codigo: 'nao_converteu_cm3_em_dm3', valor: Vd / Vm, explicacao: 'Usaste o volume em $\\mathrm{cm^3}$ e obtiveste ' + txtAS(Vd / Vm, 3) + '; o volume molar está em $\\mathrm{dm^3\\,mol^{-1}}$, por isso primeiro $' + texAS(Vd, 3) + '\\,\\mathrm{cm^3} = ' + texAS(V, 3) + '\\,\\mathrm{dm^3}$.' });
+          verificacao = (r) => ({ passo: 'Voltar ao volume', calculo: 'V = ' + texAS(r, 3) + ' \\times ' + VmTex() + ' \\approx ' + texAS(r * Vm, 3) + '\\,\\mathrm{dm^3}', valor: aAS(Q().nDeVolumePTN(V), 3) });
+          ex.dados = { gas: g[0], V, contexto };
+        } else {
+          const m = valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
+          const M = Q().massaMolar(g[2]);
+          const n = m / M;
+          exato = n * Vm;
+          unidade = 'dm³';
+          texto = t('\\mathrm{dm^3}');
+          ex = {
+            enunciado: 'Que volume ocupam $' + texAS(m, 3) + '\\,\\mathrm{g}$ de ' + g[1] + ', ' + G_ + ', em condições PTN (' + dadosAr(g[2]) + ', ' + dadoVm() + ')?' + AS3,
+            resolucao: [
+              passoMM(g),
+              { passo: 'Converter a massa em quantidade de matéria', porque: 'O volume molar é o volume de uma mole: primeiro $n = \\dfrac{m}{M}$.', calculo: 'n = \\dfrac{' + texAS(m, 3) + '}{' + texF(M, 2) + '} \\approx ' + texAS(n, 4) + '\\,\\mathrm{mol}' },
+              { passo: 'Multiplicar pelo volume molar', porque: '$V = n\\,V_m$ (com $n$ ainda por arredondar).', calculo: 'V = ' + texAS(n, 4) + ' \\times ' + VmTex() + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{dm^3}' },
+            ],
+          };
+          erros = [
+            { codigo: 'usou_o_volume_molar_com_a_massa', valor: m * Vm, explicacao: 'Multiplicaste a massa pelo volume molar e obtiveste ' + txtAS(m * Vm, 3) + '; $V_m$ é o volume de uma mole, por isso primeiro converte-se a massa: $n = m / M$.' },
+            { codigo: 'deu_a_quantidade_de_materia', valor: n, explicacao: txtAS(n, 3) + ' é a quantidade de matéria (em mol); falta multiplicar pelo volume molar.' },
+            { codigo: 'dividiu_pelo_volume_molar', valor: n / Vm, explicacao: 'Dividiste $n$ pelo volume molar e obtiveste ' + txtAS(n / Vm, 3) + '; o volume é $V = n\\,V_m$.' },
+          ];
+          if (temIndice(g[2])) erros.push({ codigo: 'esqueceu_o_indice_na_massa_molar', valor: m / massaSemIndices(g[2]) * Vm, explicacao: 'Calculaste a massa molar sem os índices ($' + texF(massaSemIndices(g[2]), 2) + '\\,\\mathrm{g\\,mol^{-1}}$) e obtiveste ' + txtAS(m / massaSemIndices(g[2]) * Vm, 3) + '; $M(\\mathrm{' + g[0] + '}) = ' + texF(M, 2) + '\\,\\mathrm{g\\,mol^{-1}}$.' });
+          verificacao = (r) => ({ passo: 'Voltar à massa: V a dividir por V_m dá n, e n vezes M dá m', calculo: '\\dfrac{' + texAS(r, 3) + '}{' + VmTex() + '} \\times ' + texF(M, 2) + ' \\approx ' + texAS(r / Vm * M, 3) + '\\,\\mathrm{g}', valor: aAS(m / massaAtomoAAtomo(g[2]) * Vm, 3) });
+          ex.dados = { gas: g[0], m, contexto };
+        }
+        return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const g = GASES.find((x) => x[0] === p.dados.gas);
+      const Vm = K().Vm;
+      // Proporção direta com uma mole (22,4 dm³ por mol), sem Manual.quimica.
+      const v = p.dados.contexto === 'V-de-n' ? Vm * p.dados.n : p.dados.contexto === 'n-de-V' ? p.dados.V * (1 / Vm) : (p.dados.m / massaAtomoAAtomo(g[2])) * Vm;
+      const u = p.dados.contexto === 'n-de-V' ? '\\mathrm{mol}' : '\\mathrm{dm^3}';
+      return confere(p, aAS(v, 3), (x) => '$' + texAS(x, 3) + '\\,' + u + '$');
+    },
+    limites(p) {
+      return !!GASES.find((x) => x[0] === p.dados.gas);
+    },
+  });
+
+  registar({
+    subtema: 'gases', tipo: 'massa-volumica', nome: 'Massa volúmica de um gás em PTN',
+    formatos: ['numerica', 'escolha'], contextos: ['rho', 'comparar'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const g = escolher(rng, GASES);
+        const Vm = K().Vm;
+        const M = Q().massaMolar(g[2]);
+        const G_ = gasTex(g);
+        if (contexto === 'rho') {
+          const exato = Q().massaVolumicaGas(M);
+          const ex = {
+            enunciado: 'Calcula a massa volúmica do ' + g[1] + ', ' + G_ + ', em condições PTN (' + dadosAr(g[2]) + ', ' + dadoVm() + '), em $\\mathrm{g\\,dm^{-3}}$.' + AS3,
+            resolucao: [
+              passoMM(g),
+              { passo: 'Dividir a massa molar pelo volume molar', porque: 'Uma mole tem a massa $M$ e ocupa $V_m$: $\\rho = \\dfrac{m}{V} = \\dfrac{n\\,M}{n\\,V_m} = \\dfrac{M}{V_m}$.', calculo: '\\rho = \\dfrac{' + texF(M, 2) + '}{' + VmTex() + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{g\\,dm^{-3}}' },
+            ],
+            dados: { gas: g[0], contexto },
+          };
+          const erros = [
+            { codigo: 'dividiu_ao_contrario', valor: Vm / M, explicacao: 'Calculaste $V_m / M \\approx ' + texAS(Vm / M, 3) + '$; a massa volúmica é massa a dividir por volume: $\\rho = M / V_m$.' },
+            { codigo: 'multiplicou_pelo_volume_molar', valor: M * Vm, explicacao: 'Multiplicaste a massa molar pelo volume molar (' + txtAS(M * Vm, 3) + '); a massa volúmica é $\\rho = M / V_m$.' },
+            { codigo: 'deu_a_massa_molar', valor: M, explicacao: txtAS(M, 3) + ' é a massa molar (em $\\mathrm{g\\,mol^{-1}}$); a massa volúmica divide-a pelo volume molar.' },
+          ];
+          if (temIndice(g[2])) erros.push({ codigo: 'esqueceu_o_indice_na_massa_molar', valor: massaSemIndices(g[2]) / Vm, explicacao: 'Calculaste a massa molar sem os índices ($' + texF(massaSemIndices(g[2]), 2) + '\\,\\mathrm{g\\,mol^{-1}}$) e obtiveste ' + txtAS(massaSemIndices(g[2]) / Vm, 3) + '; $M(\\mathrm{' + g[0] + '}) = ' + texF(M, 2) + '\\,\\mathrm{g\\,mol^{-1}}$.' });
+          return fechar3(rng, formato, ex, exato, {
+            erros, unidade: 'g/dm³', texto: (v) => '$' + texAS(v, 3) + '\\,\\mathrm{g\\,dm^{-3}}$',
+            verificacao: (r) => ({ passo: 'Massa de 1 dm³: a fração de mole que cabe em 1 dm³ vezes M', calculo: '\\dfrac{1}{' + VmTex() + '}\\,\\mathrm{mol} \\times ' + texF(M, 2) + '\\,\\mathrm{g\\,mol^{-1}} \\approx ' + texAS(r, 3) + '\\,\\mathrm{g}', valor: aAS(massaAtomoAAtomo(g[2]) * (1 / Vm), 3) }),
+          });
+        }
+        // Comparar dois gases à mesma pressão e temperatura: ρ_A / ρ_B = M_A / M_B (o volume molar é o mesmo).
+        const maisLeves = GASES.filter((x) => Q().massaMolar(x[2]) < M - 1);
+        if (!maisLeves.length) return null;
+        const b = escolher(rng, maisLeves);
+        const Mb = Q().massaMolar(b[2]);
+        const exato = M / Mb;
+        const ex = {
+          enunciado: 'À mesma pressão e à mesma temperatura, quantas vezes é a massa volúmica do ' + g[1] + ', ' + G_ + ', maior do que a do ' + b[1] + ', ' + gasTex(b) + ' (' + dadosAr(Object.assign({}, g[2], b[2])) + ')?' + AS3,
+          resolucao: [
+            { passo: 'O volume molar é o mesmo para os dois gases', porque: 'Pela lei de Avogadro, à mesma pressão e temperatura uma mole de qualquer gás ocupa o mesmo volume $V_m$. Como $\\rho = \\dfrac{M}{V_m}$, a razão das massas volúmicas é a razão das massas molares.' },
+            { passo: 'Calcular as massas molares e dividir', porque: '$\\dfrac{\\rho_A}{\\rho_B} = \\dfrac{M_A / V_m}{M_B / V_m} = \\dfrac{M_A}{M_B}$.', calculo: '\\dfrac{' + texF(M, 2) + '}{' + texF(Mb, 2) + '} \\approx ' + texAS(exato, 3) },
+          ],
+          dados: { gas: g[0], outro: b[0], contexto },
+        };
+        const erros = [
+          { codigo: 'razao_invertida', valor: Mb / M, explicacao: 'Calculaste $M_B / M_A \\approx ' + texAS(Mb / M, 3) + '$; o gás mais denso é o de maior massa molar, por isso a razão pedida é $' + texF(M, 2) + ' / ' + texF(Mb, 2) + '$.' },
+          { codigo: 'achou_iguais_as_massas_volumicas', valor: 1, explicacao: 'Obtiveste 1: à mesma pressão e temperatura o volume molar é igual, mas a massa de cada mole não. As massas volúmicas estão na razão das massas molares.' },
+          { codigo: 'subtraiu_as_massas_molares', valor: M - Mb, explicacao: 'Subtraíste as massas molares ($' + texF(M, 2) + ' - ' + texF(Mb, 2) + '$) e obtiveste ' + txtAS(M - Mb, 3) + '; «quantas vezes» pede o quociente.' },
+        ];
+        return fechar3(rng, formato, ex, exato, {
+          erros, unidade: '', texto: (v) => '$' + texAS(v, 3) + '$',
+          verificacao: (r) => ({ passo: 'Calcular cada massa volúmica em PTN e dividir', calculo: '\\dfrac{' + texF(M, 2) + ' / ' + VmTex() + '}{' + texF(Mb, 2) + ' / ' + VmTex() + '} \\approx ' + texAS(r, 3), valor: aAS((M / K().Vm) / (Mb / K().Vm), 3) }),
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const g = GASES.find((x) => x[0] === p.dados.gas);
+      const Vm = K().Vm;
+      if (p.dados.contexto === 'comparar') {
+        const b = GASES.find((x) => x[0] === p.dados.outro);
+        return confere(p, aAS(massaAtomoAAtomo(g[2]) / massaAtomoAAtomo(b[2]), 3), (x) => '$' + texAS(x, 3) + '$');
+      }
+      return confere(p, aAS(massaAtomoAAtomo(g[2]) * (1 / Vm), 3), (x) => '$' + texAS(x, 3) + '\\,\\mathrm{g\\,dm^{-3}}$');
+    },
+    limites(p) {
+      return !!GASES.find((x) => x[0] === p.dados.gas);
+    },
+  });
+
+  registar({
+    subtema: 'gases', tipo: 'fracao-molar', nome: 'Fração molar numa mistura gasosa e composição do ar',
+    formatos: ['numerica', 'escolha'], contextos: ['quantidades', 'massas', 'ar'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const t3 = (v) => '$' + texAS(v, 3) + '$';
+        if (contexto === 'ar') {
+          const gas = escolher(rng, D().atmosfera.filter((x) => x.percentagem > 0.9));
+          const pct = gas.percentagem;
+          const V = valor3AS(rng, [[10, 99.9, 0.1], [100, 999, 1]]);
+          const Vm = K().Vm;
+          const x = pct / 100;
+          const exato = x * V / Vm;
+          const nomeG = gas.nome;
+          const F = '$\\mathrm{' + gas.gas.replace(/(\d)/, '_$1') + '}$';
+          const ex = {
+            enunciado: 'O ar seco tem ' + String(pct).replace('.', ',') + ' % (em volume) de ' + nomeG + ', ' + F + '. Que quantidade de ' + nomeG + ' há em $' + texAS(V, 3) + '\\,\\mathrm{dm^3}$ de ar seco, em condições PTN (' + dadoVm() + ')?' + AS3,
+            resolucao: [
+              { passo: 'Calcular a quantidade total de gás', porque: 'Em PTN, $n = \\dfrac{V}{V_m}$ para a mistura toda.', calculo: 'n_{\\text{total}} = \\dfrac{' + texAS(V, 3) + '}{' + VmTex() + '} \\approx ' + texAS(V / Vm, 4) + '\\,\\mathrm{mol}' },
+              { passo: 'Multiplicar pela fração molar', porque: 'Num gás, a percentagem em volume é igual à percentagem em quantidade de matéria: $x = ' + tex(x, 6) + '$.', calculo: 'n = ' + tex(x, 6) + ' \\times ' + texAS(V / Vm, 4) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol}' },
+            ],
+            dados: { gas: gas.gas, V, contexto },
+          };
+          const erros = [
+            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: pct * V / Vm, explicacao: 'Usaste ' + String(pct).replace('.', ',') + ' em vez de ' + String(x).replace('.', ',') + ' e obtiveste ' + t3(pct * V / Vm) + '; a percentagem divide-se por 100 para dar a fração molar.' },
+            { codigo: 'nao_multiplicou_pela_fracao', valor: V / Vm, explicacao: t3(V / Vm) + ' é a quantidade de todo o ar; o ' + nomeG + ' é só ' + String(pct).replace('.', ',') + ' % dessa quantidade.' },
+            { codigo: 'multiplicou_pelo_volume_molar', valor: x * V * Vm, explicacao: 'Multiplicaste pelo volume molar e obtiveste ' + t3(x * V * Vm) + '; a quantidade de matéria é $n = V / V_m$.' },
+          ];
+          return fechar3(rng, formato, ex, exato, {
+            erros, unidade: 'mol', texto: (v) => '$' + texAS(v, 3) + '\\,\\mathrm{mol}$',
+            verificacao: (r) => ({ passo: 'Calcular primeiro o volume do gás no ar e só depois a quantidade', calculo: 'V = ' + tex(x, 6) + ' \\times ' + texAS(V, 3) + ' \\approx ' + texAS(x * V, 4) + '\\,\\mathrm{dm^3};\\quad n = \\dfrac{' + texAS(x * V, 4) + '}{' + VmTex() + '} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mol}', valor: aAS(Q().nDeVolumePTN(x * V), 3) }),
+          });
+        }
+        const [a, b] = baralhar(rng, GASES.filter((g) => g[0] !== 'C_3H_8')).slice(0, 2);
+        let na, nb, enunciado, resolucao, erros, dados;
+        if (contexto === 'quantidades') {
+          na = valor3AS(rng, [[0.1, 0.999, 0.001], [1, 9.99, 0.01]]);
+          nb = valor3AS(rng, [[0.1, 0.999, 0.001], [1, 9.99, 0.01]]);
+          enunciado = 'Uma mistura gasosa tem $' + texAS(na, 3) + '\\,\\mathrm{mol}$ de ' + a[1] + ', ' + gasTex(a) + ', e $' + texAS(nb, 3) + '\\,\\mathrm{mol}$ de ' + b[1] + ', ' + gasTex(b) + '. Calcula a fração molar do ' + a[1] + '.' + AS3;
+          resolucao = [];
+          erros = [];
+          dados = { a: a[0], b: b[0], na, nb, contexto };
+        } else {
+          const ma = valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
+          const mb = valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
+          const Ma = Q().massaMolar(a[2]);
+          const Mb = Q().massaMolar(b[2]);
+          na = ma / Ma;
+          nb = mb / Mb;
+          enunciado = 'Uma mistura gasosa tem $' + texAS(ma, 3) + '\\,\\mathrm{g}$ de ' + a[1] + ', ' + gasTex(a) + ', e $' + texAS(mb, 3) + '\\,\\mathrm{g}$ de ' + b[1] + ', ' + gasTex(b) + ' (' + dadosAr(Object.assign({}, a[2], b[2])) + '). Calcula a fração molar do ' + a[1] + '.' + AS3;
+          resolucao = [
+            { passo: 'Converter as massas em quantidades de matéria', porque: 'A fração molar compara quantidades de matéria, não massas: $n = \\dfrac{m}{M}$, com $M(\\mathrm{' + a[0] + '}) = ' + texF(Ma, 2) + '$ e $M(\\mathrm{' + b[0] + '}) = ' + texF(Mb, 2) + '\\,\\mathrm{g\\,mol^{-1}}$.', calculo: 'n_A = \\dfrac{' + texAS(ma, 3) + '}{' + texF(Ma, 2) + '} \\approx ' + texAS(na, 4) + '\\,\\mathrm{mol};\\quad n_B = \\dfrac{' + texAS(mb, 3) + '}{' + texF(Mb, 2) + '} \\approx ' + texAS(nb, 4) + '\\,\\mathrm{mol}', bloco: true },
+          ];
+          erros = [{ codigo: 'usou_as_massas_em_vez_de_n', valor: ma / (ma + mb), explicacao: 'Dividiste as massas ($' + texAS(ma, 3) + ' / ' + texAS(ma + mb, 4) + ' \\approx ' + texAS(ma / (ma + mb), 3) + '$); a fração molar usa quantidades de matéria, e as massas molares dos dois gases são diferentes.' }];
+          dados = { a: a[0], b: b[0], ma, mb, contexto };
+        }
+        const exato = na / (na + nb);
+        const nT = (v) => texAS(v, contexto === 'massas' ? 4 : 3);
+        resolucao.push({ passo: 'Dividir pela quantidade total', porque: 'A fração molar de A é $x_A = \\dfrac{n_A}{n_{\\text{total}}}$ (não tem unidades; as frações somam 1).', calculo: 'x = \\dfrac{' + nT(na) + '}{' + nT(na) + ' + ' + nT(nb) + '} \\approx ' + texAS(exato, 3) });
+        erros.push(
+          { codigo: 'dividiu_pela_quantidade_do_outro_componente', valor: na / nb, explicacao: 'Dividiste pela quantidade do outro gás ($' + nT(na) + ' / ' + nT(nb) + ' \\approx ' + texAS(na / nb, 3) + '$); a fração molar divide pela quantidade total.' },
+          { codigo: 'deu_a_fracao_do_outro_componente', valor: nb / (na + nb), explicacao: txtAS(nb / (na + nb), 3) + ' é a fração molar do outro gás; pedia-se a do ' + a[1] + '.' },
+        );
+        erros.push({ codigo: 'deu_a_percentagem', valor: 100 * exato, explicacao: txtAS(100 * exato, 3) + ' é a percentagem em quantidade de matéria; a fração molar é um número entre 0 e 1 (sem multiplicar por 100).' });
+        return fechar3(rng, formato, { enunciado, resolucao, dados }, exato, {
+          erros, unidade: '', texto: (v) => '$' + texAS(v, 3) + '$',
+          verificacao: (r) => ({ passo: 'Confirmar que as duas frações somam 1', calculo: texAS(r, 3) + ' + ' + texAS(nb / (na + nb), 3) + ' \\approx 1', valor: aAS(1 - nb / (na + nb), 3) }),
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      let v;
+      if (d.contexto === 'ar') {
+        const pct = D().atmosfera.find((x) => x.gas === d.gas).percentagem;
+        v = (d.V * pct / 100) / K().Vm;
+      } else {
+        const ga = GASES.find((x) => x[0] === d.a);
+        const gb = GASES.find((x) => x[0] === d.b);
+        const na = d.contexto === 'quantidades' ? d.na : d.ma / massaAtomoAAtomo(ga[2]);
+        const nb = d.contexto === 'quantidades' ? d.nb : d.mb / massaAtomoAAtomo(gb[2]);
+        v = 1 / (1 + nb / na);
+      }
+      const u = d.contexto === 'ar' ? '\\,\\mathrm{mol}' : '';
+      return confere(p, aAS(v, 3), (x) => '$' + texAS(x, 3) + u + '$');
+    },
+    limites(p) {
+      return p.dados.contexto === 'ar' ? D().atmosfera.some((x) => x.gas === p.dados.gas) : p.dados.a !== p.dados.b;
+    },
+  });
 })();

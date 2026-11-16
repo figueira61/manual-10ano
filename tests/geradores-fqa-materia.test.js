@@ -14,8 +14,9 @@ const IDS = [
   'ligacao-tipo', 'ligacao-lewis', 'ligacao-parametros',
   'geometria-forma', 'geometria-polaridade', 'geometria-intermoleculares',
   'carbono-hidrocarboneto', 'carbono-grupo-funcional', 'carbono-nome',
+  'gases-volume-molar', 'gases-massa-volumica', 'gases-fracao-molar',
 ];
-const SUBTEMAS = ['ligacao', 'geometria', 'carbono'];
+const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -68,6 +69,25 @@ test('snapshots da semente 1', () => {
   assert.ok(p.figuraEnunciado && p.figuraEnunciado.opcoes.modo === 'estrutura');
   p = g('carbono-nome');
   assert.ok(/^(Etano|Propano|Butano|Eteno|Propeno|Etino|Propino)$/.test(certa(p)));
+  p = g('gases-volume-molar');
+  assert.match(p.enunciado, /0\{,\}574\\,\\mathrm\{mol\}\$ de cloro/);
+  assert.equal(p.resposta, 12.9); // 0,574 × 22,4 = 12,86
+  assert.equal(p.algarismos, 3);
+  p = g('gases-massa-volumica');
+  assert.equal(p.resposta, 3.17); // 70,90 / 22,4 = 3,165
+  p = g('gases-fracao-molar');
+  assert.equal(p.resposta, 0.487); // 4,83 / (4,83 + 5,09)
+});
+
+test('gases: V_m só em PTN e com o valor dos dados; «V_m com a massa» e cm³ não convertidos são erros típicos', () => {
+  const Vm = D.constantes.Vm;
+  const codigos = new Set();
+  for (const p of itens('gases-volume-molar', 80)) {
+    if (/V_m/.test(p.enunciado)) assert.match(p.enunciado, /PTN/);
+    assert.ok(p.enunciado.includes('V_m = ' + String(Vm).replace('.', '{,}')));
+    p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+  }
+  assert.ok(codigos.has('usou_o_volume_molar_com_a_massa') && codigos.has('nao_converteu_cm3_em_dm3'));
 });
 
 test('grupo funcional: a certa é a do catálogo e o enunciado não revela o nome', () => {

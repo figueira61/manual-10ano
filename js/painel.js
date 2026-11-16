@@ -606,6 +606,23 @@ globalThis.Manual = globalThis.Manual || {};
     usou_a_formula_do_alcino: 'Usou a fórmula geral dos alcinos',
     viu_so_o_carbonilo: 'Viu só o C=O e não o grupo carboxilo',
     viu_so_o_hidroxilo: 'Viu só o −OH e não o grupo carboxilo',
+    achou_iguais_as_massas_volumicas: 'Julgou iguais as massas volúmicas de gases diferentes à mesma pressão e temperatura',
+    deu_a_fracao_do_outro_componente: 'Deu a fração molar do outro componente',
+    deu_a_massa_molar: 'Deu a massa molar em vez da massa volúmica',
+    deu_a_percentagem: 'Deu a percentagem em vez da fração molar',
+    deu_a_quantidade_de_materia: 'Deu a quantidade de matéria em vez do volume',
+    deu_o_volume_de_uma_mole: 'Deu o volume de uma mole em vez do volume pedido',
+    dividiu_o_volume_molar_por_n: 'Dividiu o volume molar pela quantidade de matéria',
+    dividiu_pela_quantidade_do_outro_componente: 'Dividiu pela quantidade do outro componente em vez da total',
+    dividiu_pelo_volume_molar: 'Dividiu pelo volume molar em vez de multiplicar',
+    esqueceu_o_indice_na_massa_molar: 'Calculou a massa molar sem os índices da fórmula',
+    multiplicou_pelo_volume_molar: 'Multiplicou pelo volume molar em vez de dividir',
+    nao_converteu_cm3_em_dm3: 'Não converteu cm³ em dm³',
+    nao_dividiu_a_percentagem_por_100: 'Não dividiu a percentagem por 100',
+    nao_multiplicou_pela_fracao: 'Deu a quantidade de toda a mistura sem multiplicar pela fração',
+    subtraiu_as_massas_molares: 'Subtraiu as massas molares em vez de as dividir',
+    usou_as_massas_em_vez_de_n: 'Usou as massas em vez das quantidades de matéria',
+    usou_o_volume_molar_com_a_massa: 'Usou o volume molar com a massa, sem calcular a quantidade de matéria',
   };
 
   function humanizarErro(codigo) {
