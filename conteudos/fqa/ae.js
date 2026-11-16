@@ -61,6 +61,5 @@ Manual.ae.fqa = [
   'Pesquisar, numa perspetiva intra e interdisciplinar, os papéis do ozono na troposfera e na estratosfera, interpretando a formação e destruição do ozono estratosférico e comunicando as suas conclusões.',
   'Relacionar a elevada reatividade dos radicais livres com a particularidade de serem espécies que possuem eletrões desemparelhados e explicitar alguns dos seus efeitos na atmosfera e sobre os seres vivos, por exemplo, o envelhecimento.',
   // revisão 2026
-  'Interpretar os gráficos de energia em função da distância internuclear de moléculas diatómicas, verificando que na formação de uma ligação há libertação de energia e na quebra há absorção.',
   'Reconhecer a importância química dos compostos de carbono, a variabilidade das suas estruturas moleculares e a multiplicidade das ligações estabelecidas.',
 ];

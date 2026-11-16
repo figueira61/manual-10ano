@@ -57,7 +57,6 @@ globalThis.Manual = globalThis.Manual || {};
         ae: [
           'Compreender que a formação de ligações químicas é um processo que aumenta a estabilidade de um sistema de dois ou mais átomos, interpretando-a em termos de forças de atração e de repulsão no sistema núcleos-eletrões.',
           'Interpretar os gráficos de energia em função da distância internuclear de moléculas diatómicas.',
-          'Interpretar os gráficos de energia em função da distância internuclear de moléculas diatómicas, verificando que na formação de uma ligação há libertação de energia e na quebra há absorção.',
           'Distinguir, recorrendo a exemplos, os vários tipos de ligação química: covalente, iónica e metálica.',
           'Explicar a ligação covalente com base no modelo de Lewis.',
           'Representar, com base na regra do octeto, as fórmulas de estrutura de Lewis de algumas moléculas, interpretando a ocorrência de ligações covalentes simples, duplas ou triplas.',
@@ -461,7 +460,7 @@ globalThis.Manual = globalThis.Manual || {};
               ['1', 'met-', 'metano, $\\mathrm{CH_4}$', '—', '—'],
               ['2', 'et-', 'etano, $\\mathrm{C_2H_6}$', 'eteno, $\\mathrm{C_2H_4}$', 'etino, $\\mathrm{C_2H_2}$'],
               ['3', 'prop-', 'propano, $\\mathrm{C_3H_8}$', 'propeno, $\\mathrm{C_3H_6}$', 'propino, $\\mathrm{C_3H_4}$'],
-              ['4', 'but-', 'butano, $\\mathrm{C_4H_{10}}$', 'buteno, $\\mathrm{C_4H_8}$', 'butino, $\\mathrm{C_4H_6}$'],
+              ['4', 'but-', 'butano, $\\mathrm{C_4H_{10}}$', 'buteno (but-1-eno, but-2-eno), $\\mathrm{C_4H_8}$', 'butino (but-1-ino, but-2-ino), $\\mathrm{C_4H_6}$'],
             ],
           },
           {
@@ -560,10 +559,11 @@ globalThis.Manual = globalThis.Manual || {};
           {
             id: 'carbono-q03',
             tipo: 'escolha',
-            enunciado: 'A propanona, $\\mathrm{CH_3{-}CO{-}CH_3}$, tem um grupo C=O ligado a dois átomos de carbono. A que família pertence?',
+            enunciado: 'A que família de compostos pertence a molécula representada pela fórmula de estrutura?',
+            figuraEnunciado: { id: 'fqa-molecula', opcoes: { molecula: 'CH3COCH3', modo: 'estrutura' } },
             opcoes: ['Cetona', 'Aldeído', 'Ácido carboxílico', 'Álcool'],
             correta: 0,
-            explicacao: 'O carbonilo (C=O) entre dois carbonos é o grupo das cetonas; daí a terminação -ona.',
+            explicacao: 'O grupo carbonilo (C=O) está ligado a dois átomos de carbono: é uma cetona, a ' + mol('CH3COCH3').nome + ', $' + mol('CH3COCH3').formula + '$.',
             errosTipicos: [
               { codigo: 'confundiu_aldeido_com_cetona', opcao: 1, explicacao: 'No aldeído o C=O está na ponta da cadeia, com o carbono ligado a um H (−CHO). Aqui está entre dois carbonos: é uma cetona.' },
               { codigo: 'acido_sem_oh', opcao: 2, explicacao: 'O ácido carboxílico tem C=O **e** −OH no mesmo carbono (−COOH). Na propanona não há −OH.' },
@@ -573,12 +573,12 @@ globalThis.Manual = globalThis.Manual || {};
           {
             id: 'carbono-q04',
             tipo: 'escolha',
-            enunciado: 'Os aminoácidos, que formam as proteínas, têm na sua estrutura os grupos funcionais:',
+            enunciado: 'Que grupos funcionais existem na glicina, $\\mathrm{NH_2CH_2COOH}$?',
             opcoes: ['amina e ácido carboxílico', 'álcool e aldeído', 'cetona e amina', 'só amina'],
             correta: 0,
-            explicacao: 'O nome diz tudo: amino (grupo −NH₂, amina) e ácido (grupo −COOH, ácido carboxílico).',
+            explicacao: 'A glicina tem um grupo $\\mathrm{-NH_2}$ ligado a um carbono (amina) e um grupo $\\mathrm{-COOH}$ (ácido carboxílico). É um aminoácido: todos os aminoácidos têm estes dois grupos.',
             errosTipicos: [
-              { codigo: 'esqueceu_o_grupo_acido', opcao: 3, explicacao: 'Têm o grupo amina, mas também um grupo ácido carboxílico, −COOH: são amino**ácidos**.' },
+              { codigo: 'esqueceu_o_grupo_acido', opcao: 3, explicacao: 'Tem o grupo amina, $\\mathrm{-NH_2}$, mas também o grupo $\\mathrm{-COOH}$ (C=O e −OH no mesmo carbono): ácido carboxílico.' },
             ],
           },
           {
@@ -1207,6 +1207,12 @@ globalThis.Manual = globalThis.Manual || {};
             verificar: () => Math.round(Q.lambdaParaQuebrarLigacao(E('O=O')) * 1e9),
           },
           {
+            tipo: 'esquema',
+            id: 'fqa-espectro',
+            opcoes: { lambda: Q.lambdaParaQuebrarLigacao(E('O=O')) },
+            legenda: 'O comprimento de onda de ' + Math.round(Q.lambdaParaQuebrarLigacao(E('O=O')) * 1e9) + ' nm está no ultravioleta. Desliza para comprimentos de onda menores: a energia do fotão aumenta e continua a chegar para quebrar a ligação O=O; para comprimentos de onda maiores já não chega.',
+          },
+          {
             tipo: 'texto',
             texto: '**O cloreto de prata e a luz (atividade laboratorial).** O cloreto de prata, $\\mathrm{AgCl}$, é um sólido branco. Exposto à luz, decompõe-se e escurece (fica cinzento-violeta), porque se forma prata metálica finamente dividida:',
           },
@@ -1237,8 +1243,14 @@ globalThis.Manual = globalThis.Manual || {};
             verificar: () => Q.configuracao(17).desemparelhados,
           },
           {
+            tipo: 'esquema',
+            id: 'fqa-molecula',
+            opcoes: { molecula: 'O3', modo: 'lewis', mostrarInfo: true },
+            legenda: 'Estrutura de Lewis do ozono, O₃: uma das duas estruturas de ressonância (a ligação dupla pode estar de qualquer dos lados). A molécula é ' + mol('O3').geometria + ', com cerca de ' + angulo('O3') + '.',
+          },
+          {
             tipo: 'texto',
-            texto: '**O ozono na estratosfera** (entre cerca de 15 e 50 km de altitude) forma a **camada de ozono**, que absorve a maior parte da radiação ultravioleta do Sol e protege os seres vivos (cancro de pele, cataratas, danos nas plantas). Forma-se e decompõe-se continuamente:',
+            texto: '**O ozono na estratosfera** (entre cerca de 15 e 50 km de altitude) forma a **camada de ozono**, que absorve a radiação UV mais energética do Sol (a UV-C e a maior parte da UV-B) e protege os seres vivos (cancro de pele, cataratas, danos nas plantas). Forma-se e decompõe-se continuamente:',
           },
           {
             tipo: 'quadro',
@@ -1269,7 +1281,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: 'Como o $\\mathrm{Cl}^{\\bullet}$ volta a formar-se no fim de cada ciclo (atua como catalisador), um só átomo de cloro destrói milhares de moléculas de ozono. Por isso o Protocolo de Montreal (1987) proibiu os CFC; os seus substitutos não destroem o ozono, mas alguns são gases com efeito de estufa.',
+            texto: 'Como o $\\mathrm{Cl}^{\\bullet}$ volta a formar-se no fim de cada ciclo (atua como catalisador), um só átomo de cloro destrói milhares de moléculas de ozono. Por isso o Protocolo de Montreal (1987) levou à eliminação progressiva dos CFC. Os substitutos atuais (HFC) não destroem o ozono, mas são gases com efeito de estufa potentes; os HCFC, usados na transição, ainda o destroem, embora menos.',
           },
           {
             tipo: 'texto',
