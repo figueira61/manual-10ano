@@ -308,3 +308,25 @@ test('disciplina não disponível sem ficheiros de tema (fqa): nada a validar; c
   c.temas.fqa = [{ id: 'elementos', subtemas: [{ id: 'atomo', titulo: 'A' }] }];
   assert.ok(validar(c).some((e) => /^fqa\/elementos\/atomo/.test(e)));
 });
+
+test('disciplina não disponível com parte dos temas: os temas sem ficheiro e a falta de geradores não são erro', () => {
+  const c = base();
+  const fqa = { id: 'fqa', nome: 'FQ', disponivel: false, temas: [
+    { id: 'elementos', titulo: 'E', subtemas: [{ id: 'atomo', titulo: 'A', palavras: [] }] },
+    { id: 'materia', titulo: 'M', subtemas: [{ id: 'ligacao', titulo: 'L', palavras: [] }] },
+  ] };
+  c.indice.push(fqa);
+  const s = JSON.parse(JSON.stringify(sub(c)));
+  s.id = 'atomo';
+  s.quiz.forEach((q, i) => { q.id = 'atomo-q0' + (i + 1); });
+  c.temas.fqa = [{ id: 'elementos', subtemas: [s] }];
+  c.ae.fqa = ['AE1'];
+  c.geradores = { mat: [], fqa: [] };
+  assert.deepEqual(validar(c).filter((e) => e.startsWith('fqa')), []);
+  // com geradores de fqa já registados, o mínimo volta a valer
+  c.geradores.fqa = [{ id: 'g1', disciplina: 'fqa', subtema: 'atomo' }];
+  assert.ok(validar(c).some((e) => /^fqa\/elementos\/atomo: .*1 geradores/.test(e)));
+  // disponível: o tema sem ficheiro volta a ser erro
+  fqa.disponivel = true;
+  assert.ok(validar(c).some((e) => /^fqa\/materia: tema do índice sem ficheiro/.test(e)));
+});

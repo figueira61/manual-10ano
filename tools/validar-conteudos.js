@@ -153,7 +153,8 @@ function validar({ indice, temas, ae, existeFicheiro, geradores }) {
     for (const tIdx of disc.temas) {
       const tema = ficheiros.find((x) => x.id === tIdx.id);
       if (!tema) {
-        erros.push(d + '/' + tIdx.id + ': tema do índice sem ficheiro de tema');
+        // Disciplina ainda não disponível: os temas entram um a um (fqa: elementos antes de materia).
+        if (disc.disponivel) erros.push(d + '/' + tIdx.id + ': tema do índice sem ficheiro de tema');
         continue;
       }
       const idsSub = new Set();
@@ -170,7 +171,9 @@ function validar({ indice, temas, ae, existeFicheiro, geradores }) {
       }
       for (const s of tema.subtemas) {
         validarSubtema(s, d, tema.id, existeFicheiro, erros, idsPerguntas);
-        if (geradores && Array.isArray(geradores[d])) validarGeradores(s, d, tema.id, geradores[d], erros);
+        // Disciplina ainda não disponível e ainda sem geradores (conteúdo antes dos geradores): não se exige o mínimo.
+        const comGeradores = geradores && Array.isArray(geradores[d]) && (disc.disponivel || geradores[d].length > 0);
+        if (comGeradores) validarGeradores(s, d, tema.id, geradores[d], erros);
         (s.ae || []).forEach((a) => cobertos.add(a));
       }
     }

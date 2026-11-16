@@ -1,5 +1,7 @@
 // Ficheiro gerado por tools/gerar-lista-cache.js (npm run cache). Não editar.
 self.LISTA_CACHE = [
+  "conteudos/fqa/ae.js",
+  "conteudos/fqa/elementos.js",
   "conteudos/indice.js",
   "conteudos/mat-a/ae.js",
   "conteudos/mat-a/cidadania.js",
@@ -110,4 +112,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '4ecf8133b8';
+self.VERSAO_CACHE = '0cd4cfdc4a';
