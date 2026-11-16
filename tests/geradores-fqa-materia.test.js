@@ -15,8 +15,9 @@ const IDS = [
   'geometria-forma', 'geometria-polaridade', 'geometria-intermoleculares',
   'carbono-hidrocarboneto', 'carbono-grupo-funcional', 'carbono-nome',
   'gases-volume-molar', 'gases-massa-volumica', 'gases-fracao-molar',
+  'solucoes-concentracao', 'solucoes-diluicao', 'solucoes-composicao', 'solucoes-material',
 ];
-const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases'];
+const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases', 'solucoes'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -77,6 +78,39 @@ test('snapshots da semente 1', () => {
   assert.equal(p.resposta, 3.17); // 70,90 / 22,4 = 3,165
   p = g('gases-fracao-molar');
   assert.equal(p.resposta, 0.487); // 4,83 / (4,83 + 5,09)
+  p = g('solucoes-concentracao');
+  assert.match(p.enunciado, /2\{,\}39\\,\\mathrm\{g\}\$ de cloreto de sódio/);
+  assert.equal(p.resposta, 0.409); // 2,39 / 58,44 / 0,1000
+  p = g('solucoes-diluicao');
+  assert.equal(p.resposta, 5); // 0,0394 × 250,0 / 1,97 = 5,00 mL
+  p = g('solucoes-composicao');
+  assert.equal(p.resposta, 1.16); // 5,74 / (5,74 + 488) × 100
+  p = g('solucoes-material');
+  assert.deepEqual(p.figuraEnunciado, { id: 'fig-material-solucao', opcoes: { modo: 'exercicio', destacar: 'balao' } });
+  assert.equal(certa(p), 'Balão volumétrico'); // peça 6 da figura
+});
+
+test('soluções: c_iV_f = c_fV_i, mL não convertidos e massa do solvente aparecem como erros típicos', () => {
+  const codigos = new Set();
+  for (const id of ['solucoes-concentracao', 'solucoes-diluicao', 'solucoes-composicao']) for (const p of itens(id, 40)) p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+  for (const c of ['trocou_os_volumes_na_diluicao', 'nao_converteu_ml_em_dm3', 'usou_a_massa_do_solvente', 'usou_10_elevado_a_3_no_ppm']) assert.ok(codigos.has(c), c);
+});
+
+test('figura do material em modo exercício: a ordem das peças é a da figura e o enunciado não revela a resposta', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const src = fs.readFileSync(path.join(__dirname, '..', 'esquemas', 'fqa', 'fig-material-solucao.js'), 'utf8');
+  const ordem = [...src.matchAll(/\{ id: '([a-z-]+)', rotulo: '([^']+)'/g)].map((m) => [m[1], m[2]]);
+  assert.equal(ordem.length, 9);
+  const vistos = new Set();
+  for (const p of itens('solucoes-material', 80)) {
+    const n = Number(p.enunciado.match(/número (\d)/)[1]);
+    assert.equal(p.figuraEnunciado.opcoes.destacar, ordem[n - 1][0]);
+    assert.ok(!p.enunciado.toLowerCase().includes(ordem[n - 1][1].toLowerCase()), p.enunciado);
+    if (p.contexto === 'nome') assert.equal(certa(p), ordem[n - 1][1]);
+    vistos.add(p.figuraEnunciado.opcoes.destacar);
+  }
+  assert.equal(vistos.size, 9);
 });
 
 test('gases: V_m só em PTN e com o valor dos dados; «V_m com a massa» e cm³ não convertidos são erros típicos', () => {

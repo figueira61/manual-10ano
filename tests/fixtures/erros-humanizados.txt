@@ -40,6 +40,8 @@ assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
 assumiu_divergencia → Assumiu que os dois métodos dão vencedores diferentes
 atomos_iguais_logo_apolar → Julgou apolar a molécula só por ter átomos exteriores iguais
 baricentro → Deu o baricentro em vez do circuncentro
+calculou_a_concentracao_molar → Calculou a concentração molar em vez da mássica
+calculou_a_percentagem → Calculou a percentagem em vez de partes por milhão
 calculou_gm → Calculou GM em vez da mediana
 calculou_h → Parou no ortocentro H
 calculou_imagem → Calculou a imagem em vez do objeto
@@ -63,12 +65,21 @@ confundiu_alcool_com_aldeido → Confundiu álcool com aldeído
 confundiu_aldeido_com_cetona → Confundiu aldeído com cetona
 confundiu_amino_com_hidroxilo → Confundiu o grupo amino com o hidroxilo
 confundiu_as_series → Confundiu as séries de riscas do hidrogénio
+confundiu_com_a_balanca → Confundiu a peça assinalada com a balança
+confundiu_com_a_espatula → Confundiu a peça assinalada com a espátula
 confundiu_com_a_nuvem_eletronica → Confundiu a parte assinalada com a nuvem eletrónica
+confundiu_com_a_pipeta → Confundiu a peça assinalada com a pipeta
+confundiu_com_a_pompete → Confundiu a peça assinalada com a pompete
 confundiu_com_baricentro → Deu o baricentro em vez do centro dos nove pontos
+confundiu_com_o_balao_volumetrico → Confundiu a peça assinalada com o balão volumétrico
 confundiu_com_o_eletrao → Confundiu a parte assinalada com o eletrão
+confundiu_com_o_esguicho → Confundiu a peça assinalada com o esguicho
+confundiu_com_o_funil → Confundiu a peça assinalada com o funil
+confundiu_com_o_gobele → Confundiu a peça assinalada com o gobelé
 confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
 confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
+confundiu_com_o_vidro_de_relogio → Confundiu a peça assinalada com o vidro de relógio
 confundiu_hidroxilo_com_hidroxido → Confundiu o grupo −OH de um álcool com o ião hidróxido
 confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
 confundiu_intramolecular_com_intermolecular → Confundiu ligações dentro da molécula com interações entre moléculas
@@ -132,11 +143,13 @@ deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fo
 deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_massa_molar → Deu a massa molar em vez da massa volúmica
 deu_a_percentagem → Deu a percentagem em vez da fração molar
+deu_a_percentagem_do_solvente → Deu a percentagem do solvente em vez da do soluto
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
+deu_n_em_vez_da_massa → Deu a quantidade de matéria em vez da massa
 deu_o_contradominio → Deu o contradomínio em vez do domínio
 deu_o_dominio → Deu o domínio em vez do contradomínio
 deu_o_juro → Deu o juro em vez do capital
@@ -146,6 +159,7 @@ deu_o_numero_de_neutroes → Deu o número de neutrões em vez do pedido
 deu_o_numero_de_pares → Deu o número de pares em vez do número de eletrões
 deu_o_numero_do_ultimo_nivel → Deu o número do último nível em vez dos eletrões de valência
 deu_o_restante → Deu o que sobra depois do desconto
+deu_o_volume_de_agua_a_juntar → Deu o volume de água a juntar em vez do volume a pipetar
 deu_o_volume_de_uma_mole → Deu o volume de uma mole em vez do volume pedido
 deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
 deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
@@ -169,6 +183,7 @@ dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
 dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
+dividiu_pela_massa_molar → Dividiu pela massa molar em vez de multiplicar
 dividiu_pela_quantidade_do_outro_componente → Dividiu pela quantidade do outro componente em vez da total
 dividiu_pelo_indice → Dividiu pelo índice em vez de multiplicar
 dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
@@ -268,6 +283,7 @@ intervalo_entre_extremos → Deu o intervalo entre os extremos em vez do conjunt
 inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
 inverteu_o_efeito_da_ordem_de_ligacao → Inverteu o efeito da ordem de ligação na energia e no comprimento
+inverteu_o_fator_de_diluicao → Inverteu o fator de diluição
 inverteu_razao → Inverteu a razão
 ionica_entre_nao_metais → Julgou iónica a ligação entre não metais
 irs_depois_ss → Aplicou o IRS depois de descontar a Segurança Social
@@ -320,6 +336,7 @@ metade_do_raio_inscrito → Deu metade do raio inscrito
 metade_nao_chega → Julgou que metade dos votos dá maioria absoluta
 metalica_por_ter_um_metal → Julgou metálica a ligação por haver um metal
 metodo_das_metades → Calculou o quartil pelo método das metades
+misturou_ml_e_dm3 → Misturou mL e dm³ no mesmo cálculo
 molecula_apolar_com_dipolo_dipolo → Viu interações dipolo–dipolo entre moléculas apolares
 monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
@@ -330,6 +347,7 @@ multiplicou_em_vez_de_dividir → Multiplicou em vez de dividir
 multiplicou_massa_pela_massa_molar → Multiplicou a massa pela massa molar
 multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
 multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
+multiplicou_pelo_volume → Multiplicou pelo volume em vez de dividir
 multiplicou_pelo_volume_molar → Multiplicou pelo volume molar em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
 multiplicou_por_5 → Multiplicou por 5 em vez de dividir
@@ -341,11 +359,14 @@ nao_contou_os_zeros_do_meio → Não contou os zeros do meio como algarismos sig
 nao_converteu_cm3_em_dm3 → Não converteu cm³ em dm³
 nao_converteu_m_em_nm → Deu o comprimento de onda em metros em vez de nanómetros
 nao_converteu_massa_em_quantidade → Usou a massa sem a converter em quantidade de matéria
+nao_converteu_mg_e_kg → Não pôs as massas na mesma unidade
+nao_converteu_ml_em_dm3 → Não converteu mL em dm³
 nao_converteu_nm_em_m → Não converteu os nanómetros em metros
 nao_dividiu → Não fez a divisão final
 nao_dividiu_a_percentagem_por_100 → Não dividiu a percentagem por 100
 nao_dividiu_centro → Não dividiu por 2 a soma das coordenadas do centro
 nao_dividiu_coeficientes → Não dividiu os coeficientes por 2
+nao_dividiu_pela_concentracao_inicial → Não dividiu pela concentração inicial
 nao_dividiu_por_100 → Não dividiu as abundâncias por 100
 nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
@@ -354,6 +375,7 @@ nao_isolou_o_modulo → Não isolou o módulo
 nao_maximizou_os_desemparelhados → Não maximizou os eletrões desemparelhados (regra de Hund)
 nao_multiplicou_boletins → Contou cada tipo de boletim uma só vez
 nao_multiplicou_pela_fracao → Deu a quantidade de toda a mistura sem multiplicar pela fração
+nao_multiplicou_por_100 → Não multiplicou por 100
 nao_ordenou → Não ordenou os dados
 nao_passou_para_zero → Não passou tudo para o primeiro membro
 nao_reconheceu_o_estado_excitado → Não reconheceu um estado excitado
@@ -544,6 +566,7 @@ trocou_o_sentido → Trocou o sentido
 trocou_o_sentido_do_espectro → Trocou o sentido do espectro
 trocou_o_sinal_da_carga → Trocou o sinal da carga do ião
 trocou_o_sinal_do_expoente → Trocou o sinal do expoente
+trocou_os_volumes_na_diluicao → Trocou os volumes na diluição (ci·Vf = cf·Vi)
 trocou_periodo_com_grupo → Trocou o período com o grupo
 trocou_q1_q3 → Trocou Q1 com Q3
 trocou_sinal → Trocou o sinal
@@ -553,12 +576,16 @@ um_por_partido → Deu primeiro um mandato a cada partido
 um_sexto → Deu um sexto da mediana em vez de um terço
 um_terco → Deu um terço da mediana em vez de dois terços
 um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
+usou_10_elevado_a_3_no_ppm → Usou o fator 10³ em vez de 10⁶ nas partes por milhão
 usou_a_agua_do_picnometro_cheio → Usou a água do picnómetro cheio em vez da água deslocada
+usou_a_diferenca_de_volumes → Usou a diferença dos volumes em vez do quociente
 usou_a_divisao_inteira_num_analogico → Usou a menor divisão inteira num instrumento analógico
 usou_a_formula_do_alcano → Usou a fórmula geral dos alcanos
 usou_a_formula_do_alceno → Usou a fórmula geral dos alcenos
 usou_a_formula_do_alcino → Usou a fórmula geral dos alcinos
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
+usou_a_massa_do_solvente → Usou a massa do solvente em vez da massa da solução
+usou_a_massa_em_vez_de_n → Usou a massa em vez da quantidade de matéria
 usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quociente
 usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
 usou_as_massas_em_vez_de_n → Usou as massas em vez das quantidades de matéria
@@ -571,6 +598,8 @@ usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
+usou_o_volume_de_agua_adicionado → Usou o volume de água adicionado em vez do volume final
+usou_o_volume_do_solvente → Usou o volume do solvente em vez do volume da solução
 usou_o_volume_molar_com_a_massa → Usou o volume molar com a massa, sem calcular a quantidade de matéria
 usou_os_numeros_de_massa → Usou os números de massa em vez das massas isotópicas
 usou_so_a_energia_do_nivel_final → Usou só a energia do nível final

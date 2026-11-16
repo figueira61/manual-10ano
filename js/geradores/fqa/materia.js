@@ -1264,4 +1264,338 @@ globalThis.Manual = globalThis.Manual || {};
       return p.dados.contexto === 'ar' ? D().atmosfera.some((x) => x.gas === p.dados.gas) : p.dados.a !== p.dados.b;
     },
   });
+
+  // ================================================================ solucoes
+  // Solutos: [fórmula LaTeX, nome, { elemento: índice }].
+  const SOLUTOS = [
+    ['NaCl', 'cloreto de sódio', { Na: 1, Cl: 1 }], ['KCl', 'cloreto de potássio', { K: 1, Cl: 1 }],
+    ['NaOH', 'hidróxido de sódio', { Na: 1, O: 1, H: 1 }], ['KNO_3', 'nitrato de potássio', { K: 1, N: 1, O: 3 }],
+    ['CuSO_4', 'sulfato de cobre(II)', { Cu: 1, S: 1, O: 4 }], ['C_6H_{12}O_6', 'glicose', { C: 6, H: 12, O: 6 }],
+    ['Na_2CO_3', 'carbonato de sódio', { Na: 2, C: 1, O: 3 }],
+  ];
+  const BALOES = [50, 100, 250, 500];
+  const PIPETAS = [5, 10, 20, 25, 50];
+  const texV = (v) => texF(v, 1); // volumes de material volumétrico com uma casa decimal (100,0 mL)
+  const solTex = (s) => '$\\mathrm{' + s[0] + '}$';
+  const passoMMs = (s) => ({
+    passo: 'Calcular a massa molar do soluto', porque: 'Soma das massas atómicas relativas, cada uma multiplicada pelo seu índice.',
+    calculo: 'M(\\mathrm{' + s[0] + '}) = ' + A.cadeia(texM(s[2]), texF(Q().massaMolar(s[2]), 2)) + '\\,\\mathrm{g\\,mol^{-1}}',
+  });
+  const passoMl = (Vml) => ({ passo: 'Passar o volume a decímetros cúbicos', porque: 'A concentração exprime-se por $\\mathrm{dm^3}$ e $1\\,\\mathrm{dm^3} = 1000\\,\\mathrm{mL}$.', calculo: texV(Vml) + '\\,\\mathrm{mL} = ' + tex(Vml / 1000, 4) + '\\,\\mathrm{dm^3}' });
+
+  registar({
+    subtema: 'solucoes', tipo: 'concentracao', nome: 'Concentração molar, concentração mássica e massa de soluto a pesar',
+    formatos: ['numerica', 'escolha'], contextos: ['c-de-m', 'massa-a-pesar', 'concentracao-massica'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const s = escolher(rng, SOLUTOS);
+        const Vml = escolher(rng, BALOES);
+        const V = Vml / 1000;
+        const M = Q().massaMolar(s[2]);
+        const S_ = s[1] + ', ' + solTex(s);
+        let ex, exato, erros, unidade, texto, verificacao;
+        if (contexto === 'c-de-m') {
+          const m = valor3AS(rng, [[1, 9.99, 0.01], [10, 29.9, 0.1]]);
+          const n = m / M;
+          exato = Q().concentracao(n, V);
+          if (exato < 0.01 || exato > 1) return null; // concentrações usuais (e abaixo da solubilidade)
+          unidade = 'mol/dm³';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$';
+          ex = {
+            enunciado: 'Dissolveram-se $' + texAS(m, 3) + '\\,\\mathrm{g}$ de ' + S_ + ', em água, até perfazer $' + texV(Vml) + '\\,\\mathrm{mL}$ de solução. Calcula a concentração da solução (' + dadosAr(s[2]) + ').' + AS3,
+            resolucao: [
+              passoMMs(s),
+              { passo: 'Calcular a quantidade de soluto', porque: '$n = \\dfrac{m}{M}$.', calculo: 'n = \\dfrac{' + texAS(m, 3) + '}{' + texF(M, 2) + '} \\approx ' + texAS(n, 4) + '\\,\\mathrm{mol}' },
+              passoMl(Vml),
+              { passo: 'Dividir pelo volume da solução', porque: '$c = \\dfrac{n}{V}$ (com $n$ ainda por arredondar).', calculo: 'c = \\dfrac{' + texAS(n, 4) + '}{' + tex(V, 4) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol\\,dm^{-3}}' },
+            ],
+            dados: { soluto: s[0], m, Vml, contexto },
+          };
+          erros = [
+            { codigo: 'nao_converteu_ml_em_dm3', valor: n / Vml, explicacao: 'Dividiste pelo volume em mL e obtiveste ' + txtAS(n / Vml, 3) + '; em $\\mathrm{dm^3}$ o volume é $' + tex(V, 4) + '\\,\\mathrm{dm^3}$.' },
+            { codigo: 'usou_a_massa_em_vez_de_n', valor: m / V, explicacao: 'Dividiste a massa pelo volume (' + txtAS(m / V, 3) + '): isso é a concentração mássica, em $\\mathrm{g\\,dm^{-3}}$. A concentração molar usa a quantidade de matéria, $n = m / M$.' },
+            { codigo: 'dividiu_ao_contrario', valor: V / n, explicacao: 'Calculaste $V / n \\approx ' + texAS(V / n, 3) + '$; a concentração é $c = n / V$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Voltar à massa: c vezes V dá n, e n vezes M dá m', calculo: texAS(r, 3) + ' \\times ' + tex(V, 4) + ' \\times ' + texF(M, 2) + ' \\approx ' + texAS(r * V * M, 3) + '\\,\\mathrm{g}', valor: aAS(m / massaAtomoAAtomo(s[2]) / V, 3) });
+        } else if (contexto === 'massa-a-pesar') {
+          const c = valor3AS(rng, [[0.1, 0.5, 0.005], [0.01, 0.099, 0.001]]);
+          const n = c * V;
+          exato = n * M;
+          unidade = 'g';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{g}$';
+          ex = {
+            enunciado: 'Que massa de ' + S_ + ' é preciso pesar para preparar $' + texV(Vml) + '\\,\\mathrm{mL}$ de uma solução aquosa de concentração $' + texAS(c, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$ (' + dadosAr(s[2]) + ')?' + AS3,
+            resolucao: [
+              passoMl(Vml),
+              { passo: 'Calcular a quantidade de soluto', porque: '$n = c\\,V$.', calculo: 'n = ' + texAS(c, 3) + ' \\times ' + tex(V, 4) + ' \\approx ' + texAS(n, 4) + '\\,\\mathrm{mol}' },
+              passoMMs(s),
+              { passo: 'Converter em massa', porque: '$m = n\\,M$.', calculo: 'm = ' + texAS(n, 4) + ' \\times ' + texF(M, 2) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{g}' },
+            ],
+            dados: { soluto: s[0], c, Vml, contexto },
+            esquema: { id: 'fig-material-solucao' },
+          };
+          erros = [
+            { codigo: 'nao_converteu_ml_em_dm3', valor: c * Vml * M, explicacao: 'Usaste o volume em mL e obtiveste ' + txtAS(c * Vml * M, 3) + ' g; com $V = ' + tex(V, 4) + '\\,\\mathrm{dm^3}$ a massa é mil vezes menor.' },
+            { codigo: 'deu_n_em_vez_da_massa', valor: n, explicacao: txtAS(n, 3) + ' é a quantidade de soluto (em mol); a massa a pesar é $m = n\\,M$.' },
+            { codigo: 'dividiu_pela_massa_molar', valor: n / M, explicacao: 'Dividiste pela massa molar e obtiveste ' + txtAS(n / M, 3) + '; a massa é $m = n \\times M$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Confirmar a concentração com a massa calculada', calculo: '\\dfrac{' + texAS(r, 3) + ' / ' + texF(M, 2) + '}{' + tex(V, 4) + '} \\approx ' + texAS(r / M / V, 3) + '\\,\\mathrm{mol\\,dm^{-3}}', valor: aAS(c * V * massaAtomoAAtomo(s[2]), 3) });
+        } else {
+          const m = valor3AS(rng, [[1, 9.99, 0.01], [10, 29.9, 0.1]]);
+          exato = Q().concentracaoMassica(m, V);
+          unidade = 'g/dm³';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{g\\,dm^{-3}}$';
+          ex = {
+            enunciado: 'Dissolveram-se $' + texAS(m, 3) + '\\,\\mathrm{g}$ de ' + S_ + ', em água, até perfazer $' + texV(Vml) + '\\,\\mathrm{mL}$ de solução. Calcula a concentração mássica da solução, em $\\mathrm{g\\,dm^{-3}}$ (' + dadosAr(s[2]) + ').' + AS3,
+            resolucao: [
+              passoMl(Vml),
+              { passo: 'Dividir a massa de soluto pelo volume da solução', porque: '$c_m = \\dfrac{m_{\\text{soluto}}}{V_{\\text{solução}}}$ (não é preciso a massa molar).', calculo: 'c_m = \\dfrac{' + texAS(m, 3) + '}{' + tex(V, 4) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{g\\,dm^{-3}}' },
+            ],
+            dados: { soluto: s[0], m, Vml, contexto },
+          };
+          erros = [
+            { codigo: 'nao_converteu_ml_em_dm3', valor: m / Vml, explicacao: 'Dividiste pelo volume em mL e obtiveste ' + txtAS(m / Vml, 3) + '; em $\\mathrm{dm^3}$ o volume é $' + tex(V, 4) + '\\,\\mathrm{dm^3}$.' },
+            { codigo: 'calculou_a_concentracao_molar', valor: m / M / V, explicacao: txtAS(m / M / V, 3) + ' é a concentração molar (em $\\mathrm{mol\\,dm^{-3}}$); a concentração mássica divide a massa, não a quantidade, pelo volume.' },
+            { codigo: 'multiplicou_pelo_volume', valor: m * V, explicacao: 'Multiplicaste a massa pelo volume (' + txtAS(m * V, 3) + '); a concentração mássica é $c_m = m / V$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Massa de soluto em 1 dm³ de solução (regra de três)', calculo: '\\dfrac{' + texAS(m, 3) + '\\,\\mathrm{g}}{' + texV(Vml) + '\\,\\mathrm{mL}} \\times 1000\\,\\mathrm{mL} \\approx ' + texAS(r, 3) + '\\,\\mathrm{g}', valor: aAS(m * (1000 / Vml), 3) });
+        }
+        return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const s = SOLUTOS.find((x) => x[0] === d.soluto);
+      const M = massaAtomoAAtomo(s[2]);
+      const v = d.contexto === 'c-de-m' ? (d.m / M) * (1000 / d.Vml) : d.contexto === 'massa-a-pesar' ? d.c * d.Vml / 1000 * M : d.m * 1000 / d.Vml;
+      const u = { 'c-de-m': '\\mathrm{mol\\,dm^{-3}}', 'massa-a-pesar': '\\mathrm{g}', 'concentracao-massica': '\\mathrm{g\\,dm^{-3}}' }[d.contexto];
+      return confere(p, aAS(v, 3), (x) => '$' + texAS(x, 3) + '\\,' + u + '$');
+    },
+    limites(p) {
+      return BALOES.includes(p.dados.Vml) && !!SOLUTOS.find((x) => x[0] === p.dados.soluto);
+    },
+  });
+
+  registar({
+    subtema: 'solucoes', tipo: 'diluicao', nome: 'Diluição: volume a pipetar, concentração final e fator de diluição',
+    formatos: ['numerica', 'escolha'], contextos: ['volume-a-pipetar', 'concentracao-final', 'fator'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const Vf = escolher(rng, BALOES);
+        const Vi = escolher(rng, PIPETAS.filter((v) => v < Vf));
+        const ci = valor3AS(rng, [[0.1, 2, 0.01]]);
+        const cfEx = Q().diluicao({ ci, Vi, Vf }).cf;
+        const cfTex = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$';
+        const esquema = { id: 'fqa-diluicao', opcoes: { ci, Vi, Vf } };
+        let ex, exato, erros, unidade, texto, verificacao;
+        if (contexto === 'volume-a-pipetar') {
+          const cf = aAS(cfEx, 3);
+          exato = Q().diluicao({ ci, cf, Vf }).Vi;
+          unidade = 'mL';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{mL}$';
+          ex = {
+            enunciado: 'Pretende-se preparar $' + texV(Vf) + '\\,\\mathrm{mL}$ de uma solução de concentração $' + texAS(cf, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$ a partir de uma solução de concentração $' + texAS(ci, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$. Que volume da solução inicial é preciso pipetar?' + AS3,
+            resolucao: [
+              { passo: 'A quantidade de soluto não muda na diluição', porque: 'Só se junta água: $n = c_i V_i = c_f V_f$ (os volumes podem ficar em mL, desde que na mesma unidade).' },
+              { passo: 'Resolver em ordem a V_i', porque: '$V_i = \\dfrac{c_f V_f}{c_i}$.', calculo: 'V_i = \\dfrac{' + texAS(cf, 3) + ' \\times ' + texV(Vf) + '}{' + texAS(ci, 3) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mL}' },
+            ],
+            dados: { ci, cf, Vf, contexto },
+            esquema,
+          };
+          erros = [
+            { codigo: 'trocou_os_volumes_na_diluicao', valor: ci * Vf / cf, explicacao: 'Usaste $c_i V_f = c_f V_i$ e obtiveste ' + txtAS(ci * Vf / cf, 3) + ' mL, mais do que o próprio balão. A quantidade de soluto conserva-se: $c_i V_i = c_f V_f$.' },
+            { codigo: 'nao_dividiu_pela_concentracao_inicial', valor: cf * Vf, explicacao: 'Calculaste só $c_f V_f \\approx ' + texAS(cf * Vf, 3) + '$; falta dividir pela concentração inicial: $V_i = c_f V_f / c_i$.' },
+            { codigo: 'deu_o_volume_de_agua_a_juntar', valor: Vf - exato, explicacao: txtAS(Vf - exato, 3) + ' mL é o volume de água a juntar (aproximadamente); pedia-se o volume de solução inicial a pipetar.' },
+          ];
+          verificacao = (r) => ({ passo: 'Confirmar pelo fator de diluição', calculo: 'f = \\dfrac{' + texAS(ci, 3) + '}{' + texAS(cf, 3) + '} \\approx ' + texAS(ci / cf, 4) + ';\\quad \\dfrac{' + texV(Vf) + '}{' + texAS(ci / cf, 4) + '} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mL}', valor: aAS(Vf / (ci / cf), 3) });
+        } else if (contexto === 'concentracao-final') {
+          exato = cfEx;
+          unidade = 'mol/dm³';
+          texto = cfTex;
+          const f = Vf / Vi;
+          ex = {
+            enunciado: 'Pipetaram-se $' + texV(Vi) + '\\,\\mathrm{mL}$ de uma solução de concentração $' + texAS(ci, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$ para um balão volumétrico de $' + texV(Vf) + '\\,\\mathrm{mL}$, que se completou com água até à marca. Qual é a concentração da solução obtida?' + AS3,
+            resolucao: [
+              { passo: 'A quantidade de soluto não muda na diluição', porque: '$c_i V_i = c_f V_f$.' },
+              { passo: 'Resolver em ordem a c_f', porque: '$c_f = \\dfrac{c_i V_i}{V_f}$ (os volumes na mesma unidade).', calculo: 'c_f = \\dfrac{' + texAS(ci, 3) + ' \\times ' + texV(Vi) + '}{' + texV(Vf) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol\\,dm^{-3}}' },
+            ],
+            dados: { ci, Vi, Vf, contexto },
+            esquema,
+          };
+          erros = [
+            { codigo: 'trocou_os_volumes_na_diluicao', valor: ci * Vf / Vi, explicacao: 'Usaste $c_i V_f = c_f V_i$ e obtiveste ' + cfTex(ci * Vf / Vi) + ', mais concentrada do que a inicial; ao juntar água a concentração diminui: $c_f = c_i V_i / V_f$.' },
+            { codigo: 'usou_o_volume_de_agua_adicionado', valor: ci * Vi / (Vf - Vi), explicacao: 'Dividiste pelo volume de água junto ($' + texV(Vf - Vi) + '\\,\\mathrm{mL}$) e obtiveste ' + cfTex(ci * Vi / (Vf - Vi)) + '; o volume final é o da solução, $' + texV(Vf) + '\\,\\mathrm{mL}$.' },
+            { codigo: 'misturou_ml_e_dm3', valor: ci * Vi / (Vf / 1000), explicacao: 'Passaste só o volume final a $\\mathrm{dm^3}$ ($' + tex(Vf / 1000, 3) + '\\,\\mathrm{dm^3}$) e deixaste o pipetado em mL, obtendo ' + cfTex(ci * Vi / (Vf / 1000)) + '; os dois volumes têm de estar na mesma unidade.' },
+          ];
+          verificacao = (r) => ({ passo: 'Dividir a concentração inicial pelo fator de diluição', calculo: 'f = \\dfrac{' + texV(Vf) + '}{' + texV(Vi) + '} = ' + tex(f, 2) + ';\\quad \\dfrac{' + texAS(ci, 3) + '}{' + tex(f, 2) + '} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mol\\,dm^{-3}}', valor: aAS(ci / f, 3) });
+        } else {
+          exato = Q().diluicao({ ci, Vi, Vf }).fator;
+          unidade = '';
+          texto = (v) => '$' + texAS(v, 3) + '$';
+          ex = {
+            enunciado: 'Pipetaram-se $' + texV(Vi) + '\\,\\mathrm{mL}$ de uma solução para um balão volumétrico de $' + texV(Vf) + '\\,\\mathrm{mL}$, que se completou com água até à marca. Qual é o fator de diluição?' + AS3,
+            resolucao: [{ passo: 'Dividir o volume final pelo volume pipetado', porque: 'O fator de diluição é $f = \\dfrac{V_f}{V_i} = \\dfrac{c_i}{c_f}$; é sempre maior do que 1.', calculo: 'f = \\dfrac{' + texV(Vf) + '}{' + texV(Vi) + '} = ' + tex(exato, 3) }],
+            dados: { Vi, Vf, contexto },
+            esquema,
+          };
+          erros = [
+            { codigo: 'inverteu_o_fator_de_diluicao', valor: Vi / Vf, explicacao: 'Calculaste $V_i / V_f \\approx ' + texAS(Vi / Vf, 3) + '$; o fator de diluição é $V_f / V_i$ e é sempre maior do que 1.' },
+            { codigo: 'usou_o_volume_de_agua_adicionado', valor: (Vf - Vi) / Vi, explicacao: 'Usaste o volume de água junto ($' + texV(Vf - Vi) + '\\,\\mathrm{mL}$) e obtiveste ' + txtAS((Vf - Vi) / Vi, 3) + '; o fator usa o volume final da solução, $' + texV(Vf) + '\\,\\mathrm{mL}$.' },
+            { codigo: 'usou_a_diferenca_de_volumes', valor: Vf - Vi, explicacao: 'O fator não é a diferença entre os volumes (' + txtAS(Vf - Vi, 3) + '): é o quociente $V_f / V_i$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Confirmar com as concentrações (c_i / c_f) para uma solução inicial de 1 mol/dm³', calculo: 'c_f = \\dfrac{1 \\times ' + texV(Vi) + '}{' + texV(Vf) + '};\\quad \\dfrac{c_i}{c_f} \\approx ' + texAS(r, 3), valor: aAS(1 / (Vi / Vf), 3) });
+        }
+        return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      // Pela quantidade de soluto (em mmol), sem Manual.quimica.diluicao.
+      let v;
+      if (d.contexto === 'volume-a-pipetar') v = (d.cf * d.Vf) / d.ci;
+      else if (d.contexto === 'concentracao-final') v = (d.ci * d.Vi) / d.Vf;
+      else v = d.Vf / d.Vi;
+      const u = { 'volume-a-pipetar': '\\,\\mathrm{mL}', 'concentracao-final': '\\,\\mathrm{mol\\,dm^{-3}}', fator: '' }[d.contexto];
+      return confere(p, aAS(v, 3), (x) => '$' + texAS(x, 3) + u + '$');
+    },
+    limites(p) {
+      return BALOES.includes(p.dados.Vf) && (p.dados.Vi === undefined || PIPETAS.includes(p.dados.Vi));
+    },
+  });
+
+  registar({
+    subtema: 'solucoes', tipo: 'composicao', nome: 'Percentagem em massa, percentagem em volume e partes por milhão',
+    formatos: ['numerica', 'escolha'], contextos: ['massa', 'volume', 'ppm'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let ex, exato, erros, unidade, texto, verificacao;
+        if (contexto === 'massa') {
+          const s = escolher(rng, SOLUTOS);
+          const ms = valor3AS(rng, [[1, 9.99, 0.01], [10, 49.9, 0.1]]);
+          const ma = valor3AS(rng, [[100, 500, 1]]);
+          const mt = ms + ma;
+          exato = Q().percentagemMassa(ms, mt);
+          unidade = '%';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\%$';
+          ex = {
+            enunciado: 'Dissolveram-se $' + texAS(ms, 3) + '\\,\\mathrm{g}$ de ' + s[1] + ', ' + solTex(s) + ', em $' + texAS(ma, 3) + '\\,\\mathrm{g}$ de água. Calcula a percentagem em massa de soluto na solução.' + AS3,
+            resolucao: [
+              { passo: 'Calcular a massa da solução', porque: 'A solução é o soluto mais o solvente.', calculo: 'm_{\\text{solução}} = ' + texAS(ms, 3) + ' + ' + texAS(ma, 3) + ' = ' + tex(mt, 2) + '\\,\\mathrm{g}' },
+              { passo: 'Dividir a massa de soluto pela massa da solução e multiplicar por 100', porque: '$\\%(m/m) = \\dfrac{m_{\\text{soluto}}}{m_{\\text{solução}}} \\times 100$.', calculo: '\\dfrac{' + texAS(ms, 3) + '}{' + tex(mt, 2) + '} \\times 100 \\approx ' + texAS(exato, 3) + '\\,\\%' },
+            ],
+            dados: { ms, ma, contexto },
+          };
+          erros = [
+            { codigo: 'usou_a_massa_do_solvente', valor: 100 * ms / ma, explicacao: 'Dividiste pela massa de água ($' + texAS(ma, 3) + '\\,\\mathrm{g}$) e obtiveste ' + txtAS(100 * ms / ma, 3) + ' %; divide-se pela massa da solução, soluto mais água: $' + tex(mt, 2) + '\\,\\mathrm{g}$.' },
+            { codigo: 'nao_multiplicou_por_100', valor: ms / mt, explicacao: txtAS(ms / mt, 3) + ' é a fração mássica; em percentagem multiplica-se por 100.' },
+            { codigo: 'deu_a_percentagem_do_solvente', valor: 100 * ma / mt, explicacao: txtAS(100 * ma / mt, 3) + ' % é a percentagem de água; pedia-se a do soluto.' },
+          ];
+          verificacao = (r) => ({ passo: 'Confirmar que as percentagens de soluto e de água somam 100 %', calculo: texAS(r, 3) + ' + ' + texAS(100 * ma / mt, 3) + ' \\approx 100', valor: aAS(100 - 100 * ma / mt, 3) });
+        } else if (contexto === 'volume') {
+          const vs = valor3AS(rng, [[10, 99.9, 0.1]]);
+          const Vml = escolher(rng, [250, 500]);
+          exato = Q().percentagemVolume(vs, Vml);
+          unidade = '%';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\%$';
+          ex = {
+            enunciado: 'Misturaram-se $' + texAS(vs, 3) + '\\,\\mathrm{mL}$ de etanol com água, obtendo-se $' + texV(Vml) + '\\,\\mathrm{mL}$ de solução. Calcula a percentagem em volume de etanol na solução.' + AS3,
+            resolucao: [{ passo: 'Dividir o volume de etanol pelo volume da solução e multiplicar por 100', porque: '$\\%(V/V) = \\dfrac{V_{\\text{soluto}}}{V_{\\text{solução}}} \\times 100$ (usa-se o volume da solução, não o da água: os volumes de líquidos diferentes não se somam exatamente).', calculo: '\\dfrac{' + texAS(vs, 3) + '}{' + texV(Vml) + '} \\times 100 \\approx ' + texAS(exato, 3) + '\\,\\%' }],
+            dados: { vs, Vml, contexto },
+          };
+          erros = [
+            { codigo: 'usou_o_volume_do_solvente', valor: 100 * vs / (Vml - vs), explicacao: 'Dividiste pelo volume de água ($' + tex(Vml - vs, 1) + '\\,\\mathrm{mL}$, por diferença) e obtiveste ' + txtAS(100 * vs / (Vml - vs), 3) + ' %; divide-se pelo volume da solução, $' + texV(Vml) + '\\,\\mathrm{mL}$.' },
+            { codigo: 'nao_multiplicou_por_100', valor: vs / Vml, explicacao: txtAS(vs / Vml, 3) + ' é a fração em volume; em percentagem multiplica-se por 100.' },
+            { codigo: 'dividiu_ao_contrario', valor: 100 * Vml / vs, explicacao: 'Calculaste $V_{\\text{solução}} / V_{\\text{soluto}} \\times 100 \\approx ' + texAS(100 * Vml / vs, 3) + '$, mais de 100 %; é o volume de soluto a dividir pelo da solução.' },
+          ];
+          verificacao = (r) => ({ passo: 'Volume de etanol em 100 mL de solução (regra de três)', calculo: '\\dfrac{' + texAS(vs, 3) + '}{' + texV(Vml) + '} \\times 100\\,\\mathrm{mL} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mL}', valor: aAS(vs * (100 / Vml), 3) });
+        } else {
+          const ESP = [['F^-', 'ião fluoreto'], ['Na^+', 'ião sódio'], ['Ca^{2+}', 'ião cálcio'], ['NO_3^-', 'ião nitrato'], ['Pb^{2+}', 'chumbo']];
+          const e = escolher(rng, ESP.filter((x) => x[0] !== 'Pb^{2+}'));
+          const mg = valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
+          const kg = escolher(rng, [0.5, 2, 2.5, 5]);
+          exato = Q().ppm(mg / 1000, kg * 1000);
+          unidade = 'ppm';
+          texto = (v) => '$' + texAS(v, 3) + '\\,\\mathrm{ppm}$';
+          ex = {
+            enunciado: 'Uma amostra de $' + tex(kg, 1) + '\\,\\mathrm{kg}$ de água contém $' + texAS(mg, 3) + '\\,\\mathrm{mg}$ de ' + e[1] + ', $\\mathrm{' + e[0] + '}$. Exprime a composição em partes por milhão (ppm), em massa.' + AS3,
+            resolucao: [
+              { passo: 'Pôr as massas na mesma unidade', porque: '$1\\,\\mathrm{mg} = 10^{-3}\\,\\mathrm{g}$ e $1\\,\\mathrm{kg} = 10^{3}\\,\\mathrm{g}$.', calculo: texAS(mg, 3) + '\\,\\mathrm{mg} = ' + cient(mg / 1000, 3) + '\\,\\mathrm{g};\\quad ' + tex(kg, 1) + '\\,\\mathrm{kg} = ' + cient(kg * 1000, 2) + '\\,\\mathrm{g}' },
+              { passo: 'Dividir e multiplicar por um milhão', porque: '$\\mathrm{ppm} = \\dfrac{m_{\\text{soluto}}}{m_{\\text{solução}}} \\times 10^{6}$.', calculo: '\\dfrac{' + cient(mg / 1000, 3) + '}{' + cient(kg * 1000, 2) + '} \\times 10^{6} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{ppm}' },
+            ],
+            dados: { mg, kg, contexto },
+          };
+          erros = [
+            { codigo: 'usou_10_elevado_a_3_no_ppm', valor: exato / 1000, explicacao: 'Multiplicaste por $10^{3}$ e obtiveste ' + txtAS(exato / 1000, 3) + '; partes por milhão multiplica-se por $10^{6}$.' },
+            { codigo: 'calculou_a_percentagem', valor: exato / 1e4, explicacao: txtAS(exato / 1e4, 3) + ' é a percentagem em massa (× 100); em ppm multiplica-se por $10^{6}$.' },
+            { codigo: 'nao_converteu_mg_e_kg', valor: (mg / kg) * 1e6, explicacao: 'Dividiste mg por kg sem pôr as massas na mesma unidade e ainda multiplicaste por $10^{6}$, obtendo ' + txtAS((mg / kg) * 1e6, 3) + '; 1 mg em 1 kg já é 1 ppm.' },
+          ];
+          verificacao = (r) => ({ passo: '1 ppm é 1 mg de soluto por kg de solução', calculo: '\\dfrac{' + texAS(mg, 3) + '\\,\\mathrm{mg}}{' + tex(kg, 1) + '\\,\\mathrm{kg}} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mg\\,kg^{-1}}', valor: aAS(mg / kg, 3) });
+        }
+        return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const v = d.contexto === 'massa' ? d.ms * 100 / (d.ms + d.ma) : d.contexto === 'volume' ? d.vs * 100 / d.Vml : d.mg / d.kg;
+      const u = d.contexto === 'ppm' ? '\\,\\mathrm{ppm}' : '\\,\\%';
+      return confere(p, aAS(v, 3), (x) => '$' + texAS(x, 3) + u + '$');
+    },
+    limites(p) {
+      return ['massa', 'volume', 'ppm'].includes(p.dados.contexto);
+    },
+  });
+
+  // Figura explodida do material para preparar uma solução (fig-material-solucao) em modo exercício.
+  // As partes pela ordem da figura (números 1 a 9).
+  const PARTES_MATERIAL = [
+    { id: 'balanca', nome: 'Balança', art: 'a balança', funcao: 'Mede a massa de soluto.', codigo: 'confundiu_com_a_balanca', confusoes: ['vidro-relogio', 'espatula', 'gobele'] },
+    { id: 'espatula', nome: 'Espátula', art: 'a espátula', funcao: 'Transfere o soluto sólido.', codigo: 'confundiu_com_a_espatula', confusoes: ['vidro-relogio', 'pipeta', 'balanca'] },
+    { id: 'vidro-relogio', nome: 'Vidro de relógio', art: 'o vidro de relógio', funcao: 'Recebe o sólido na balança.', codigo: 'confundiu_com_o_vidro_de_relogio', confusoes: ['gobele', 'balanca', 'espatula'] },
+    { id: 'gobele', nome: 'Gobelé', art: 'o gobelé', funcao: 'Dissolve o soluto numa porção de água.', codigo: 'confundiu_com_o_gobele', confusoes: ['balao', 'vidro-relogio', 'funil'] },
+    { id: 'funil', nome: 'Funil', art: 'o funil', funcao: 'Transfere a solução para o balão sem perdas.', codigo: 'confundiu_com_o_funil', confusoes: ['balao', 'gobele', 'pipeta'] },
+    { id: 'balao', nome: 'Balão volumétrico', art: 'o balão volumétrico', funcao: 'Mede com rigor o volume final da solução.', codigo: 'confundiu_com_o_balao_volumetrico', confusoes: ['gobele', 'pipeta', 'funil'] },
+    { id: 'pipeta', nome: 'Pipeta', art: 'a pipeta', funcao: 'Mede com rigor um volume de líquido a transferir.', codigo: 'confundiu_com_a_pipeta', confusoes: ['balao', 'pompete', 'funil'] },
+    { id: 'pompete', nome: 'Pompete', art: 'a pompete', funcao: 'Aspira o líquido para a pipeta.', codigo: 'confundiu_com_a_pompete', confusoes: ['pipeta', 'esguicho', 'funil'] },
+    { id: 'esguicho', nome: 'Esguicho', art: 'o esguicho', funcao: 'Lava o material e completa o volume com água destilada.', codigo: 'confundiu_com_o_esguicho', confusoes: ['pompete', 'gobele', 'balao'] },
+  ];
+  const parteMat = (id) => PARTES_MATERIAL.find((x) => x.id === id);
+
+  registar({
+    subtema: 'solucoes', tipo: 'material', nome: 'Material de laboratório para preparar uma solução (figura)',
+    formatos: ['escolha'], contextos: ['nome', 'funcao'],
+    gerar(semente, { contexto, rng }) {
+      return tentar(() => {
+        const i = inteiro(rng, 0, PARTES_MATERIAL.length - 1);
+        const c = PARTES_MATERIAL[i];
+        const num = i + 1;
+        const campo = contexto === 'nome' ? 'nome' : 'funcao';
+        const enunciado = 'Na figura do material para preparar uma solução (sem escala), uma das peças está assinalada com o número ' + num + '. '
+          + (contexto === 'nome' ? 'Que material está assinalado?' : 'Para que serve a peça assinalada?');
+        const erros = c.confusoes.map((id) => {
+          const w = parteMat(id);
+          return { codigo: w.codigo, texto: w[campo], explicacao: (contexto === 'nome' ? maiuscula(w.art) + ' é outra peça da figura' : 'Essa é a função d' + w.art) + '. A peça ' + num + ' é ' + c.art + ': ' + c.funcao.charAt(0).toLowerCase() + c.funcao.slice(1) };
+        });
+        return fecharTexto(rng, {
+          enunciado,
+          figuraEnunciado: { id: 'fig-material-solucao', opcoes: { modo: 'exercicio', destacar: c.id } },
+          resolucao: [
+            { passo: 'Observar a peça assinalada', porque: 'A peça ' + num + ' é ' + c.art + '.' },
+            { passo: 'Lembrar a sua função', porque: maiuscula(c.art) + ' ' + c.funcao.charAt(0).toLowerCase() + c.funcao.slice(1) },
+          ],
+          dados: { destacar: c.id, numero: num, contexto },
+          verificacao: { passo: 'Confirmar pela ordem das peças na figura', calculo: '\\text{peça ' + num + '}', valor: null },
+          esquema: { id: 'fig-material-solucao' },
+        }, c[campo], erros, c[campo]);
+      });
+    },
+    verificarIndependente(p) {
+      const n = Number((p.enunciado.match(/número (\d)/) || [])[1]);
+      const c = PARTES_MATERIAL[n - 1];
+      if (!c || c.id !== p.figuraEnunciado.opcoes.destacar) return false;
+      return p.opcoes[p.correta] === (p.dados.contexto === 'nome' ? c.nome : c.funcao);
+    },
+    limites(p) {
+      return p.figuraEnunciado.id === 'fig-material-solucao' && p.figuraEnunciado.opcoes.modo === 'exercicio' && !!parteMat(p.dados.destacar);
+    },
+  });
 })();
