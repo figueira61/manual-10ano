@@ -26,6 +26,8 @@ globalThis.Manual = globalThis.Manual || {};
   const cfg = (z, carga) => Q.configuracao(z, carga || 0).spd.replace(/ /g, '\\,');
   const cfgCerne = (z, carga) => Q.configuracao(z, carga || 0).cerne
     .replace(/\[([A-Za-z]+)\]/, '[\\mathrm{$1}]').replace(/ /g, '\\,');
+  // energia de remoção (kJ/mol nos dados) em MJ/mol, com 3 algarismos significativos
+  const MJ = (kJ) => (kJ / 1000).toPrecision(3).replace('.', ',');
   const NA = cient(K.NA, 3);
   const h = cient(K.h, 3);
   const c = cient(K.c, 3);
@@ -271,7 +273,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'definicao',
-            texto: 'A **quantidade de matéria** $n$ mede-se em **mole** (mol). Uma mole tem tantas entidades (átomos, moléculas, iões) quanto a **constante de Avogadro**, $N_A = ' + NA + '\\,\\mathrm{mol^{-1}}$. O número de entidades é proporcional a $n$, e $N_A$ é a constante de proporcionalidade.',
+            texto: 'A **quantidade de matéria** $n$ mede-se em **mole** (mol). Uma mole tem tantas entidades (átomos, moléculas, iões) quanto o valor numérico da **constante de Avogadro**, $' + NA + '$ ($N_A = ' + NA + '\\,\\mathrm{mol^{-1}}$). O número de entidades é proporcional a $n$, e $N_A$ é a constante de proporcionalidade.',
           },
           {
             tipo: 'formula',
@@ -304,7 +306,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Medir massas e volumes (AL).** A massa mede-se numa balança. Para volumes rigorosos usam-se a pipeta, a bureta ou o balão volumétrico; a proveta é menos rigorosa e o gobelé não serve para medir. Lê-se o volume com os olhos ao nível da base do menisco.',
+            texto: '**Medir massas e volumes (AL).** A massa mede-se numa balança. Para volumes rigorosos usam-se a pipeta, a bureta ou o balão volumétrico; a proveta é menos rigorosa e o gobelé não serve para medir volumes com rigor. Lê-se o volume com os olhos ao nível da base do menisco.',
           },
           {
             tipo: 'definicao',
@@ -356,6 +358,7 @@ globalThis.Manual = globalThis.Manual || {};
             tipo: 'numerica',
             enunciado: 'Calcula a quantidade de matéria (em mol) que existe em $22{,}0\\,\\mathrm{g}$ de dióxido de carbono, $\\mathrm{CO_2}$ ($A_r(\\mathrm{C}) = ' + Ar('C') + '$, $A_r(\\mathrm{O}) = ' + Ar('O') + '$). Apresenta o resultado com três algarismos significativos.',
             resposta: 0.5,
+            algarismos: 3,
             tolerancia: 0.0005,
             resolucao: [
               '$M(\\mathrm{CO_2}) = ' + Ar('C') + ' + 2 \\times ' + Ar('O') + ' = ' + dec(Q.massaMolar({ C: 1, O: 2 }), 2) + '\\,\\mathrm{g\\,mol^{-1}}$',
@@ -473,7 +476,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Quantização da energia.** No átomo, o eletrão só pode ter certos valores de energia: os **níveis de energia**, numerados por $n = 1, 2, 3, \\dots$ O nível $n = 1$ é o **estado fundamental**; os outros são estados excitados. A energia $0$ corresponde ao eletrão já separado do átomo.',
+            texto: '**Quantização da energia.** No átomo, o eletrão só pode ter certos valores de energia: os **níveis de energia**, numerados por $n = 1, 2, 3, \\dots$ No átomo de hidrogénio, o **estado fundamental** corresponde ao eletrão no nível $n = 1$; os outros níveis correspondem a **estados excitados**. A energia $0$ corresponde ao eletrão já separado do átomo.',
           },
           {
             tipo: 'formula',
@@ -687,11 +690,27 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Energias de remoção eletrónica.** Pode medir-se a energia necessária para remover eletrões de cada subnível. No oxigénio obtêm-se três valores, um por subnível ocupado (1s, 2s, 2p). O maior é o do 1s: esses eletrões estão mais perto do núcleo e são os mais atraídos.',
+            texto: '**Energias de remoção eletrónica.** Na espectroscopia fotoeletrónica mede-se a energia necessária para remover eletrões de cada subnível de átomos isolados. Há um valor por subnível ocupado: os eletrões do mesmo subnível têm a mesma energia de remoção.',
+          },
+          {
+            tipo: 'quadro',
+            cabecalho: ['Subnível do sódio', 'Eletrões', 'Energia de remoção ($\\mathrm{MJ\\,mol^{-1}}$)'],
+            linhas: D.energiasRemocao.Na.map((x) => [x.subnivel, String(x.eletroes), MJ(x.energia)]),
           },
           {
             tipo: 'texto',
-            texto: 'Assim, o número de valores diferentes indica quantos subníveis estão ocupados, e a ordem dos valores mostra a ordem de energia: quanto mais energético o subnível, menor a energia necessária para remover os seus eletrões.',
+            texto: 'Quanto menor a energia do eletrão no átomo, maior a energia necessária para o remover. Os eletrões 1s, os mais perto do núcleo, são os mais atraídos: têm a maior energia de remoção. No nível 2, o 2s tem maior energia de remoção do que o 2p, porque tem menor energia. O eletrão 3s é o mais fácil de remover.',
+          },
+          {
+            tipo: 'exemplo',
+            enunciado: 'Observa a tabela das energias de remoção eletrónica do sódio. Quantos subníveis estão ocupados? Qual é o eletrão mais fácil de remover e porquê?',
+            resolucao: [
+              'Há ' + D.energiasRemocao.Na.length + ' valores diferentes, logo há ' + D.energiasRemocao.Na.length + ' subníveis ocupados (1s, 2s, 2p, 3s). Os números de eletrões, 2, 2, 6 e 1, dão a configuração $' + cfg(11) + '$.',
+              'O mais fácil de remover é o eletrão 3s (' + MJ(D.energiasRemocao.Na[3].energia) + ' $\\mathrm{MJ\\,mol^{-1}}$, o menor valor): está no nível 3, o mais afastado do núcleo, e os 10 eletrões interiores repelem-no, o que diminui o efeito da atração do núcleo.',
+              'Esse valor, ' + D.energiasRemocao.Na[3].energia + ' $\\mathrm{kJ\\,mol^{-1}}$, é a energia de ionização do sódio.',
+            ],
+            resultado: 4,
+            verificar: () => new Set(D.energiasRemocao.Na.map((x) => x.energia)).size,
           },
           {
             tipo: 'quadro',
@@ -707,7 +726,7 @@ globalThis.Manual = globalThis.Manual || {};
             cabecalho: ['Regra', 'O que diz'],
             linhas: [
               ['**Princípio da Construção** (Aufbau)', 'Os eletrões ocupam os subníveis por ordem crescente de energia.'],
-              ['**Princípio de Exclusão de Pauli**', 'Cada orbital tem, no máximo, 2 eletrões, de spins opostos.'],
+              ['**Princípio da Exclusão de Pauli**', 'Cada orbital tem, no máximo, 2 eletrões, de spins opostos.'],
               ['**Regra de Hund**', 'Em orbitais degeneradas, entra primeiro um eletrão em cada orbital: maximiza-se o número de eletrões desemparelhados.'],
             ],
           },
@@ -761,7 +780,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Nuvem eletrónica: só se conhece a probabilidade de encontrar o eletrão; orbital = distribuição dessa probabilidade.',
           'Subníveis s (1 orbital), p (3), d (5); cada orbital tem no máximo 2 eletrões. Orbitais do mesmo subnível são degeneradas.',
           'Polieletrónicos: atração núcleo-eletrão baixa a energia, repulsão entre eletrões aumenta-a; a energia depende do nível e do subnível.',
-          'Energias de remoção: um valor por subnível ocupado; o maior é o do 1s.',
+          'Energias de remoção: um valor por subnível ocupado; a maior é a do 1s e a menor a do eletrão de valência (no sódio, 3s).',
           'Ordem: $1s\\,2s\\,2p\\,3s\\,3p\\,4s\\,3d$. Construção, Pauli e Hund (máximo de eletrões desemparelhados).',
           'Catiões do bloco d perdem primeiro os eletrões 4s. Espécies isoeletrónicas têm a mesma configuração.',
         ],
@@ -780,7 +799,7 @@ globalThis.Manual = globalThis.Manual || {};
             explicacao: 'Depois do 3p (18 eletrões), o subnível de menor energia é o 4s: o 19.º eletrão vai para o 4s.',
             errosTipicos: [
               { codigo: 'preencheu_3d_antes_de_4s', opcao: 1, explicacao: 'O 4s tem menor energia que o 3d e preenche-se primeiro: o 19.º eletrão vai para o 4s.' },
-              { codigo: 'p_com_mais_de_seis_eletroes', opcao: 2, explicacao: 'Um subnível p tem 3 orbitais e, pelo Princípio de Exclusão de Pauli, no máximo 6 eletrões; $3p^7$ é impossível.' },
+              { codigo: 'p_com_mais_de_seis_eletroes', opcao: 2, explicacao: 'Um subnível p tem 3 orbitais e, pelo Princípio da Exclusão de Pauli, no máximo 6 eletrões; $3p^7$ é impossível.' },
               { codigo: 'passou_ao_subnivel_seguinte_sem_completar', opcao: 3, explicacao: 'Pelo Princípio da Construção, o 3p (de menor energia) completa-se antes de se ocupar o 4s: $3p^6\\,4s^1$.' },
             ],
           },
@@ -797,7 +816,7 @@ globalThis.Manual = globalThis.Manual || {};
             explicacao: 'As três orbitais 2p são degeneradas: os 3 eletrões ficam um em cada orbital, com o máximo de eletrões desemparelhados (regra de Hund).',
             errosTipicos: [
               { codigo: 'nao_maximizou_os_desemparelhados', opcao: 1, explicacao: 'Em orbitais degeneradas, primeiro entra um eletrão em cada uma; só depois emparelham. O nitrogénio tem 3 eletrões desemparelhados.' },
-              { codigo: 'violou_o_principio_de_pauli', opcao: 2, explicacao: 'Uma orbital tem no máximo 2 eletrões, de spins opostos (Princípio de Exclusão de Pauli).' },
+              { codigo: 'violou_o_principio_de_pauli', opcao: 2, explicacao: 'Uma orbital tem no máximo 2 eletrões, de spins opostos (Princípio da Exclusão de Pauli).' },
             ],
           },
           {
@@ -819,10 +838,15 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             id: 'configuracao-q04',
-            tipo: 'vf',
-            enunciado: 'Num átomo, as três orbitais 2p têm a mesma energia.',
-            correta: true,
-            explicacao: 'São orbitais do mesmo subnível, que só diferem na orientação: são degeneradas.',
+            tipo: 'escolha',
+            enunciado: 'As energias de remoção eletrónica do sódio são ' + D.energiasRemocao.Na.map((x) => MJ(x.energia)).join('; ') + ' $\\mathrm{MJ\\,mol^{-1}}$. A que subnível corresponde o valor de ' + MJ(D.energiasRemocao.Na[2].energia) + ' $\\mathrm{MJ\\,mol^{-1}}$?',
+            opcoes: ['2p', '2s', '3s', '1s'],
+            correta: 0,
+            explicacao: 'Por ordem decrescente de energia de remoção: 1s (' + MJ(D.energiasRemocao.Na[0].energia) + '), 2s (' + MJ(D.energiasRemocao.Na[1].energia) + '), 2p (' + MJ(D.energiasRemocao.Na[2].energia) + ') e 3s (' + MJ(D.energiasRemocao.Na[3].energia) + '). O 2p tem mais energia do que o 2s, por isso é mais fácil remover os seus eletrões.',
+            errosTipicos: [
+              { codigo: 'trocou_a_ordem_de_2s_e_2p', opcao: 1, explicacao: 'No nível 2, o 2s tem menor energia do que o 2p, logo maior energia de remoção: o 2s é ' + MJ(D.energiasRemocao.Na[1].energia) + ' $\\mathrm{MJ\\,mol^{-1}}$ e o 2p é ' + MJ(D.energiasRemocao.Na[2].energia) + ' $\\mathrm{MJ\\,mol^{-1}}$.' },
+              { codigo: 'maior_energia_de_remocao_mais_longe_do_nucleo', opcao: 2, explicacao: 'O eletrão 3s, o mais afastado do núcleo, é o mais fácil de remover: corresponde ao menor valor, ' + MJ(D.energiasRemocao.Na[3].energia) + ' $\\mathrm{MJ\\,mol^{-1}}$.' },
+            ],
           },
           {
             id: 'configuracao-q05',
@@ -832,8 +856,8 @@ globalThis.Manual = globalThis.Manual || {};
             correta: 0,
             explicacao: 'O átomo de magnésio tem 12 eletrões: $' + cfg(12) + '$. $\\mathrm{Na^{+}}$ (11 − 1), $\\mathrm{O^{2-}}$ (8 + 2) e $\\mathrm{Ne}$ têm 10 eletrões.',
             errosTipicos: [
-              { codigo: 'ignorou_a_carga_do_iao', opcao: 1, explicacao: '$\\mathrm{Na^{+}}$ perdeu um eletrão: tem $11 - 1 = 10$ eletrões, a configuração do néon. Quem tem 12 eletrões é o átomo de Mg.' },
-              { codigo: 'ignorou_a_carga_do_iao', opcao: 2, explicacao: '$\\mathrm{O^{2-}}$ ganhou dois eletrões: tem $8 + 2 = 10$ eletrões, a configuração do néon. Quem tem 12 eletrões é o átomo de Mg.' },
+              { codigo: 'nao_tirou_o_eletrao_do_catiao', opcao: 1, explicacao: '$\\mathrm{Na^{+}}$ perdeu um eletrão: tem $11 - 1 = 10$ eletrões, a configuração do néon. Quem tem 12 eletrões é o átomo de Mg.' },
+              { codigo: 'nao_somou_os_eletroes_do_aniao', opcao: 2, explicacao: '$\\mathrm{O^{2-}}$ ganhou dois eletrões: tem $8 + 2 = 10$ eletrões, a configuração do néon. Quem tem 12 eletrões é o átomo de Mg.' },
             ],
           },
           {
@@ -864,7 +888,7 @@ globalThis.Manual = globalThis.Manual || {};
         essencial: [
           {
             tipo: 'texto',
-            texto: '**Um pouco de história.** Döbereiner agrupou elementos semelhantes em tríades (1829) e Newlands reparou que as propriedades se repetiam de oito em oito elementos (1865). Em 1869, Mendeleev ordenou os elementos pela massa atómica, deixou lugares vazios e previu elementos ainda por descobrir, como o germânio.',
+            texto: '**Um pouco de história.** Döbereiner agrupou elementos semelhantes em tríades (1829) e Newlands reparou que as propriedades se repetiam de oito em oito elementos (1865). Em 1869, Mendeleiev ordenou os elementos pela massa atómica, deixou lugares vazios e previu elementos ainda por descobrir, como o germânio.',
           },
           {
             tipo: 'texto',
@@ -872,7 +896,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'definicao',
-            texto: 'A posição de um elemento lê-se na configuração eletrónica. **Período** = número do último nível ocupado. **Bloco** (s, p ou d) = subnível onde entrou o último eletrão. **Grupo**: nos blocos s e p, os grupos 1 e 2 têm 1 e 2 eletrões de valência e os grupos 13 a 18 têm 3 a 8 (grupo = 10 + eletrões de valência); o hélio, com 2, fica no grupo 18.',
+            texto: 'A posição de um elemento lê-se na configuração eletrónica. **Período** = número do último nível ocupado. **Bloco** (s, p ou d) = subnível onde entrou o último eletrão. **Grupo**: nos blocos s e p, os grupos 1 e 2 têm 1 e 2 eletrões de valência e os grupos 13 a 18 têm 3 a 8 (grupo = 10 + eletrões de valência); o hélio, com 2, fica no grupo 18. No bloco d (até $Z = 23$), grupo = número de eletrões 4s + 3d.',
           },
           {
             tipo: 'exemplo',
@@ -922,11 +946,22 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: 'Há duas **exceções** no período 2. Do berílio (' + EI('Be') + ') para o boro (' + EI('B') + '), a energia de ionização desce: no boro sai um eletrão 2p, de maior energia do que os 2s. Do nitrogénio (' + EI('N') + ') para o oxigénio (' + EI('O') + ') também desce: no oxigénio sai um eletrão de uma orbital 2p com dois eletrões, que se repelem.',
+            texto: 'Há duas **exceções** no período 2. Do berílio (' + EI('Be') + ') para o boro (' + EI('B') + '), a energia de ionização desce: no boro sai um eletrão 2p, de maior energia do que os 2s. Do nitrogénio (' + EI('N') + ') para o oxigénio (' + EI('O') + ') também desce: no oxigénio sai um eletrão de uma orbital 2p com dois eletrões, que se repelem. Há outras exceções do mesmo tipo (Mg > Al e P > S no período 3; Zn > Ga e As > Se no período 4), que o esquema abaixo também assinala.',
           },
           {
             tipo: 'erro-frequente',
             texto: 'Não penses que um átomo maior tem maior energia de ionização: é ao contrário. Quanto **maior** o raio, mais longe do núcleo está o eletrão de valência e **menor** é a energia para o remover. O potássio (' + raio('K') + ' pm) tem menor energia de ionização (' + EI('K') + ' $\\mathrm{kJ\\,mol^{-1}}$) do que o lítio (' + raio('Li') + ' pm, ' + EI('Li') + ' $\\mathrm{kJ\\,mol^{-1}}$).',
+          },
+          {
+            tipo: 'exemplo',
+            enunciado: 'Compara a energia de ionização e o raio atómico do magnésio com os do sódio e com os do berílio, justificando a partir das configurações eletrónicas. Dados: raio atómico Be ' + raio('Be') + ' pm, Na ' + raio('Na') + ' pm, Mg ' + raio('Mg') + ' pm; energia de ionização Be ' + EI('Be') + ', Na ' + EI('Na') + ', Mg ' + EI('Mg') + ' $\\mathrm{kJ\\,mol^{-1}}$.',
+            resolucao: [
+              'Configurações: $\\mathrm{Be}$: $' + cfgCerne(4) + '$; $\\mathrm{Na}$: $' + cfgCerne(11) + '$; $\\mathrm{Mg}$: $' + cfgCerne(12) + '$.',
+              'Mg e Na (mesmo período): os eletrões de valência estão ambos no nível 3, mas o Mg tem mais um protão no núcleo, por isso são mais atraídos. O Mg tem menor raio (' + raio('Mg') + ' < ' + raio('Na') + ' pm) e maior energia de ionização (' + EI('Mg') + ' > ' + EI('Na') + ' $\\mathrm{kJ\\,mol^{-1}}$).',
+              'Mg e Be (mesmo grupo): o Mg tem os eletrões de valência no nível 3, mais um nível do que o Be (nível 2). Estão mais longe do núcleo e mais blindados pelos eletrões interiores. O Mg tem maior raio (' + raio('Mg') + ' > ' + raio('Be') + ' pm) e menor energia de ionização (' + EI('Mg') + ' < ' + EI('Be') + ' $\\mathrm{kJ\\,mol^{-1}}$).',
+            ],
+            resultado: 1,
+            verificar: () => Q.posicaoTP(el('Mg').z).periodo - Q.posicaoTP(el('Be').z).periodo,
           },
           {
             tipo: 'esquema',
@@ -955,7 +990,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Gases nobres.** Têm o último nível completo ($ns^2\\,np^6$; o hélio, $1s^2$) e a maior energia de ionização do seu período (o néon, ' + EI('Ne') + ' $\\mathrm{kJ\\,mol^{-1}}$, no período 2). Não tendem a perder nem a ganhar eletrões: por isso são muito pouco reativos.',
+            texto: '**Gases nobres.** Têm os subníveis de valência ns e np completos ($ns^2\\,np^6$; o hélio, $1s^2$) e a maior energia de ionização do seu período (o néon, ' + EI('Ne') + ' $\\mathrm{kJ\\,mol^{-1}}$, no período 2). Não tendem a perder nem a ganhar eletrões: por isso são muito pouco reativos.',
           },
           {
             tipo: 'definicao',
@@ -987,12 +1022,12 @@ globalThis.Manual = globalThis.Manual || {};
           },
         ],
         resumo: [
-          'Mendeleev (1869) ordenou pela massa atómica e previu elementos; Moseley (1913) mostrou que a ordem é a do número atómico.',
+          'Mendeleiev (1869) ordenou pela massa atómica e previu elementos; Moseley (1913) mostrou que a ordem é a do número atómico.',
           'Período = último nível ocupado; bloco = subnível do último eletrão; grupo 1–2 ou 10 + eletrões de valência (13–18).',
           'Elementos representativos (blocos s e p): ao longo do período, o raio diminui e a energia de ionização aumenta; no grupo, ao contrário.',
           'Exceções no período 2: Be > B e N > O na energia de ionização.',
           'Metais dos grupos 1 e 2 formam catiões; não metais dos grupos 16 e 17 formam aniões, com a configuração de um gás nobre.',
-          'Gases nobres: último nível completo, energia de ionização máxima no período, muito pouco reativos.',
+          'Gases nobres: subníveis de valência ns e np completos, energia de ionização máxima no período, muito pouco reativos.',
           'Picnometria: $d = \\dfrac{m_{\\text{metal}}}{m_{\\text{água deslocada}}}$.',
         ],
         quiz: [
@@ -1033,12 +1068,20 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             id: 'tabela-periodica-q04',
-            tipo: 'vf',
-            enunciado: 'O cloro tem maior energia de ionização do que o sódio porque tem maior raio atómico.',
-            correta: false,
-            explicacao: 'O cloro tem maior energia de ionização (' + EI('Cl') + ' contra ' + EI('Na') + ' $\\mathrm{kJ\\,mol^{-1}}$), mas tem **menor** raio (' + raio('Cl') + ' contra ' + raio('Na') + ' pm): o eletrão de valência está mais perto do núcleo e mais atraído.',
+            tipo: 'escolha',
+            enunciado: 'O oxigénio ($' + cfgCerne(8) + '$) e o enxofre ($' + cfgCerne(16) + '$) são do grupo 16. Qual das afirmações compara corretamente as suas energias de ionização?',
+            opcoes: [
+              'A do oxigénio é maior: os seus eletrões de valência estão no nível 2, mais perto do núcleo, e o átomo é menor.',
+              'A do enxofre é maior, porque o átomo de enxofre tem maior raio.',
+              'A do enxofre é maior, porque o seu núcleo tem mais protões.',
+              'A do oxigénio é maior, porque tem mais eletrões de valência.',
+            ],
+            correta: 0,
+            explicacao: 'Descendo no grupo há mais um nível ocupado: os eletrões de valência do enxofre (nível 3) estão mais longe do núcleo e mais blindados. O enxofre tem maior raio (' + raio('S') + ' contra ' + raio('O') + ' pm) e menor energia de ionização (' + EI('S') + ' contra ' + EI('O') + ' $\\mathrm{kJ\\,mol^{-1}}$).',
             errosTipicos: [
-              { codigo: 'maior_raio_maior_energia_de_ionizacao', explicacao: 'Um raio maior dá menor energia de ionização, não maior. O cloro tem maior energia de ionização precisamente por ter menor raio que o sódio.' },
+              { codigo: 'maior_raio_maior_energia_de_ionizacao', opcao: 1, explicacao: 'Um raio maior dá **menor** energia de ionização: o eletrão de valência está mais longe do núcleo e é mais fácil de remover. Por isso a do enxofre é menor.' },
+              { codigo: 'so_contou_a_carga_nuclear', opcao: 2, explicacao: 'O enxofre tem mais protões, mas também mais um nível de eletrões: os de valência estão mais longe e mais blindados, por isso a energia de ionização é menor.' },
+              { codigo: 'justificou_pelo_numero_de_eletroes_de_valencia', opcao: 3, explicacao: 'Os dois têm 6 eletrões de valência (mesmo grupo). A diferença vem do nível: no oxigénio é o 2, mais perto do núcleo.' },
             ],
           },
           {
@@ -1057,8 +1100,9 @@ globalThis.Manual = globalThis.Manual || {};
           {
             id: 'tabela-periodica-q06',
             tipo: 'numerica',
-            enunciado: 'Para determinar a densidade relativa de um metal, pesou-se: picnómetro vazio, $24{,}85\\,\\mathrm{g}$; cheio de água, $74{,}12\\,\\mathrm{g}$; vazio com o metal, $32{,}75\\,\\mathrm{g}$; com o metal e completado com água, $81{,}02\\,\\mathrm{g}$. Calcula a densidade relativa do metal.',
+            enunciado: 'Para determinar a densidade relativa de um metal, pesou-se: picnómetro vazio, $24{,}85\\,\\mathrm{g}$; cheio de água, $74{,}12\\,\\mathrm{g}$; vazio com o metal, $32{,}75\\,\\mathrm{g}$; com o metal e completado com água, $81{,}02\\,\\mathrm{g}$. Calcula a densidade relativa do metal, com três algarismos significativos.',
             resposta: 7.9,
+            algarismos: 3,
             tolerancia: 0.01,
             resolucao: [
               '$m_{\\text{metal}} = 32{,}75 - 24{,}85 = 7{,}90\\,\\mathrm{g}$',

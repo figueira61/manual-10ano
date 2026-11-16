@@ -192,3 +192,16 @@ test('riscas: Na e He com linhas visíveis (400–700 nm) por ordem crescente e 
   }
   assert.ok(/NIST/.test(D.fontes.riscas));
 });
+
+test('energias de remoção (Na): uma por subnível ocupado, a decrescer 1s > 2s > 2p > 3s, e 3s = EI', () => {
+  carregar('esquemas/fqa/calculo-quimica.js');
+  const Q = globalThis.Manual.quimica;
+  const na = D.energiasRemocao.Na;
+  const c = Q.configuracao(D.elementos.Na.z);
+  assert.deepEqual(na.map((x) => x.subnivel), c.subniveis.map((s) => s.nome));
+  assert.deepEqual(na.map((x) => x.eletroes), c.subniveis.map((s) => s.eletroes));
+  assert.equal(new Set(na.map((x) => x.energia)).size, c.subniveis.length);
+  for (let i = 1; i < na.length; i++) assert.ok(na[i - 1].energia > na[i].energia, na[i - 1].subnivel + ' > ' + na[i].subnivel);
+  assert.equal(na[na.length - 1].energia, D.elementos.Na.ei1);
+  assert.deepEqual(na.map((x) => x.energia), [104117, 6847, 3665, 496]);
+});

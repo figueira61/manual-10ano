@@ -135,7 +135,25 @@ Manual.dadosQuimicos = (function () {
     He: { nome: 'Hélio', linhas: [447.1, 471.3, 501.6, 587.6, 667.8] },
   };
 
+  // Energias de remoção eletrónica do átomo livre (espectroscopia fotoeletrónica), por subnível ocupado, do mais interior
+  // para o mais exterior: [subnível, eletrões no subnível, energia de ligação em eV]; guardadas em kJ/mol (× 96,485,
+  // arredondadas às unidades). Na: 1s medida (XPS do vapor de sódio); 2s e 2p = EI(Na) + energia do nível mais baixo
+  // do ião Na⁺ com a lacuna (NIST ASD, Na II); 3s = EI(Na).
+  const EI_NA_EV = TABELA.find((l) => l[0] === 'Na')[6];
+  const REMOCAO_EV = {
+    Na: [['1s', 2, 1079.1], ['2s', 2, EI_NA_EV + 65.823], ['2p', 6, EI_NA_EV + 32.846429], ['3s', 1, EI_NA_EV]],
+  };
+  const energiasRemocao = {};
+  for (const [simbolo, lista] of Object.entries(REMOCAO_EV)) {
+    energiasRemocao[simbolo] = lista.map(([subnivel, eletroes, eV]) => ({ subnivel, eletroes, energia: Math.round(eV * EV_PARA_KJ_MOL) }));
+  }
+
   const fontes = {
+    energiasRemocao: 'Na, átomo livre: 1s = 1079,1 eV (R. L. Martin, E. R. Davidson, M. S. Banna, B. Wallbank, D. C. Frost '
+      + 'e C. A. McDowell, "The x-ray photoelectron spectrum of atomic sodium", J. Chem. Phys. 68, 5006 (1978)); 2s e 2p = '
+      + 'EI(Na) 5,13908 eV + nível mais baixo do ião Na⁺ com a lacuna, NIST Atomic Spectra Database, Levels, Na II '
+      + '(2s 2p⁶ 3s ³S₁: 65,823 eV; 2s² 2p⁵ 3s ³P°₂: 32,846429 eV; consultada em 2026-11-16); 3s = EI(Na) (NIST). '
+      + 'Convertidas para kJ/mol (× 96,485) e arredondadas às unidades.',
     elementos: 'Nomes em português (IUPAC, como nos manuais portugueses); grupo (1–18, numeração IUPAC), período e bloco '
       + 'da Tabela Periódica da IUPAC. O hélio (1s²) é do bloco s pela configuração, mas fica no grupo 18.',
     massaAtomica: 'Tabela Periódica do IAVE, Anexo 3 da Informação-Prova de Física e Química A (715), 2025 '
@@ -161,5 +179,5 @@ Manual.dadosQuimicos = (function () {
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };
 
-  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, excecoesEI, excecoesEIGrupo, fontes };
+  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, fontes };
 })();

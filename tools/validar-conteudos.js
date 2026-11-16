@@ -53,6 +53,13 @@ function validarPergunta(p, i, ctx, erros, idsPerguntas) {
     const tol = p.tolerancia == null ? 1e-9 : p.tolerancia;
     const msg = compararVerificar(p.verificar, p.resposta, tol);
     if (msg) erros.push(loc + ': ' + msg);
+    if (p.algarismos !== undefined) {
+      if (!Number.isInteger(p.algarismos) || p.algarismos < 1 || p.algarismos > 21) {
+        erros.push(loc + ': algarismos (' + p.algarismos + ') tem de ser um inteiro de 1 a 21');
+      } else if (typeof p.resposta === 'number' && Number(p.resposta.toPrecision(p.algarismos)) !== p.resposta) {
+        erros.push(loc + ': resposta ' + p.resposta + ' não está arredondada a ' + p.algarismos + ' algarismos significativos');
+      }
+    }
   }
   if (p.errosTipicos !== undefined) validarErrosTipicos(p, loc, erros);
 }

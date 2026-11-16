@@ -127,3 +127,13 @@ test('harness: carrega os cálculos de todas as disciplinas (esquemas/*/calculo-
   assert.ok(Manual.geradores.todos().length >= 77);
   assert.equal(typeof Manual.ficheiroEsquema, 'function');
 });
+
+test('registo: algarismos passa para a pergunta gerada e a resposta mostra-se com esses algarismos', () => {
+  M.geradores.registar(defGrande({
+    gerar: (s, o) => Object.assign(defGrande().gerar(s, o), { algarismos: 3 }),
+  }));
+  const p = M.geradores.gerar('teste-grande', 3);
+  assert.equal(p.algarismos, 3);
+  const Q = carregar('js/quiz.js');
+  assert.match(Q.quiz.textoNumero(p), /^\d,\d\d×10²⁰$/);
+});

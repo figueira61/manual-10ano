@@ -50,21 +50,34 @@ Manual.quiz.ordemOpcoes = function (n, aleatorio) {
 // Resposta numérica como texto (sem a unidade). Perguntas geradas: como no resto do item, pelo Manual.formatar
 // (espaço dos milhares a partir de 5 algarismos, menos tipográfico; euros sempre com 2 casas: «3803,80», «18 440,00»).
 // Perguntas do banco (e sem Manual.formatar carregado): a apresentação de sempre, vírgula no lugar do ponto.
-Manual.quiz.textoNumero = function (pergunta) {
-  const v = pergunta.resposta;
-  if (pergunta.gerador && pergunta.toleranciaRelativa !== undefined && typeof v === 'number' && v !== 0
-    && (Math.abs(v) >= 1e5 || Math.abs(v) < 1e-3)) {
-    // Notação científica legível e que lerNumero aceita: 6,02×10²³.
-    const [mant, exp] = v.toExponential().split('e');
-    const sup = String(Number(exp)).replace(/[-\d]/g, (c) => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
-    return mant.replace('.', ',').replace('-', '−') + '×10' + sup;
-  }
-  if (!pergunta.gerador || !Manual.formatar || typeof v !== 'number') return String(v).replace('.', ',').replace('-', '−');
-  if (pergunta.unidade === '€') {
-    return Manual.formatar.arred(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/-/g, '−');
-  }
-  return Manual.formatar.num(v);
-};
+// Com `algarismos` (inteiro ≥ 1, banco ou gerador), a resposta mostra-se com esse número de algarismos significativos
+// («0,500»), em notação científica quando |v| ≥ 10⁵, |v| < 10⁻³ ou quando a escrita decimal não os mostraria.
+Manual.quiz.textoNumero = (function () {
+  const SUP = (e) => String(Number(e)).replace(/[-\d]/g, (c) => '⁻⁰¹²³⁴⁵⁶⁷⁸⁹'['-0123456789'.indexOf(c)]);
+  // Notação científica legível e que lerNumero aceita: 6,02×10²³.
+  const cientifica = (v, as) => {
+    const [mant, exp] = (as === undefined ? v.toExponential() : v.toExponential(as - 1)).split('e');
+    return mant.replace('.', ',').replace('-', '−') + '×10' + SUP(exp);
+  };
+  const grandeOuPequeno = (v) => v !== 0 && (Math.abs(v) >= 1e5 || Math.abs(v) < 1e-3);
+  return function (pergunta) {
+    const v = pergunta.resposta;
+    const as = pergunta.algarismos;
+    if (typeof v === 'number' && Number.isFinite(v) && Number.isInteger(as) && as >= 1 && as <= 21) {
+      const t = v.toPrecision(as);
+      if (grandeOuPequeno(v) || /e/.test(t)) return cientifica(v, as);
+      return t.replace('.', ',').replace('-', '−');
+    }
+    if (pergunta.gerador && pergunta.toleranciaRelativa !== undefined && typeof v === 'number' && grandeOuPequeno(v)) {
+      return cientifica(v);
+    }
+    if (!pergunta.gerador || !Manual.formatar || typeof v !== 'number') return String(v).replace('.', ',').replace('-', '−');
+    if (pergunta.unidade === '€') {
+      return Manual.formatar.arred(v).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).replace(/-/g, '−');
+    }
+    return Manual.formatar.num(v);
+  };
+})();
 
 // Corrige uma pergunta com a resposta dada. Nunca lança erro.
 Manual.quiz.corrigir = function (pergunta, resposta) {

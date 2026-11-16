@@ -135,7 +135,7 @@ Manual.geradores.ajudas = (function () {
   }
 
   // Fecha um exercício numérico ou de escolha múltipla (null = re-sortear: numérica sem erros típicos utilizáveis).
-  // o: { resposta, tolerancia | toleranciaRelativa, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
+  // o: { resposta, tolerancia | toleranciaRelativa, algarismos?, unidade, texto(v), erros, verificacao: { passo, calculo, valor }, arredondamento? }
   function fechar(rng, formato, ex, o) {
     const erros = filtrarErros(o.resposta, tolEfetiva(o.resposta, o.tolerancia, o.toleranciaRelativa), o.erros);
     if (formato === 'numerica') {
@@ -143,6 +143,7 @@ Manual.geradores.ajudas = (function () {
       Object.assign(ex, { resposta: o.resposta, unidade: o.unidade, errosTipicos: erros, verificacao: o.verificacao });
       if (o.tolerancia !== undefined) ex.tolerancia = o.tolerancia;
       if (o.toleranciaRelativa !== undefined) ex.toleranciaRelativa = o.toleranciaRelativa;
+      if (o.algarismos !== undefined) ex.algarismos = o.algarismos;
     } else {
       const e = escolhaDeErros(rng, o.texto(o.resposta), erros.map((x) => Object.assign({}, x, { texto: o.texto(x.valor) })));
       const alvo = chave(o.texto(o.verificacao.valor));

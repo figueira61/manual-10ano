@@ -76,7 +76,7 @@ Manual.geradores = Object.assign(Manual.geradores || {}, (function () {
       id: def.id, tipo: formato, gerador: def.id, semente, formato, contexto, nivel,
       competencia: def.tipo, enunciado: ex.enunciado,
     };
-    for (const campo of ['resposta', 'tolerancia', 'toleranciaRelativa', 'unidade', 'opcoes', 'correta', 'arredondamento']) {
+    for (const campo of ['resposta', 'tolerancia', 'toleranciaRelativa', 'algarismos', 'unidade', 'opcoes', 'correta', 'arredondamento']) {
       if (ex[campo] !== undefined) pergunta[campo] = ex[campo];
     }
     pergunta.resolucao = detalhada.map(textoPasso);

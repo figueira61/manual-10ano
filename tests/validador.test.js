@@ -330,3 +330,14 @@ test('disciplina não disponível com parte dos temas: os temas sem ficheiro e a
   fqa.disponivel = true;
   assert.ok(validar(c).some((e) => /^fqa\/materia: tema do índice sem ficheiro/.test(e)));
 });
+
+test('numerica com algarismos: inteiro de 1 a 21 e resposta já arredondada a esses algarismos', () => {
+  const c = base();
+  const num = (extra) => Object.assign({ id: 's1-q90', tipo: 'numerica', enunciado: 'x', resposta: 0.5, tolerancia: 0.0005, resolucao: ['r'], verificar: () => 0.5 }, extra);
+  sub(c).quiz[3] = num({ algarismos: 3 });
+  assert.deepEqual(validar(c), []);
+  sub(c).quiz[3] = num({ algarismos: 0 });
+  esperaErro(c, /algarismos \(0\)/);
+  sub(c).quiz[3] = num({ resposta: 0.4999, verificar: () => 0.4999, algarismos: 3 });
+  esperaErro(c, /não está arredondada a 3/);
+});

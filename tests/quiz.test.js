@@ -296,3 +296,23 @@ test('construirTentativa rejeita um modo desconhecido', () => {
   const c = { disciplina: 'd', tema: 't', subtema: 's' };
   assert.throws(() => Manual.quiz.construirTentativa(c, { tipo: 'numerica' }, 0, 'certa', 10, 'x', null, { modo: 'exame' }), Error);
 });
+
+test('textoNumero com algarismos: mostra os algarismos significativos pedidos (banco e gerador)', () => {
+  const t = (resposta, algarismos, extra) => Manual.quiz.textoNumero(Object.assign({ tipo: 'numerica', resposta, algarismos }, extra));
+  assert.equal(t(0.5, 3), '0,500');
+  assert.equal(t(7.9, 3), '7,90');
+  assert.equal(t(0.555, 3), '0,555');
+  assert.equal(t(-2.5, 3), '−2,50');
+  assert.equal(t(1312, 4), '1312');
+  assert.equal(t(1300, 2), '1,3×10³'); // a escrita decimal não mostraria só 2 algarismos
+  assert.equal(t(6.02e23, 3), '6,02×10²³');
+  assert.equal(t(1.6e-19, 2), '1,6×10⁻¹⁹');
+  assert.equal(t(0.0005, 2), '5,0×10⁻⁴');
+  assert.equal(t(0.5, 3, { gerador: 'g', toleranciaRelativa: 0.01 }), '0,500');
+  // sem algarismos (ou inválido): a apresentação de sempre
+  assert.equal(t(0.5), '0,5');
+  assert.equal(t(0.5, 0), '0,5');
+  // lê-se de volta como o mesmo número
+  for (const [v, a] of [[0.5, 3], [6.02e23, 3], [1300, 2], [-2.5, 3]]) assert.equal(Manual.quiz.lerNumero(t(v, a)), v);
+  assert.equal(Manual.quiz.corrigir({ tipo: 'numerica', resposta: 0.5, tolerancia: 0.0005, algarismos: 3, unidade: 'mol' }, '').respostaCorreta, '0,500 mol');
+});
