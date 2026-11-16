@@ -12,8 +12,9 @@ const Mol = M.moleculas;
 
 const IDS = [
   'ligacao-tipo', 'ligacao-lewis', 'ligacao-parametros',
+  'geometria-forma', 'geometria-polaridade', 'geometria-intermoleculares',
 ];
-const SUBTEMAS = ['ligacao'];
+const SUBTEMAS = ['ligacao', 'geometria'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -52,6 +53,30 @@ test('snapshots da semente 1', () => {
   p = g('ligacao-parametros');
   assert.match(p.enunciado, /N\{\\equiv\}N\}\$ com a ligação \$\\mathrm\{N\{=\}N/);
   assert.match(certa(p), /mais forte e mais curta/);
+  p = g('geometria-forma');
+  assert.match(p.enunciado, /\\mathrm\{CH_4\}/);
+  assert.equal(certa(p), 'Tetraédrica, com ângulo de ligação de cerca de 109,5°');
+  p = g('geometria-polaridade');
+  assert.equal(certa(p), '$\\mathrm{N_2}$');
+  p = g('geometria-intermoleculares');
+  assert.match(p.enunciado, /metano/);
+  assert.equal(certa(p), 'Só dispersão de London');
+});
+
+test('geometria: a resposta certa é a do catálogo, nunca a geometria dos pares de eletrões', () => {
+  for (const p of itens('geometria-forma', 80)) {
+    const m = Mol.obter(p.dados.molecula);
+    if (p.formato === 'escolha') assert.ok(certa(p).startsWith(m.geometria.charAt(0).toUpperCase() + m.geometria.slice(1) + ','), p.dados.molecula);
+    for (const e of p.errosTipicos) if (e.codigo === 'deu_a_geometria_dos_pares') assert.ok(Mol.obter(p.dados.molecula).atomos.some((a) => a.pares > 0));
+  }
+});
+
+test('polaridade: «ligações polares → molécula polar» só aparece como erro e a certa bate com o catálogo', () => {
+  for (const p of itens('geometria-polaridade', 80)) {
+    const m = Mol.obter(p.dados.molecula);
+    if (p.formato === 'escolha' && p.contexto === 'apolar') assert.equal(m.polar, false);
+    if (p.formato === 'escolha' && p.contexto === 'justificacao') assert.ok(certa(p).startsWith(m.polar ? 'É polar:' : 'É apolar:'));
+  }
 });
 
 test('figuras de enunciado: fqa-molecula nunca com mostrarInfo', () => {

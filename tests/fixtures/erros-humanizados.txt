@@ -1,6 +1,11 @@
 a_ao_quadrado → Multiplicou o desvio padrão por a ao quadrado
+achou_a_agua_linear → Tomou a molécula de água por linear
+achou_a_dispersao_mais_forte → Julgou a dispersão de London a interação mais forte
+achou_apolares_as_ligacoes → Julgou apolares ligações entre átomos diferentes
+achou_polar_uma_molecula_de_atomos_iguais → Julgou polar uma molécula de dois átomos iguais
 achou_que_mais_pares_alongam_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais comprida
 achou_que_mais_pares_enfraquecem_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais fraca
+achou_que_moleculas_menores_se_atraem_mais → Julgou que moléculas mais pequenas se atraem mais
 achou_que_mudava_de_nivel_no_periodo → Julgou que, no mesmo período, os eletrões de valência mudam de nível
 ag_como_metade → Tomou AG como metade da mediana
 ag_como_terco → Tomou AG como um terço da mediana
@@ -19,6 +24,7 @@ aplicou_b_antes → Somou a constante antes de multiplicar
 aplicou_dois_tercos → Multiplicou AG por 2/3 em vez de dividir por 2/3
 aplicou_na_abcissa → Aplicou o fator à abcissa
 aplicou_na_ordenada → Aplicou o fator à ordenada
+apolares_com_o_mesmo_ponto_de_ebulicao → Julgou que moléculas apolares têm o mesmo ponto de ebulição
 area_como_perimetro → Usou a fórmula do perímetro em vez da da área
 area_sem_metade → Esqueceu de dividir por 2 no cálculo da área
 area_sobre_perimetro → Dividiu a área pelo perímetro em vez do semiperímetro
@@ -28,6 +34,7 @@ arredondou_p_para_baixo → Arredondou a posição p para baixo
 associou_a_zona_errada → Associou a série de riscas à zona errada do espectro
 assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
 assumiu_divergencia → Assumiu que os dois métodos dão vencedores diferentes
+atomos_iguais_logo_apolar → Julgou apolar a molécula só por ter átomos exteriores iguais
 baricentro → Deu o baricentro em vez do circuncentro
 calculou_gm → Calculou GM em vez da mediana
 calculou_h → Parou no ortocentro H
@@ -56,6 +63,8 @@ confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
 confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
 confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
+confundiu_intramolecular_com_intermolecular → Confundiu ligações dentro da molécula com interações entre moléculas
+confundiu_ligacao_com_interacao_intermolecular → Confundiu uma ligação química com uma interação entre moléculas
 confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
@@ -70,6 +79,7 @@ contou_ligacoes_em_vez_de_pares → Contou ligações em vez de pares ligantes
 contou_mal_os_eletroes → Julgou de outro átomo uma configuração com Z eletrões
 contou_moleculas_em_vez_de_atomos → Contou as moléculas em vez dos átomos
 contou_o_complementar → Contou o contrário do pedido
+contou_os_atomos_em_vez_das_interacoes → Comparou o número de átomos em vez das interações entre moléculas
 contou_os_elementos_em_vez_dos_atomos → Multiplicou pelo número de elementos em vez do número de átomos
 contou_os_eletroes_4s → Contou os eletrões 4s como desemparelhados
 contou_os_eletroes_de_valencia → Deu o número de eletrões de valência em vez dos desemparelhados
@@ -108,6 +118,7 @@ deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
+deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_o_contradominio → Deu o contradomínio em vez do domínio
 deu_o_dominio → Deu o domínio em vez do contradomínio
@@ -122,6 +133,7 @@ deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
 deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
+diatomica_de_atomos_diferentes_apolar → Julgou apolar uma molécula diatómica de átomos diferentes
 diferenca_das_normas → Fez a diferença das normas em vez da norma da diferença
 diferenca_desfasada → Atribuiu cada diferença à classe errada
 dilatacao_contracao_trocadas → Trocou a dilatação com a contração
@@ -164,6 +176,7 @@ escolheu_incentro → Escolheu o incentro
 escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
+esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
@@ -219,6 +232,7 @@ hipotenusa_como_raio → Tomou a hipotenusa por raio
 ignorou_a → Ignorou o número dentro do módulo
 ignorou_a_carga → Ignorou a carga do ião
 ignorou_fator → Ignorou o fator
+ignorou_os_pares_nao_ligantes → Ignorou os pares não ligantes do átomo central
 ignorou_sinais → Ignorou os sinais
 ignorou_sinal_mais → Ignorou o sinal de mais
 impossivel_como_excitado → Tomou uma configuração impossível por um estado excitado
@@ -246,7 +260,13 @@ lado_trocado → Escolheu o lado errado do zero
 lambda_no_ponto → Multiplicou λ pelo ponto em vez de pelo vetor
 letra_do_plano → Escolheu a letra errada na equação do plano
 leu_acumulada → Leu a frequência acumulada em vez da absoluta
+leu_o_angulo_no_desenho → Leu o ângulo no desenho plano da molécula
+ligacao_de_hidrogenio_com_h_ligado_a_c → Viu ligações de hidrogénio com H ligado ao carbono
+ligacao_de_hidrogenio_com_h_ligado_a_cl → Viu ligações de hidrogénio com H ligado ao cloro
+ligacao_de_hidrogenio_sem_h → Viu ligações de hidrogénio numa molécula sem hidrogénio
+ligacoes_polares_logo_molecula_polar → Julgou que ligações polares tornam sempre a molécula polar
 limites_em_vez_de_partes → Aplicou cada taxa ao limite do escalão
+linear_logo_apolar → Julgou apolar uma molécula linear com pontas diferentes
 maior_comprimento_de_onda_maior_energia → Julgou que maior comprimento de onda dá mais energia
 maior_media_maior_dispersao → Julgou que a maior média tem maior dispersão
 maior_partido → Deu o último mandato ao partido mais votado
@@ -278,6 +298,7 @@ metade_do_raio_inscrito → Deu metade do raio inscrito
 metade_nao_chega → Julgou que metade dos votos dá maioria absoluta
 metalica_por_ter_um_metal → Julgou metálica a ligação por haver um metal
 metodo_das_metades → Calculou o quartil pelo método das metades
+molecula_apolar_com_dipolo_dipolo → Viu interações dipolo–dipolo entre moléculas apolares
 monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
 multiplicou → Multiplicou em vez de dividir
@@ -337,6 +358,7 @@ outro_metodo → Usou o outro método de conversão de votos em mandatos
 p_com_mais_de_seis_eletroes → Pôs mais de seis eletrões num subnível p
 p_inteiro_sem_media → Esqueceu a média quando p é inteiro
 par_so_um_valor → Usou só um valor quando há dois ao meio
+pares_nao_ligantes_logo_polar → Julgou que pares não ligantes tornam a molécula polar
 parou_um_antes → Parou um quociente antes
 passou_ao_subnivel_seguinte_sem_completar → Passou ao subnível seguinte sem completar o anterior
 pe_da_altura → Deu o pé da altura em vez do ortocentro
@@ -351,6 +373,7 @@ perdeu_zero_nulo → Perdeu a solução x = 0
 periodo_a_menos → Contou um período a menos
 periodo_pelo_cerne → Deu o período do gás nobre do cerne
 periodo_pelo_subnivel_3d → Deu o período pelo subnível 3d
+piramidal_sem_par_nao_ligante → Deu geometria piramidal sem par não ligante no átomo central
 plano_coordenado → Deu o plano coordenado em vez do plano por P
 ponto_medio_cateto → Deu o ponto médio de um cateto
 ponto_medio_de_am → Deu o ponto médio de AM
@@ -363,6 +386,8 @@ pontos_desde_zero → Deu pontos a partir de 0 em vez de a partir de 1
 populacao_alargada → Escolheu a população alargada
 populacao_como_amostra → Tomou a população por amostra
 populacao_como_variavel → Tomou a população por variável
+pos_pares_nao_ligantes_no_carbono → Pôs pares não ligantes no carbono
+pos_um_par_nao_ligante_no_boro → Pôs um par não ligante no boro
 posicao_como_valor → Deu a posição em vez do valor
 preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
 proporcional_restos_maiores → Usou o método dos restos maiores
@@ -395,6 +420,7 @@ reta_ab → Deu a reta AB em vez da mediatriz
 reta_duas_condicoes → Deu uma reta em vez de um plano
 reta_paralela_ao_eixo → Deu a reta paralela ao eixo em vez do plano
 rodou_90 → Rodou 90° em vez de dar meia-volta
+seguiu_o_desenho_no_plano → Seguiu o desenho no plano em vez da geometria no espaço
 segundo_com_absoluta → Deu maioria absoluta ao segundo mais votado
 segundo_com_simples → Deu maioria simples ao segundo mais votado
 sem_raiz → Esqueceu a raiz quadrada
@@ -474,6 +500,7 @@ tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
 tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
 tomou_o_hidrogenio_por_metal → Tomou o hidrogénio por um metal
+tomou_uma_molecula_polar_por_apolar → Tomou uma molécula polar por apolar
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
 trocou_as_abundancias → Trocou as abundâncias dos isótopos
@@ -509,6 +536,7 @@ usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
 usou_h_sobre_lambda → Calculou E = h/λ sem a velocidade da luz
 usou_metade_da_divisao_num_digital → Usou metade da divisão num instrumento digital
 usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
+usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
 usou_os_numeros_de_massa → Usou os números de massa em vez das massas isotópicas

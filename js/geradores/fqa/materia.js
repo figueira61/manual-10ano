@@ -166,9 +166,9 @@ globalThis.Manual = globalThis.Manual || {};
         const E = {
           covalente_entre_metal_e_nao_metal: 'A ligação covalente (partilha de pares de eletrões) é típica entre não metais. Aqui o ' + (metal ? nomeEl(metal) : '') + ' é um metal: cede eletrões e formam-se iões, numa ligação iónica.',
           metalica_por_ter_um_metal: 'A ligação metálica é entre átomos de metais. Aqui só o ' + (metal ? nomeEl(metal) : '') + ' é metal; o ' + (naoMetal ? nomeEl(naoMetal) : '') + ' recebe eletrões e forma-se uma rede de iões: ligação iónica.',
-          confundiu_ligacao_com_interacao_intermolecular: tipo === 'ionica'
+          confundiu_ligacao_com_interacao_intermolecular: '' + (tipo === 'ionica'
             ? 'A ligação de hidrogénio é uma interação entre moléculas, com H ligado a N, O ou F. ' + F + ' não é formado por moléculas: é uma rede de iões (ligação iónica).'
-            : 'A ligação de hidrogénio é uma interação entre moléculas diferentes. Dentro de cada molécula, os átomos de ' + nomeEl('H') + ' e de ' + nomeEl(outro) + ' partilham pares de eletrões: ligação covalente.',
+            : 'A ligação de hidrogénio é uma interação entre moléculas diferentes. Dentro de cada molécula, os átomos de ' + nomeEl('H') + ' e de ' + nomeEl(outro) + ' partilham pares de eletrões: ligação covalente.'),
           ionica_entre_nao_metais: 'Para haver ligação iónica é preciso um metal que ceda eletrões. ' + (els.length === 1 ? 'Os dois átomos de ' + nomeEl(els[0]) + ' são iguais e não metálicos' : 'O ' + nomeEl(els[0]) + ' e o ' + nomeEl(els[1]) + ' são não metais') + ': partilham pares de eletrões, numa ligação covalente.',
           tomou_o_hidrogenio_por_metal: 'O hidrogénio está no grupo 1, mas não é um metal: com o ' + nomeEl(outro) + ' partilha pares de eletrões, numa ligação covalente. A ligação metálica é entre átomos de metais.',
           covalente_entre_atomos_iguais: 'Átomos iguais partilham pares de eletrões quando são de um não metal (como no $\\mathrm{Cl_2}$). O ' + nomeEl(els[0]) + ' é um metal: os eletrões de valência ficam deslocalizados por uma rede de catiões (ligação metálica).',
@@ -378,6 +378,358 @@ globalThis.Manual = globalThis.Manual || {};
     },
     limites(p) {
       return p.dados.x !== p.dados.y && p.dados.x[0] === p.dados.y[0] && ORDEM_DE(p.dados.x) !== ORDEM_DE(p.dados.y);
+    },
+  });
+
+  // ================================================================ geometria
+  // Ângulo em texto corrido: 104,5°.
+  const grau = (v) => String(v).replace('.', ',') + '°';
+  const geoTexto = (g, a) => maiuscula(g) + ', com ângulo de ligação de cerca de ' + grau(a);
+  // Átomo central (um só), ligações e pares não ligantes à volta dele.
+  function central(id) {
+    const m = mol(id);
+    const i = Mol().centrais(id)[0];
+    const viz = m.ligacoes.filter(([p, q]) => p === i || q === i).length;
+    return { i, el: m.atomos[i].el, ligados: viz, pares: m.atomos[i].pares };
+  }
+  // Geometria pelo número de átomos ligados e de pares não ligantes do átomo central (modelo de repulsão dos pares).
+  const GEO_REGRA = { '2-0': 'linear', '3-0': 'triangular plana', '4-0': 'tetraédrica', '3-1': 'piramidal trigonal', '2-2': 'angular', '2-1': 'angular' };
+  // Ângulo de ligação a partir das coordenadas 3D do catálogo (arredondado a 0,5°).
+  function angulo3d(id) {
+    const m = mol(id);
+    const c = central(id);
+    const outros = m.ligacoes.filter(([p, q]) => p === c.i || q === c.i).map(([p, q]) => (p === c.i ? q : p)).slice(0, 2);
+    const a = m.atomos3d;
+    const v = outros.map((k) => [a[k].x - a[c.i].x, a[k].y - a[c.i].y, a[k].z - a[c.i].z]);
+    const dot = soma(v[0].map((x, j) => x * v[1][j]));
+    const n = (u) => Math.sqrt(soma(u.map((x) => x * x)));
+    return Math.round(2 * Math.acos(dot / (n(v[0]) * n(v[1]))) * 180 / Math.PI) / 2;
+  }
+  // Erros típicos de geometria por molécula: [geometria, ângulo, código, explicação].
+  const GEO_ERROS = {
+    H2O: [
+      { g: 'linear', a: 180, codigo: 'ignorou_os_pares_nao_ligantes', explicacao: 'Com duas ligações e sem pares não ligantes seria linear (como o $\\mathrm{CO_2}$); mas o oxigénio tem 2 pares não ligantes, que empurram as ligações O–H: a molécula é angular.' },
+      { g: 'tetraédrica', a: 109.5, codigo: 'deu_a_geometria_dos_pares', explicacao: 'Os 4 pares à volta do oxigénio dispõem-se como num tetraedro, mas a geometria descreve só a posição dos átomos: com 3 átomos, a molécula é angular.' },
+      { g: 'angular', a: 109.5, codigo: 'usou_o_angulo_ideal_dos_pares', explicacao: 'A geometria está certa, mas 109,5° é o ângulo do tetraedro perfeito. Os 2 pares não ligantes repelem mais e fecham o ângulo para cerca de 104,5°.' },
+    ],
+    NH3: [
+      { g: 'triangular plana', a: 120, codigo: 'ignorou_os_pares_nao_ligantes', explicacao: 'Com 3 ligações e sem pares não ligantes seria triangular plana (como o $\\mathrm{BF_3}$); mas o nitrogénio tem um par não ligante, que empurra as ligações N–H para baixo: piramidal trigonal.' },
+      { g: 'tetraédrica', a: 109.5, codigo: 'deu_a_geometria_dos_pares', explicacao: 'Os 4 pares à volta do nitrogénio dispõem-se como num tetraedro, mas a geometria descreve só a posição dos átomos: o N no vértice e 3 H por baixo formam uma pirâmide trigonal.' },
+      { g: 'piramidal trigonal', a: 109.5, codigo: 'usou_o_angulo_ideal_dos_pares', explicacao: 'A geometria está certa, mas 109,5° é o ângulo do tetraedro perfeito. O par não ligante repele mais e fecha o ângulo para cerca de 107°.' },
+    ],
+    CH4: [
+      { g: 'quadrangular plana', a: 90, codigo: 'seguiu_o_desenho_no_plano', explicacao: 'A fórmula desenhada no papel parece uma cruz plana (ângulos de 90°), mas no espaço os 4 pares ligantes afastam-se mais: ficam num tetraedro, com 109,5°.' },
+      { g: 'piramidal trigonal', a: 107, codigo: 'piramidal_sem_par_nao_ligante', explicacao: 'A geometria piramidal trigonal é a do $\\mathrm{NH_3}$, com 3 ligações e um par não ligante. O carbono do metano faz 4 ligações e não tem pares não ligantes: tetraédrica.' },
+      { g: 'tetraédrica', a: 90, codigo: 'leu_o_angulo_no_desenho', explicacao: 'A geometria está certa, mas os 90° são os do desenho no papel. Num tetraedro o ângulo entre as ligações é de cerca de 109,5°.' },
+    ],
+    O3: [
+      { g: 'linear', a: 180, codigo: 'ignorou_os_pares_nao_ligantes', explicacao: 'Com duas ligações e sem pares não ligantes no átomo central seria linear; mas o oxigénio central tem um par não ligante, que empurra as ligações: a molécula é angular.' },
+      { g: 'triangular plana', a: 120, codigo: 'deu_a_geometria_dos_pares', explicacao: 'As duas ligações e o par não ligante do oxigénio central dispõem-se num triângulo, mas a geometria descreve só a posição dos átomos: com 3 átomos, a molécula é angular.' },
+      { g: 'angular', a: 120, codigo: 'usou_o_angulo_ideal_dos_pares', explicacao: 'A geometria está certa, mas 120° é o ângulo do triângulo perfeito. O par não ligante repele mais e fecha o ângulo para cerca de 117°.' },
+    ],
+    CO2: [
+      { g: 'angular', a: 104.5, codigo: 'pos_pares_nao_ligantes_no_carbono', explicacao: 'Imaginaste o $\\mathrm{CO_2}$ como a água. O carbono faz duas ligações duplas e não tem pares não ligantes: as duas ligações afastam-se o mais possível e a molécula é linear (180°).' },
+    ],
+    BF3: [
+      { g: 'piramidal trigonal', a: 107, codigo: 'pos_um_par_nao_ligante_no_boro', explicacao: 'Imaginaste o $\\mathrm{BF_3}$ como o $\\mathrm{NH_3}$. O boro faz 3 ligações e não tem pares não ligantes (fica só com 6 eletrões): a molécula é triangular plana (120°).' },
+    ],
+  };
+  const GEO_ESCOLHA = ['H2O', 'NH3', 'CH4', 'O3'];
+
+  registar({
+    subtema: 'geometria', tipo: 'forma', nome: 'Geometria molecular e ângulo de ligação',
+    formatos: ['escolha', 'vf'], contextos: ['formula', 'lewis'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const id = escolher(rng, formato === 'escolha' ? GEO_ESCOLHA : Object.keys(GEO_ERROS));
+        const m = mol(id);
+        const c = central(id);
+        const F = '$' + m.formula + '$';
+        const certa = geoTexto(m.geometria, m.angulo);
+        const pergunta = 'Qual é a geometria da molécula ' + F + ' e o valor aproximado do ângulo de ligação?';
+        const intro = contexto === 'lewis'
+          ? 'A figura mostra a estrutura de Lewis da molécula ' + F + '. '
+          : 'Considera a molécula ' + F + ' (' + dadosZ(id) + '). ';
+        const dominios = c.ligados + c.pares;
+        const resolucao = [
+          { passo: 'Contar, no átomo central, as ligações e os pares não ligantes', porque: 'O ' + nomeEl(c.el) + ' (' + c.el + ') está ligado a ' + plural(c.ligados, 'átomo', 'átomos') + ' e tem ' + (c.pares === 0 ? 'nenhum par não ligante' : plural(c.pares, 'par não ligante', 'pares não ligantes')) + ': ' + dominios + ' zonas de eletrões à volta dele (uma ligação dupla conta como uma só zona).' },
+          { passo: 'Afastar as zonas de eletrões o mais possível', porque: c.pares === 0
+            ? 'Sem pares não ligantes, a geometria é a das ligações: ' + m.geometria + ', com cerca de ' + grau(m.angulo) + '.'
+            : 'As ' + dominios + ' zonas afastam-se, mas a geometria só descreve a posição dos átomos: a molécula é ' + m.geometria + '. Os pares não ligantes repelem mais do que os ligantes e fecham o ângulo para cerca de ' + grau(m.angulo) + '.' },
+        ];
+        const verificacao = { passo: 'Confirmar o ângulo pelas posições dos átomos no espaço', calculo: '\\theta \\approx ' + tex(angulo3d(id), 1) + '^{\\circ}', valor: null };
+        const dados = { molecula: id, contexto };
+        const base = { resolucao, dados, esquema: { id: 'fqa-geometria', opcoes: { molecula: id } } };
+        if (contexto === 'lewis') base.figuraEnunciado = { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'lewis' } };
+        const erros = GEO_ERROS[id].map((x) => ({ codigo: x.codigo, texto: geoTexto(x.g, x.a), explicacao: x.explicacao }));
+        if (formato === 'escolha') {
+          return fecharTexto(rng, Object.assign(base, { enunciado: intro + pergunta, verificacao }), certa, erros, certa);
+        }
+        const e = escolher(rng, erros);
+        const frase = (t) => intro + 'A molécula é ' + t.charAt(0).toLowerCase() + t.slice(1) + '.';
+        const v = vfDe(rng, frase(certa), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        return Object.assign(base, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const id = p.dados.molecula;
+      const c = central(id);
+      const t = geoTexto(GEO_REGRA[c.ligados + '-' + c.pares], angulo3d(id));
+      if (p.formato === 'vf') return p.correta === p.enunciado.includes(t.charAt(0).toLowerCase() + t.slice(1) + '.');
+      return p.opcoes[p.correta] === t;
+    },
+    limites(p) {
+      return !!GEO_ERROS[p.dados.molecula] && Mol().centrais(p.dados.molecula).length === 1;
+    },
+  });
+
+  // Polaridade das moléculas.
+  const APOLARES = ['CO2', 'CH4', 'BF3', 'Cl2', 'N2', 'O2', 'H2'];
+  const POLARES_ERRO = {
+    H2O: { codigo: 'achou_a_agua_linear', explicacao: 'A água é angular (cerca de 104,5°), por causa dos 2 pares não ligantes do oxigénio: as ligações O–H, polares, não se anulam e a molécula é polar.' },
+    NH3: { codigo: 'ignorou_os_pares_nao_ligantes', explicacao: 'O $\\mathrm{NH_3}$ é piramidal trigonal: o par não ligante do nitrogénio tira-lhe a simetria e as ligações N–H, polares, não se anulam. É polar.' },
+    HCl: { codigo: 'diatomica_de_atomos_diferentes_apolar', explicacao: 'No $\\mathrm{HCl}$ há uma só ligação, entre átomos diferentes: é polar e nada a compensa, logo a molécula é polar.' },
+    HCN: { codigo: 'linear_logo_apolar', explicacao: 'O $\\mathrm{HCN}$ é linear, mas as pontas são diferentes (H de um lado, N do outro): as ligações polares não se anulam e a molécula é polar.' },
+  };
+  // Justificações: [ligação, geometria, átomo com pares (apolares) | átomo exterior (polares)].
+  const JUSTIF = {
+    CO2: { lig: 'C=O', exterior: 'oxigénio' },
+    BF3: { lig: 'B–F', exterior: 'flúor' },
+    H2O: { lig: 'O–H', exterior: 'hidrogénio', simetrica: 'linear', codigo: 'achou_a_agua_linear' },
+    NH3: { lig: 'N–H', exterior: 'hidrogénio', simetrica: 'triangular plana', codigo: 'ignorou_os_pares_nao_ligantes' },
+  };
+  // Polaridade pela simetria (sem o campo polar do catálogo): diatómica de átomos iguais, ou um átomo central sem pares
+  // não ligantes rodeado de átomos todos iguais, é apolar.
+  function apolarPelaSimetria(id) {
+    const m = mol(id);
+    if (m.atomos.length === 2) return m.atomos[0].el === m.atomos[1].el;
+    const c = central(id);
+    const fora = m.atomos.filter((a, i) => i !== c.i).map((a) => a.el);
+    return c.pares === 0 && fora.every((s) => s === fora[0]);
+  }
+
+  registar({
+    subtema: 'geometria', tipo: 'polaridade', nome: 'Molécula polar ou apolar',
+    formatos: ['escolha', 'vf'], contextos: ['apolar', 'justificacao'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let id, enunciado, certa, erros, resolucao;
+        const descreve = (x) => 'a molécula ' + '$' + formula(x) + '$ é ' + mol(x).geometria;
+        if (contexto === 'apolar') {
+          id = escolher(rng, formato === 'escolha' ? APOLARES : APOLARES.concat(Object.keys(POLARES_ERRO)));
+          const m = mol(id);
+          const homo = m.atomos.every((a) => a.el === m.atomos[0].el);
+          resolucao = [
+            { passo: 'Ver se as ligações são polares', porque: homo ? 'As ligações são entre átomos iguais: são apolares.' : 'As ligações são entre átomos diferentes: são polares.' },
+            { passo: 'Ver se a geometria anula as cargas parciais', porque: m.polar
+              ? maiuscula(descreve(id)) + ': as cargas parciais não se anulam, por isso é polar.'
+              : (homo ? 'Sem ligações polares, a molécula é apolar.' : maiuscula(descreve(id)) + ' e simétrica: as ligações polares anulam-se, por isso é apolar.') },
+          ];
+          if (formato === 'escolha') {
+            const outros = baralhar(rng, Object.keys(POLARES_ERRO)).slice(0, 3);
+            erros = outros.map((x) => Object.assign({ texto: '$' + formula(x) + '$' }, POLARES_ERRO[x]));
+            enunciado = 'Qual destas moléculas é apolar?';
+            certa = '$' + m.formula + '$';
+            return fecharTexto(rng, {
+              enunciado, resolucao, dados: { molecula: id, contexto, opcoes: [id].concat(outros) },
+              verificacao: { passo: 'Confirmar pela simetria', calculo: '\\text{' + m.geometria + '}', valor: null },
+              esquema: id === 'H2' || id === 'N2' || id === 'O2' || id === 'Cl2' ? { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'lewis' } } : { id: 'fqa-geometria', opcoes: { molecula: id } },
+            }, certa, erros, certa);
+          }
+          const frase = (polar) => 'A molécula de ' + m.nome + ', $' + m.formula + '$, é ' + (polar ? 'polar' : 'apolar') + '.';
+          const erro = m.polar ? POLARES_ERRO[id]
+            : homo ? { codigo: 'achou_polar_uma_molecula_de_atomos_iguais', explicacao: 'A molécula $' + m.formula + '$ tem dois átomos iguais: os eletrões partilhados ficam igualmente distribuídos, não há cargas parciais e a molécula é apolar.' }
+              : { codigo: 'ligacoes_polares_logo_molecula_polar', explicacao: 'As ligações do $' + m.formula + '$ são polares, mas a molécula é ' + m.geometria + ' e simétrica: as cargas parciais anulam-se e a molécula é apolar.' };
+          const v = vfDe(rng, frase(m.polar), frase(!m.polar), erro);
+          return Object.assign({ resolucao, dados: { molecula: id, contexto, afirmaPolar: v.correta ? m.polar : !m.polar } }, v, {
+            verificacao: { passo: 'Confirmar pela simetria', calculo: '\\text{' + m.geometria + '}', valor: v.correta },
+          });
+        }
+        id = escolher(rng, Object.keys(JUSTIF));
+        const m = mol(id);
+        const j = JUSTIF[id];
+        const L = '$\\mathrm{' + j.lig.replace('–', '{-}').replace('=', '{=}') + '}$';
+        if (!m.polar) {
+          certa = 'É apolar: as ligações ' + L + ' são polares, mas a molécula é ' + m.geometria + ' e simétrica, por isso as cargas parciais anulam-se.';
+          erros = [
+            { codigo: 'ligacoes_polares_logo_molecula_polar', texto: 'É polar, porque as ligações ' + L + ' são polares.', explicacao: 'Ter ligações polares não chega: no $' + m.formula + '$ (' + m.geometria + ') as ligações estão dispostas simetricamente e as cargas parciais anulam-se. A molécula é apolar.' },
+            { codigo: 'achou_apolares_as_ligacoes', texto: 'É apolar, porque as ligações ' + L + ' são apolares.', explicacao: 'A conclusão está certa, mas a razão não: as ligações ' + L + ' são entre átomos diferentes, logo são polares. A molécula é apolar porque a geometria ' + m.geometria + ' anula as cargas parciais.' },
+            { codigo: 'pares_nao_ligantes_logo_polar', texto: 'É polar, porque os átomos de ' + j.exterior + ' têm pares não ligantes.', explicacao: 'Os pares não ligantes dos átomos das pontas não tornam a molécula polar. O que conta é se as cargas parciais das ligações se anulam: na geometria ' + m.geometria + ' anulam-se.' },
+          ];
+        } else {
+          certa = 'É polar: as ligações ' + L + ' são polares e, como a molécula é ' + m.geometria + ', as cargas parciais não se anulam.';
+          erros = [
+            { codigo: j.codigo, texto: 'É apolar, porque é ' + j.simetrica + ' e as cargas parciais anulam-se.', explicacao: 'A molécula não é ' + j.simetrica + ': os pares não ligantes do átomo central tornam-na ' + m.geometria + ', e as cargas parciais não se anulam. É polar.' },
+            { codigo: 'atomos_iguais_logo_apolar', texto: 'É apolar, porque os átomos de ' + j.exterior + ' são todos iguais.', explicacao: 'Ter átomos exteriores iguais só torna a molécula apolar se a geometria for simétrica. A molécula é ' + m.geometria + ': as cargas parciais não se anulam.' },
+            { codigo: 'ligacoes_polares_logo_molecula_polar', texto: 'É polar, porque todas as moléculas com ligações polares são polares.', explicacao: 'A conclusão está certa, mas a razão não: o $\\mathrm{CO_2}$ tem ligações polares e é apolar. Esta molécula é polar porque, sendo ' + m.geometria + ', as cargas parciais não se anulam.' },
+          ];
+        }
+        enunciado = 'A molécula $' + m.formula + '$ é ' + m.geometria + '. Qual é a afirmação correta sobre a sua polaridade?';
+        resolucao = [
+          { passo: 'Ver se as ligações são polares', porque: 'As ligações ' + L + ' são entre átomos diferentes: são polares.' },
+          { passo: 'Ver se a geometria anula as cargas parciais', porque: m.polar ? 'Na geometria ' + m.geometria + ' as cargas parciais não se anulam: a molécula é polar.' : 'Na geometria ' + m.geometria + ', simétrica, as cargas parciais anulam-se: a molécula é apolar.' },
+        ];
+        const dados = { molecula: id, contexto };
+        const verificacao = { passo: 'Confirmar pela simetria à volta do átomo central', calculo: '\\text{pares não ligantes no átomo central: } ' + central(id).pares, valor: null };
+        const esquema = { id: 'fqa-geometria', opcoes: { molecula: id } };
+        if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao, esquema }, certa, erros, certa);
+        const e = escolher(rng, erros.filter((x) => !/A conclusão está certa/.test(x.explicacao)));
+        const inicio = 'A molécula $' + m.formula + '$, que é ' + m.geometria + ', ';
+        const v = vfDe(rng, inicio + certa.replace(/^É (a?polar): /, 'é $1, já que '), inicio + e.texto.charAt(0).toLowerCase() + e.texto.slice(1), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmaPolar = /, é polar/.test(v.enunciado);
+        return Object.assign({ resolucao, dados, esquema }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const id = p.dados.molecula;
+      const apolar = apolarPelaSimetria(id);
+      if (p.formato === 'vf') {
+        if (p.dados.contexto === 'apolar') return p.correta === (p.dados.afirmaPolar === !apolar);
+        // Justificação: a certa diz a polaridade certa e que as cargas parciais (não) se anulam por causa da geometria.
+        const ok = p.dados.afirmaPolar === !apolar && /já que/.test(p.enunciado) && !/porque/.test(p.enunciado);
+        return p.correta === ok;
+      }
+      if (p.dados.contexto === 'apolar') {
+        const marcadas = p.dados.opcoes.filter((x) => apolarPelaSimetria(x));
+        return marcadas.length === 1 && p.opcoes[p.correta] === '$' + formula(marcadas[0]) + '$';
+      }
+      const t = p.opcoes[p.correta];
+      return t.startsWith(apolar ? 'É apolar:' : 'É polar:') && p.opcoes.filter((o) => /^É (a)?polar:/.test(o)).length === 1;
+    },
+    limites(p) {
+      return !!mol(p.dados.molecula);
+    },
+  });
+
+  // Interações intermoleculares.
+  const INTERMOL = {
+    H2O: 'hidrogenio', NH3: 'hidrogenio', HF: 'hidrogenio', CH3OH: 'hidrogenio', C2H5OH: 'hidrogenio', CH3COOH: 'hidrogenio', CH3NH2: 'hidrogenio',
+    HCl: 'dipolo', HCN: 'dipolo', CH3CHO: 'dipolo', CH3COCH3: 'dipolo',
+    CH4: 'dispersao', CO2: 'dispersao', Cl2: 'dispersao', N2: 'dispersao', O2: 'dispersao', C2H6: 'dispersao', C3H8: 'dispersao', BF3: 'dispersao',
+  };
+  const TXT_INTERMOL = {
+    hidrogenio: 'Dispersão de London, dipolo–dipolo e ligações de hidrogénio',
+    dipolo: 'Dispersão de London e dipolo–dipolo',
+    dispersao: 'Só dispersão de London',
+    covalente: 'Ligações covalentes entre as moléculas',
+  };
+  // Pela estrutura: H ligado a N, O ou F → ligações de hidrogénio; senão, polar pela simetria → dipolo–dipolo.
+  function intermolPelaEstrutura(id) {
+    const m = mol(id);
+    const hNOF = m.ligacoes.some(([i, j]) => {
+      const a = m.atomos[i].el;
+      const b = m.atomos[j].el;
+      return (a === 'H' && ['N', 'O', 'F'].includes(b)) || (b === 'H' && ['N', 'O', 'F'].includes(a));
+    });
+    if (hNOF) return 'hidrogenio';
+    if (m.atomos.length <= 3 || Mol().centrais(id).length === 1) return apolarPelaSimetria(id) ? 'dispersao' : 'dipolo';
+    return m.polar ? 'dipolo' : 'dispersao';
+  }
+  // Pares para comparar pontos de ebulição: [mais alto, mais baixo].
+  const PARES_EBULICAO = [['H2O', 'CH4'], ['NH3', 'CH4'], ['CH3OH', 'C2H6'], ['C2H5OH', 'C3H8'], ['C4H10', 'CH4'], ['C3H8', 'CH4'], ['C4H10', 'C2H6'], ['C3H8', 'C2H6'], ['C2H6', 'CH4']];
+  const eletroesDe = (id) => soma(mol(id).atomos.map((a) => el(a.el).z));
+  const nAtomos = (id) => mol(id).atomos.length;
+
+  registar({
+    subtema: 'geometria', tipo: 'intermoleculares', nome: 'Interações intermoleculares e ponto de ebulição',
+    formatos: ['escolha', 'vf'], contextos: ['tipo', 'comparar'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        if (contexto === 'tipo') {
+          const id = escolher(rng, Object.keys(INTERMOL));
+          const m = mol(id);
+          const t = INTERMOL[id];
+          const F = '$' + m.formula + '$';
+          const temH = m.atomos.some((a) => a.el === 'H');
+          const hCom = m.ligacoes.map(([i, j]) => [m.atomos[i].el, m.atomos[j].el]).filter((x) => x.includes('H')).map((x) => (x[0] === 'H' ? x[1] : x[0]));
+          const E = {
+            esqueceu_a_ligacao_de_hidrogenio: 'Faltam as ligações de hidrogénio: no ' + F + ' há H ligado a ' + (hCom.find((s) => ['N', 'O', 'F'].includes(s)) || '') + ', e esse H atrai um par não ligante de uma molécula vizinha.',
+            tomou_uma_molecula_polar_por_apolar: 'Só há dispersão de London entre moléculas apolares. O ' + F + ' é polar, por isso há também interações dipolo–dipolo' + (t === 'hidrogenio' ? ' e ligações de hidrogénio.' : '.'),
+            confundiu_intramolecular_com_intermolecular: 'As ligações covalentes estão dentro de cada molécula (são intramoleculares). Entre moléculas há interações muito mais fracas.',
+            ligacao_de_hidrogenio_com_h_ligado_a_c: 'A ligação de hidrogénio exige H ligado a N, O ou F. No ' + F + ' os átomos de hidrogénio estão ligados ao carbono, por isso não há ligações de hidrogénio.',
+            ligacao_de_hidrogenio_com_h_ligado_a_cl: 'A ligação de hidrogénio exige H ligado a N, O ou F. No $\\mathrm{HCl}$ o hidrogénio está ligado ao cloro, por isso não há ligações de hidrogénio.',
+            molecula_apolar_com_dipolo_dipolo: 'As interações dipolo–dipolo exigem moléculas polares. O ' + F + ' é apolar (' + (m.geometria ? m.geometria + ' e simétrica' : 'hidrocarboneto') + '), por isso só há dispersão de London.',
+            ligacao_de_hidrogenio_sem_h: 'Não há hidrogénio no ' + F + '; a ligação de hidrogénio exige H ligado a N, O ou F.',
+          };
+          const codigos = {
+            hidrogenio: [['dipolo', 'esqueceu_a_ligacao_de_hidrogenio'], ['dispersao', 'tomou_uma_molecula_polar_por_apolar'], ['covalente', 'confundiu_intramolecular_com_intermolecular']],
+            dipolo: [['hidrogenio', id === 'HCl' ? 'ligacao_de_hidrogenio_com_h_ligado_a_cl' : 'ligacao_de_hidrogenio_com_h_ligado_a_c'], ['dispersao', 'tomou_uma_molecula_polar_por_apolar'], ['covalente', 'confundiu_intramolecular_com_intermolecular']],
+            dispersao: [['dipolo', 'molecula_apolar_com_dipolo_dipolo'], ['hidrogenio', temH ? 'ligacao_de_hidrogenio_com_h_ligado_a_c' : 'ligacao_de_hidrogenio_sem_h'], ['covalente', 'confundiu_intramolecular_com_intermolecular']],
+          }[t];
+          const erros = codigos.map(([x, codigo]) => ({ codigo, texto: TXT_INTERMOL[x], explicacao: E[codigo] }));
+          const resolucao = [
+            { passo: 'Há sempre dispersão de London', porque: 'Existe entre quaisquer moléculas; entre moléculas apolares é a única.' },
+            { passo: 'Ver se a molécula é polar', porque: t === 'dispersao' ? 'O ' + F + ' é apolar: não há dipolo–dipolo.' : 'O ' + F + ' é polar: há também interações dipolo–dipolo.' },
+            { passo: 'Procurar H ligado a N, O ou F', porque: t === 'hidrogenio' ? 'No ' + F + ' há H ligado a ' + hCom.find((s) => ['N', 'O', 'F'].includes(s)) + ': há ligações de hidrogénio entre as moléculas.' : (temH ? 'Os átomos de H do ' + F + ' não estão ligados a N, O nem F: não há ligações de hidrogénio.' : 'Não há H no ' + F + ': não há ligações de hidrogénio.') },
+          ];
+          const dados = { molecula: id, contexto };
+          const verificacao = { passo: 'Confirmar na estrutura da molécula', calculo: '\\text{H ligado a N, O ou F: ' + (t === 'hidrogenio' ? 'sim' : 'não') + '}', valor: null };
+          const esquema = { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'lewis' } };
+          const enunciado = 'Que interações intermoleculares existem entre as moléculas de ' + m.nome + ', ' + F + '?';
+          if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao, esquema }, TXT_INTERMOL[t], erros, TXT_INTERMOL[t]);
+          const e = escolher(rng, erros.filter((x) => x.codigo !== 'confundiu_intramolecular_com_intermolecular'));
+          const frase = (x) => 'Entre as moléculas de ' + m.nome + ', ' + F + ', há ' + x.charAt(0).toLowerCase() + x.slice(1) + '.';
+          const v = vfDe(rng, frase(TXT_INTERMOL[t]), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+          dados.afirmado = v.correta ? t : Object.keys(TXT_INTERMOL).find((k) => TXT_INTERMOL[k] === e.texto);
+          return Object.assign({ resolucao, dados, esquema }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+        }
+        const [x, y] = escolher(rng, PARES_EBULICAO);
+        const [a, b] = baralhar(rng, [x, y]);
+        const mx = mol(x);
+        const my = mol(y);
+        const Fx = '$' + mx.formula + '$';
+        const Fy = '$' + my.formula + '$';
+        const hb = INTERMOL[x] === 'hidrogenio';
+        const nomeF = (i) => mol(i).nome + ' (' + '$' + formula(i) + '$)';
+        const enunciado = 'Qual destas substâncias tem o ponto de ebulição mais elevado, ' + nomeF(a) + ' ou ' + nomeF(b) + '? Escolhe a resposta com a justificação correta.';
+        let certa, erros;
+        if (hb) {
+          const ligXH = mx.ligacoes.map(([i, j]) => [mx.atomos[i].el, mx.atomos[j].el]).find((p) => p.includes('H') && (p.includes('O') || p.includes('N')));
+          const L = '$\\mathrm{' + (ligXH[0] === 'H' ? ligXH[1] : ligXH[0]) + '{-}H}$';
+          certa = maiuscula(mx.nome) + ': entre as suas moléculas há ligações de hidrogénio, mais fortes do que as forças de dispersão de London entre as moléculas de ' + my.nome + '.';
+          erros = [
+            { codigo: 'contou_os_atomos_em_vez_das_interacoes', texto: maiuscula(my.nome) + ': as suas moléculas têm mais átomos.', explicacao: 'O ' + Fy + ' tem mais átomos (' + nAtomos(y) + ' contra ' + nAtomos(x) + '), mas o ponto de ebulição depende das interações entre moléculas: no ' + Fx + ' há ligações de hidrogénio, que são mais fortes.' },
+            { codigo: 'confundiu_intramolecular_com_intermolecular', texto: maiuscula(mx.nome) + ': as ligações covalentes ' + L + ' são mais fortes do que as ligações covalentes $\\mathrm{C{-}H}$.', explicacao: 'Na ebulição não se quebram ligações covalentes: as moléculas só se afastam umas das outras. O que conta são as interações intermoleculares (aqui, as ligações de hidrogénio).' },
+            { codigo: 'achou_a_dispersao_mais_forte', texto: maiuscula(my.nome) + ': as forças de dispersão de London são as interações intermoleculares mais fortes.', explicacao: 'Para moléculas de tamanho parecido, as ligações de hidrogénio são as interações intermoleculares mais fortes; a dispersão de London é a mais fraca. Por isso o ' + Fx + ' ferve a temperatura mais alta.' },
+          ];
+        } else {
+          certa = maiuscula(mx.nome) + ': as suas moléculas são maiores (têm mais eletrões), por isso as forças de dispersão de London são mais intensas.';
+          erros = [
+            { codigo: 'achou_que_moleculas_menores_se_atraem_mais', texto: maiuscula(my.nome) + ': as suas moléculas, mais pequenas, aproximam-se mais e atraem-se mais.', explicacao: 'As duas são apolares e só têm dispersão de London, que aumenta com o tamanho da molécula (número de eletrões): ' + eletroesDe(x) + ' eletrões no ' + Fx + ' contra ' + eletroesDe(y) + ' no ' + Fy + '.' },
+            { codigo: 'confundiu_intramolecular_com_intermolecular', texto: maiuscula(mx.nome) + ': tem mais ligações covalentes $\\mathrm{C{-}H}$ para quebrar.', explicacao: 'Na ebulição não se quebram ligações covalentes: as moléculas só se afastam umas das outras. O que conta é a intensidade da dispersão de London, maior nas moléculas maiores.' },
+            { codigo: 'apolares_com_o_mesmo_ponto_de_ebulicao', texto: 'Têm o mesmo ponto de ebulição, porque ambas são apolares.', explicacao: 'Ser apolar não dá o mesmo ponto de ebulição: a dispersão de London aumenta com o tamanho da molécula, por isso o ' + Fx + ', maior, ferve a temperatura mais alta.' },
+          ];
+        }
+        const resolucao = [
+          { passo: 'Comparar as interações intermoleculares', porque: hb
+            ? 'No ' + Fx + ' há H ligado a ' + (INTERMOL[x] === 'hidrogenio' ? (mx.atomos.some((q) => q.el === 'O') ? 'O' : 'N') : '') + ': ligações de hidrogénio. O ' + Fy + ' é apolar: só dispersão de London.'
+            : 'As duas são apolares: só têm dispersão de London, que é mais intensa nas moléculas maiores (' + eletroesDe(x) + ' eletrões no ' + Fx + ', ' + eletroesDe(y) + ' no ' + Fy + ').' },
+          { passo: 'Interações mais fortes, ponto de ebulição mais alto', porque: 'Para ferver é preciso afastar as moléculas umas das outras: quanto mais fortes as interações entre elas, mais energia é preciso e mais alto é o ponto de ebulição. O ' + Fx + ' ferve a temperatura mais alta.' },
+        ];
+        const dados = { x, y, contexto, primeiro: a };
+        const verificacao = { passo: 'Confirmar pela força das interações e pelo número de eletrões', calculo: '\\text{' + mx.nome + ': ' + eletroesDe(x) + ' eletrões;\\ ' + my.nome + ': ' + eletroesDe(y) + ' eletrões}', valor: null };
+        if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao }, certa, erros, certa);
+        const frase = (p, q) => 'O ponto de ebulição do ' + nomeF(p) + ' é mais elevado do que o do ' + nomeF(q) + '.';
+        const erro = erros[0];
+        const v = vfDe(rng, frase(x, y), frase(y, x), { codigo: erro.codigo, explicacao: erro.explicacao });
+        dados.afirmadoMaior = v.correta ? x : y;
+        return Object.assign({ resolucao, dados }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      if (p.dados.contexto === 'tipo') {
+        const t = intermolPelaEstrutura(p.dados.molecula);
+        if (p.formato === 'vf') return p.correta === (p.dados.afirmado === t);
+        return p.opcoes[p.correta] === TXT_INTERMOL[t];
+      }
+      // Força das interações (ligação de hidrogénio > dipolo > só dispersão) e, em empate, mais eletrões.
+      const forca = (i) => ({ hidrogenio: 2, dipolo: 1, dispersao: 0 })[intermolPelaEstrutura(i)] * 1000 + eletroesDe(i);
+      const maior = forca(p.dados.x) > forca(p.dados.y) ? p.dados.x : p.dados.y;
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmadoMaior === maior);
+      return p.opcoes[p.correta].startsWith(maiuscula(mol(maior).nome) + ':') && /há ligações de hidrogénio, mais fortes|London são mais intensas/.test(p.opcoes[p.correta]);
+    },
+    limites(p) {
+      return p.dados.contexto === 'tipo' ? !!INTERMOL[p.dados.molecula] : PARES_EBULICAO.some(([a, b]) => a === p.dados.x && b === p.dados.y);
     },
   });
 })();
