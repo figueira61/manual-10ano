@@ -3,11 +3,14 @@ achou_a_agua_linear → Tomou a molécula de água por linear
 achou_a_dispersao_mais_forte → Julgou a dispersão de London a interação mais forte
 achou_apolares_as_ligacoes → Julgou apolares ligações entre átomos diferentes
 achou_iguais_as_massas_volumicas → Julgou iguais as massas volúmicas de gases diferentes à mesma pressão e temperatura
+achou_o_ozono_um_radical → Tomou o ozono por um radical
 achou_polar_uma_molecula_de_atomos_iguais → Julgou polar uma molécula de dois átomos iguais
 achou_que_mais_pares_alongam_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais comprida
 achou_que_mais_pares_enfraquecem_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais fraca
 achou_que_moleculas_menores_se_atraem_mais → Julgou que moléculas mais pequenas se atraem mais
 achou_que_mudava_de_nivel_no_periodo → Julgou que, no mesmo período, os eletrões de valência mudam de nível
+achou_radical_qualquer_atomo_isolado → Julgou radical qualquer átomo isolado
+achou_radical_uma_molecula_estavel → Tomou uma molécula estável por um radical
 acido_por_ter_oh → Julgou ácido carboxílico um composto só por ter −OH
 acido_sem_oh → Escolheu ácido carboxílico sem haver −OH no carbono do C=O
 ag_como_metade → Tomou AG como metade da mediana
@@ -66,10 +69,14 @@ confundiu_aldeido_com_cetona → Confundiu aldeído com cetona
 confundiu_amino_com_hidroxilo → Confundiu o grupo amino com o hidroxilo
 confundiu_as_series → Confundiu as séries de riscas do hidrogénio
 confundiu_com_a_balanca → Confundiu a peça assinalada com a balança
+confundiu_com_a_destruicao_pelo_cloro → Confundiu com a destruição do ozono pelo radical cloro
 confundiu_com_a_espatula → Confundiu a peça assinalada com a espátula
+confundiu_com_a_fotolise_do_o2 → Confundiu com a quebra do O₂ pela luz
+confundiu_com_a_fotolise_dos_cfc → Confundiu com a quebra dos CFC pela luz
 confundiu_com_a_nuvem_eletronica → Confundiu a parte assinalada com a nuvem eletrónica
 confundiu_com_a_pipeta → Confundiu a peça assinalada com a pipeta
 confundiu_com_a_pompete → Confundiu a peça assinalada com a pompete
+confundiu_com_a_regeneracao_do_cloro → Confundiu com a regeneração do radical cloro
 confundiu_com_baricentro → Deu o baricentro em vez do centro dos nove pontos
 confundiu_com_o_balao_volumetrico → Confundiu a peça assinalada com o balão volumétrico
 confundiu_com_o_eletrao → Confundiu a parte assinalada com o eletrão
@@ -82,9 +89,12 @@ confundiu_com_o_protao → Confundiu a parte assinalada com o protão
 confundiu_com_o_vidro_de_relogio → Confundiu a peça assinalada com o vidro de relógio
 confundiu_hidroxilo_com_hidroxido → Confundiu o grupo −OH de um álcool com o ião hidróxido
 confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
+confundiu_iao_com_radical → Confundiu um ião com um radical
 confundiu_intramolecular_com_intermolecular → Confundiu ligações dentro da molécula com interações entre moléculas
 confundiu_ligacao_com_interacao_intermolecular → Confundiu uma ligação química com uma interação entre moléculas
+confundiu_molecula_com_radical → Tomou uma molécula com eletrões emparelhados por um radical
 confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
+confundiu_o2_com_o3 → Confundiu o oxigénio, O₂, com o ozono, O₃
 confundiu_o_prefixo → Usou o prefixo de outro número de átomos de carbono
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
 confundiu_saturado_com_insaturado → Confundiu hidrocarboneto saturado com insaturado
@@ -150,7 +160,9 @@ deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
+deu_lambda_em_metros → Deu o comprimento de onda em metros em vez de nanómetros
 deu_n_em_vez_da_massa → Deu a quantidade de matéria em vez da massa
+deu_o_balanco_do_ciclo → Deu a equação global do ciclo em vez do passo pedido
 deu_o_contradominio → Deu o contradomínio em vez do domínio
 deu_o_deltah_da_equacao → Deu o ΔH da equação sem fazer a proporção para a quantidade dada
 deu_o_dominio → Deu o domínio em vez do contradomínio
@@ -228,8 +240,10 @@ esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
+esqueceu_o_foton → Esqueceu o fotão nos reagentes
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
 esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da fórmula
+esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
@@ -361,12 +375,14 @@ multiplicou_pelo_volume → Multiplicou pelo volume em vez de dividir
 multiplicou_pelo_volume_molar → Multiplicou pelo volume molar em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
 multiplicou_por_5 → Multiplicou por 5 em vez de dividir
+multiplicou_por_na → Multiplicou pela constante de Avogadro em vez de dividir
 nao_alterou → Esqueceu que o desvio padrão também é multiplicado
 nao_arredondou → Não arredondou o resultado da calculadora
 nao_contou_o_zero_final → Não contou o zero final como algarismo significativo
 nao_contou_os_eletroes → Não contou os eletrões da configuração
 nao_contou_os_zeros_do_meio → Não contou os zeros do meio como algarismos significativos
 nao_converteu_cm3_em_dm3 → Não converteu cm³ em dm³
+nao_converteu_kj_em_j → Não converteu kJ em J
 nao_converteu_m_em_nm → Deu o comprimento de onda em metros em vez de nanómetros
 nao_converteu_massa_em_quantidade → Usou a massa sem a converter em quantidade de matéria
 nao_converteu_mg_e_kg → Não pôs as massas na mesma unidade
@@ -381,6 +397,7 @@ nao_dividiu_por_100 → Não dividiu as abundâncias por 100
 nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
 nao_dividiu_por_3 → Não dividiu por 3
+nao_dividiu_por_na → Não dividiu pela constante de Avogadro
 nao_isolou_o_modulo → Não isolou o módulo
 nao_maximizou_os_desemparelhados → Não maximizou os eletrões desemparelhados (regra de Hund)
 nao_multiplicou_boletins → Contou cada tipo de boletim uma só vez
@@ -568,6 +585,7 @@ trocou_as_condicoes → Trocou as condições dos dois ramos
 trocou_coordenadas → Trocou as coordenadas
 trocou_eixos → Trocou os eixos
 trocou_emissao_com_absorcao → Trocou emissão com absorção
+trocou_formacao_com_decomposicao → Trocou a formação do ozono com a decomposição
 trocou_h_k → Trocou h com k
 trocou_m_b → Trocou m com b
 trocou_media_mediana → Trocou a média com a mediana

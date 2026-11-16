@@ -1013,10 +1013,12 @@ globalThis.Manual = globalThis.Manual || {};
     if (ambiguo(exato, 3)) return null;
     const resposta = aAS(exato, 3);
     const tol = A.tolMeiaUnidade(resposta, 3);
-    const grande = Math.abs(resposta) >= 1e4 || Math.abs(resposta) < 1e-3;
     const erros = o.erros.map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) }));
+    // Tolerância relativa para valores muito grandes ou pequenos e também quando um erro típico tem um valor próximo
+    // de zero (com tolerância absoluta, uma resposta 0 seria tomada por esse erro).
+    const relativa = Math.abs(resposta) >= 1e4 || Math.abs(resposta) < 1e-3 || erros.some((e) => Math.abs(e.valor) <= 10 * tol);
     return fechar(rng, formato, ex, Object.assign({ resposta, algarismos: 3, unidade: o.unidade, texto: o.texto, erros, verificacao: o.verificacao(resposta) },
-      grande ? { toleranciaRelativa: tol / resposta } : { tolerancia: tol }));
+      relativa ? { toleranciaRelativa: tol / Math.abs(resposta) } : { tolerancia: tol }));
   }
 
   registar({
@@ -1814,6 +1816,267 @@ globalThis.Manual = globalThis.Manual || {};
     },
     limites(p) {
       return !!reacao(p.dados.reacao);
+    },
+  });
+
+  // ================================================================ fotoquimica
+  // Átomos e iões (configuração até Z = 23): radical se tiver eletrões desemparelhados.
+  const ATOMOS_RADICAIS = [
+    { s: 'Cl', iao: ['Cl', -1], molecula: 'Cl_2', gasNobre: 'Ar' },
+    { s: 'F', iao: ['F', -1], molecula: 'F_2', gasNobre: 'Ne' },
+    { s: 'N', iao: ['N', -3], molecula: 'N_2', gasNobre: 'Ne' },
+    { s: 'O', iao: ['O', -2], molecula: 'H_2O', gasNobre: 'Ne' },
+    { s: 'H', iao: ['Li', 1], molecula: 'H_2', gasNobre: 'He' },
+  ];
+  // Moléculas e iões poliatómicos: [LaTeX, nome, elementos (com repetição), carga].
+  const POLIATOMICAS = {
+    NO: ['NO', 'monóxido de nitrogénio', ['N', 'O'], 0], NO2: ['NO_2', 'dióxido de nitrogénio', ['N', 'O', 'O'], 0],
+    ClO: ['ClO', 'monóxido de cloro', ['Cl', 'O'], 0], HO: ['HO', 'hidroxilo', ['H', 'O'], 0],
+    OHm: ['OH^-', 'ião hidróxido', ['O', 'H'], -1], NO3m: ['NO_3^-', 'ião nitrato', ['N', 'O', 'O', 'O'], -1],
+    H2O: ['H_2O', 'água', ['H', 'H', 'O'], 0], O3: ['O_3', 'ozono', ['O', 'O', 'O'], 0], CO2: ['CO_2', 'dióxido de carbono', ['C', 'O', 'O'], 0],
+  };
+  const nEletroes = (k) => soma(POLIATOMICAS[k][2].map((s) => el(s).z)) - POLIATOMICAS[k][3];
+  const cargaTxt = (q) => (q === 0 ? '' : '^{' + (Math.abs(q) === 1 ? '' : Math.abs(q)) + (q > 0 ? '+' : '-') + '}');
+
+  registar({
+    subtema: 'fotoquimica', tipo: 'radicais', nome: 'Identificar radicais livres (eletrões desemparelhados)',
+    formatos: ['escolha', 'vf'], contextos: ['atomos', 'moleculas'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const resolucaoBase = { passo: 'Lembrar a definição', porque: 'Um radical livre é uma espécie com eletrões desemparelhados; por isso é muito reativo.' };
+        if (contexto === 'atomos') {
+          const a = escolher(rng, ATOMOS_RADICAIS.filter((x) => formato === 'vf' || x.s !== 'H'));
+          const z = el(a.s).z;
+          const cfg = Q().configuracao(z);
+          const spd = (c) => c.spd.replace(/(\d)([spd])\^(\d+)/g, '\\mathrm{$1$2}^{$3}').replace(/ /g, '\\,');
+          const [si, qi] = a.iao;
+          const cfgI = Q().configuracao(el(si).z, qi);
+          const certa = '$\\mathrm{' + a.s + '}$ (átomo isolado)';
+          const erros = [
+            { codigo: 'confundiu_iao_com_radical', texto: '$\\mathrm{' + si + cargaTxt(qi) + '}$', explicacao: 'Ter carga não faz de uma espécie um radical. O $\\mathrm{' + si + cargaTxt(qi) + '}$ tem ' + (el(si).z - qi) + ' eletrões, todos emparelhados ($' + spd(cfgI) + '$).' },
+            { codigo: 'confundiu_molecula_com_radical', texto: '$\\mathrm{' + a.molecula + '}$', explicacao: 'Na molécula $\\mathrm{' + a.molecula + '}$ os eletrões desemparelhados dos átomos formaram pares ligantes: todos os eletrões estão emparelhados.' },
+            { codigo: 'achou_radical_qualquer_atomo_isolado', texto: '$\\mathrm{' + a.gasNobre + '}$ (átomo isolado)', explicacao: 'Nem todos os átomos isolados são radicais: o ' + nomeEl(a.gasNobre) + ' tem todos os subníveis completos, sem eletrões desemparelhados.' },
+          ];
+          const resolucao = [resolucaoBase, { passo: 'Escrever a configuração e procurar eletrões desemparelhados', porque: 'O átomo de ' + nomeEl(a.s) + ' tem ' + plural(cfg.desemparelhados, 'eletrão desemparelhado', 'eletrões desemparelhados') + ': é um radical, $\\mathrm{' + a.s + '}^{\\bullet}$.', calculo: '\\mathrm{' + a.s + '}\\colon\\ ' + spd(cfg) }];
+          const dados = { contexto, atomo: a.s };
+          const verificacao = { passo: 'Contar os eletrões desemparelhados nas orbitais', calculo: '\\text{desemparelhados: } ' + cfg.desemparelhados, valor: null };
+          if (formato === 'escolha') {
+            return fecharTexto(rng, { enunciado: 'Qual destas espécies é um radical livre?', resolucao, dados, verificacao, esquema: { id: 'fqa-configuracao', opcoes: { z } } }, certa, erros, certa);
+          }
+          const e = escolher(rng, erros);
+          const frase = (t) => 'A espécie ' + t + ' é um radical livre.';
+          const v = vfDe(rng, frase(certa), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+          dados.afirmado = v.correta ? a.s : e.texto;
+          return Object.assign({ resolucao, dados }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+        }
+        const RADS = ['NO', 'NO2', 'ClO', 'HO'];
+        const k = escolher(rng, RADS);
+        const P = POLIATOMICAS[k];
+        const t = (x) => '$\\mathrm{' + POLIATOMICAS[x][0] + '}$';
+        const contaTex = (x) => POLIATOMICAS[x][2].map((s) => el(s).z).join(' + ') + (POLIATOMICAS[x][3] ? ' + ' + -POLIATOMICAS[x][3] : '') + ' = ' + nEletroes(x);
+        const iao = k === 'HO' ? 'OHm' : 'NO3m';
+        const erros = [
+          { codigo: 'confundiu_iao_com_radical', texto: t(iao), explicacao: 'Ter carga não faz de uma espécie um radical. O ' + t(iao) + ' tem ' + nEletroes(iao) + ' eletrões (número par), todos emparelhados.' },
+          { codigo: 'achou_o_ozono_um_radical', texto: t('O3'), explicacao: 'O ozono é muito reativo, mas não é um radical: tem ' + nEletroes('O3') + ' eletrões (número par), todos emparelhados.' },
+          { codigo: 'achou_radical_uma_molecula_estavel', texto: t(k === 'HO' ? 'H2O' : 'CO2'), explicacao: 'A molécula ' + t(k === 'HO' ? 'H2O' : 'CO2') + ' tem ' + nEletroes(k === 'HO' ? 'H2O' : 'CO2') + ' eletrões (número par), todos emparelhados: não é um radical.' },
+        ];
+        const certa = t(k);
+        const resolucao = [resolucaoBase, { passo: 'Contar os eletrões da espécie', porque: 'Com um número ímpar de eletrões, pelo menos um fica desemparelhado. O ' + P[1] + ' tem ' + nEletroes(k) + ' eletrões: é um radical, $\\mathrm{' + P[0] + '}^{\\bullet}$.', calculo: contaTex(k) }];
+        const dados = { contexto, especie: k, opcoes: [k, iao, 'O3', k === 'HO' ? 'H2O' : 'CO2'] };
+        const verificacao = { passo: 'Número de eletrões ímpar', calculo: nEletroes(k) + ' = 2 \\times ' + (nEletroes(k) - 1) / 2 + ' + 1', valor: null };
+        if (formato === 'escolha') return fecharTexto(rng, { enunciado: 'Qual destas espécies é um radical livre?', resolucao, dados, verificacao }, certa, erros, certa);
+        const e = escolher(rng, erros);
+        const frase = (x) => 'A espécie ' + x + ' é um radical livre.';
+        const v = vfDe(rng, frase(certa), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmado = v.correta ? k : dados.opcoes.find((x) => t(x) === e.texto);
+        return Object.assign({ resolucao, dados }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      if (p.dados.contexto === 'atomos') {
+        const a = p.dados.atomo;
+        const radical = Q().configuracao(el(a).z).desemparelhados > 0;
+        if (p.formato === 'vf') return p.correta === (p.dados.afirmado === a && radical);
+        return radical && p.opcoes[p.correta].startsWith('$\\mathrm{' + a + '}$');
+      }
+      const impar = (x) => nEletroes(x) % 2 === 1;
+      if (p.formato === 'vf') return p.correta === impar(p.dados.afirmado);
+      const radicais = p.dados.opcoes.filter(impar);
+      return radicais.length === 1 && p.opcoes[p.correta] === '$\\mathrm{' + POLIATOMICAS[radicais[0]][0] + '}$';
+    },
+    limites(p) {
+      return p.dados.contexto === 'atomos' ? el(p.dados.atomo).z <= 23 : !!POLIATOMICAS[p.dados.especie];
+    },
+  });
+
+  // Fotão capaz de quebrar uma ligação: energia por molécula e comprimento de onda máximo.
+  const LIG_FOTO = ['O=O', 'Cl-Cl', 'C-Cl', 'Br-Br', 'H-H', 'N≡N', 'H-Cl', 'F-F', 'I-I', 'C-H'];
+  const NM = 1e9;
+
+  registar({
+    subtema: 'fotoquimica', tipo: 'foton-ligacao', nome: 'Energia e comprimento de onda do fotão que quebra uma ligação',
+    formatos: ['numerica', 'escolha'], contextos: ['energia', 'lambda'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const k = escolher(rng, LIG_FOTO);
+        const E = D().ligacoes[k].energia;
+        const { h, c, NA } = K();
+        const Em = E * 1000 / NA;
+        const L = '$' + ligTex(k) + '$';
+        const dadosK = '$N_A = ' + cient(NA, 3) + '\\,\\mathrm{mol^{-1}}$, $h = ' + cient(h, 3) + '\\,\\mathrm{J\\,s}$, $c = ' + cient(c, 3) + '\\,\\mathrm{m\\,s^{-1}}$';
+        const passoJ = { passo: 'Passar a energia de ligação a joules por molécula', porque: 'A energia de ligação refere-se a uma mole de ligações: multiplica-se por 1000 (kJ → J) e divide-se por $N_A$.', calculo: 'E = \\dfrac{' + E + ' \\times 10^{3}}{' + cient(NA, 3) + '} \\approx ' + cient(Em, 4) + '\\,\\mathrm{J}' };
+        if (contexto === 'energia') {
+          const ex = {
+            enunciado: 'A energia da ligação ' + L + ' é $' + E + '\\,\\mathrm{kJ\\,mol^{-1}}$. Qual é a energia mínima de um fotão capaz de quebrar a ligação numa só molécula (' + dadosK.split(', $h')[0] + ')?' + AS3,
+            resolucao: [passoJ],
+            dados: { ligacao: k, contexto },
+          };
+          const erros = [
+            { codigo: 'nao_dividiu_por_na', valor: E * 1000, explicacao: '$' + cient(E * 1000, 3) + '\\,\\mathrm{J}$ é a energia para uma mole de ligações; para uma molécula divide-se pela constante de Avogadro.' },
+            { codigo: 'nao_converteu_kj_em_j', valor: E / NA, explicacao: 'Não converteste kJ em J e obtiveste $' + cient(E / NA, 3) + '$; a energia de ligação está em kJ/mol, por isso multiplica-se por 1000.' },
+            { codigo: 'multiplicou_por_na', valor: E * 1000 * NA, explicacao: 'Multiplicaste pela constante de Avogadro ($' + cient(E * 1000 * NA, 3) + '$); para passar de uma mole a uma molécula divide-se por $N_A$.' },
+          ];
+          return fechar3(rng, formato, ex, Em, {
+            erros, unidade: 'J', texto: (v) => '$' + cient(v, 3) + '\\,\\mathrm{J}$',
+            verificacao: (r) => ({ passo: 'Voltar à energia por mole', calculo: cient(r, 3) + ' \\times ' + cient(NA, 3) + ' \\approx ' + texAS(r * NA, 3) + '\\,\\mathrm{J\\,mol^{-1}}', valor: aAS(E / (NA / 1000), 3) }),
+          });
+        }
+        const lam = h * c / Em;
+        const exato = lam * NM;
+        const zona = Q().zonaEspectro(lam);
+        const ZONA = { UV: 'ultravioleta', visivel: 'visível', IV: 'infravermelho', X: 'raios X' };
+        const ex = {
+          enunciado: 'A energia da ligação ' + L + ' é $' + E + '\\,\\mathrm{kJ\\,mol^{-1}}$. Qual é o comprimento de onda máximo, em nanómetros, de um fotão capaz de quebrar essa ligação numa molécula (' + dadosK + ')?' + AS3,
+          resolucao: [
+            passoJ,
+            { passo: 'Calcular o comprimento de onda', porque: 'O fotão tem de ter pelo menos essa energia: $E = \\dfrac{hc}{\\lambda}$, logo $\\lambda = \\dfrac{hc}{E}$ (a energia maior corresponde a $\\lambda$ menor; por isso este é o $\\lambda$ máximo).', calculo: '\\lambda = \\dfrac{' + cient(h, 3) + ' \\times ' + cient(c, 3) + '}{' + cient(Em, 4) + '} \\approx ' + cient(lam, 4) + '\\,\\mathrm{m}' },
+            { passo: 'Passar a nanómetros', porque: '$1\\,\\mathrm{nm} = 10^{-9}\\,\\mathrm{m}$. É radiação ' + (ZONA[zona] || zona) + '.', calculo: '\\lambda \\approx ' + texAS(exato, 3) + '\\,\\mathrm{nm}' },
+          ],
+          dados: { ligacao: k, contexto },
+          esquema: { id: 'fqa-espectro', opcoes: { lambda: lam } },
+        };
+        const erros = [
+          { codigo: 'nao_converteu_kj_em_j', valor: exato * 1000, explicacao: 'Não converteste kJ em J e obtiveste ' + txtAS(exato * 1000, 3) + ' nm, mil vezes mais; a energia por molécula é $' + cient(Em, 3) + '\\,\\mathrm{J}$.' },
+          { codigo: 'deu_lambda_em_metros', valor: lam, explicacao: '$' + cient(lam, 3) + '$ é o comprimento de onda em metros; em nanómetros multiplica-se por $10^{9}$.' },
+          { codigo: 'nao_dividiu_por_na', valor: h * c / (E * 1000) * NM, explicacao: 'Usaste a energia de uma mole de ligações ($' + cient(E * 1000, 3) + '\\,\\mathrm{J}$) e obtiveste $' + cient(h * c / (E * 1000) * NM, 3) + '\\,\\mathrm{nm}$; um fotão quebra uma só ligação, por isso divide-se por $N_A$.' },
+        ];
+        return fechar3(rng, formato, ex, exato, {
+          erros, unidade: 'nm', texto: (v) => txtAS(v, 3).replace(/\$$/, '\\,\\mathrm{nm}$'),
+          verificacao: (r) => ({ passo: 'Usar a energia por mole: λ = h c N_A / E', calculo: '\\lambda = \\dfrac{' + cient(h, 3) + ' \\times ' + cient(c, 3) + ' \\times ' + cient(NA, 3) + '}{' + E + ' \\times 10^{3}} \\approx ' + texAS(r, 3) + '\\,\\mathrm{nm}', valor: aAS(Q().lambdaParaQuebrarLigacao(E) * NM, 3) }),
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const E = D().ligacoes[p.dados.ligacao].energia;
+      const { h, c, NA } = K();
+      if (p.dados.contexto === 'energia') return confere(p, aAS(E * 1e3 / NA, 3), (x) => '$' + cient(x, 3) + '\\,\\mathrm{J}$');
+      return confere(p, aAS(h * c * NA / (E * 1e3) * NM, 3), (x) => txtAS(x, 3).replace(/\$$/, '\\,\\mathrm{nm}$'));
+    },
+    limites(p) {
+      return LIG_FOTO.includes(p.dados.ligacao);
+    },
+  });
+
+  // Equações do ozono e do ciclo do cloro: reagentes, produtos e se há um fotão (hν) nos reagentes.
+  const EQ_OZONO = {
+    fotolise_o2: { reag: ['O_2'], prod: ['2\\,O'], luz: true },
+    formacao: { reag: ['O', 'O_2'], prod: ['O_3'], luz: false },
+    fotolise_o3: { reag: ['O_3'], prod: ['O_2', 'O'], luz: true },
+    o_mais_o3: { reag: ['O', 'O_3'], prod: ['2\\,O_2'], luz: false },
+    cl_o3: { reag: ['Cl^{\\bullet}', 'O_3'], prod: ['ClO^{\\bullet}', 'O_2'], luz: false },
+    clo_o: { reag: ['ClO^{\\bullet}', 'O'], prod: ['Cl^{\\bullet}', 'O_2'], luz: false },
+    cfc: { reag: ['CCl_2F_2'], prod: ['CClF_2^{\\bullet}', 'Cl^{\\bullet}'], luz: true },
+  };
+  const eqTex = (k) => {
+    const q = EQ_OZONO[k];
+    return '$\\mathrm{' + q.reag.join(' + ') + '}' + (q.luz ? ' + h\\nu' : '') + ' \\longrightarrow \\mathrm{' + q.prod.join(' + ') + '}$';
+  };
+  // Cada pergunta: o que se pede, a equação certa, e os erros [equação, código, explicação].
+  const PERGUNTAS_OZONO = {
+    estratosfera: [
+      { id: 'formacao', pede: 'a formação de ozono na estratosfera', certa: 'formacao', erros: [
+        { eq: 'fotolise_o3', codigo: 'trocou_formacao_com_decomposicao', explicacao: 'Essa equação é a decomposição do ozono pela radiação UV: o $\\mathrm{O_3}$ está nos reagentes. Na formação, o $\\mathrm{O_3}$ é o produto.' },
+        { eq: 'fotolise_o2', codigo: 'confundiu_com_a_fotolise_do_o2', explicacao: 'Essa equação forma oxigénio atómico a partir de $\\mathrm{O_2}$ e luz UV; é o passo anterior. O ozono forma-se quando esse O se junta a uma molécula de $\\mathrm{O_2}$.' },
+        { eq: 'cl_o3', codigo: 'confundiu_com_a_destruicao_pelo_cloro', explicacao: 'Essa equação é a destruição do ozono por um radical cloro (o $\\mathrm{O_3}$ é reagente).' },
+      ] },
+      { id: 'decomposicao', pede: 'a decomposição do ozono pela radiação ultravioleta', certa: 'fotolise_o3', erros: [
+        { eq: 'formacao', codigo: 'trocou_formacao_com_decomposicao', explicacao: 'Essa equação é a formação do ozono: o $\\mathrm{O_3}$ é o produto. Na decomposição pela luz, o $\\mathrm{O_3}$ absorve um fotão e parte-se.' },
+        { eq: 'o_mais_o3', codigo: 'esqueceu_o_foton', explicacao: 'Essa equação destrói ozono, mas por reação com oxigénio atómico, sem luz. A decomposição pela radiação UV tem um fotão ($h\\nu$) nos reagentes.' },
+        { eq: 'fotolise_o2', codigo: 'confundiu_o2_com_o3', explicacao: 'Nessa equação é o $\\mathrm{O_2}$ que se parte com a luz UV, não o ozono.' },
+      ] },
+      { id: 'oxigenio', pede: 'a quebra das moléculas de oxigénio pela radiação ultravioleta', certa: 'fotolise_o2', erros: [
+        { eq: 'fotolise_o3', codigo: 'confundiu_o2_com_o3', explicacao: 'Nessa equação é o ozono, $\\mathrm{O_3}$, que se parte com a luz UV, não o $\\mathrm{O_2}$.' },
+        { eq: 'formacao', codigo: 'trocou_formacao_com_decomposicao', explicacao: 'Essa equação junta O e $\\mathrm{O_2}$ para formar ozono; não quebra o $\\mathrm{O_2}$.' },
+        { eq: 'cfc', codigo: 'confundiu_com_a_fotolise_dos_cfc', explicacao: 'Essa equação é a quebra de uma ligação C–Cl de um CFC pela luz UV, não a do $\\mathrm{O_2}$.' },
+      ] },
+    ],
+    cloro: [
+      { id: 'destruicao', pede: 'a destruição de uma molécula de ozono por um radical cloro', certa: 'cl_o3', erros: [
+        { eq: 'clo_o', codigo: 'confundiu_com_a_regeneracao_do_cloro', explicacao: 'Essa equação regenera o radical cloro (o $\\mathrm{Cl}^{\\bullet}$ é produto); o ozono não entra nela.' },
+        { eq: 'cfc', codigo: 'confundiu_com_a_fotolise_dos_cfc', explicacao: 'Essa equação liberta o radical cloro a partir de um CFC; o ozono não entra nela.' },
+        { eq: 'fotolise_o3', codigo: 'esqueceu_o_papel_do_cloro', explicacao: 'Essa equação é a decomposição natural do ozono pela luz, sem cloro.' },
+      ] },
+      { id: 'regeneracao', pede: 'a regeneração do radical cloro no ciclo de destruição do ozono', certa: 'clo_o', erros: [
+        { eq: 'cl_o3', codigo: 'confundiu_com_a_destruicao_pelo_cloro', explicacao: 'Nessa equação o radical cloro é consumido (é reagente): é a destruição do ozono, não a regeneração do $\\mathrm{Cl}^{\\bullet}$.' },
+        { eq: 'cfc', codigo: 'confundiu_com_a_fotolise_dos_cfc', explicacao: 'Essa equação forma o radical cloro pela primeira vez, a partir de um CFC; a regeneração acontece no fim de cada ciclo, a partir do $\\mathrm{ClO}^{\\bullet}$.' },
+        { eq: 'o_mais_o3', codigo: 'deu_o_balanco_do_ciclo', explicacao: 'Essa é a equação global (o balanço) do ciclo; o cloro não aparece porque é regenerado, mas pedia-se o passo em que isso acontece.' },
+      ] },
+      { id: 'cfc', pede: 'a libertação de radicais cloro a partir de um CFC, na estratosfera', certa: 'cfc', erros: [
+        { eq: 'cl_o3', codigo: 'confundiu_com_a_destruicao_pelo_cloro', explicacao: 'Nessa equação o radical cloro já existe e destrói ozono; não é a sua libertação a partir do CFC.' },
+        { eq: 'clo_o', codigo: 'confundiu_com_a_regeneracao_do_cloro', explicacao: 'Essa equação regenera o radical cloro a partir do $\\mathrm{ClO}^{\\bullet}$; não envolve o CFC.' },
+        { eq: 'fotolise_o2', codigo: 'confundiu_com_a_fotolise_do_o2', explicacao: 'Essa equação quebra o $\\mathrm{O_2}$ com a luz UV; não envolve o CFC.' },
+      ] },
+    ],
+  };
+  // Predicados pela estrutura da equação (verificação independente do mapa de respostas).
+  const tem = (l, x) => l.some((y) => y.replace(/^\d\\,/, '') === x);
+  const PREDICADO = {
+    formacao: (q) => tem(q.prod, 'O_3') && !tem(q.reag, 'O_3'),
+    decomposicao: (q) => q.luz && tem(q.reag, 'O_3'),
+    oxigenio: (q) => q.luz && q.reag.length === 1 && tem(q.reag, 'O_2'),
+    destruicao: (q) => tem(q.reag, 'Cl^{\\bullet}') && tem(q.reag, 'O_3'),
+    regeneracao: (q) => tem(q.prod, 'Cl^{\\bullet}') && tem(q.reag, 'ClO^{\\bullet}'),
+    cfc: (q) => q.luz && tem(q.reag, 'CCl_2F_2'),
+  };
+
+  registar({
+    subtema: 'fotoquimica', tipo: 'ozono', nome: 'Equações da formação e da decomposição do ozono',
+    formatos: ['escolha', 'vf'], contextos: ['estratosfera', 'cloro'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const pq = escolher(rng, PERGUNTAS_OZONO[contexto]);
+        const certa = eqTex(pq.certa);
+        const erros = pq.erros.map((x) => ({ codigo: x.codigo, texto: eqTex(x.eq), explicacao: x.explicacao, eq: x.eq }));
+        const resolucao = [
+          { passo: 'Ver o que se pede', porque: 'Pede-se ' + pq.pede + '.' },
+          { passo: 'Escolher pelos reagentes e pelos produtos', porque: {
+            formacao: 'O ozono forma-se quando um átomo de oxigénio (vindo da quebra do $\\mathrm{O_2}$ pela luz UV) se junta a uma molécula de $\\mathrm{O_2}$: o $\\mathrm{O_3}$ é produto.',
+            decomposicao: 'O ozono absorve radiação UV ($h\\nu$) e parte-se em $\\mathrm{O_2}$ e O: o $\\mathrm{O_3}$ e o fotão são reagentes. É assim que a camada de ozono filtra a radiação UV.',
+            oxigenio: 'A radiação UV mais energética parte o $\\mathrm{O_2}$ em dois átomos de oxigénio.',
+            destruicao: 'O radical cloro reage com o ozono e forma $\\mathrm{ClO}^{\\bullet}$ e $\\mathrm{O_2}$.',
+            regeneracao: 'O $\\mathrm{ClO}^{\\bullet}$ reage com oxigénio atómico e devolve o $\\mathrm{Cl}^{\\bullet}$, que volta a destruir ozono (atua como catalisador).',
+            cfc: 'A radiação UV quebra uma ligação C–Cl do CFC e liberta um radical cloro.',
+          }[pq.id] },
+        ];
+        const dados = { contexto, pergunta: pq.id, equacoes: {} };
+        [pq.certa].concat(pq.erros.map((e) => e.eq)).forEach((k) => { dados.equacoes[chave(eqTex(k))] = k; });
+        const verificacao = { passo: 'Confirmar pelos reagentes, pelos produtos e pela presença do fotão', calculo: '\\text{' + (EQ_OZONO[pq.certa].luz ? 'com' : 'sem') + ' fotão nos reagentes}', valor: null };
+        if (formato === 'escolha') return fecharTexto(rng, { enunciado: 'Que equação traduz ' + pq.pede + '?', resolucao, dados, verificacao }, certa, erros, certa);
+        const e = escolher(rng, erros);
+        const frase = (t) => 'A equação ' + t + ' traduz ' + pq.pede + '.';
+        const v = vfDe(rng, frase(certa), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmada = v.correta ? pq.certa : e.eq;
+        return Object.assign({ resolucao, dados }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const pred = PREDICADO[p.dados.pergunta];
+      if (p.formato === 'vf') return p.correta === pred(EQ_OZONO[p.dados.afirmada]);
+      const ok = p.opcoes.map((o) => pred(EQ_OZONO[p.dados.equacoes[chave(o)]]));
+      return ok.filter(Boolean).length === 1 && ok[p.correta];
+    },
+    limites(p) {
+      return !!PREDICADO[p.dados.pergunta];
     },
   });
 })();

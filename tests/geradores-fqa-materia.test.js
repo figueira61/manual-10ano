@@ -17,8 +17,9 @@ const IDS = [
   'gases-volume-molar', 'gases-massa-volumica', 'gases-fracao-molar',
   'solucoes-concentracao', 'solucoes-diluicao', 'solucoes-composicao', 'solucoes-material',
   'entalpia-variacao', 'entalpia-sinal', 'entalpia-energia-quantidade',
+  'fotoquimica-radicais', 'fotoquimica-foton-ligacao', 'fotoquimica-ozono',
 ];
-const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases', 'solucoes', 'entalpia'];
+const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases', 'solucoes', 'entalpia', 'fotoquimica'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -96,6 +97,52 @@ test('snapshots da semente 1', () => {
   assert.equal(certa(p), 'Exotérmica: o sistema liberta energia para o exterior.'); // combustão do etino
   p = g('entalpia-energia-quantidade');
   assert.ok(p.resposta > 0 && p.algarismos === 3);
+  p = g('fotoquimica-radicais');
+  assert.match(certa(p), /\(átomo isolado\)$/);
+  p = g('fotoquimica-foton-ligacao');
+  assert.match(p.enunciado, /H\{-\}Cl\}\$ é \$428/);
+  assert.equal(p.resposta, 7.11e-19); // 428 × 10³ / 6,02 × 10²³
+  p = g('fotoquimica-ozono');
+  assert.equal(certa(p), '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2 + O}$');
+});
+
+test('notação científica corrige com toleranciaRelativa; «não dividiu por N_A» e kJ/J são detetados', () => {
+  const Q = M.quiz;
+  const p = G.gerar('fotoquimica-foton-ligacao', 1, { formato: 'numerica', contexto: 'energia' });
+  assert.equal(p.tolerancia, undefined);
+  assert.ok(p.toleranciaRelativa > 0 && p.toleranciaRelativa < 0.01);
+  for (const certo of ['7,11e-19', '7,11×10^-19', '7.11E-19']) assert.ok(Q.corrigir(p, certo).certa, certo);
+  for (const errado of ['7,2e-19', '7,11e-18', '0']) assert.ok(!Q.corrigir(p, errado).certa, errado);
+  assert.equal(Q.corrigir(p, '428000').erroTipico.codigo, 'nao_dividiu_por_na');
+  assert.equal(Q.corrigir(p, '7,11e-22').erroTipico.codigo, 'nao_converteu_kj_em_j');
+  assert.equal(Q.corrigir(p, '0').erroTipico, null);
+  const l = G.gerar('fotoquimica-foton-ligacao', 1, { formato: 'numerica', contexto: 'lambda' });
+  assert.equal(l.resposta, 280); // h c N_A / (428 × 10³) em nm
+  assert.equal(Q.corrigir(l, '2,8e-7').erroTipico.codigo, 'deu_lambda_em_metros');
+  assert.equal(Q.corrigir(l, '0').erroTipico, null);
+  for (const id of IDS) {
+    const d = G.obter(id);
+    if (!d.formatos.includes('numerica')) continue;
+    for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 20; s++) {
+      const q = G.gerar(id, s, { formato: 'numerica', contexto });
+      if (Math.abs(q.resposta) >= 1e5 || Math.abs(q.resposta) < 1e-3) assert.ok(q.toleranciaRelativa > 0 && q.tolerancia === undefined, id + ' ' + s);
+      // Uma resposta 0 só é tomada por um erro típico se esse erro valer mesmo 0.
+      if (!q.errosTipicos.some((e) => e.valor === 0)) assert.equal(M.aprendizagem.detetarErro(q, '0'), null, id + ' ' + contexto + ' ' + s);
+    }
+  }
+});
+
+test('«com três algarismos significativos»: algarismos = 3 e a resposta já arredondada', () => {
+  for (const id of IDS) {
+    const d = G.obter(id);
+    if (!d.formatos.includes('numerica')) continue;
+    for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 20; s++) {
+      const p = G.gerar(id, s, { formato: 'numerica', contexto });
+      const pede = /três algarismos significativos/.test(p.enunciado);
+      assert.equal(p.algarismos === 3, pede, id + ' ' + contexto + ' ' + s);
+      if (pede) assert.equal(Number(p.resposta.toPrecision(3)), p.resposta);
+    }
+  }
 });
 
 test('ΔH: sinal certo (quebradas − formadas), combustões exotérmicas, decomposições endotérmicas; o sinal trocado é erro típico', () => {
