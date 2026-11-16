@@ -1598,4 +1598,222 @@ globalThis.Manual = globalThis.Manual || {};
       return p.figuraEnunciado.id === 'fig-material-solucao' && p.figuraEnunciado.opcoes.modo === 'exercicio' && !!parteMat(p.dados.destacar);
     },
   });
+
+  // ================================================================ entalpia
+  // Reações em fase gasosa com moléculas do catálogo: reagentes e produtos [id, coeficiente].
+  const REACOES = [
+    { id: 'sintese-hcl', tipo: 'formacao', reag: [['H2', 1], ['Cl2', 1]], prod: [['HCl', 2]], esquema: 'HCl' },
+    { id: 'sintese-agua', tipo: 'formacao', reag: [['H2', 2], ['O2', 1]], prod: [['H2O', 2]], esquema: 'H2O' },
+    { id: 'sintese-amoniaco', tipo: 'formacao', reag: [['N2', 1], ['H2', 3]], prod: [['NH3', 2]], esquema: 'NH3' },
+    { id: 'hidrogenacao-eteno', tipo: 'formacao', reag: [['C2H4', 1], ['H2', 1]], prod: [['C2H6', 1]] },
+    { id: 'hidrogenacao-etino', tipo: 'formacao', reag: [['C2H2', 1], ['H2', 2]], prod: [['C2H6', 1]] },
+    { id: 'hidratacao-eteno', tipo: 'formacao', reag: [['C2H4', 1], ['H2O', 1]], prod: [['C2H5OH', 1]] },
+    { id: 'combustao-metano', tipo: 'combustao', reag: [['CH4', 1], ['O2', 2]], prod: [['CO2', 1], ['H2O', 2]], esquema: 'CH4' },
+    { id: 'combustao-etano', tipo: 'combustao', reag: [['C2H6', 2], ['O2', 7]], prod: [['CO2', 4], ['H2O', 6]] },
+    { id: 'combustao-propano', tipo: 'combustao', reag: [['C3H8', 1], ['O2', 5]], prod: [['CO2', 3], ['H2O', 4]] },
+    { id: 'combustao-eteno', tipo: 'combustao', reag: [['C2H4', 1], ['O2', 3]], prod: [['CO2', 2], ['H2O', 2]] },
+    { id: 'combustao-etino', tipo: 'combustao', reag: [['C2H2', 2], ['O2', 5]], prod: [['CO2', 4], ['H2O', 2]] },
+    { id: 'combustao-metanol', tipo: 'combustao', reag: [['CH3OH', 2], ['O2', 3]], prod: [['CO2', 2], ['H2O', 4]] },
+    { id: 'combustao-etanol', tipo: 'combustao', reag: [['C2H5OH', 1], ['O2', 3]], prod: [['CO2', 2], ['H2O', 3]] },
+    { id: 'decomposicao-hcl', tipo: 'decomposicao', reag: [['HCl', 2]], prod: [['H2', 1], ['Cl2', 1]] },
+    { id: 'decomposicao-agua', tipo: 'decomposicao', reag: [['H2O', 2]], prod: [['H2', 2], ['O2', 1]] },
+    { id: 'decomposicao-amoniaco', tipo: 'decomposicao', reag: [['NH3', 2]], prod: [['N2', 1], ['H2', 3]] },
+  ];
+  const reacao = (id) => REACOES.find((r) => r.id === id);
+  const ladoTex = (l) => l.map(([id, k]) => (k === 1 ? '' : k + '\\,') + mol(id).formula.replace(/^\\mathrm\{/, '\\mathrm{') + '(\\mathrm{g})').join(' + ');
+  const equacaoTex = (r) => ladoTex(r.reag) + ' \\longrightarrow ' + ladoTex(r.prod);
+  // Ligações de um lado da equação: { chave: número } (coeficientes × ligações de cada molécula).
+  function ligacoesLado(l, comCoef = true, umaPorTipo = false) {
+    const t = {};
+    for (const [id, k] of l) {
+      const b = ligacoesDe(id);
+      for (const c of Object.keys(b)) t[c] = (t[c] || 0) + (comCoef ? k : 1) * (umaPorTipo ? 1 : b[c]);
+    }
+    return t;
+  }
+  const somaE = (t) => soma(Object.keys(t).map((c) => t[c] * D().ligacoes[c].energia));
+  const listaTex = (t) => Object.keys(t).map((c) => (t[c] === 1 ? '' : t[c] + ' \\times ') + D().ligacoes[c].energia).join(' + ');
+  const descLig = (t) => juntar(Object.keys(t).map((c) => t[c] + ' ' + ligTxt(c)));
+  function balanco(r, comCoef = true, umaPorTipo = false) {
+    const q = ligacoesLado(r.reag, comCoef, umaPorTipo);
+    const f = ligacoesLado(r.prod, comCoef, umaPorTipo);
+    return { q, f, Eq: somaE(q), Ef: somaE(f), dH: somaE(q) - somaE(f) };
+  }
+  // Energias de ligação de que a reação precisa, para o enunciado.
+  function dadosLigacoes(r) {
+    const usadas = Object.keys(Object.assign({}, ligacoesLado(r.reag), ligacoesLado(r.prod)));
+    return usadas.map((c) => '$' + ligTex(c) + '$' + (c === 'C=O' ? ' (no $\\mathrm{CO_2}$)' : '') + ' ' + D().ligacoes[c].energia).join(', ');
+  }
+  // ΔH pela diferença, ligação a ligação (quebradas menos formadas de cada tipo), sem Manual.quimica.
+  function deltaHPorTipo(r) {
+    const q = ligacoesLado(r.reag);
+    const f = ligacoesLado(r.prod);
+    const tipos = new Set(Object.keys(q).concat(Object.keys(f)));
+    let s = 0;
+    for (const c of tipos) s += ((q[c] || 0) - (f[c] || 0)) * D().ligacoes[c].energia;
+    return s;
+  }
+  const kJmol = '\\,\\mathrm{kJ\\,mol^{-1}}';
+
+  registar({
+    subtema: 'entalpia', tipo: 'variacao', nome: 'Variação de entalpia a partir das energias de ligação',
+    formatos: ['numerica', 'escolha'], contextos: ['formacao', 'combustao', 'decomposicao'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const r = escolher(rng, REACOES.filter((x) => x.tipo === contexto));
+        const b = balanco(r);
+        const dH = Q().deltaHLigacoes({ quebradas: b.q, formadas: b.f }).deltaH;
+        const enunciado = 'Estima a variação de entalpia da reação $' + equacaoTex(r) + '$ a partir das energias de ligação (em $\\mathrm{kJ\\,mol^{-1}}$): ' + dadosLigacoes(r) + '.';
+        const resolucao = [
+          { passo: 'Contar as ligações quebradas (reagentes)', porque: 'Multiplica-se o número de ligações de cada molécula pelo seu coeficiente: ' + descLig(b.q) + '.', calculo: '\\sum E_{\\text{quebradas}} = ' + A.cadeia(listaTex(b.q), tex(b.Eq)) + '\\,\\mathrm{kJ}' },
+          { passo: 'Contar as ligações formadas (produtos)', porque: 'Da mesma forma nos produtos: ' + descLig(b.f) + '.', calculo: '\\sum E_{\\text{formadas}} = ' + A.cadeia(listaTex(b.f), tex(b.Ef)) + '\\,\\mathrm{kJ}' },
+          { passo: 'Quebradas menos formadas', porque: '$\\Delta H \\approx \\sum E(\\text{quebradas}) - \\sum E(\\text{formadas})$ (aproximado: energias médias de ligação). ' + (dH < 0 ? 'É negativo: a reação é exotérmica.' : 'É positivo: a reação é endotérmica.'), calculo: '\\Delta H \\approx ' + tex(b.Eq) + ' - ' + tex(b.Ef) + ' = ' + sinalTex(dH).replace(/^\+/, '') + kJmol },
+        ];
+        const semCoef = balanco(r, false);
+        const umaLig = balanco(r, true, true);
+        const erros = [
+          { codigo: 'inverteu_quebradas_e_formadas', valor: -dH, explicacao: 'Fizeste formadas − quebradas e obtiveste ' + fmt(-dH) + ' kJ/mol, com o sinal trocado. É quebradas − formadas: $\\Delta H \\approx ' + tex(dH) + kJmol + '$.' },
+          { codigo: 'esqueceu_os_coeficientes', valor: semCoef.dH, explicacao: 'Não multiplicaste pelos coeficientes da equação e obtiveste ' + fmt(semCoef.dH) + ' kJ/mol; cada coeficiente diz quantas moléculas, e portanto quantas ligações, se quebram ou formam.' },
+          { codigo: 'contou_uma_ligacao_de_cada_tipo', valor: umaLig.dH, explicacao: 'Contaste uma só ligação de cada tipo por molécula e obtiveste ' + fmt(umaLig.dH) + ' kJ/mol; por exemplo, cada $\\mathrm{H_2O}$ tem 2 ligações O–H e cada $\\mathrm{CH_4}$ tem 4 ligações C–H.' },
+        ];
+        if (formato === 'numerica') erros.push({ codigo: 'deu_so_as_ligacoes_quebradas', valor: b.Eq, explicacao: fmt(b.Eq) + ' kJ é só a energia das ligações quebradas; falta subtrair a das ligações formadas (' + fmt(b.Ef) + ' kJ).' });
+        const ex = { enunciado, resolucao, dados: { reacao: r.id, contexto } };
+        if (r.esquema) ex.esquema = { id: 'fqa-entalpia', opcoes: { reacao: r.esquema } };
+        return fechar(rng, formato, ex, {
+          resposta: dH, tolerancia: 0.5, unidade: 'kJ/mol', texto: (v) => '$' + tex(v) + kJmol + '$', erros,
+          verificacao: { passo: 'Somar ligação a ligação: (quebradas − formadas) de cada tipo × energia', calculo: '\\Delta H \\approx ' + tex(deltaHPorTipo(r)) + kJmol, valor: deltaHPorTipo(r) },
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const r = reacao(p.dados.reacao);
+      return confere(p, deltaHPorTipo(r), (v) => '$' + tex(v) + kJmol + '$');
+    },
+    limites(p) {
+      const r = reacao(p.dados.reacao);
+      return !!r && (r.tipo !== 'decomposicao' || deltaHPorTipo(r) > 0) && (r.tipo !== 'combustao' || deltaHPorTipo(r) < 0);
+    },
+  });
+
+  const TXT_TERMICO = {
+    exo: 'Exotérmica: o sistema liberta energia para o exterior.',
+    endo: 'Endotérmica: o sistema absorve energia do exterior.',
+    exoAbsorve: 'Exotérmica: o sistema absorve energia do exterior.',
+    endoLiberta: 'Endotérmica: o sistema liberta energia para o exterior.',
+  };
+
+  registar({
+    subtema: 'entalpia', tipo: 'sinal', nome: 'Reação exotérmica ou endotérmica pelo sinal de ΔH',
+    formatos: ['escolha', 'vf'], contextos: ['sinal', 'ligacoes'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const r = escolher(rng, REACOES);
+        const b = balanco(r);
+        const dH = b.dH;
+        const exo = dH < 0;
+        const eq = '$' + equacaoTex(r) + '$';
+        const enunciado = contexto === 'sinal'
+          ? 'Para a reação ' + eq + ', $\\Delta H \\approx ' + tex(dH) + kJmol + '$. Como se classifica a reação?'
+          : 'Na reação ' + eq + ', quebrar as ligações dos reagentes exige $' + tex(b.Eq) + '\\,\\mathrm{kJ}$ e formar as ligações dos produtos liberta $' + tex(b.Ef) + '\\,\\mathrm{kJ}$. Como se classifica a reação?';
+        const resolucao = contexto === 'sinal'
+          ? [{ passo: 'Ler o sinal de ΔH', porque: exo ? '$\\Delta H < 0$: os produtos têm menos energia do que os reagentes; a diferença sai do sistema para o exterior. A reação é exotérmica.' : '$\\Delta H > 0$: os produtos têm mais energia do que os reagentes; o sistema recebe essa energia do exterior. A reação é endotérmica.' }]
+          : [
+            { passo: 'Comparar a energia absorvida com a libertada', porque: 'Quebrar ligações absorve energia; formar ligações liberta energia.', calculo: '\\Delta H \\approx ' + tex(b.Eq) + ' - ' + tex(b.Ef) + ' = ' + tex(dH) + kJmol },
+            { passo: 'Classificar', porque: exo ? 'Liberta-se mais energia a formar do que se absorve a quebrar: $\\Delta H < 0$, reação exotérmica.' : 'Absorve-se mais energia a quebrar do que se liberta a formar: $\\Delta H > 0$, reação endotérmica.' },
+          ];
+        const E = {
+          trocou_o_significado_do_sinal: contexto === 'sinal'
+            ? (exo ? 'Um $\\Delta H$ negativo quer dizer que os produtos ficam com menos energia: o sistema perde energia para o exterior (exotérmica).' : 'Um $\\Delta H$ positivo quer dizer que os produtos ficam com mais energia: o sistema recebe energia do exterior (endotérmica).')
+            : (exo ? 'Formar as ligações liberta mais energia (' + tex(b.Ef) + ' kJ) do que a que se gasta a quebrar (' + tex(b.Eq) + ' kJ): sobra energia libertada, a reação é exotérmica.' : 'Quebrar as ligações gasta mais energia (' + tex(b.Eq) + ' kJ) do que a que se liberta a formar (' + tex(b.Ef) + ' kJ): falta energia, que vem do exterior. É endotérmica.'),
+          exotermica_absorve: 'Uma reação exotérmica liberta energia (o exterior aquece); absorver energia do exterior é próprio de uma reação endotérmica.',
+          endotermica_liberta: 'Uma reação endotérmica absorve energia do exterior; libertar energia é próprio de uma reação exotérmica.',
+        };
+        const certa = exo ? TXT_TERMICO.exo : TXT_TERMICO.endo;
+        const erros = [
+          { codigo: 'trocou_o_significado_do_sinal', texto: exo ? TXT_TERMICO.endo : TXT_TERMICO.exo, explicacao: E.trocou_o_significado_do_sinal },
+          { codigo: 'exotermica_absorve', texto: TXT_TERMICO.exoAbsorve, explicacao: E.exotermica_absorve },
+          { codigo: 'endotermica_liberta', texto: TXT_TERMICO.endoLiberta, explicacao: E.endotermica_liberta },
+        ];
+        const dados = { reacao: r.id, contexto };
+        const verificacao = { passo: 'Comparar a energia das ligações dos produtos com a dos reagentes', calculo: '\\sum E_{\\text{formadas}} = ' + tex(b.Ef) + (exo ? ' > ' : ' < ') + tex(b.Eq) + ' = \\sum E_{\\text{quebradas}}', valor: null };
+        const ex = { enunciado, resolucao, dados, verificacao };
+        if (r.esquema) ex.esquema = { id: 'fqa-entalpia', opcoes: { reacao: r.esquema } };
+        if (formato === 'escolha') return fecharTexto(rng, ex, certa, erros, certa);
+        const frase = (eExo) => (contexto === 'sinal' ? 'Para a reação ' + eq + ', com $\\Delta H \\approx ' + tex(dH) + kJmol + '$, ' : 'Na reação ' + eq + ', em que quebrar as ligações exige $' + tex(b.Eq) + '\\,\\mathrm{kJ}$ e formar as novas liberta $' + tex(b.Ef) + '\\,\\mathrm{kJ}$, ') + 'o sistema ' + (eExo ? 'liberta energia para o exterior (reação exotérmica).' : 'absorve energia do exterior (reação endotérmica).');
+        const v = vfDe(rng, frase(exo), frase(!exo), { codigo: 'trocou_o_significado_do_sinal', explicacao: E.trocou_o_significado_do_sinal });
+        dados.afirmaExo = v.correta ? exo : !exo;
+        delete ex.enunciado;
+        return Object.assign(ex, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const exo = deltaHPorTipo(reacao(p.dados.reacao)) < 0;
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmaExo === exo);
+      return p.opcoes[p.correta] === (exo ? TXT_TERMICO.exo : TXT_TERMICO.endo);
+    },
+    limites(p) {
+      return !!reacao(p.dados.reacao) && deltaHPorTipo(reacao(p.dados.reacao)) !== 0;
+    },
+  });
+
+  registar({
+    subtema: 'entalpia', tipo: 'energia-quantidade', nome: 'Energia libertada ou absorvida para uma dada quantidade',
+    formatos: ['numerica', 'escolha'], contextos: ['quantidade', 'massa'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const r = escolher(rng, REACOES);
+        const dH = deltaHPorTipo(r);
+        const [id, nu] = escolher(rng, r.reag.concat(r.prod));
+        const m0 = mol(id);
+        const F = '$' + m0.formula + '$';
+        const ats = atomosDe(id);
+        const M = Q().massaMolar(ats);
+        const reagente = r.reag.some((x) => x[0] === id);
+        const verbo = dH < 0 ? 'libertada' : 'absorvida';
+        let n, dadoTxt, m = null;
+        const passos = [];
+        if (contexto === 'quantidade') {
+          n = valor3AS(rng, [[0.1, 0.999, 0.001], [1, 2.99, 0.01]]);
+          dadoTxt = '$' + texAS(n, 3) + '\\,\\mathrm{mol}$ de ' + m0.nome + ', ' + F;
+        } else {
+          m = valor3AS(rng, [[1, 9.99, 0.01], [10, 49.9, 0.1]]);
+          n = m / M;
+          dadoTxt = '$' + texAS(m, 3) + '\\,\\mathrm{g}$ de ' + m0.nome + ', ' + F + ' (' + dadosAr(ats) + ')';
+          passos.push({ passo: 'Converter a massa em quantidade de matéria', porque: '$n = \\dfrac{m}{M}$, com $M(' + m0.formula + ') = ' + texF(M, 2) + '\\,\\mathrm{g\\,mol^{-1}}$.', calculo: 'n = \\dfrac{' + texAS(m, 3) + '}{' + texF(M, 2) + '} \\approx ' + texAS(n, 4) + '\\,\\mathrm{mol}' });
+        }
+        const E1 = Math.abs(dH);
+        const exato = E1 * n / nu;
+        const acao = reagente ? 'reagem ' : 'se formam ';
+        const enunciado = 'Para a reação $' + equacaoTex(r) + '$, $\\Delta H \\approx ' + tex(dH) + kJmol + '$ (valor estimado a partir das energias de ligação, para a equação tal como está escrita). Que energia é ' + verbo + ' quando ' + acao + dadoTxt + '?' + AS3;
+        const resolucao = passos.concat([
+          { passo: 'Ler o que corresponde ao ΔH da equação', porque: 'O valor de $\\Delta H$ refere-se às quantidades da equação: ' + (nu === 1 ? '1 mol' : nu + ' mol') + ' de $' + m0.formula + '$ correspondem a ' + fmt(E1) + ' kJ ' + (dH < 0 ? 'libertados' : 'absorvidos') + '.' },
+          { passo: 'Proporção direta', porque: 'A energia é proporcional à quantidade que reage ou se forma.', calculo: 'E = \\dfrac{' + texAS(n, contexto === 'massa' ? 4 : 3) + '}{' + nu + '} \\times ' + tex(E1) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{kJ}' },
+        ]);
+        if (nu === 1) resolucao[resolucao.length - 1].calculo = 'E = ' + texAS(n, contexto === 'massa' ? 4 : 3) + ' \\times ' + tex(E1) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{kJ}';
+        const erros = [];
+        if (nu !== 1) {
+          erros.push({ codigo: 'esqueceu_o_coeficiente_da_especie', valor: E1 * n, explicacao: 'Multiplicaste $n$ por ' + fmt(E1) + ' kJ e obtiveste ' + txtAS(E1 * n, 3) + ' kJ; mas esse valor corresponde a ' + nu + ' mol de $' + m0.formula + '$ (o coeficiente da equação), por isso divide-se por ' + nu + '.' });
+          erros.push({ codigo: 'multiplicou_pelo_coeficiente', valor: E1 * n * nu, explicacao: 'Multiplicaste pelo coeficiente ' + nu + ' e obtiveste ' + txtAS(E1 * n * nu, 3) + ' kJ; ' + nu + ' mol correspondem a ' + fmt(E1) + ' kJ, por isso divide-se.' });
+        }
+        erros.push({ codigo: 'deu_o_deltah_da_equacao', valor: E1, explicacao: txtAS(E1, 3) + ' kJ é (com três algarismos significativos) a energia para as quantidades da equação; para a quantidade dada faz-se a proporção.' });
+        erros.push({ codigo: 'dividiu_o_deltah_pela_quantidade', valor: E1 / n * nu, explicacao: 'Dividiste em vez de multiplicar e obtiveste ' + txtAS(E1 / n * nu, 3) + ' kJ; a energia é proporcional à quantidade: $E = \\dfrac{n}{' + nu + '} \\times ' + tex(E1) + '$.' });
+        if (contexto === 'massa') erros.unshift({ codigo: 'usou_a_massa_em_vez_de_n', valor: E1 * m / nu, explicacao: 'Usaste a massa ($' + texAS(m, 3) + '\\,\\mathrm{g}$) como se fosse a quantidade de matéria e obtiveste ' + txtAS(E1 * m / nu, 3) + ' kJ; primeiro $n = m / M$.' });
+        const ex = { enunciado, resolucao, dados: { reacao: r.id, especie: id, n: contexto === 'quantidade' ? n : null, m: contexto === 'massa' ? m : null, contexto } };
+        return fechar3(rng, formato, ex, exato, {
+          erros, unidade: 'kJ', texto: (v) => '$' + texAS(v, 3) + '\\,\\mathrm{kJ}$',
+          verificacao: (rr) => ({ passo: 'Energia por mole da espécie e depois vezes n', calculo: '\\dfrac{' + tex(E1) + '}{' + nu + '} = ' + tex(E1 / nu, 2) + '\\,\\mathrm{kJ\\,mol^{-1}};\\quad ' + tex(E1 / nu, 2) + ' \\times ' + texAS(n, 4) + ' \\approx ' + texAS(rr, 3) + '\\,\\mathrm{kJ}', valor: aAS((E1 / nu) * n, 3) }),
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const r = reacao(p.dados.reacao);
+      const nu = r.reag.concat(r.prod).find((x) => x[0] === p.dados.especie)[1];
+      const n = p.dados.contexto === 'quantidade' ? p.dados.n : p.dados.m / massaAtomoAAtomo(atomosDe(p.dados.especie));
+      const E = Math.abs(Q().deltaHLigacoes({ quebradas: ligacoesLado(r.reag), formadas: ligacoesLado(r.prod) }).deltaH);
+      return confere(p, aAS(n * E / nu, 3), (x) => '$' + texAS(x, 3) + '\\,\\mathrm{kJ}$');
+    },
+    limites(p) {
+      return !!reacao(p.dados.reacao);
+    },
+  });
 })();

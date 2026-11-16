@@ -652,6 +652,17 @@ globalThis.Manual = globalThis.Manual || {};
     usou_a_massa_em_vez_de_n: 'Usou a massa em vez da quantidade de matéria',
     usou_o_volume_de_agua_adicionado: 'Usou o volume de água adicionado em vez do volume final',
     usou_o_volume_do_solvente: 'Usou o volume do solvente em vez do volume da solução',
+    contou_uma_ligacao_de_cada_tipo: 'Contou uma só ligação de cada tipo por molécula',
+    deu_o_deltah_da_equacao: 'Deu o ΔH da equação sem fazer a proporção para a quantidade dada',
+    deu_so_as_ligacoes_quebradas: 'Deu só a energia das ligações quebradas',
+    dividiu_o_deltah_pela_quantidade: 'Dividiu o ΔH pela quantidade em vez de multiplicar',
+    endotermica_liberta: 'Julgou que uma reação endotérmica liberta energia',
+    esqueceu_o_coeficiente_da_especie: 'Esqueceu o coeficiente da espécie na equação',
+    esqueceu_os_coeficientes: 'Esqueceu os coeficientes da equação ao contar as ligações',
+    exotermica_absorve: 'Julgou que uma reação exotérmica absorve energia',
+    inverteu_quebradas_e_formadas: 'Fez formadas − quebradas (sinal de ΔH trocado)',
+    multiplicou_pelo_coeficiente: 'Multiplicou pelo coeficiente em vez de dividir',
+    trocou_o_significado_do_sinal: 'Trocou o significado do sinal de ΔH',
   };
 
   function humanizarErro(codigo) {

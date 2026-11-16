@@ -120,6 +120,7 @@ contou_todos_os_atomos → Contou todos os átomos em vez dos do elemento pedido
 contou_todos_os_eletroes → Contou todos os eletrões em vez dos de valência
 contou_um_eletrao_a_mais → Escreveu a configuração com um eletrão a mais
 contou_um_eletrao_a_menos → Escreveu a configuração com um eletrão a menos
+contou_uma_ligacao_de_cada_tipo → Contou uma só ligação de cada tipo por molécula
 contou_valores → Contou os valores diferentes em vez das observações
 contou_valores_diferentes → Contou os valores diferentes em vez das observações
 conveniencia → Julgou aleatória uma amostra por conveniência
@@ -151,6 +152,7 @@ deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
 deu_n_em_vez_da_massa → Deu a quantidade de matéria em vez da massa
 deu_o_contradominio → Deu o contradomínio em vez do domínio
+deu_o_deltah_da_equacao → Deu o ΔH da equação sem fazer a proporção para a quantidade dada
 deu_o_dominio → Deu o domínio em vez do contradomínio
 deu_o_juro → Deu o juro em vez do capital
 deu_o_numero_atomico → Deu o número atómico em vez do número de neutrões
@@ -163,6 +165,7 @@ deu_o_volume_de_agua_a_juntar → Deu o volume de água a juntar em vez do volum
 deu_o_volume_de_uma_mole → Deu o volume de uma mole em vez do volume pedido
 deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
 deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
+deu_so_as_ligacoes_quebradas → Deu só a energia das ligações quebradas
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
 diatomica_de_atomos_diferentes_apolar → Julgou apolar uma molécula diatómica de átomos diferentes
@@ -181,6 +184,7 @@ dividiu_ao_contrario → Dividiu pela ordem trocada
 dividiu_em_vez_de_multiplicar → Dividiu em vez de multiplicar
 dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
+dividiu_o_deltah_pela_quantidade → Dividiu o ΔH pela quantidade em vez de multiplicar
 dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
 dividiu_pela_massa_molar → Dividiu pela massa molar em vez de multiplicar
@@ -201,6 +205,7 @@ dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
 eixo_reflexao_trocado → Trocou o eixo da reflexão
 emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocupar as orbitais vazias
+endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
 errou_o_expoente_na_notacao_cientifica → Errou o expoente ao passar a notação científica
 escalao_errado → Usou a taxa de outro escalão
@@ -221,10 +226,12 @@ esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
+esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
 esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da fórmula
 esqueceu_o_ponto → Esqueceu de somar o ponto
+esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
 esqueceu_raiz → Esqueceu a raiz quadrada
@@ -240,6 +247,7 @@ esqueceu_valor_base → Esqueceu o valor base
 excitado_como_impossivel → Julgou impossível uma configuração de um estado excitado
 excitado_julgado_de_outro_atomo → Julgou de outro átomo a configuração de um estado excitado
 excluiu_extremo → Excluiu o extremo em «no máximo»
+exotermica_absorve → Julgou que uma reação exotérmica absorve energia
 expoente_em_anos → Pôs o número de anos no expoente, em vez do de períodos
 extremo_errado → Errou o extremo
 extremos_errados → Errou se os zeros pertencem ao conjunto
@@ -284,6 +292,7 @@ inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
 inverteu_o_efeito_da_ordem_de_ligacao → Inverteu o efeito da ordem de ligação na energia e no comprimento
 inverteu_o_fator_de_diluicao → Inverteu o fator de diluição
+inverteu_quebradas_e_formadas → Fez formadas − quebradas (sinal de ΔH trocado)
 inverteu_razao → Inverteu a razão
 ionica_entre_nao_metais → Julgou iónica a ligação entre não metais
 irs_depois_ss → Aplicou o IRS depois de descontar a Segurança Social
@@ -345,6 +354,7 @@ multiplicou_abcissa → Multiplicou também a abcissa, que devia ficar igual
 multiplicou_c_por_lambda → Multiplicou c pelo comprimento de onda
 multiplicou_em_vez_de_dividir → Multiplicou em vez de dividir
 multiplicou_massa_pela_massa_molar → Multiplicou a massa pela massa molar
+multiplicou_pelo_coeficiente → Multiplicou pelo coeficiente em vez de dividir
 multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
 multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
 multiplicou_pelo_volume → Multiplicou pelo volume em vez de dividir
@@ -564,6 +574,7 @@ trocou_media_mediana → Trocou a média com a mediana
 trocou_o_eixo → Trocou o eixo
 trocou_o_sentido → Trocou o sentido
 trocou_o_sentido_do_espectro → Trocou o sentido do espectro
+trocou_o_significado_do_sinal → Trocou o significado do sinal de ΔH
 trocou_o_sinal_da_carga → Trocou o sinal da carga do ião
 trocou_o_sinal_do_expoente → Trocou o sinal do expoente
 trocou_os_volumes_na_diluicao → Trocou os volumes na diluição (ci·Vf = cf·Vi)

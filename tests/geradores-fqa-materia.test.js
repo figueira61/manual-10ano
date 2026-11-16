@@ -16,8 +16,9 @@ const IDS = [
   'carbono-hidrocarboneto', 'carbono-grupo-funcional', 'carbono-nome',
   'gases-volume-molar', 'gases-massa-volumica', 'gases-fracao-molar',
   'solucoes-concentracao', 'solucoes-diluicao', 'solucoes-composicao', 'solucoes-material',
+  'entalpia-variacao', 'entalpia-sinal', 'entalpia-energia-quantidade',
 ];
-const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases', 'solucoes'];
+const SUBTEMAS = ['ligacao', 'geometria', 'carbono', 'gases', 'solucoes', 'entalpia'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -88,6 +89,32 @@ test('snapshots da semente 1', () => {
   p = g('solucoes-material');
   assert.deepEqual(p.figuraEnunciado, { id: 'fig-material-solucao', opcoes: { modo: 'exercicio', destacar: 'balao' } });
   assert.equal(certa(p), 'Balão volumétrico'); // peça 6 da figura
+  p = g('entalpia-variacao');
+  assert.match(p.enunciado, /\\mathrm\{C_2H_4\}\(\\mathrm\{g\}\) \+ \\mathrm\{H_2\}/);
+  assert.equal(p.resposta, -134); // (602 + 4 × 411 + 432) − (346 + 6 × 411)
+  p = g('entalpia-sinal');
+  assert.equal(certa(p), 'Exotérmica: o sistema liberta energia para o exterior.'); // combustão do etino
+  p = g('entalpia-energia-quantidade');
+  assert.ok(p.resposta > 0 && p.algarismos === 3);
+});
+
+test('ΔH: sinal certo (quebradas − formadas), combustões exotérmicas, decomposições endotérmicas; o sinal trocado é erro típico', () => {
+  const L = D.ligacoes;
+  const valores = { 'sintese-hcl': L['H-H'].energia + L['Cl-Cl'].energia - 2 * L['H-Cl'].energia, 'combustao-metano': 4 * L['C-H'].energia + 2 * L['O=O'].energia - 2 * L['C=O'].energia - 4 * L['O-H'].energia };
+  assert.equal(valores['sintese-hcl'], -184);
+  assert.equal(valores['combustao-metano'], -802);
+  for (const p of itens('entalpia-variacao', 120)) {
+    if (valores[p.dados.reacao] !== undefined) {
+      if (p.formato === 'numerica') assert.equal(p.resposta, valores[p.dados.reacao]);
+      else assert.equal(certa(p), '$' + String(valores[p.dados.reacao]) + '\\,\\mathrm{kJ\\,mol^{-1}}$');
+    }
+    const v = p.formato === 'numerica' ? p.resposta : Number(certa(p).match(/-?\d+/)[0]);
+    if (p.contexto === 'combustao') assert.ok(v < 0);
+    if (p.contexto === 'decomposicao') assert.ok(v > 0);
+    const inv = p.errosTipicos.find((e) => e.codigo === 'inverteu_quebradas_e_formadas');
+    assert.ok(inv, 'sem o erro do sinal trocado');
+    if (p.formato === 'numerica') assert.equal(inv.valor, -p.resposta);
+  }
 });
 
 test('soluções: c_iV_f = c_fV_i, mL não convertidos e massa do solvente aparecem como erros típicos', () => {
