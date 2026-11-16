@@ -148,7 +148,19 @@ Manual.dadosQuimicos = (function () {
     energiasRemocao[simbolo] = lista.map(([subnivel, eletroes, eV]) => ({ subnivel, eletroes, energia: Math.round(eV * EV_PARA_KJ_MOL) }));
   }
 
+  // Composição do ar seco junto ao solo (troposfera), em percentagem em volume (= percentagem em quantidade de matéria).
+  // O vapor de água varia muito (tipicamente cerca de 1 %) e não entra no ar seco.
+  const atmosfera = [
+    { gas: 'N2', nome: 'nitrogénio', percentagem: 78.08 },
+    { gas: 'O2', nome: 'oxigénio', percentagem: 20.95 },
+    { gas: 'Ar', nome: 'árgon', percentagem: 0.934 },
+    { gas: 'CO2', nome: 'dióxido de carbono', percentagem: 0.042 },
+    { gas: 'CH4', nome: 'metano', percentagem: 0.000194 },
+  ];
+
   const fontes = {
+    atmosfera: 'NASA, Earth Fact Sheet (NSSDC, D. R. Williams; consultada em 2026-11-16), "Atmospheric composition (by volume, '
+      + 'dry air)": N2 78,08 %, O2 20,95 %, Ar 9340 ppm, CO2 420 ppm, CH4 1,94 ppm; convertidos para percentagem em volume.',
     energiasRemocao: 'Na, átomo livre: 1s = 1079,1 eV (R. L. Martin, E. R. Davidson, M. S. Banna, B. Wallbank, D. C. Frost '
       + 'e C. A. McDowell, "The x-ray photoelectron spectrum of atomic sodium", J. Chem. Phys. 68, 5006 (1978)); 2s e 2p = '
       + 'EI(Na) 5,13908 eV + nível mais baixo do ião Na⁺ com a lacuna, NIST Atomic Spectra Database, Levels, Na II '
@@ -179,5 +191,5 @@ Manual.dadosQuimicos = (function () {
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };
 
-  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, fontes };
+  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, atmosfera, fontes };
 })();

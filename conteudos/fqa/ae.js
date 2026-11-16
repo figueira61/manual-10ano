@@ -33,4 +33,34 @@ Manual.ae.fqa = [
   'Interpretar a baixa reatividade dos gases nobres, relacionando-a com a estrutura eletrónica destes elementos.',
   // revisão 2026
   'Definir a unidade de massa atómica e interpretar o significado de massa atómica relativa.',
+  // ---------- Propriedades e transformações da matéria ----------
+  // Ligação química
+  'Compreender que a formação de ligações químicas é um processo que aumenta a estabilidade de um sistema de dois ou mais átomos, interpretando-a em termos de forças de atração e de repulsão no sistema núcleos-eletrões.',
+  'Interpretar os gráficos de energia em função da distância internuclear de moléculas diatómicas.',
+  'Distinguir, recorrendo a exemplos, os vários tipos de ligação química: covalente, iónica e metálica.',
+  'Explicar a ligação covalente com base no modelo de Lewis.',
+  'Representar, com base na regra do octeto, as fórmulas de estrutura de Lewis de algumas moléculas, interpretando a ocorrência de ligações covalentes simples, duplas ou triplas.',
+  'Prever a geometria das moléculas com base na repulsão dos pares de eletrões da camada de valência e prever a polaridade de moléculas simples.',
+  'Distinguir hidrocarbonetos saturados de insaturados.',
+  'Interpretar e relacionar os parâmetros de ligação, energia e comprimento, para ligações entre átomos dos mesmos elementos.',
+  'Identificar, com base em informação selecionada, grupos funcionais (álcoois, aldeídos, cetonas, ácidos carboxílicos e aminas) em moléculas orgânicas, biomoléculas e fármacos, a partir das suas fórmulas de estrutura.',
+  'Interpretar as forças de Van der Waals e pontes de hidrogénio em interações intermoleculares, discutindo as suas implicações na estrutura e propriedades da matéria e a sua importância em sistemas biológicos.',
+  // Gases e dispersões
+  'Compreender o conceito de volume molar de gases a partir da lei de Avogadro e concluir que este só depende da pressão e temperatura e não do gás em concreto.',
+  'Aplicar, na resolução de problemas, os conceitos de massa, massa molar, fração molar, volume molar e massa volúmica de gases, explicando as estratégias de resolução.',
+  'Pesquisar a composição da troposfera terrestre, identificando os gases poluentes e suas fontes, designadamente os gases que provocam efeitos de estufa e alternativas para minorar as fontes de poluição, comunicando as conclusões.',
+  'Resolver problemas envolvendo cálculos numéricos sobre a composição quantitativa de soluções aquosas e gasosas, exprimindo-a nas principais unidades, explicando as estratégias de resolução.',
+  'Preparar soluções aquosas a partir de solutos sólidos e por diluição, avaliando procedimentos e comunicando os resultados.',
+  // Transformações químicas
+  'Interpretar as reações químicas em termos de quebra e formação de ligações.',
+  'Explicar, no contexto de uma reação química, o que é um processo exotérmico e endotérmico.',
+  'Designar a variação de energia entre reagentes e produtos como entalpia, interpretar o seu sinal e reconhecer que, a pressão constante, a variação de entalpia é igual ao calor trocado com o exterior.',
+  'Relacionar a variação de entalpia com as energias de ligação de reagentes e de produtos.',
+  'Identificar a luz como fonte de energia das reações fotoquímicas.',
+  'Investigar, experimentalmente, o efeito da luz sobre o cloreto de prata, avaliando procedimentos e comunicando os resultados.',
+  'Pesquisar, numa perspetiva intra e interdisciplinar, os papéis do ozono na troposfera e na estratosfera, interpretando a formação e destruição do ozono estratosférico e comunicando as suas conclusões.',
+  'Relacionar a elevada reatividade dos radicais livres com a particularidade de serem espécies que possuem eletrões desemparelhados e explicitar alguns dos seus efeitos na atmosfera e sobre os seres vivos, por exemplo, o envelhecimento.',
+  // revisão 2026
+  'Interpretar os gráficos de energia em função da distância internuclear de moléculas diatómicas, verificando que na formação de uma ligação há libertação de energia e na quebra há absorção.',
+  'Reconhecer a importância química dos compostos de carbono, a variabilidade das suas estruturas moleculares e a multiplicidade das ligações estabelecidas.',
 ];

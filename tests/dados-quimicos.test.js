@@ -205,3 +205,15 @@ test('energias de remoção (Na): uma por subnível ocupado, a decrescer 1s > 2s
   assert.equal(na[na.length - 1].energia, D.elementos.Na.ei1);
   assert.deepEqual(na.map((x) => x.energia), [104117, 6847, 3665, 496]);
 });
+
+test('atmosfera (ar seco): N2 > O2 > Ar > CO2 > CH4, soma ≈ 100 % e valores da NASA', () => {
+  const a = D.atmosfera;
+  assert.deepEqual(a.map((x) => x.gas), ['N2', 'O2', 'Ar', 'CO2', 'CH4']);
+  for (let i = 1; i < a.length; i++) assert.ok(a[i].percentagem < a[i - 1].percentagem, a[i].gas);
+  const soma = a.reduce((s, x) => s + x.percentagem, 0);
+  assert.ok(Math.abs(soma - 100) < 0.05, 'soma ' + soma);
+  const p = (g) => a.find((x) => x.gas === g).percentagem;
+  assert.equal(p('N2'), 78.08);
+  assert.equal(p('O2'), 20.95);
+  assert.equal(p('CO2'), 0.042);
+});
