@@ -1,4 +1,6 @@
 a_ao_quadrado → Multiplicou o desvio padrão por a ao quadrado
+achou_que_mais_pares_alongam_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais comprida
+achou_que_mais_pares_enfraquecem_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais fraca
 achou_que_mudava_de_nivel_no_periodo → Julgou que, no mesmo período, os eletrões de valência mudam de nível
 ag_como_metade → Tomou AG como metade da mediana
 ag_como_terco → Tomou AG como um terço da mediana
@@ -62,6 +64,9 @@ contagem_em_vez_de_percentagem → Deu a contagem em vez da percentagem
 continua_como_discreta → Tomou uma variável contínua por discreta
 continua_como_qualitativa → Tomou uma variável contínua por qualitativa
 contou_atomos_em_vez_de_moleculas → Contou os átomos em vez das moléculas
+contou_cada_elemento_uma_vez → Contou cada elemento uma só vez, sem os índices
+contou_eletroes_em_vez_de_pares → Contou eletrões em vez de pares de eletrões
+contou_ligacoes_em_vez_de_pares → Contou ligações em vez de pares ligantes
 contou_mal_os_eletroes → Julgou de outro átomo uma configuração com Z eletrões
 contou_moleculas_em_vez_de_atomos → Contou as moléculas em vez dos átomos
 contou_o_complementar → Contou o contrário do pedido
@@ -77,6 +82,7 @@ contou_so_as_orbitais_do_ultimo_nivel → Contou só as orbitais do último nív
 contou_so_os_algarismos_diferentes_de_zero → Não contou os zeros significativos
 contou_so_os_eletroes_p → Contou só os eletrões p do último nível
 contou_so_os_eletroes_s → Contou só os eletrões s do último nível
+contou_so_os_pares_do_atomo_central → Contou só os pares não ligantes do átomo central
 contou_so_um_elemento → Contou só os átomos de um dos elementos
 contou_subniveis_em_vez_de_orbitais → Contou os subníveis em vez das orbitais
 contou_todos_os_atomos → Contou todos os átomos em vez dos do elemento pedido
@@ -90,6 +96,8 @@ converteu_m_em_nm_ao_contrario → Converteu de metros para nanómetros no senti
 converteu_nm_como_micrometro → Usou 1 nm = 10⁻⁶ m
 coordenada_errada → Usou a coordenada errada
 coordenadas_trocadas → Trocou as coordenadas
+covalente_entre_atomos_iguais → Julgou covalente a ligação entre átomos de um metal
+covalente_entre_metal_e_nao_metal → Julgou covalente a ligação entre um metal e um não metal
 cruzou_mal → Multiplicou em cruz os termos errados
 declive_como_r → Tomou o declive por coeficiente de correlação
 declive_e_termo_trocados → Trocou o declive com a ordenada na origem
@@ -107,8 +115,11 @@ deu_o_juro → Deu o juro em vez do capital
 deu_o_numero_atomico → Deu o número atómico em vez do número de neutrões
 deu_o_numero_de_massa → Deu o número de massa em vez do número de neutrões
 deu_o_numero_de_neutroes → Deu o número de neutrões em vez do pedido
+deu_o_numero_de_pares → Deu o número de pares em vez do número de eletrões
 deu_o_numero_do_ultimo_nivel → Deu o número do último nível em vez dos eletrões de valência
 deu_o_restante → Deu o que sobra depois do desconto
+deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
+deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
 diferenca_das_normas → Fez a diferença das normas em vez da norma da diferença
@@ -220,7 +231,9 @@ intervalo_aberto → Deixou de fora o extremo, que pertence ao contradomínio
 intervalo_entre_extremos → Deu o intervalo entre os extremos em vez do conjunto finito
 inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
+inverteu_o_efeito_da_ordem_de_ligacao → Inverteu o efeito da ordem de ligação na energia e no comprimento
 inverteu_razao → Inverteu a razão
+ionica_entre_nao_metais → Julgou iónica a ligação entre não metais
 irs_depois_ss → Aplicou o IRS depois de descontar a Segurança Social
 isotopos_com_os_mesmos_neutroes → Julgou que isótopos têm o mesmo número de neutrões
 juro_composto → Usou juro composto em vez de juro simples
@@ -263,6 +276,7 @@ metade → Tomou o baricentro como ponto médio da mediana
 metade_cateto → Dividiu um cateto por 2 em vez da hipotenusa
 metade_do_raio_inscrito → Deu metade do raio inscrito
 metade_nao_chega → Julgou que metade dos votos dá maioria absoluta
+metalica_por_ter_um_metal → Julgou metálica a ligação por haver um metal
 metodo_das_metades → Calculou o quartil pelo método das metades
 monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
@@ -438,6 +452,7 @@ somou_eletroes_e_neutroes → Somou os eletrões aos neutrões
 somou_em_vez_de_multiplicar → Somou em vez de multiplicar
 somou_lambda → Somou λ a cada coordenada
 somou_os_eletroes → Somou os eletrões ao número de massa
+somou_pares_ligantes_e_nao_ligantes → Somou os pares ligantes e os não ligantes
 somou_sem_multiplicar → Somou os valores sem os multiplicar pelas frequências
 somou_termo_quadratico → Somou o termo −5t² em vez de o subtrair
 ss_depois_irs → Aplicou a Segurança Social depois do IRS
@@ -458,6 +473,7 @@ taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendim
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
 tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
+tomou_o_hidrogenio_por_metal → Tomou o hidrogénio por um metal
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
 trocou_as_abundancias → Trocou as abundâncias dos isótopos
@@ -502,6 +518,7 @@ usou_so_o_isotopo_mais_abundante → Usou só a massa do isótopo mais abundante
 usou_um_quarto_da_divisao → Usou um quarto da menor divisão
 usou_uma_unidade_inteira → Usou uma unidade inteira como incerteza
 usou_z_em_vez_da_massa_atomica → Usou o número atómico em vez da massa atómica relativa
+usou_z_em_vez_dos_eletroes_de_valencia → Usou o número atómico em vez dos eletrões de valência
 variavel_como_amostra → Tomou a variável por amostra
 variavel_como_populacao → Tomou a variável por população
 vertice_angulo_reto → Deu o vértice do ângulo reto em vez do ponto pedido

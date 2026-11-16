@@ -542,6 +542,25 @@ globalThis.Manual = globalThis.Manual || {};
     usou_um_quarto_da_divisao: 'Usou um quarto da menor divisão',
     usou_uma_unidade_inteira: 'Usou uma unidade inteira como incerteza',
     usou_z_em_vez_da_massa_atomica: 'Usou o número atómico em vez da massa atómica relativa',
+    // Química — propriedades e transformações da matéria
+    achou_que_mais_pares_alongam_a_ligacao: 'Julgou que mais pares ligantes tornam a ligação mais comprida',
+    achou_que_mais_pares_enfraquecem_a_ligacao: 'Julgou que mais pares ligantes tornam a ligação mais fraca',
+    confundiu_ligacao_com_interacao_intermolecular: 'Confundiu uma ligação química com uma interação entre moléculas',
+    contou_cada_elemento_uma_vez: 'Contou cada elemento uma só vez, sem os índices',
+    contou_eletroes_em_vez_de_pares: 'Contou eletrões em vez de pares de eletrões',
+    contou_ligacoes_em_vez_de_pares: 'Contou ligações em vez de pares ligantes',
+    contou_so_os_pares_do_atomo_central: 'Contou só os pares não ligantes do átomo central',
+    covalente_entre_atomos_iguais: 'Julgou covalente a ligação entre átomos de um metal',
+    covalente_entre_metal_e_nao_metal: 'Julgou covalente a ligação entre um metal e um não metal',
+    deu_o_numero_de_pares: 'Deu o número de pares em vez do número de eletrões',
+    deu_os_pares_ligantes: 'Deu os pares ligantes em vez dos não ligantes',
+    deu_os_pares_nao_ligantes: 'Deu os pares não ligantes em vez dos ligantes',
+    inverteu_o_efeito_da_ordem_de_ligacao: 'Inverteu o efeito da ordem de ligação na energia e no comprimento',
+    ionica_entre_nao_metais: 'Julgou iónica a ligação entre não metais',
+    metalica_por_ter_um_metal: 'Julgou metálica a ligação por haver um metal',
+    somou_pares_ligantes_e_nao_ligantes: 'Somou os pares ligantes e os não ligantes',
+    tomou_o_hidrogenio_por_metal: 'Tomou o hidrogénio por um metal',
+    usou_z_em_vez_dos_eletroes_de_valencia: 'Usou o número atómico em vez dos eletrões de valência',
   };
 
   function humanizarErro(codigo) {
