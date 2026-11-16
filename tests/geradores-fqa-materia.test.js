@@ -13,8 +13,9 @@ const Mol = M.moleculas;
 const IDS = [
   'ligacao-tipo', 'ligacao-lewis', 'ligacao-parametros',
   'geometria-forma', 'geometria-polaridade', 'geometria-intermoleculares',
+  'carbono-hidrocarboneto', 'carbono-grupo-funcional', 'carbono-nome',
 ];
-const SUBTEMAS = ['ligacao', 'geometria'];
+const SUBTEMAS = ['ligacao', 'geometria', 'carbono'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'materia');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -61,6 +62,35 @@ test('snapshots da semente 1', () => {
   p = g('geometria-intermoleculares');
   assert.match(p.enunciado, /metano/);
   assert.equal(certa(p), 'Só dispersão de London');
+  p = g('carbono-hidrocarboneto');
+  assert.match(p.enunciado, /cadeia aberta/);
+  p = g('carbono-grupo-funcional');
+  assert.ok(p.figuraEnunciado && p.figuraEnunciado.opcoes.modo === 'estrutura');
+  p = g('carbono-nome');
+  assert.ok(/^(Etano|Propano|Butano|Eteno|Propeno|Etino|Propino)$/.test(certa(p)));
+});
+
+test('grupo funcional: a certa é a do catálogo e o enunciado não revela o nome', () => {
+  const NOMES = { alcool: 'Álcool', aldeido: 'Aldeído', cetona: 'Cetona', acido: 'Ácido carboxílico' };
+  for (const p of itens('carbono-grupo-funcional', 60)) {
+    const m = Mol.obter(p.dados.molecula);
+    assert.ok(!p.enunciado.includes(m.nome), p.enunciado);
+    if (p.formato === 'escolha') assert.equal(certa(p), NOMES[m.grupoFuncional]);
+  }
+});
+
+test('todos os códigos de erro emitidos estão no snapshot de textos (leitura estática)', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const linhas = new Set(fs.readFileSync(path.join(__dirname, 'fixtures', 'erros-humanizados.txt'), 'utf8').split(/\r?\n/).map((l) => l.split(' → ')[0]));
+  for (const id of IDS) for (const p of itens(id, 40)) for (const e of p.errosTipicos) assert.ok(linhas.has(e.codigo), 'código sem texto no snapshot: ' + e.codigo);
+});
+
+test('textos sem comandos LaTeX que perderam a barra (mathrm, dfrac, text)', () => {
+  for (const id of IDS) for (const p of itens(id, 30)) {
+    const textos = [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.map((r) => r.porque + ' ' + (r.calculo || '')), p.errosTipicos.map((e) => e.explicacao), [p.verificacao.calculo]);
+    for (const t of textos) assert.ok(!/(^|[^\\a-z])(mathrm|dfrac|text)\{/.test(String(t)), id + ': ' + t);
+  }
 });
 
 test('geometria: a resposta certa é a do catálogo, nunca a geometria dos pares de eletrões', () => {

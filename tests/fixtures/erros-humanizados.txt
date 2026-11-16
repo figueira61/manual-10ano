@@ -7,10 +7,13 @@ achou_que_mais_pares_alongam_a_ligacao → Julgou que mais pares ligantes tornam
 achou_que_mais_pares_enfraquecem_a_ligacao → Julgou que mais pares ligantes tornam a ligação mais fraca
 achou_que_moleculas_menores_se_atraem_mais → Julgou que moléculas mais pequenas se atraem mais
 achou_que_mudava_de_nivel_no_periodo → Julgou que, no mesmo período, os eletrões de valência mudam de nível
+acido_por_ter_oh → Julgou ácido carboxílico um composto só por ter −OH
+acido_sem_oh → Escolheu ácido carboxílico sem haver −OH no carbono do C=O
 ag_como_metade → Tomou AG como metade da mediana
 ag_como_terco → Tomou AG como um terço da mediana
 agua_deslocada_sem_somar_o_metal → Calculou a água deslocada sem somar a massa do metal
 alargada_como_amostra → Tomou a população alargada como se fosse a amostra
+alcool_por_ter_oxigenio → Julgou álcool um composto só por ter oxigénio
 aleatoria_vista_como_enviesada → Julgou enviesada uma amostra aleatória
 alinhado_como_perfeito → Tomou pontos quase alinhados como correlação perfeita
 ambos_os_sentidos_trocados → Trocou ambos os sentidos
@@ -55,6 +58,9 @@ comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
 completou_o_nivel_ganhando_eletroes → Fez o metal ganhar eletrões até completar o nível
 concavidade_trocada → Trocou o sentido da concavidade
 configuracao_de_estado_excitado → Escolheu a configuração de um estado excitado
+confundiu_alcool_com_aldeido → Confundiu álcool com aldeído
+confundiu_aldeido_com_cetona → Confundiu aldeído com cetona
+confundiu_amino_com_hidroxilo → Confundiu o grupo amino com o hidroxilo
 confundiu_as_series → Confundiu as séries de riscas do hidrogénio
 confundiu_com_a_nuvem_eletronica → Confundiu a parte assinalada com a nuvem eletrónica
 confundiu_com_baricentro → Deu o baricentro em vez do centro dos nove pontos
@@ -62,11 +68,14 @@ confundiu_com_o_eletrao → Confundiu a parte assinalada com o eletrão
 confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
 confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
+confundiu_hidroxilo_com_hidroxido → Confundiu o grupo −OH de um álcool com o ião hidróxido
 confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
 confundiu_intramolecular_com_intermolecular → Confundiu ligações dentro da molécula com interações entre moléculas
 confundiu_ligacao_com_interacao_intermolecular → Confundiu uma ligação química com uma interação entre moléculas
 confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
+confundiu_o_prefixo → Usou o prefixo de outro número de átomos de carbono
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
+confundiu_saturado_com_insaturado → Confundiu hidrocarboneto saturado com insaturado
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
 contagem_como_categoria → Tomou a contagem por categoria
 contagem_em_vez_de_percentagem → Deu a contagem em vez da percentagem
@@ -120,6 +129,9 @@ deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
 deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
+deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
+deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
+deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
 deu_o_contradominio → Deu o contradomínio em vez do domínio
 deu_o_dominio → Deu o domínio em vez do contradomínio
 deu_o_juro → Deu o juro em vez do capital
@@ -426,6 +438,7 @@ segundo_com_simples → Deu maioria simples ao segundo mais votado
 sem_raiz → Esqueceu a raiz quadrada
 sem_subtrair_minimo → Esqueceu de subtrair o mínimo
 sentido_horizontal_trocado → Deslocou o gráfico para o lado errado
+separou_o_carboxilo_em_dois_grupos → Separou o grupo carboxilo em álcool e cetona
 serie_pelo_nivel_inicial → Deu a série pelo nível inicial da transição
 simetrico_de_o → Pôs G a meio de OH
 sinais_trocados → Trocou os sinais
@@ -527,6 +540,9 @@ um_terco → Deu um terço da mediana em vez de dois terços
 um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
 usou_a_agua_do_picnometro_cheio → Usou a água do picnómetro cheio em vez da água deslocada
 usou_a_divisao_inteira_num_analogico → Usou a menor divisão inteira num instrumento analógico
+usou_a_formula_do_alcano → Usou a fórmula geral dos alcanos
+usou_a_formula_do_alceno → Usou a fórmula geral dos alcenos
+usou_a_formula_do_alcino → Usou a fórmula geral dos alcinos
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
 usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quociente
 usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
@@ -552,6 +568,8 @@ variavel_como_populacao → Tomou a variável por população
 vertice_angulo_reto → Deu o vértice do ângulo reto em vez do ponto pedido
 vetor_como_ponto → Tomou as coordenadas do vetor por coordenadas do ponto
 vetor_menos_ponto → Errou o sinal ao passar o ponto para o outro membro
+viu_so_o_carbonilo → Viu só o C=O e não o grupo carboxilo
+viu_so_o_hidroxilo → Viu só o −OH e não o grupo carboxilo
 votos_dos_outros → Contou os votos de todos os adversários
 votos_novos → Contou votos novos que não existem
 zero_com_sinal_trocado → Trocou o sinal do zero

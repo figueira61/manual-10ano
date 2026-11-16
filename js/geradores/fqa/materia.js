@@ -732,4 +732,250 @@ globalThis.Manual = globalThis.Manual || {};
       return p.dados.contexto === 'tipo' ? !!INTERMOL[p.dados.molecula] : PARES_EBULICAO.some(([a, b]) => a === p.dados.x && b === p.dados.y);
     },
   });
+
+  // ================================================================ carbono
+  const PREFIXO = { 1: 'met', 2: 'et', 3: 'prop', 4: 'but' };
+  const FAMILIA = {
+    alcano: { term: 'ano', h: (n) => 2 * n + 2, nome: 'alcano', geral: 'C_nH_{2n+2}', lig: 'só ligações simples entre átomos de carbono' },
+    alceno: { term: 'eno', h: (n) => 2 * n, nome: 'alceno', geral: 'C_nH_{2n}', lig: 'uma ligação dupla entre átomos de carbono' },
+    alcino: { term: 'ino', h: (n) => 2 * n - 2, nome: 'alcino', geral: 'C_nH_{2n-2}', lig: 'uma ligação tripla entre átomos de carbono' },
+  };
+  const formulaHC = (n, h) => '\\mathrm{' + (n === 1 ? 'C' : 'C_' + n) + 'H_{' + h + '}}';
+  const nomeHC = (n, fam) => PREFIXO[n] + FAMILIA[fam].term;
+  // Hidrocarbonetos de cadeia aberta com nome sem número de posição (alcenos e alcinos só com 2 ou 3 carbonos).
+  const HCS = [[1, 'alcano'], [2, 'alcano'], [3, 'alcano'], [4, 'alcano'], [2, 'alceno'], [3, 'alceno'], [2, 'alcino'], [3, 'alcino']];
+  // Hidrocarbonetos do catálogo (fórmula de estrutura desenhada).
+  const HC_CATALOGO = { CH4: [1, 'alcano'], C2H6: [2, 'alcano'], C3H8: [3, 'alcano'], C4H10: [4, 'alcano'], C2H4: [2, 'alceno'], C3H6: [3, 'alceno'], C2H2: [2, 'alcino'] };
+  const TXT_FAM = {
+    alcano: 'Alcano: saturado, só com ligações simples entre carbonos',
+    alceno: 'Alceno: insaturado, com uma ligação dupla entre carbonos',
+    alcino: 'Alcino: insaturado, com uma ligação tripla entre carbonos',
+  };
+  const TXT_FAM_SAT = {
+    alceno: 'Alceno: saturado, com uma ligação dupla entre carbonos',
+    alcino: 'Alcino: saturado, com uma ligação tripla entre carbonos',
+  };
+  // Hidrogénios contados átomo a átomo: cada C faz 4 ligações; a cadeia de n carbonos usa 2(n − 1) e cada ligação
+  // múltipla gasta mais 2 (dupla) ou 4 (tripla) posições.
+  const hPelasValencias = (n, fam) => 4 * n - 2 * (n - 1) - (fam === 'alceno' ? 2 : fam === 'alcino' ? 4 : 0);
+  // Família pelo número de hidrogénios: insaturações = (2n + 2 − h)/2.
+  const famDeH = (n, h) => ['alcano', 'alceno', 'alcino'][(2 * n + 2 - h) / 2];
+
+  registar({
+    subtema: 'carbono', tipo: 'hidrocarboneto', nome: 'Hidrocarbonetos saturados e insaturados',
+    formatos: ['escolha', 'vf'], contextos: ['formula', 'estrutura'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let n, fam, id = null;
+        if (contexto === 'estrutura') {
+          id = escolher(rng, Object.keys(HC_CATALOGO));
+          [n, fam] = HC_CATALOGO[id];
+        } else {
+          [n, fam] = escolher(rng, HCS);
+          if (n === 1 && formato === 'escolha') return null;
+        }
+        const h = FAMILIA[fam].h(n);
+        const F = '$' + formulaHC(n, h) + '$';
+        const enunciado = contexto === 'estrutura'
+          ? 'A figura mostra a fórmula de estrutura de um hidrocarboneto. Como se classifica?'
+          : 'Como se classifica o hidrocarboneto de cadeia aberta ' + F + '?';
+        const resolucao = contexto === 'estrutura'
+          ? [
+            { passo: 'Observar as ligações entre átomos de carbono', porque: n === 1 ? 'Só há um carbono, ligado a 4 hidrogénios por ligações simples.' : 'Entre os carbonos há ' + FAMILIA[fam].lig + '.' },
+            { passo: 'Classificar', porque: fam === 'alcano' ? 'Só ligações simples: é um alcano, saturado.' : 'Uma ligação ' + (fam === 'alceno' ? 'dupla' : 'tripla') + ' entre carbonos torna o hidrocarboneto insaturado: é um ' + FAMILIA[fam].nome + '.' },
+          ]
+          : [
+            { passo: 'Comparar com as fórmulas gerais', porque: 'Com $n = ' + n + '$ carbonos: um alcano teria $2 \\times ' + n + ' + 2 = ' + (2 * n + 2) + '$ hidrogénios, um alceno $2 \\times ' + n + ' = ' + 2 * n + '$ e um alcino $2 \\times ' + n + ' - 2 = ' + (2 * n - 2) + '$.' },
+            { passo: 'Classificar', porque: 'Tem ' + h + ' hidrogénios: é um ' + FAMILIA[fam].nome + ', com ' + FAMILIA[fam].lig + (fam === 'alcano' ? ' (saturado).' : ' (insaturado).') },
+          ];
+        const E = {
+          usou_a_formula_do_alcano: 'Um alcano com ' + n + ' carbonos teria ' + (2 * n + 2) + ' hidrogénios ($' + formulaHC(n, 2 * n + 2) + '$). Este tem ' + h + ': é um ' + FAMILIA[fam].nome + ', insaturado.',
+          usou_a_formula_do_alceno: 'Um alceno com ' + n + ' carbonos teria ' + 2 * n + ' hidrogénios ($' + formulaHC(n, 2 * n) + '$). Este tem ' + h + ': é um ' + FAMILIA[fam].nome + '.',
+          usou_a_formula_do_alcino: 'Um alcino com ' + n + ' carbonos teria ' + (2 * n - 2) + ' hidrogénios ($' + formulaHC(n, 2 * n - 2) + '$). Este tem ' + h + ': é um ' + FAMILIA[fam].nome + '.',
+          confundiu_saturado_com_insaturado: '«Saturado» quer dizer só com ligações simples (o máximo de hidrogénios). Uma ligação ' + (fam === 'alcino' ? 'tripla' : 'dupla') + ' entre carbonos torna o hidrocarboneto insaturado.',
+        };
+        if (contexto === 'estrutura') {
+          E.usou_a_formula_do_alcano = 'Na fórmula de estrutura há ' + FAMILIA[fam].lig + ': não é um alcano (só simples), é um ' + FAMILIA[fam].nome + ', insaturado.';
+          E.usou_a_formula_do_alceno = 'Um alceno tem uma ligação dupla entre carbonos. Na figura há ' + FAMILIA[fam].lig + ': é um ' + FAMILIA[fam].nome + '.';
+          E.usou_a_formula_do_alcino = 'Um alcino tem uma ligação tripla entre carbonos. Na figura há ' + FAMILIA[fam].lig + ': é um ' + FAMILIA[fam].nome + '.';
+        }
+        const outras = ['alcano', 'alceno', 'alcino'].filter((x) => x !== fam);
+        const cod = { alcano: 'usou_a_formula_do_alcano', alceno: 'usou_a_formula_do_alceno', alcino: 'usou_a_formula_do_alcino' };
+        const erros = outras.map((x) => ({ codigo: cod[x], texto: TXT_FAM[x], explicacao: E[cod[x]] }));
+        const famSat = fam === 'alcano' ? (rng() < 0.5 ? 'alceno' : 'alcino') : fam;
+        erros.push({ codigo: 'confundiu_saturado_com_insaturado', texto: TXT_FAM_SAT[famSat], explicacao: E.confundiu_saturado_com_insaturado.replace(fam === 'alcino' ? 'tripla' : 'dupla', famSat === 'alcino' ? 'tripla' : 'dupla') });
+        const dados = { n, fam, contexto, molecula: id };
+        const verificacao = { passo: 'Contar os hidrogénios pelas valências do carbono', calculo: '4 \\times ' + n + ' - 2 \\times ' + (n - 1) + (fam === 'alcano' ? '' : ' - ' + (fam === 'alceno' ? 2 : 4)) + ' = ' + hPelasValencias(n, fam), valor: null };
+        const ex = { enunciado, resolucao, dados, verificacao, esquema: id ? { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'estrutura' } } : undefined };
+        if (!id) delete ex.esquema;
+        if (id) ex.figuraEnunciado = { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'estrutura' } };
+        if (formato === 'escolha') return fecharTexto(rng, ex, TXT_FAM[fam], erros, TXT_FAM[fam]);
+        const e = escolher(rng, erros.filter((x) => n > 1 || x.codigo !== 'confundiu_saturado_com_insaturado'));
+        const frase = (t) => (id ? 'O hidrocarboneto representado na figura é um ' : 'O hidrocarboneto ' + F + ' é um ') + t.charAt(0).toLowerCase() + t.slice(1).replace(':', ',') + '.';
+        const v = vfDe(rng, frase(TXT_FAM[fam]), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmado = v.correta ? TXT_FAM[fam] : e.texto;
+        delete ex.enunciado;
+        return Object.assign(ex, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const { n, contexto, molecula } = p.dados;
+      let fam;
+      if (contexto === 'estrutura') {
+        const m = mol(molecula);
+        const ordens = m.ligacoes.filter(([i, j]) => m.atomos[i].el === 'C' && m.atomos[j].el === 'C').map((l) => l[2]);
+        fam = ordens.includes(3) ? 'alcino' : ordens.includes(2) ? 'alceno' : 'alcano';
+      } else {
+        fam = famDeH(n, hPelasValencias(n, p.dados.fam));
+      }
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmado === TXT_FAM[fam]);
+      return p.opcoes[p.correta] === TXT_FAM[fam];
+    },
+    limites(p) {
+      return p.dados.n >= 1 && p.dados.n <= 4 && !!FAMILIA[p.dados.fam];
+    },
+  });
+
+  // Grupos funcionais (moléculas do catálogo com grupoFuncional).
+  const NOME_GRUPO = { alcool: 'Álcool', aldeido: 'Aldeído', cetona: 'Cetona', acido: 'Ácido carboxílico', amina: 'Amina' };
+  // Fórmula condensada (como nos manuais), sem revelar o nome.
+  const CONDENSADA = { CH3OH: 'CH_3OH', C2H5OH: 'CH_3CH_2OH', CH3CHO: 'CH_3CHO', CH3COCH3: 'CH_3COCH_3', CH3COOH: 'CH_3COOH', CH3NH2: 'CH_3NH_2' };
+  const GRUPO_ERROS = {
+    alcool: [
+      { codigo: 'acido_por_ter_oh', texto: 'Ácido carboxílico', explicacao: 'O ácido carboxílico tem C=O e −OH no mesmo carbono (−COOH). Aqui há só −OH ligado a um carbono com ligações simples: é um álcool.' },
+      { codigo: 'confundiu_hidroxilo_com_hidroxido', texto: 'Hidróxido (base)', explicacao: 'O −OH de um álcool está ligado covalentemente ao carbono: não é o ião hidróxido, $\\mathrm{OH^-}$, das bases. É um álcool.' },
+      { codigo: 'confundiu_alcool_com_aldeido', texto: 'Aldeído', explicacao: 'O aldeído tem C=O na ponta da cadeia (−CHO). Aqui o oxigénio está ligado a um H por uma ligação simples (−OH): é um álcool (terminação -ol, não -al).' },
+    ],
+    aldeido: [
+      { codigo: 'confundiu_aldeido_com_cetona', texto: 'Cetona', explicacao: 'Na cetona o C=O está entre dois carbonos. Aqui está na ponta da cadeia, com o carbono ligado a um H (−CHO): é um aldeído.' },
+      { codigo: 'acido_sem_oh', texto: 'Ácido carboxílico', explicacao: 'O ácido carboxílico tem C=O e −OH no mesmo carbono (−COOH). Aqui não há −OH: é um aldeído.' },
+      { codigo: 'alcool_por_ter_oxigenio', texto: 'Álcool', explicacao: 'O álcool tem −OH (oxigénio ligado a H). Aqui o oxigénio está em dupla com o carbono, sem H: é um aldeído.' },
+    ],
+    cetona: [
+      { codigo: 'confundiu_aldeido_com_cetona', texto: 'Aldeído', explicacao: 'No aldeído o C=O está na ponta da cadeia, com o carbono ligado a um H (−CHO). Aqui está entre dois carbonos: é uma cetona.' },
+      { codigo: 'acido_sem_oh', texto: 'Ácido carboxílico', explicacao: 'O ácido carboxílico tem C=O e −OH no mesmo carbono (−COOH). Aqui não há −OH: é uma cetona.' },
+      { codigo: 'alcool_por_ter_oxigenio', texto: 'Álcool', explicacao: 'O álcool tem −OH (oxigénio ligado a H). Aqui o oxigénio está em dupla com o carbono, sem H: é uma cetona.' },
+    ],
+    acido: [
+      { codigo: 'viu_so_o_hidroxilo', texto: 'Álcool', explicacao: 'Há um −OH, mas o mesmo carbono tem também um C=O: o conjunto −COOH é o grupo carboxilo de um ácido carboxílico.' },
+      { codigo: 'viu_so_o_carbonilo', texto: 'Aldeído', explicacao: 'Há um C=O na ponta da cadeia, mas o mesmo carbono tem também um −OH (não um H): o conjunto −COOH é o grupo carboxilo.' },
+      { codigo: 'separou_o_carboxilo_em_dois_grupos', texto: 'Álcool e cetona', explicacao: 'O C=O e o −OH estão no mesmo carbono: juntos formam um só grupo, o carboxilo (−COOH), de um ácido carboxílico.' },
+    ],
+    amina: [
+      { codigo: 'confundiu_amino_com_hidroxilo', texto: 'Álcool', explicacao: 'O grupo é −NH₂ (nitrogénio ligado a um carbono), não −OH: é uma amina.' },
+    ],
+  };
+  const MOL_GRUPO = ['CH3OH', 'C2H5OH', 'CH3CHO', 'CH3COCH3', 'CH3COOH', 'CH3NH2'];
+  // Grupo funcional pela estrutura: O em dupla com C (carbonilo), O ligado a H (hidroxilo), N ligado a C.
+  function grupoPelaEstrutura(id) {
+    const m = mol(id);
+    const lig = m.ligacoes.map(([i, j, o]) => [m.atomos[i].el, m.atomos[j].el, o, i, j]);
+    const co2 = lig.find((l) => l[2] === 2 && l.includes('O') && l.includes('C'));
+    const oh = lig.some((l) => l.slice(0, 2).includes('O') && l.slice(0, 2).includes('H'));
+    if (lig.some((l) => l.slice(0, 2).includes('N'))) return 'amina';
+    if (!co2) return oh ? 'alcool' : null;
+    if (oh) return 'acido';
+    const c = m.atomos[co2[3]].el === 'C' ? co2[3] : co2[4];
+    const vizC = lig.filter((l) => (l[3] === c || l[4] === c)).map((l) => m.atomos[l[3] === c ? l[4] : l[3]].el).filter((x) => x === 'C').length;
+    return vizC >= 2 ? 'cetona' : 'aldeido';
+  }
+
+  registar({
+    subtema: 'carbono', tipo: 'grupo-funcional', nome: 'Grupo funcional a partir da fórmula de estrutura',
+    formatos: ['escolha', 'vf'], contextos: ['estrutura', 'condensada'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const id = escolher(rng, formato === 'escolha' ? MOL_GRUPO.filter((x) => mol(x).grupoFuncional !== 'amina') : MOL_GRUPO);
+        const m = mol(id);
+        const g = m.grupoFuncional;
+        const quem = contexto === 'estrutura' ? 'a molécula representada na figura' : 'o composto de fórmula $\\mathrm{' + CONDENSADA[id] + '}$';
+        const enunciado = 'A que família de compostos pertence ' + quem + '?';
+        const DESC = {
+          alcool: 'Há um grupo −OH (hidroxilo) ligado a um carbono que só faz ligações simples.',
+          aldeido: 'Há um C=O na ponta da cadeia, com o carbono ligado a um H (grupo −CHO).',
+          cetona: 'Há um C=O (carbonilo) entre dois átomos de carbono.',
+          acido: 'Há um C=O e um −OH no mesmo carbono: o grupo carboxilo, −COOH.',
+          amina: 'Há um grupo −NH₂ (amino): nitrogénio ligado a um carbono.',
+        };
+        const resolucao = [
+          { passo: 'Procurar o grupo funcional', porque: DESC[g] },
+          { passo: 'Identificar a família', porque: 'É ' + (g === 'cetona' || g === 'amina' ? 'uma ' : 'um ') + NOME_GRUPO[g].toLowerCase() + ': o composto é o ' + m.nome + ', $' + m.formula + '$.' },
+        ];
+        const dados = { molecula: id, contexto };
+        const verificacao = { passo: 'Confirmar pelo nome do composto (terminação)', calculo: '\\text{' + m.nome + '}', valor: null };
+        const ex = { enunciado, resolucao, dados, verificacao, esquema: { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'estrutura' } } };
+        if (contexto === 'estrutura') ex.figuraEnunciado = { id: 'fqa-molecula', opcoes: { molecula: id, modo: 'estrutura' } };
+        if (formato === 'escolha') return fecharTexto(rng, ex, NOME_GRUPO[g], GRUPO_ERROS[g], NOME_GRUPO[g]);
+        const e = escolher(rng, GRUPO_ERROS[g].filter((x) => x.codigo !== 'separou_o_carboxilo_em_dois_grupos' && x.codigo !== 'confundiu_hidroxilo_com_hidroxido'));
+        const art = (t) => (/^(Cetona|Amina)$/.test(t) ? 'uma ' : 'um ') + t.toLowerCase();
+        const frase = (t) => maiuscula(quem) + ' é ' + art(t) + '.';
+        const v = vfDe(rng, frase(NOME_GRUPO[g]), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmado = v.correta ? g : Object.keys(NOME_GRUPO).find((k) => NOME_GRUPO[k] === e.texto);
+        delete ex.enunciado;
+        return Object.assign(ex, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const g = grupoPelaEstrutura(p.dados.molecula);
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmado === g);
+      return p.opcoes[p.correta] === NOME_GRUPO[g];
+    },
+    limites(p) {
+      return MOL_GRUPO.includes(p.dados.molecula);
+    },
+  });
+
+  registar({
+    subtema: 'carbono', tipo: 'nome', nome: 'Nome e fórmula de alcanos, alcenos e alcinos simples',
+    formatos: ['escolha', 'vf'], contextos: ['nome', 'formula'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const [n, fam] = escolher(rng, HCS);
+        if (formato === 'escolha' && n === 1) return null;
+        const h = FAMILIA[fam].h(n);
+        const F = '$' + formulaHC(n, h) + '$';
+        const nome = nomeHC(n, fam);
+        // Erro de prefixo: n − 1 ou n + 1 carbonos, com nome que existe (alcenos e alcinos com 2 a 4 carbonos; buteno e butino também existem).
+        const nP = fam === 'alcano' ? (n === 4 ? 3 : n + 1) : (n === 2 ? 3 : 2);
+        const outras = ['alcano', 'alceno', 'alcino'].filter((x) => x !== fam);
+        const codTerm = {};
+        [{ fam: 'alcano', codigo: 'deu_a_terminacao_ano' }, { fam: 'alceno', codigo: 'deu_a_terminacao_eno' }, { fam: 'alcino', codigo: 'deu_a_terminacao_ino' }].forEach((x) => { codTerm[x.fam] = x.codigo; });
+        const codForm = { alcano: 'usou_a_formula_do_alcano', alceno: 'usou_a_formula_do_alceno', alcino: 'usou_a_formula_do_alcino' };
+        let enunciado, certa, erros;
+        const resolucao = [
+          { passo: 'Contar os carbonos (prefixo)', porque: 'Com ' + n + (n === 1 ? ' carbono' : ' carbonos') + ', o prefixo é ' + PREFIXO[n] + '-.' },
+          { passo: 'Ver o tipo de ligação (terminação)', porque: 'Com $n = ' + n + '$, a fórmula geral $\\mathrm{' + FAMILIA[fam].geral + '}$ dá ' + h + ' hidrogénios: é um ' + FAMILIA[fam].nome + ' (' + FAMILIA[fam].lig + '), terminação -' + FAMILIA[fam].term + '.', calculo: formulaHC(n, h) + '\\colon\\ \\text{' + nome + '}' },
+        ];
+        if (contexto === 'nome') {
+          enunciado = 'Qual é o nome do hidrocarboneto de cadeia aberta ' + F + '?';
+          certa = maiuscula(nome);
+          erros = outras.map((x) => ({ codigo: codTerm[x], texto: maiuscula(nomeHC(n, x)), explicacao: 'O ' + nomeHC(n, x) + ' é um ' + FAMILIA[x].nome + ' (' + FAMILIA[x].lig + ') e teria a fórmula $' + formulaHC(n, FAMILIA[x].h(n)) + '$. Com ' + h + ' hidrogénios, é um ' + FAMILIA[fam].nome + ': ' + nome + '.' }));
+          erros.push({ codigo: 'confundiu_o_prefixo', texto: maiuscula(nomeHC(nP, fam)), explicacao: 'O prefixo ' + PREFIXO[nP] + '- é de ' + nP + ' carbonos ($' + formulaHC(nP, FAMILIA[fam].h(nP)) + '$); com ' + n + ' carbonos é ' + PREFIXO[n] + '-: ' + nome + '.' });
+        } else {
+          enunciado = 'Qual é a fórmula molecular do ' + nome + '?';
+          certa = F;
+          erros = outras.map((x) => ({ codigo: codForm[x], texto: '$' + formulaHC(n, FAMILIA[x].h(n)) + '$', explicacao: '$' + formulaHC(n, FAMILIA[x].h(n)) + '$ segue a fórmula geral do ' + FAMILIA[x].nome + ' ($\\mathrm{' + FAMILIA[x].geral + '}$). A terminação -' + FAMILIA[fam].term + ' indica um ' + FAMILIA[fam].nome + ': ' + F + '.' }));
+          erros.push({ codigo: 'confundiu_o_prefixo', texto: '$' + formulaHC(nP, FAMILIA[fam].h(nP)) + '$', explicacao: '$' + formulaHC(nP, FAMILIA[fam].h(nP)) + '$ tem ' + nP + ' carbonos (prefixo ' + PREFIXO[nP] + '-); o prefixo ' + PREFIXO[n] + '- indica ' + n + (n === 1 ? ' carbono' : ' carbonos') + ': ' + F + '.' });
+        }
+        const dados = { n, fam, contexto };
+        const verificacao = { passo: 'Contar os hidrogénios pelas valências do carbono', calculo: '4 \\times ' + n + ' - 2 \\times ' + (n - 1) + (fam === 'alcano' ? '' : ' - ' + (fam === 'alceno' ? 2 : 4)) + ' = ' + hPelasValencias(n, fam), valor: null };
+        if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao }, certa, erros, certa);
+        const e = escolher(rng, erros.filter((x) => n > 1 || x.codigo === 'confundiu_o_prefixo'));
+        const frase = (t) => (contexto === 'nome' ? 'O hidrocarboneto de cadeia aberta ' + F + ' chama-se ' + t.toLowerCase() + '.' : 'A fórmula molecular do ' + nome + ' é ' + t + '.');
+        const v = vfDe(rng, frase(certa), frase(e.texto), { codigo: e.codigo, explicacao: e.explicacao });
+        dados.afirmado = v.correta ? certa : e.texto;
+        return Object.assign({ resolucao, dados }, v, { verificacao: Object.assign({}, verificacao, { valor: v.correta }) });
+      });
+    },
+    verificarIndependente(p) {
+      const { n, fam, contexto } = p.dados;
+      const h = hPelasValencias(n, fam);
+      const certo = contexto === 'nome' ? maiuscula(PREFIXO[n] + FAMILIA[famDeH(n, h)].term) : '$' + formulaHC(n, h) + '$';
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmado === certo);
+      return p.opcoes[p.correta] === certo;
+    },
+    limites(p) {
+      return HCS.some(([n, f]) => n === p.dados.n && f === p.dados.fam);
+    },
+  });
 })();
