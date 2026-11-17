@@ -24,7 +24,7 @@ Manual.dadosFisica = (function () {
 
   // Modelos ilustrativos (não são medições de um aparelho concreto).
   // pilha: força eletromotriz (V) e resistência interna (Ω).
-  // painel: I(U) = Isc·(1 − exp((U − Uoc)/UT)) a 1000 W m⁻²; Isc em A, Uoc e UT em V, área em m².
+  // painel: modelo de um díodo; Isc e Uoc a 1000 W m⁻² (irradianciaReferencia); Isc em A, Uoc e UT em V, área em m².
   const modelos = {
     pilha: { epsilon: 4.5, r: 1.5 },
     painel: { Isc: 0.5, Uoc: 6, UT: 0.33, area: 0.016, irradianciaReferencia: 1000 },
@@ -45,9 +45,12 @@ Manual.dadosFisica = (function () {
       + 'a de ebulição a 1 atm é 99,97 °C na ITS-90, arredondada a 100 °C como nos manuais.',
     modelos: 'Modelos ilustrativos, não medições: a pilha (ε = 4,5 V, r = 1,5 Ω) tem valores plausíveis de uma pilha plana de 4,5 V '
       + 'usada nas atividades laboratoriais. O painel é um pequeno painel de AL (10 a 12 células em série), descrito pela curva '
-      + 'modelo I = Isc (1 − e^((U − Uoc)/UT)) com Isc = 0,5 A e Uoc = 6 V a 1000 W m⁻², UT = 0,33 V (≈ fator de idealidade × '
+      + 'modelo de um díodo, I = IL − I0 (e^(U/UT) − 1), com Isc = 0,5 A e Uoc = 6 V a 1000 W m⁻², UT = 0,33 V (≈ fator de idealidade × '
       + 'n.º de células × kT/e) e área 0,016 m²; dá fator de forma ≈ 0,79 e rendimento máximo ≈ 15 %, como num painel real de silício. '
-      + 'Simplificação: Isc é proporcional à irradiância (irradiância/1000 W m⁻²) e Uoc fica constante.',
+      + 'A corrente fotogerada é proporcional à irradiância, IL = Isc × irradiância/(1000 W m⁻²); a corrente de saturação '
+      + 'I0 = Isc/(e^(Uoc/UT) − 1) é fixa, por isso Uoc(G) = UT ln(1 + IL/I0) desce um pouco quando a irradiância baixa '
+      + '(≈ −0,23 V a 500 W m⁻² e ≈ −0,76 V a 100 W m⁻²), como num painel real. A 1000 W m⁻² a curva coincide com '
+      + 'I = Isc (1 − e^((U − Uoc)/UT)) a menos de I0 (≈ 6 × 10⁻⁹ A). Sem resistências série e paralelo nem efeito da temperatura.',
   };
 
   return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, fontes };

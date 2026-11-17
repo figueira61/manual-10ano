@@ -42,6 +42,7 @@ Manual.fisica = (function () {
     const exatos = { 0: 1, 60: 0.5, 90: 0, 120: -0.5, 180: -1, 240: -0.5, 270: 0, 300: 0.5 };
     return r in exatos ? exatos[r] : Math.cos((r * Math.PI) / 180);
   }
+  // F e d são intensidades (≥ 0); o sinal de W vem só do ângulo α entre a força e o deslocamento.
   const trabalho = (Fm, d, alfaGraus) => limpo(naoNegativo(Fm, 'F') * naoNegativo(d, 'd') * cosGraus(alfaGraus));
 
   // Distância de travagem num plano horizontal só com a força de atrito: Fa d = Ec0.
@@ -88,6 +89,11 @@ Manual.fisica = (function () {
       const Ec0 = pontos[pontos.length - 1].ec;
       // Ec(x) = Ec0 − k x, com k = m g dh/L + Fa (constante no troço)
       const k = (m * g() * dh) / L + Fa;
+      // parado e sem nada que o ponha em movimento (horizontal, a subir, ou atrito ≥ componente do peso): para aqui
+      if (Ec0 === 0 && k >= 0) {
+        pontos[pontos.length - 1].parou = true;
+        return pontos;
+      }
       const EcFim = Ec0 - k * L;
       if (EcFim < -1e-9 * Math.max(1, Math.abs(Em0))) {
         const x = Ec0 / k; // k > 0, porque Ec0 ≥ 0 e EcFim < 0
@@ -168,8 +174,9 @@ Manual.fisica = (function () {
 
   // Aquecimento de gelo (θ0 ≤ 0 °C) com potência constante P, à pressão normal.
   // Troços: 'gelo' (θ0 → 0), 'fusao' (a 0 °C), 'agua' (0 → θF, θF ≤ 100) e, com vaporizar (exige θF = 100), 'ebulicao'.
+  // Com fundir (exige θF = 0), acaba depois da fusão completa a 0 °C (θ0 = θF = 0 é permitido).
   // Sem perdas: toda a energia fornecida é recebida pela água (t = Q/P).
-  function aquecimentoGelo({ m, theta0, thetaF, P, vaporizar = false } = {}) {
+  function aquecimentoGelo({ m, theta0, thetaF, P, vaporizar = false, fundir = false } = {}) {
     positivo(m, 'm');
     positivo(P, 'P');
     numero(theta0, 'θ0');
@@ -177,7 +184,9 @@ Manual.fisica = (function () {
     const { fusaoGelo: Tf, ebulicaoAgua: Te } = D().temperaturas;
     const c = D().capacidadeTermicaMassica, dh = D().entalpiaMassica;
     if (theta0 > Tf) throw new Error('fisica: θ0 tem de ser a temperatura do gelo (≤ 0 °C)');
-    if (thetaF <= theta0 || thetaF > Te) throw new Error('fisica: θF tem de estar entre θ0 e 100 °C');
+    if (fundir && vaporizar) throw new Error('fisica: fundir e vaporizar não podem ser pedidos ao mesmo tempo');
+    if (fundir && thetaF !== Tf) throw new Error('fisica: para acabar na fusão, θF tem de ser 0 °C');
+    if ((fundir ? thetaF < theta0 : thetaF <= theta0) || thetaF > Te) throw new Error('fisica: θF tem de estar entre θ0 e 100 °C');
     if (vaporizar && thetaF !== Te) throw new Error('fisica: para vaporizar, θF tem de ser 100 °C');
     const troços = [];
     let t = 0;
@@ -186,8 +195,9 @@ Manual.fisica = (function () {
       t += Q / P;
     };
     if (theta0 < Tf) junta('gelo', calor(m, c.gelo, Math.min(thetaF, Tf) - theta0), theta0, Math.min(thetaF, Tf));
-    if (thetaF <= Tf) return troços;
+    if (thetaF < Tf || (thetaF === Tf && !fundir)) return troços;
     junta('fusao', calorFase(m, dh.fusaoGelo), Tf, Tf);
+    if (fundir) return troços;
     junta('agua', calor(m, c.agua, thetaF - Tf), Tf, thetaF);
     if (vaporizar) junta('ebulicao', calorFase(m, dh.vaporizacaoAgua), Te, Te);
     return troços;
@@ -202,19 +212,23 @@ Manual.fisica = (function () {
     if (!Array.isArray(corpos) || corpos.length < 2) throw new Error('fisica: a mistura precisa de pelo menos 2 corpos');
     const { agua: cAgua } = D().capacidadeTermicaMassica;
     const Lf = D().entalpiaMassica.fusaoGelo;
-    const Tf = D().temperaturas.fusaoGelo;
+    const { fusaoGelo: Tf, ebulicaoAgua: Te } = D().temperaturas;
     const lidos = corpos.map((k, i) => {
       if (!k) throw new Error(`fisica: corpo ${i + 1} inválido`);
       positivo(k.m, `a massa do corpo ${i + 1}`);
       numero(k.theta, `a temperatura do corpo ${i + 1}`);
       if (k.fase === 'gelo') {
-        if (k.theta !== Tf) throw new Error('fisica: só está implementado gelo a 0 °C');
+        if (k.theta !== Tf) throw new Error('fisica: só está implementado gelo a 0 °C (nem abaixo, nem acima)');
         return { gelo: true, m: k.m, theta: Tf };
       }
-      if (k.fase !== undefined && k.fase !== 'liquido' && k.fase !== 'solido') throw new Error(`fisica: fase desconhecida no corpo ${i + 1}`);
-      positivo(k.c, `a capacidade térmica mássica do corpo ${i + 1}`);
+      if (k.fase !== undefined && !['agua', 'liquido', 'solido'].includes(k.fase)) throw new Error(`fisica: fase desconhecida no corpo ${i + 1}`);
+      const c = k.fase === 'agua' && k.c === undefined ? cAgua : k.c;
+      positivo(c, `a capacidade térmica mássica do corpo ${i + 1}`);
       if (k.theta < Tf) throw new Error('fisica: as temperaturas têm de ser ≥ 0 °C (sem congelação)');
-      return { gelo: false, m: k.m, c: k.c, theta: k.theta };
+      // água líquida: fase 'agua', ou corpo sem fase com a capacidade térmica mássica da água
+      const agua = k.fase === 'agua' || (k.fase === undefined && c === cAgua);
+      if (agua && k.theta > Te) throw new Error('fisica: a água líquida não pode estar acima de 100 °C (sem vaporização)');
+      return { gelo: false, m: k.m, c, theta: k.theta };
     });
     const outros = lidos.filter((k) => !k.gelo);
     const mGelo = lidos.filter((k) => k.gelo).reduce((a, k) => a + k.m, 0);
@@ -246,27 +260,34 @@ Manual.fisica = (function () {
     naoNegativo(util, 'a energia útil');
     positivo(fornecida, 'a energia fornecida');
     const eta = util / fornecida;
-    if (eta > 1) throw new Error('fisica: o rendimento não pode ser maior do que 1');
-    return eta;
+    // tolera ruído de vírgula flutuante (útil e fornecida calculadas por caminhos diferentes)
+    if (eta > 1 + 1e-12) throw new Error('fisica: o rendimento não pode ser maior do que 1');
+    return Math.min(eta, 1);
   }
 
-  // Curva modelo: I(U) = Isc·(G/1000)·(1 − exp((U − Uoc)/UT)), com Uoc constante (ver fontes.modelos).
+  // Modelo de um díodo (ver fontes.modelos): IL = Isc·G/G0; I0 = Isc/(e^(Uoc0/UT) − 1), fixo;
+  // I(U) = IL − I0·(e^(U/UT) − 1); Uoc(G) = UT·ln(1 + IL/I0). A G0 coincide com Isc·(1 − e^((U − Uoc)/UT)) a menos de I0.
   const modeloPainel = () => D().modelos.painel;
-  function correntePainel(U, irradiancia) {
+  function curvaPainel(irradiancia) {
     const p = modeloPainel();
-    const isc = (p.Isc * irradiancia) / p.irradianciaReferencia;
-    return isc * (1 - Math.exp((U - p.Uoc) / p.UT));
+    const IL = (p.Isc * irradiancia) / p.irradianciaReferencia;
+    const I0 = p.Isc / Math.expm1(p.Uoc / p.UT);
+    return { IL, I0, UT: p.UT, Uoc: p.UT * Math.log1p(IL / I0) };
+  }
+  function correntePainel(U, irradiancia) {
+    const { IL, I0, UT } = curvaPainel(irradiancia);
+    return IL - I0 * Math.expm1(U / UT);
   }
   const rendimentoPainel = (P, irradiancia) => rendimento(P, irradiancia * modeloPainel().area);
 
-  // Ponto de funcionamento com uma resistência de carga: I(U) = U/R, por bissecção em U ∈ [0, Uoc]
+  // Ponto de funcionamento com uma resistência de carga: I(U) = U/R, por bissecção em U ∈ [0, Uoc(G)]
   // (f(U) = I(U) − U/R é decrescente, f(0) > 0 e f(Uoc) < 0).
   function painel({ irradiancia, Rcarga } = {}) {
     positivo(irradiancia, 'a irradiância');
     naoNegativo(Rcarga, 'a resistência de carga');
     let U = 0;
     if (Rcarga > 0) {
-      let a = 0, b = modeloPainel().Uoc;
+      let a = 0, b = curvaPainel(irradiancia).Uoc;
       for (let i = 0; i < 200 && b - a > 1e-13; i++) {
         const meio = (a + b) / 2;
         if (correntePainel(meio, irradiancia) - meio / Rcarga > 0) a = meio; else b = meio;
@@ -278,12 +299,15 @@ Manual.fisica = (function () {
     return { U, I, P, rendimento: rendimentoPainel(P, irradiancia) };
   }
 
-  // Ponto de potência máxima da curva (P = U I é unimodal em [0, Uoc]): pesquisa pela razão áurea.
+  // Tensão em circuito aberto para a irradiância G.
+  const painelUoc = (irradiancia) => curvaPainel(positivo(irradiancia, 'a irradiância')).Uoc;
+
+  // Ponto de potência máxima da curva (P = U I é unimodal em [0, Uoc(G)]): pesquisa pela razão áurea.
   function painelPotenciaMaxima(irradiancia) {
     positivo(irradiancia, 'a irradiância');
     const P = (U) => U * correntePainel(U, irradiancia);
     const phi = (Math.sqrt(5) - 1) / 2;
-    let a = 0, b = modeloPainel().Uoc;
+    let a = 0, b = curvaPainel(irradiancia).Uoc;
     let x1 = b - phi * (b - a), x2 = a + phi * (b - a);
     let f1 = P(x1), f2 = P(x2);
     for (let i = 0; i < 200 && b - a > 1e-12; i++) {
@@ -298,6 +322,6 @@ Manual.fisica = (function () {
     ec, epg, em, vDeEc, trabalho, travagem, conservacao, comAtrito, ressalto,
     resistenciaSerie, resistenciaParalelo, circuito, gerador, caracteristicaDeDoisPontos,
     calor, calorFase, aquecimentoGelo, mistura,
-    rendimento, painel, painelPotenciaMaxima,
+    rendimento, painel, painelPotenciaMaxima, painelUoc,
   };
 })();

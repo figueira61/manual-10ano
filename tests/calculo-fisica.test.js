@@ -270,15 +270,15 @@ test('painel: carga maior → U maior e I menor; ponto na curva modelo', () => {
   assert.ok(b.U > a.U && b.I < a.I);
   for (const x of [a, b]) {
     perto(x.U / x.I, x === a ? 2 : 100, 1e-6);
-    perto(x.I, p.Isc * (1 - Math.exp((x.U - p.Uoc) / p.UT)), 1e-9);
+    perto(x.I, p.Isc * (1 - Math.exp((x.U - p.Uoc) / p.UT)), 1e-8); // a 1000 W m⁻² coincide com a curva da spec a menos de I0
     perto(x.P, x.U * x.I);
     assert.ok(x.rendimento > 0 && x.rendimento < 1);
   }
   const cc = F.painel({ irradiancia: 1000, Rcarga: 0 });
   assert.equal(cc.U, 0);
-  perto(cc.I, p.Isc * (1 - Math.exp(-p.Uoc / p.UT)));
+  assert.equal(cc.I, p.Isc); // I(0) = IL exatamente
   // Isc proporcional à irradiância
-  perto(F.painel({ irradiancia: 500, Rcarga: 0 }).I, cc.I / 2);
+  assert.equal(F.painel({ irradiancia: 500, Rcarga: 0 }).I, p.Isc / 2);
   assert.throws(() => F.painel({ irradiancia: 0, Rcarga: 10 }));
 });
 
@@ -296,4 +296,65 @@ test('painelPotenciaMaxima: entre os extremos e maior que a de qualquer carga', 
   const eta = max.P / (1000 * p.area);
   assert.ok(eta > 0.05 && eta < 0.25, String(eta));
   perto(max.I, max.P / max.U);
+});
+
+test('painel: Uoc e a tensão de potência máxima descem um pouco quando a irradiância baixa (modelo de um díodo)', () => {
+  const p = D.modelos.painel;
+  perto(F.painelUoc(1000), p.Uoc, 1e-12);
+  perto(F.painelUoc(1000) - F.painelUoc(500), p.UT * Math.log(2), 1e-6); // ≈ 0,23 V
+  perto(F.painelUoc(1000) - F.painelUoc(100), p.UT * Math.log(10), 1e-6); // ≈ 0,76 V
+  perto(F.painelUoc(500), 5.77, 0.01);
+  perto(F.painelUoc(100), 5.24, 0.01);
+  const m = [1000, 500, 100].map((G) => F.painelPotenciaMaxima(G));
+  assert.ok(m[0].U > m[1].U && m[1].U > m[2].U);
+  assert.ok(m[0].U - m[2].U < 1);
+  // P máx / G desce um pouco (rendimento menor com pouca luz)
+  const porG = [m[0].P / 1000, m[1].P / 500, m[2].P / 100];
+  assert.ok(porG[0] > porG[1] && porG[1] > porG[2]);
+  assert.ok(porG[2] > 0.8 * porG[0]);
+  // circuito aberto: I(Uoc(G)) = 0
+  const aberto = F.painel({ irradiancia: 100, Rcarga: 1e9 });
+  assert.ok(aberto.U < F.painelUoc(100) && aberto.U > F.painelUoc(100) - 1e-3);
+  for (const G of [1000, 500, 100]) assert.ok(F.painel({ irradiancia: G, Rcarga: 10 }).rendimento < 1);
+});
+
+test('comAtrito: em repouso sem nada que o ponha em movimento, para logo em s = 0', () => {
+  const h = F.comAtrito({ m: 1, h0: 0, v0: 0, Fa: 0, percurso: [{ tipo: 'horizontal', comprimento: 5 }] });
+  assert.equal(h.length, 1);
+  assert.equal(h[0].parou, true);
+  assert.equal(h[0].s, 0);
+  // a descer, mas com atrito maior do que a componente do peso (m g dh/L = −5 N, Fa = 6 N)
+  const d = F.comAtrito({ m: 1, h0: 1, v0: 0, Fa: 6, percurso: [{ tipo: 'plano', comprimento: 2, desnivel: -1 }] });
+  assert.deepEqual(d.map((x) => [x.s, x.parou]), [[0, true]]);
+  // a descer com atrito menor: arranca
+  const a = F.comAtrito({ m: 1, h0: 1, v0: 0, Fa: 4, percurso: [{ tipo: 'plano', comprimento: 2, desnivel: -1 }] });
+  assert.equal(a.length, 2);
+  assert.equal(a[1].parou, false);
+  perto(a[1].ec, 2);
+});
+
+test('aquecimentoGelo: fundir acaba depois da fusão a 0 °C', () => {
+  const t = F.aquecimentoGelo({ m: 0.1, theta0: -10, thetaF: 0, P: 100, fundir: true });
+  assert.deepEqual(t.map((x) => x.fase), ['gelo', 'fusao']);
+  perto(t[1].t1, (0.1 * 2100 * 10 + 0.1 * 3.34e5) / 100);
+  const s = F.aquecimentoGelo({ m: 0.1, theta0: 0, thetaF: 0, P: 100, fundir: true });
+  assert.deepEqual(s.map((x) => x.fase), ['fusao']);
+  // sem fundir, θF = 0 só aquece o gelo até 0 °C
+  assert.deepEqual(F.aquecimentoGelo({ m: 0.1, theta0: -10, thetaF: 0, P: 100 }).map((x) => x.fase), ['gelo']);
+  assert.throws(() => F.aquecimentoGelo({ m: 0.1, theta0: 0, thetaF: 0, P: 100 }));
+  assert.throws(() => F.aquecimentoGelo({ m: 0.1, theta0: -10, thetaF: 20, P: 100, fundir: true }));
+});
+
+test('mistura: rejeita água líquida acima de 100 °C e gelo acima de 0 °C; aceita metal quente', () => {
+  assert.throws(() => F.mistura([{ m: 1, c: 4180, theta: 120 }, { m: 1, c: 4180, theta: 20 }]), /100 °C/);
+  assert.throws(() => F.mistura([{ m: 1, fase: 'agua', theta: 105 }, { m: 1, c: 900, theta: 20 }]), /100 °C/);
+  assert.throws(() => F.mistura([{ m: 1, c: 4180, theta: 20 }, { m: 0.1, theta: 2, fase: 'gelo' }]), /0 °C/);
+  const r = F.mistura([{ m: 1, fase: 'agua', theta: 20 }, { m: 0.1, c: 900, theta: 200 }]);
+  perto(r.thetaEq, (4180 * 20 + 90 * 200) / (4180 + 90));
+});
+
+test('rendimento: tolera ruído de vírgula flutuante e limita a 1', () => {
+  assert.equal(F.rendimento(1 + 1e-15, 1), 1);
+  assert.equal(F.rendimento(0.1 + 0.2, 0.3), 1);
+  assert.throws(() => F.rendimento(1 + 1e-9, 1));
 });
