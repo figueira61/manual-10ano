@@ -1,7 +1,7 @@
 globalThis.Manual = globalThis.Manual || {};
 Manual.esquemas = Manual.esquemas || {};
 
-// Esquema fqa-ressalto: uma bola cai de uma altura h₀ e, em cada colisão com o chão, conserva uma fração da energia
+// Esquema fqa-ressalto: uma bola cai de uma altura h₀ e, em cada colisão com o chão, mantém uma fração da energia
 // mecânica. A aluna escolhe h₀ e essa fração; vê as alturas dos 5 primeiros ressaltos, a energia dissipada em cada
 // colisão e um desenho dos máximos da trajetória. Massa fixa de 0,10 kg (dita no esquema). Usa Manual.fisica.
 // Opções: { h0 (m, omissão 1), fracao (0,1 a 0,95, omissão 0,8) }.
@@ -40,7 +40,7 @@ Manual.esquemas.registar('fqa-ressalto', {
     const zonaCtl = criar('div');
     raiz.appendChild(zonaCtl);
     const sH = N.slider(zonaCtl, { rotulo: 'Altura de queda h₀ / m', min: 0.5, max: 5, passo: 0.1, valor: est.h0, aoMudar: (v) => { est.h0 = v; atualizar(); } });
-    const sK = N.slider(zonaCtl, { rotulo: 'Fração da energia conservada em cada ressalto', min: 0.1, max: 0.95, passo: 0.05, valor: est.fracao, aoMudar: (v) => { est.fracao = v; atualizar(); } });
+    const sK = N.slider(zonaCtl, { rotulo: 'Fração da energia mecânica que se mantém em cada ressalto', min: 0.1, max: 0.95, passo: 0.05, valor: est.fracao, aoMudar: (v) => { est.fracao = v; atualizar(); } });
 
     const L = 320, ALT = 150;
     const svg = svgEl('svg', { viewBox: '0 0 ' + L + ' ' + ALT, width: '100%', role: 'img', class: 'ressalto-svg' }, raiz);

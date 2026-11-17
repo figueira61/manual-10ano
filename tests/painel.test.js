@@ -56,6 +56,17 @@ test('todos os códigos dos geradores dão um texto simples', () => {
   }
 });
 
+test('cada código do mini-quiz de FQ-A (conteudos/fqa/*.js) tem texto escrito em EXCECOES', () => {
+  const { painel } = M();
+  const pasta = path.join(BASE_CONTEUDOS, 'fqa');
+  const falta = [];
+  for (const f of fs.readdirSync(pasta).filter((x) => x.endsWith('.js')).sort()) {
+    const s = fs.readFileSync(path.join(pasta, f), 'utf8');
+    for (const m of s.matchAll(/codigo: '([a-z0-9_]+)'/g)) if (!(m[1] in painel.EXCECOES)) falta.push(f + ': ' + m[1]);
+  }
+  assert.deepEqual([...new Set(falta)], []);
+});
+
 test('o mapa de exceções cobre os códigos partilhados', () => {
   const { painel } = M();
   for (const c of PARTILHADOS) assert.ok(c in painel.EXCECOES, c);

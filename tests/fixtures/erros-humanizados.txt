@@ -106,7 +106,6 @@ confundiu_molecula_com_radical → Tomou uma molécula com eletrões emparelhado
 confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
 confundiu_o2_com_o3 → Confundiu o oxigénio, O₂, com o ozono, O₃
 confundiu_o_prefixo → Usou o prefixo de outro número de átomos de carbono
-confundiu_peso_com_resultante → Confundiu o trabalho do peso com o da resultante
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
 confundiu_saturado_com_insaturado → Confundiu hidrocarboneto saturado com insaturado
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
@@ -165,7 +164,7 @@ desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
-deu_a_fracao_conservada → Deu a fração da energia conservada em vez da dissipada
+deu_a_fracao_conservada → Deu a fração da energia mecânica que se mantém em vez da dissipada
 deu_a_fracao_dissipada → Deu a fração da energia dissipada em vez do rendimento
 deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
@@ -258,7 +257,6 @@ escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
-esqueceu_a_raiz_quadrada → Esqueceu a raiz quadrada
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
@@ -269,9 +267,9 @@ esqueceu_g_na_energia_potencial → Esqueceu g na energia potencial gravítica
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
-esqueceu_o_cosseno → Esqueceu o cosseno
+esqueceu_o_cosseno → Esqueceu o cosseno do ângulo no trabalho
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
-esqueceu_o_fator_2 → Esqueceu o fator 2
+esqueceu_o_fator_2 → Esqueceu o fator 2 ao calcular a velocidade
 esqueceu_o_foton → Esqueceu o fotão nos reagentes
 esqueceu_o_grupo_acido → Esqueceu o grupo ácido carboxílico
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
@@ -279,7 +277,7 @@ esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da f
 esqueceu_o_meio_na_energia_cinetica → Esqueceu o ½ na energia cinética
 esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
 esqueceu_o_ponto → Esqueceu de somar o ponto
-esqueceu_o_quadrado_da_velocidade → Esqueceu o quadrado da velocidade
+esqueceu_o_quadrado_da_velocidade → Esqueceu que a energia cinética depende do quadrado da velocidade
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
@@ -501,6 +499,7 @@ perdeu_zero_nulo → Perdeu a solução x = 0
 periodo_a_menos → Contou um período a menos
 periodo_pelo_cerne → Deu o período do gás nobre do cerne
 periodo_pelo_subnivel_3d → Deu o período pelo subnível 3d
+peso_com_trabalho_por_haver_deslocamento → Achou que o peso realiza trabalho só por haver deslocamento
 piramidal_sem_par_nao_ligante → Deu geometria piramidal sem par não ligante no átomo central
 plano_coordenado → Deu o plano coordenado em vez do plano por P
 ponto_medio_cateto → Deu o ponto médio de um cateto
@@ -547,7 +546,7 @@ refletiu_em_ox → Refletiu no eixo Ox
 refletiu_em_oy → Refletiu no eixo Oy
 regiao_trocada → Trocou a região do conjunto-solução
 relativa_acumulada → Deu a frequência relativa acumulada
-rendimento_maior_do_que_1 → Rendimento maior do que 1
+rendimento_maior_do_que_1 → Obteve um rendimento superior a 100 %
 resolveu_para_x → Resolveu para x em vez de y
 respondeu_em_joules → Respondeu em joules quando se pedia em quilojoules
 resposta_voluntaria → Julgou aleatória uma amostra de resposta voluntária
@@ -642,8 +641,8 @@ terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
 tomou_a_como_numero_de_neutroes → Tomou o número de massa como número de neutrões
-tomou_a_diferenca_de_alturas_como_percentagem → Tomou a diferença de alturas como percentagem
-tomou_a_energia_dissipada_como_rendimento → Tomou a energia dissipada como rendimento
+tomou_a_diferenca_de_alturas_como_percentagem → Tomou a diferença das alturas como percentagem
+tomou_a_energia_dissipada_como_rendimento → Tomou a energia dissipada pelo rendimento
 tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
 tomou_o_hidrogenio_por_metal → Tomou o hidrogénio por um metal
 tomou_uma_molecula_polar_por_apolar → Tomou uma molécula polar por apolar
@@ -704,7 +703,7 @@ usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
-usou_o_seno_em_vez_do_cosseno → Usou o seno em vez do cosseno
+usou_o_seno_em_vez_do_cosseno → Usou o seno do ângulo em vez do cosseno
 usou_o_volume_de_agua_adicionado → Usou o volume de água adicionado em vez do volume final
 usou_o_volume_do_solvente → Usou o volume do solvente em vez do volume da solução
 usou_o_volume_molar_com_a_massa → Usou o volume molar com a massa, sem calcular a quantidade de matéria

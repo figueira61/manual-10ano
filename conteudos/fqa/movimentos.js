@@ -18,6 +18,8 @@ globalThis.Manual = globalThis.Manual || {};
     return m.replace('.', '{,}') + ' \\times 10^{' + Number(e) + '}';
   };
   const G = String(g); // 10
+  // arredonda a `casas` casas decimais sem o artefacto de vírgula flutuante (0,1225 → 0,123, não 0,122)
+  const arred = (x, casas) => Math.round((x + Math.sign(x) * 1e-9) * 10 ** casas) / 10 ** casas;
   const gTexto = '$g = ' + G + '\\,\\mathrm{m\\,s^{-2}}$';
 
   // AL «ΔEc em função da distância»: carrinho de 0,500 kg que parte do repouso, com resultante constante.
@@ -85,7 +87,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'erro-frequente',
-            texto: 'Não te esqueças do $\\tfrac{1}{2}$ nem do quadrado: $E_c$ é proporcional a $v^2$, por isso, se a velocidade duplica, a energia cinética fica **quatro** vezes maior. Converte km/h em $\\mathrm{m\\,s^{-1}}$ (divide por 3,6) e g em kg antes de calcular, e não confundas J com kJ: $240\\,000\\,\\mathrm{J} = 240\\,\\mathrm{kJ}$.',
+            texto: 'Não te esqueças do $\\tfrac{1}{2}$ nem do quadrado: $E_c$ é proporcional a $v^2$, por isso, se a velocidade duplica, a energia cinética fica **quatro** vezes maior. Converte km/h em $\\mathrm{m\\,s^{-1}}$ (divide por 3,6) e gramas em quilogramas antes de calcular, e não confundas J com kJ: $240\\,000\\,\\mathrm{J} = 240\\,\\mathrm{kJ}$.',
           },
           {
             tipo: 'definicao',
@@ -151,7 +153,7 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'Uma bola de ténis de 60 g é servida a 25 m/s. Calcula a sua energia cinética, em joules, com dois algarismos significativos.',
             resposta: 19,
             algarismos: 2,
-            toleranciaRelativa: 0.03,
+            tolerancia: 0.5,
             resolucao: [
               '$m = 60\\,\\mathrm{g} = 0{,}060\\,\\mathrm{kg}$',
               '$E_c = \\tfrac{1}{2} \\times 0{,}060 \\times 25^2 = ' + dec(F.ec(0.06, 25), 2) + '\\,\\mathrm{J} \\approx 19\\,\\mathrm{J}$',
@@ -228,7 +230,7 @@ globalThis.Manual = globalThis.Manual || {};
             ],
             verificar: () => F.vDeEc(9, 0.5),
             errosTipicos: [
-              { codigo: 'esqueceu_a_raiz_quadrada', valor: 36, explicacao: 'Calculaste $v^2 = 36$ e paraste aí; falta a raiz quadrada: $v = \\sqrt{36} = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
+              { codigo: 'esqueceu_raiz', valor: 36, explicacao: 'Calculaste $v^2 = 36$ e paraste aí; falta a raiz quadrada: $v = \\sqrt{36} = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
               { codigo: 'esqueceu_o_fator_2', valor: 4.24, explicacao: 'Calculaste $\\sqrt{E_c/m} \\approx 4{,}2$, sem o 2: de $E_c = \\tfrac{1}{2} m v^2$ vem $v = \\sqrt{2E_c/m} = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
             ],
           },
@@ -327,13 +329,13 @@ globalThis.Manual = globalThis.Manual || {};
           {
             tipo: 'quadro',
             cabecalho: ['$d$ / m', '$v$ / $\\mathrm{m\\,s^{-1}}$', '$\\Delta E_c$ / J'],
-            linhas: AL.d.map((d, i) => ['$' + dec(d, 2) + '$', '$' + dec(AL.v[i], 2) + '$', '$' + dec(AL.dEc[i], 3) + '$']),
+            linhas: AL.d.map((d, i) => ['$' + dec(d, 2) + '$', '$' + dec(AL.v[i], 2) + '$', '$' + dec(arred(AL.dEc[i], 3), 3) + '$']),
           },
           {
             tipo: 'exemplo',
             enunciado: 'A tabela tem dados ilustrativos para um carrinho de 0,500 kg que parte do repouso. Ajusta uma reta ao gráfico de $\\Delta E_c$ em função de $d$ e determina a intensidade da resultante das forças. Compara com o valor previsto, ' + decT(AL.prevista, 2) + ' N.',
             resolucao: [
-              'Cada $\\Delta E_c$ calcula-se com $\\tfrac{1}{2} m v^2$; por exemplo, para $d = 0{,}60\\,\\mathrm{m}$: $\\tfrac{1}{2} \\times 0{,}500 \\times 1{,}21^2 = ' + dec(AL.dEc[2], 3) + '\\,\\mathrm{J}$.',
+              'Cada $\\Delta E_c$ calcula-se com $\\tfrac{1}{2} m v^2$; por exemplo, para $d = 0{,}60\\,\\mathrm{m}$: $\\tfrac{1}{2} \\times 0{,}500 \\times 1{,}21^2 = ' + dec(arred(AL.dEc[2], 3), 3) + '\\,\\mathrm{J}$.',
               'Na calculadora (regressão linear): $\\Delta E_c = ' + dec(AL.reta.declive, 3) + '\\, d ' + (AL.reta.ordenada < 0 ? '- ' : '+ ') + dec(Math.abs(AL.reta.ordenada), 3) + '$ (SI). A ordenada na origem é quase zero, como prevê o TEC.',
               'O declive é a intensidade da resultante: $F_R \\approx ' + dec(AL.reta.declive, 2) + '\\,\\mathrm{N}$.',
               'Erro relativo: $\\dfrac{|' + dec(AL.reta.declive, 3) + ' - ' + dec(AL.prevista, 2) + '|}{' + dec(AL.prevista, 2) + '} \\times 100 \\approx ' + dec(Math.abs(AL.reta.declive - AL.prevista) / AL.prevista * 100, 0) + '\\,\\%$.',
@@ -387,12 +389,12 @@ globalThis.Manual = globalThis.Manual || {};
             id: 'trabalho-q03',
             tipo: 'escolha',
             enunciado: 'Um carrinho de massa $m$ percorre uma distância $d$ num chão horizontal. O trabalho realizado pelo peso do carrinho é…',
-            opcoes: ['nulo.', '$m g d$.', '$-m g d$.', 'igual ao trabalho da resultante.'],
+            opcoes: ['nulo.', '$m g d$.', '$-m g d$.', 'positivo, porque o carrinho se desloca.'],
             correta: 0,
             explicacao: 'O peso é vertical e o deslocamento é horizontal: $\\alpha = 90°$ e $\\cos 90° = 0$, logo $W_P = 0$ (a altura não muda).',
             errosTipicos: [
               { codigo: 'esqueceu_que_cos_90_e_zero', opcao: 1, explicacao: 'O peso faz $90°$ com o deslocamento horizontal e $\\cos 90° = 0$: o peso não realiza trabalho, porque a altura do carrinho não muda.' },
-              { codigo: 'confundiu_peso_com_resultante', opcao: 3, explicacao: 'O trabalho da resultante é a soma dos trabalhos de todas as forças. O peso, aqui, não contribui ($W_P = 0$).' },
+              { codigo: 'peso_com_trabalho_por_haver_deslocamento', opcao: 3, explicacao: 'Haver deslocamento não chega: o peso é perpendicular ao deslocamento horizontal ($\\alpha = 90°$), por isso $W_P = 0$.' },
             ],
           },
           {
@@ -517,6 +519,10 @@ globalThis.Manual = globalThis.Manual || {};
             verificar: () => PLANO.dEm,
           },
           {
+            tipo: 'erro-frequente',
+            texto: 'Cuidado com as unidades: com a massa em kg, $g$ em $\\mathrm{m\\,s^{-2}}$ e a altura em m, a energia sai em **joules**. Se a pergunta pedir quilojoules, divide por 1000 ($3600\\,\\mathrm{J} = 3{,}6\\,\\mathrm{kJ}$); não mistures J com kJ na mesma conta.',
+          },
+          {
             tipo: 'quadro',
             cabecalho: ['Situação', 'O que acontece à energia mecânica'],
             linhas: [
@@ -533,17 +539,17 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**AL: queda e ressalto de uma bola.** Larga-se uma bola de várias alturas e mede-se a altura de queda $h_q$ e a do ressalto $h_r$ (com um sensor de movimento ou um vídeo). Nos pontos mais altos a bola está parada, $E_c = 0$, e $E_m = m g h$. Desprezando a resistência do ar, a energia perde-se na colisão com o chão, e a **fração da energia conservada** em cada ressalto é $h_r / h_q$.',
+            texto: '**AL: queda e ressalto de uma bola.** Larga-se uma bola de várias alturas e mede-se a altura de queda $h_q$ e a do ressalto $h_r$ (com um sensor de movimento ou um vídeo). Nos pontos mais altos a bola está parada, $E_c = 0$, e $E_m = m g h$. Desprezando a resistência do ar, a energia perde-se na colisão com o chão, e a **fração da energia mecânica que se mantém** em cada ressalto é $h_r / h_q$.',
           },
           {
             tipo: 'texto',
-            texto: 'O gráfico de $h_r$ em função de $h_q$ é uma reta que passa pela origem: o declive é a fração da energia conservada na colisão, que depende da bola e do chão. A raiz quadrada dessa fração, $e = \\sqrt{h_r/h_q}$, é o **coeficiente de restituição** (a razão entre a velocidade logo após e logo antes da colisão).',
+            texto: 'O gráfico de $h_r$ em função de $h_q$ é, aproximadamente, uma reta que passa pela origem: o declive é a fração da energia mecânica que se mantém na colisão, que depende da bola e do chão. A raiz quadrada dessa fração, $e = \\sqrt{h_r/h_q}$, é o **coeficiente de restituição** (a razão entre a velocidade logo após e logo antes da colisão).',
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Uma bola de 0,10 kg cai de 1,20 m e sobe até 0,90 m. Calcula a fração da energia conservada na colisão, a energia dissipada e a altura prevista para o ressalto seguinte (' + gTexto + ').',
+            enunciado: 'Uma bola de 0,10 kg cai de 1,20 m e sobe até 0,90 m. Calcula a fração da energia mecânica que se mantém na colisão, a energia dissipada e a altura prevista para o ressalto seguinte (' + gTexto + ').',
             resolucao: [
-              'Fração conservada: $\\dfrac{h_r}{h_q} = \\dfrac{0{,}90}{1{,}20} = ' + dec(BOLA.fracao, 2) + '$ (' + Math.round(BOLA.fracao * 100) + ' %).',
+              'Fração da energia mecânica que se mantém: $\\dfrac{h_r}{h_q} = \\dfrac{0{,}90}{1{,}20} = ' + dec(BOLA.fracao, 2) + '$ (' + Math.round(BOLA.fracao * 100) + ' %).',
               'Energia dissipada: $m g (h_q - h_r) = 0{,}10 \\times ' + G + ' \\times (1{,}20 - 0{,}90) = ' + dec(BOLA.dissipada, 2) + '\\,\\mathrm{J}$.',
               'Ressalto seguinte, com a mesma fração: $h = ' + dec(BOLA.fracao, 2) + ' \\times 0{,}90 \\approx ' + dec(F.ressalto(BOLA.hq, BOLA.fracao, 2)[1], 2) + '\\,\\mathrm{m}$.',
             ],
@@ -554,11 +560,7 @@ globalThis.Manual = globalThis.Manual || {};
             tipo: 'esquema',
             id: 'fqa-ressalto',
             opcoes: { h0: BOLA.hq, fracao: BOLA.fracao },
-            legenda: 'Muda a fração da energia conservada em cada ressalto: as alturas formam uma sequência que diminui sempre na mesma proporção, e a energia dissipada em cada colisão é cada vez menor.',
-          },
-          {
-            tipo: 'erro-frequente',
-            texto: 'Cuidado com as unidades: com m em kg, g em $\\mathrm{m\\,s^{-2}}$ e h em m, a energia sai em **joules**. Se a pergunta pedir quilojoules, divide por 1000 ($-5250\\,\\mathrm{J} = -5{,}25\\,\\mathrm{kJ}$); não mistures J com kJ na mesma conta.',
+            legenda: 'Muda a fração da energia mecânica que se mantém em cada ressalto: as alturas formam uma sequência que diminui sempre na mesma proporção, e a energia dissipada em cada colisão é cada vez menor.',
           },
         ],
         resumo: [
@@ -567,7 +569,7 @@ globalThis.Manual = globalThis.Manual || {};
           '$W_{FNC} = \\Delta E_m$; forças dissipativas fazem diminuir $E_m$.',
           'Sem trabalho de forças não conservativas, $E_m$ conserva-se: $E_c + E_{pg}$ constante.',
           'Rendimento: energia útil a dividir pela energia fornecida; a restante é dissipada.',
-          'AL ressalto: fração da energia conservada $= h_r / h_q$; dissipada $= m g (h_q - h_r)$.',
+          'AL ressalto: fração da energia mecânica que se mantém $= h_r / h_q$; dissipada $= m g (h_q - h_r)$.',
         ],
         quiz: [
           {
@@ -582,7 +584,7 @@ globalThis.Manual = globalThis.Manual || {};
             ],
             verificar: () => F.conservacao({ h0: 1.8, v0: 0, h: 0 }),
             errosTipicos: [
-              { codigo: 'esqueceu_a_raiz_quadrada', valor: 36, explicacao: 'Obtiveste $v^2 = 36$; falta a raiz quadrada: $v = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
+              { codigo: 'esqueceu_raiz', valor: 36, explicacao: 'Obtiveste $v^2 = 36$; falta a raiz quadrada: $v = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
               { codigo: 'esqueceu_o_fator_2', valor: 4.24, explicacao: 'Calculaste $\\sqrt{g h} \\approx 4{,}2$, sem o 2: de $m g h = \\tfrac{1}{2} m v^2$ vem $v = \\sqrt{2 g h} = 6{,}0\\,\\mathrm{m\\,s^{-1}}$.' },
             ],
           },
@@ -638,12 +640,12 @@ globalThis.Manual = globalThis.Manual || {};
             resposta: 30,
             tolerancia: 0.5,
             resolucao: [
-              'Nos pontos mais altos $E_c = 0$, logo $E_m = m g h$ e a fração conservada é $\\dfrac{h_r}{h_q} = \\dfrac{1{,}05}{1{,}50} = 0{,}70$',
+              'Nos pontos mais altos $E_c = 0$, logo $E_m = m g h$ e a fração da energia mecânica que se mantém é $\\dfrac{h_r}{h_q} = \\dfrac{1{,}05}{1{,}50} = 0{,}70$',
               'Dissipada: $1 - 0{,}70 = 0{,}30$, isto é, 30 %',
             ],
             verificar: () => (F.epg(1, 1.5) - F.epg(1, 1.05)) / F.epg(1, 1.5) * 100,
             errosTipicos: [
-              { codigo: 'deu_a_fracao_conservada', valor: 70, explicacao: '70 % é a fração da energia **conservada** ($h_r/h_q$). A dissipada é o resto: $100 - 70 = 30\\,\\%$.' },
+              { codigo: 'deu_a_fracao_conservada', valor: 70, explicacao: '70 % é a fração da energia mecânica que **se mantém** ($h_r/h_q$). A dissipada é o resto: $100 - 70 = 30\\,\\%$.' },
               { codigo: 'tomou_a_diferenca_de_alturas_como_percentagem', valor: 45, explicacao: 'Calculaste a diferença das alturas, 0,45 m, e tomaste-a como percentagem; é preciso dividir pela altura de queda: $\\dfrac{1{,}50 - 1{,}05}{1{,}50} \\times 100 = 30\\,\\%$.' },
             ],
           },
