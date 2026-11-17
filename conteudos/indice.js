@@ -262,6 +262,43 @@ Manual.registarIndice([
           },
         ],
       },
+      {
+        id: 'eletricidade',
+        titulo: 'Energia e fenómenos elétricos',
+        subtemas: [
+          {
+            id: 'circuitos',
+            titulo: 'Corrente, diferença de potencial e resistência',
+            palavras: ['corrente elétrica', 'diferença de potencial elétrico', 'tensão', 'resistência elétrica', 'lei de Ohm', 'série e paralelo', 'resistência equivalente', 'amperímetro', 'voltímetro', 'potência elétrica', 'efeito Joule', 'quilowatt-hora'],
+          },
+          {
+            id: 'gerador',
+            titulo: 'Geradores e energia num circuito',
+            palavras: ['gerador', 'pilha', 'força eletromotriz', 'resistência interna', 'característica do gerador', 'corrente de curto-circuito', 'balanço de potências', 'rendimento do gerador', 'energia elétrica e sociedade'],
+          },
+        ],
+      },
+      {
+        id: 'termica',
+        titulo: 'Energia, fenómenos térmicos e radiação',
+        subtemas: [
+          {
+            id: 'transferencias',
+            titulo: 'Sistemas termodinâmicos e transferências de energia',
+            palavras: ['sistema termodinâmico', 'sistema isolado', 'energia interna', 'temperatura', 'equilíbrio térmico', 'calor', 'condução', 'convecção', 'radiação', 'infravermelho', 'termografia', 'condutividade térmica', 'kelvin'],
+          },
+          {
+            id: 'balancos',
+            titulo: 'Balanços energéticos',
+            palavras: ['primeira lei da termodinâmica', 'Joule', 'Mayer', 'capacidade térmica mássica', 'entalpia mássica de fusão', 'entalpia mássica de vaporização', 'mudanças de estado', 'curva de aquecimento', 'misturas', 'temperatura de equilíbrio', 'calorímetro', 'variação de energia interna'],
+          },
+          {
+            id: 'rendimento',
+            titulo: 'Rendimento e Segunda Lei',
+            palavras: ['rendimento', 'energia útil', 'energia dissipada', 'degradação da energia', 'segunda lei da termodinâmica', 'painel fotovoltaico', 'irradiância', 'ponto de potência máxima', 'uso sustentável', 'literacia energética'],
+          },
+        ],
+      },
     ],
   },
   { id: 'bg', nome: 'Biologia e Geologia', disponivel: false, temas: [] },

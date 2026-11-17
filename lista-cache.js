@@ -2,8 +2,10 @@
 self.LISTA_CACHE = [
   "conteudos/fqa/ae.js",
   "conteudos/fqa/elementos.js",
+  "conteudos/fqa/eletricidade.js",
   "conteudos/fqa/materia.js",
   "conteudos/fqa/movimentos.js",
+  "conteudos/fqa/termica.js",
   "conteudos/indice.js",
   "conteudos/mat-a/ae.js",
   "conteudos/mat-a/cidadania.js",
@@ -130,4 +132,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '0e06f590eb';
+self.VERSAO_CACHE = 'e89fe8d40f';

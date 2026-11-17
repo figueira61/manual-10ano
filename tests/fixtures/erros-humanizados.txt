@@ -26,6 +26,7 @@ ambos_os_sentidos_trocados → Trocou ambos os sentidos
 ambos_os_sinais_trocados → Trocou o sinal de h e também o de k
 amostra_como_populacao → Tomou a amostra como se fosse a população
 amostra_como_variavel → Tomou a amostra como se fosse a variável
+amperimetro_em_paralelo → Ligou o amperímetro em paralelo em vez de em série
 amplitude_total → Deu a amplitude em vez da amplitude interquartil
 angulo_reto_errado → Errou o ângulo reto
 aplicou_a_carga_aos_neutroes → Aplicou a carga do ião ao número de neutrões
@@ -53,6 +54,7 @@ calculou_gm → Calculou GM em vez da mediana
 calculou_h → Parou no ortocentro H
 calculou_imagem → Calculou a imagem em vez do objeto
 calculou_oh → Calculou todo o segmento OH em vez de GH
+calor_contido_num_corpo → Achou que um corpo contém calor (tem energia interna; calor é energia transferida)
 capitalizacao_anual → Usou capitalização anual quando os juros se juntam várias vezes por ano
 catorze_meses → Contou os 14 pagamentos como meses de trabalho
 causalidade → Concluiu que x causa y
@@ -70,6 +72,8 @@ comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
 completou_o_nivel_ganhando_eletroes → Completou o nível ganhando eletrões em vez de os perder
 comprimento_independente_da_ordem → Achou que o comprimento da ligação não depende do número de pares partilhados
 concavidade_trocada → Trocou o sentido da concavidade
+conducao_em_vez_de_conveccao → Confundiu convecção com condução
+conducao_no_vazio → Achou que há condução no vazio
 configuracao_de_estado_excitado → Escolheu a configuração de um estado excitado
 confundiu_alcool_com_aldeido → Confundiu álcool com aldeído
 confundiu_aldeido_com_cetona → Confundiu aldeído com cetona
@@ -107,6 +111,7 @@ confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetro
 confundiu_o2_com_o3 → Confundiu o oxigénio, O₂, com o ozono, O₃
 confundiu_o_prefixo → Usou o prefixo de outro número de átomos de carbono
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
+confundiu_potencia_com_energia → Confundiu potência com energia
 confundiu_saturado_com_insaturado → Confundiu hidrocarboneto saturado com insaturado
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
 contagem_como_categoria → Tomou a contagem por categoria
@@ -147,6 +152,7 @@ contou_um_eletrao_a_menos → Escreveu a configuração com um eletrão a menos
 contou_uma_ligacao_de_cada_tipo → Contou uma só ligação de cada tipo por molécula
 contou_valores → Contou os valores diferentes em vez das observações
 contou_valores_diferentes → Contou os valores diferentes em vez das observações
+conveccao_no_vazio → Achou que há convecção no vazio
 conveniencia → Julgou aleatória uma amostra por conveniência
 converteu_m_em_nm_ao_contrario → Converteu de metros para nanómetros no sentido errado
 converteu_nm_como_micrometro → Usou 1 nm = 10⁻⁶ m
@@ -158,8 +164,10 @@ covalente_polar_entre_metal_e_nao_metal → Julgou covalente polar a ligação e
 cruzou_mal → Multiplicou em cruz os termos errados
 declive_como_r → Tomou o declive por coeficiente de correlação
 declive_e_termo_trocados → Trocou o declive com a ordenada na origem
+declive_igual_a_r → Tomou o declive da reta U–I pela resistência interna (é −r)
 declive_invertido → Dividiu u₁ por u₂ em vez de u₂ por u₁
 delta_sem_sinal → Esqueceu o sinal de menos em Δ/4a
+densidade_trocada_na_conveccao → Trocou o fluido quente com o frio na convecção
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
@@ -176,9 +184,11 @@ deu_a_percentagem → Deu a percentagem em vez da fração molar
 deu_a_percentagem_do_solvente → Deu a percentagem do solvente em vez da do soluto
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
+deu_a_queda_de_tensao_interna → Deu a tensão na resistência interna (rI) em vez da tensão nos terminais
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
+deu_energia_util_em_vez_de_dissipada → Deu a energia útil em vez da dissipada
 deu_lambda_em_metros → Deu o comprimento de onda em metros em vez de nanómetros
 deu_n_em_vez_da_massa → Deu a quantidade de matéria em vez da massa
 deu_o_balanco_do_ciclo → Deu a equação global do ciclo em vez do passo pedido
@@ -244,8 +254,11 @@ emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocup
 emparelhou_os_eletroes_3d → Emparelhou eletrões em orbitais 3d degeneradas (regra de Hund)
 endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
+energia_desaparece_na_degradacao → Achou que a energia desaparece quando se degrada
 energia_mecanica_conserva_se_sempre → Achou que a energia mecânica se conserva sempre
 epg_sem_nivel_de_referencia → Esqueceu que a energia potencial gravítica depende do nível de referência
+equilibrio_a_temperatura_do_corpo_frio → Achou que o equilíbrio térmico fica à temperatura do corpo mais frio
+equilibrio_como_energias_internas_iguais → Confundiu equilíbrio térmico com energias internas iguais
 errou_o_expoente_na_notacao_cientifica → Errou o expoente ao passar a notação científica
 escalao_errado → Usou a taxa de outro escalão
 escolheu_a_zona_de_maior_comprimento_de_onda → Escolheu a zona vizinha de maior comprimento de onda
@@ -256,6 +269,8 @@ escolheu_incentro → Escolheu o incentro
 escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
+esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
+esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
@@ -264,6 +279,7 @@ esqueceu_dividir → Esqueceu de dividir
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_g_na_energia_potencial → Esqueceu g na energia potencial gravítica
+esqueceu_inverter_resistencia_equivalente → Esqueceu de inverter 1/Req na associação em paralelo
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
@@ -280,7 +296,9 @@ esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_o_quadrado_da_velocidade → Esqueceu que a energia cinética depende do quadrado da velocidade
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
+esqueceu_potencia_dissipada_no_gerador → Esqueceu a potência dissipada no gerador
 esqueceu_quadrado → Esqueceu o quadrado
+esqueceu_quadrado_da_corrente → Esqueceu o quadrado da corrente em RI²
 esqueceu_que_cos_90_e_zero → Esqueceu que cos 90° é zero
 esqueceu_raiz → Esqueceu a raiz quadrada
 esqueceu_reflexao → Esqueceu a reflexão
@@ -310,6 +328,7 @@ formula_do_alcano → Escreveu a fórmula de um alcano em vez da de um alcino
 formula_do_alceno → Escreveu a fórmula de um alceno em vez da de um alcino
 fraca_como_nula → Tomou uma correlação fraca por nula
 frequencia_absoluta → Deu a frequência absoluta em vez da relativa
+frio_transferido → Achou que é o frio que se transfere
 fronteira_estrita → Errou se a fronteira pertence à região
 fronteira_na_classe_anterior → Pôs na classe anterior um valor igual ao limite da seguinte
 fundamental_como_excitado → Tomou o estado fundamental por um estado excitado
@@ -371,6 +390,7 @@ ligacao_multipla_mais_comprida → Disse que a ligação múltipla é a mais com
 ligacoes_polares_logo_molecula_polar → Julgou que ligações polares tornam sempre a molécula polar
 limites_em_vez_de_partes → Aplicou cada taxa ao limite do escalão
 linear_logo_apolar → Julgou apolar uma molécula linear com pontas diferentes
+madeira_produz_calor → Achou que a madeira produz calor
 maior_comprimento_de_onda_maior_energia → Julgou que maior comprimento de onda dá mais energia
 maior_energia_de_remocao_mais_longe_do_nucleo → Disse que o eletrão mais afastado do núcleo é o mais difícil de remover
 maior_media_maior_dispersao → Julgou que a maior média tem maior dispersão
@@ -381,6 +401,7 @@ mais_hidrogenios_insaturado → Chamou insaturado ao composto com o máximo de h
 mais_votos_nao_chega → Julgou que ter mais votos dá maioria absoluta
 massa_em_gramas → Usou a massa em gramas em vez de quilogramas
 media_das_frequencias → Fez a média das frequências em vez da média dos valores
+media_das_temperaturas_sem_massas → Fez a média das temperaturas sem ter em conta as massas
 media_dos_extremos → Fez a média dos extremos
 media_dos_valores → Fez a média dos valores diferentes, sem contar as repetições
 media_em_vez_de_mediana → Deu a média em vez da mediana
@@ -404,6 +425,7 @@ metade → Tomou o baricentro como ponto médio da mediana
 metade_cateto → Dividiu um cateto por 2 em vez da hipotenusa
 metade_do_raio_inscrito → Deu metade do raio inscrito
 metade_nao_chega → Julgou que metade dos votos dá maioria absoluta
+metal_a_temperatura_mais_baixa → Achou que o metal está a uma temperatura mais baixa
 metalica_por_ter_um_metal → Julgou metálica a ligação por haver um metal
 metodo_das_metades → Calculou o quartil pelo método das metades
 misturou_ml_e_dm3 → Misturou mL e dm³ no mesmo cálculo
@@ -470,6 +492,7 @@ oh_como_og → Tomou OH como OG
 ordem_das_operacoes → Fez a soma antes da multiplicação
 ordem_invertida → Deu os pontos pela ordem inversa
 ordem_trocada → Subtraiu os pontos pela ordem trocada
+ordenada_como_corrente_de_curto_circuito → Confundiu a ordenada na origem com a corrente de curto-circuito
 ordenada_como_declive → Tomou a ordenada na origem por declive
 ordenada_como_fronteira → Tomou a ordenada na origem por fronteira
 ordenada_como_previsao → Deu a ordenada na origem como valor previsto
@@ -485,6 +508,7 @@ outro_metodo → Usou o outro método de conversão de votos em mandatos
 p_com_mais_de_seis_eletroes → Pôs mais de seis eletrões num subnível p
 p_inteiro_sem_media → Esqueceu a média quando p é inteiro
 par_so_um_valor → Usou só um valor quando há dois ao meio
+paralelo_aumenta_resistencia_equivalente → Achou que mais um ramo em paralelo aumenta a resistência equivalente
 pares_nao_ligantes_logo_polar → Julgou que pares não ligantes tornam a molécula polar
 parou_um_antes → Parou um quociente antes
 passou_ao_subnivel_seguinte_sem_completar → Passou ao subnível seguinte sem completar o anterior
@@ -516,8 +540,13 @@ populacao_como_variavel → Tomou a população por variável
 pos_pares_nao_ligantes_no_carbono → Pôs pares não ligantes no carbono
 pos_um_par_nao_ligante_no_boro → Pôs um par não ligante no boro
 posicao_como_valor → Deu a posição em vez do valor
+potencia_do_painel_independente_de_u → Achou que a potência do painel não depende da tensão
+potencia_em_watts_no_kwh → Usou a potência em W em vez de kW no cálculo em kWh
+potencia_maxima_em_circuito_aberto → Pôs a potência máxima do painel em circuito aberto
+potencia_maxima_em_curto_circuito → Pôs a potência máxima do painel em curto-circuito
 preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
 prefixo_errado → Usou o prefixo errado para o número de carbonos
+processo_espontaneo_reversivel → Achou que um processo espontâneo se inverte sozinho
 proporcional_restos_maiores → Usou o método dos restos maiores
 proveta_para_volume_rigoroso → Usou a proveta para medir um volume rigoroso
 quadrado_da_diferenca_de_velocidades → Usou o quadrado da diferença das velocidades em vez da diferença das energias cinéticas
@@ -532,6 +561,9 @@ quebra_de_ligacao_liberta_energia → Disse que quebrar uma ligação liberta en
 quebra_depende_do_tipo_de_reacao → Achou que a energia da quebra de ligações depende do tipo de reação
 quociente_de_um_ponto → Dividiu a ordenada pela abcissa de um só ponto
 quociente_menor → Deu o mandato a um quociente menor
+r_como_u_sobre_i → Calculou U/I (resistência exterior) em vez da resistência interna
+r_igual_ao_declive → Deu o declive da reta U–I como resistência interna, com sinal negativo
+radiacao_em_vez_de_conveccao → Confundiu convecção com radiação
 raio_aumenta_ao_longo_do_periodo → Julgou que o raio aumenta ao longo do período
 raio_circunscrito → Deu o raio da circunferência circunscrita
 raio_diminui_ao_descer_no_grupo → Julgou que o raio diminui ao descer no grupo
@@ -549,6 +581,7 @@ relativa_acumulada → Deu a frequência relativa acumulada
 rendimento_maior_do_que_1 → Obteve um rendimento superior a 100 %
 resolveu_para_x → Resolveu para x em vez de y
 respondeu_em_joules → Respondeu em joules quando se pedia em quilojoules
+respondeu_em_joules_em_vez_de_kwh → Respondeu em joules quando se pedia em kWh
 resposta_voluntaria → Julgou aleatória uma amostra de resposta voluntária
 reta_ab → Deu a reta AB em vez da mediatriz
 reta_duas_condicoes → Deu uma reta em vez de um plano
@@ -563,6 +596,7 @@ sentido_horizontal_trocado → Deslocou o gráfico para o lado errado
 separou_o_carboxilo_em_dois_grupos → Separou o grupo carboxilo em álcool e cetona
 serie_pelo_nivel_inicial → Deu a série pelo nível inicial da transição
 simetrico_de_o → Pôs G a meio de OH
+sinais_da_primeira_lei_trocados → Trocou os sinais na Primeira Lei da Termodinâmica
 sinais_trocados → Trocou os sinais
 sinal_ao_isolar → Errou o sinal ao isolar
 sinal_da_razao → Perdeu o sinal da razão
@@ -585,6 +619,7 @@ sinal_trocado → Não trocou o sinal ao passar para o outro membro
 sinal_trocado_formadas_menos_quebradas → Fez ligações formadas menos quebradas em vez do contrário
 so_a_segunda_coordenada → Tomou a segunda coordenada do vetor por declive
 so_contou_a_carga_nuclear → Só teve em conta a carga nuclear, sem o número de níveis
+so_corpos_quentes_emitem_radiacao → Achou que só os corpos quentes emitem radiação
 so_descontos → Deu o total dos descontos em vez do líquido
 so_horas_semana → Dividiu pelas horas de uma só semana
 so_juro → Deu só o juro
@@ -603,6 +638,7 @@ soma_catetos → Somou os catetos em vez de aplicar o teorema de Pitágoras
 soma_componentes → Somou as componentes em vez de usar o teorema de Pitágoras
 soma_das_normas → Somou as normas em vez de calcular a norma da soma
 somou_10_no_bloco_s → Somou 10 ao grupo no bloco s
+somou_273_a_variacao → Somou 273 a uma variação de temperatura
 somou_a_carga_aos_eletroes → Somou a carga ao número de eletrões em vez de a subtrair
 somou_a_com_z → Somou A e Z em vez de subtrair
 somou_antes_de_multiplicar → Somou antes de multiplicar
@@ -617,6 +653,8 @@ somou_em_vez_de_multiplicar → Somou em vez de multiplicar
 somou_lambda → Somou λ a cada coordenada
 somou_os_eletroes → Somou os eletrões ao número de massa
 somou_pares_ligantes_e_nao_ligantes → Somou os pares ligantes e os não ligantes
+somou_queda_de_tensao_interna → Usou U = ε + rI em vez de U = ε − rI
+somou_resistencias_em_paralelo → Somou as resistências em paralelo
 somou_sem_multiplicar → Somou os valores sem os multiplicar pelas frequências
 somou_termo_quadratico → Somou o termo −5t² em vez de o subtrair
 ss_depois_irs → Aplicou a Segurança Social depois do IRS
@@ -636,6 +674,7 @@ taxa_da_entidade → Usou a taxa paga pela entidade patronal
 taxa_mal_convertida → Não converteu a taxa de percentagem para decimal
 taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendimento
 temperatura_contrai_o_gas → Disse que aquecer um gás o faz contrair
+tempo_em_minutos → Usou o tempo em minutos em vez de segundos
 terminacao_eno_num_alcano → Usou a terminação -eno num alcano
 terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
@@ -650,6 +689,7 @@ trabalho_dissipativo_com_sinal_positivo → Deu sinal positivo ao trabalho das f
 trabalho_do_atrito_nulo → Achou nulo o trabalho da força de atrito
 trabalho_do_atrito_positivo → Achou positivo o trabalho da força de atrito
 trabalho_do_peso_com_o_sinal_de_epg → Deu ao trabalho do peso o sinal da variação da energia potencial gravítica
+trabalho_realizado_com_sinal_positivo → Deu sinal positivo ao trabalho realizado pelo sistema
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
 trocou_a_ordem_de_2s_e_2p → Trocou a ordem de energia das subcamadas 2s e 2p
@@ -659,8 +699,10 @@ trocou_as_condicoes → Trocou as condições dos dois ramos
 trocou_coordenadas → Trocou as coordenadas
 trocou_eixos → Trocou os eixos
 trocou_emissao_com_absorcao → Trocou emissão com absorção
+trocou_epsilon_e_r → Trocou a força eletromotriz com a resistência interna
 trocou_formacao_com_decomposicao → Trocou a formação do ozono com a decomposição
 trocou_h_k → Trocou h com k
+trocou_ligacao_amperimetro_voltimetro → Trocou a ligação do amperímetro com a do voltímetro
 trocou_m_b → Trocou m com b
 trocou_media_mediana → Trocou a média com a mediana
 trocou_o_eixo → Trocou o eixo
@@ -695,6 +737,8 @@ usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quocient
 usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
 usou_as_massas_em_vez_de_n → Usou as massas em vez das quantidades de matéria
 usou_c → Usou o termo independente c em vez da ordenada do vértice
+usou_c_da_agua_para_o_gelo → Usou a capacidade térmica mássica da água para o gelo
+usou_entalpia_de_vaporizacao → Usou a entalpia de vaporização em vez da de fusão
 usou_h → Usou a abcissa do vértice em vez da ordenada
 usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
 usou_h_sobre_lambda → Calculou E = h/λ sem a velocidade da luz
@@ -711,6 +755,7 @@ usou_os_numeros_de_massa → Usou os números de massa em vez das massas isotóp
 usou_so_a_energia_do_nivel_final → Usou só a energia do nível final
 usou_so_a_energia_do_nivel_inicial → Usou só a energia do nível inicial
 usou_so_o_isotopo_mais_abundante → Usou só a massa do isótopo mais abundante
+usou_temperatura_final_em_vez_da_variacao → Usou a temperatura final em vez da variação de temperatura
 usou_um_quarto_da_divisao → Usou um quarto da menor divisão
 usou_uma_unidade_inteira → Usou uma unidade inteira como incerteza
 usou_z_em_vez_da_massa_atomica → Usou o número atómico em vez da massa atómica relativa
@@ -725,6 +770,7 @@ vetor_menos_ponto → Errou o sinal ao passar o ponto para o outro membro
 violou_o_principio_de_pauli → Violou o princípio da exclusão de Pauli
 viu_so_o_carbonilo → Viu só o C=O e não o grupo carboxilo
 viu_so_o_hidroxilo → Viu só o −OH e não o grupo carboxilo
+voltimetro_em_serie → Ligou o voltímetro em série em vez de em paralelo
 volume_em_ml → Usou o volume em mL em vez de dm³
 volume_molar_depende_do_gas → Achou que o volume molar depende do gás
 volume_molar_fora_de_ptn → Usou o volume molar de PTN noutras condições

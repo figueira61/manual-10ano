@@ -161,13 +161,14 @@ test('app: com fqa disponível, a página do tema lista os subtemas', () => {
   assert.match(principal.textContent, /Constituição do átomo/);
 });
 
-test('índice: fqa com 3 temas e 15 subtemas, disponível', () => {
+test('índice: fqa com 5 temas e 20 subtemas, disponível', () => {
   const fqa = Manual.indice.find((d) => d.id === 'fqa');
   assert.equal(fqa.disponivel, true);
-  assert.deepEqual(fqa.temas.map((t) => [t.id, t.subtemas.length]), [['elementos', 5], ['materia', 7], ['movimentos', 3]]);
+  assert.deepEqual(fqa.temas.map((t) => [t.id, t.subtemas.length]), [['elementos', 5], ['materia', 7], ['movimentos', 3], ['eletricidade', 2], ['termica', 3]]);
   assert.deepEqual(fqa.temas.flatMap((t) => t.subtemas.map((s) => s.id)), [
     'atomo', 'mole', 'espectros', 'configuracao', 'tabela-periodica', 'ligacao', 'geometria', 'carbono', 'gases', 'solucoes',
-    'entalpia', 'fotoquimica', 'sistema-mecanico', 'trabalho', 'energia-mecanica']);
+    'entalpia', 'fotoquimica', 'sistema-mecanico', 'trabalho', 'energia-mecanica',
+    'circuitos', 'gerador', 'transferencias', 'balancos', 'rendimento']);
   assert.ok(fqa.temas.every((t) => t.subtemas.every((s) => s.titulo && Array.isArray(s.palavras) && s.palavras.length)));
 });
 
