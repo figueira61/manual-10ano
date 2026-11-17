@@ -87,8 +87,10 @@ Manual.esquemas.registar('fqa-energias', {
     svg.style.height = 'auto';
     svg.style.display = 'block';
     svg.style.margin = '8px auto';
+    const resumo = criar('p', 'esq-resumo');
+    resumo.setAttribute('aria-live', 'polite');
+    raiz.appendChild(resumo);
     const zonaTexto = criar('div');
-    zonaTexto.setAttribute('aria-live', 'polite');
     raiz.appendChild(zonaTexto);
 
     // estado do carrinho à distância s: interpola linearmente os pontos de comAtrito (Ec, Epg e dissipada são lineares em cada troço)
@@ -173,6 +175,7 @@ Manual.esquemas.registar('fqa-energias', {
       });
       svg.setAttribute('aria-label', PERCURSOS[est.id].nome + '. Posição s = ' + fmt(p.s, 1) + ' m. Ec = ' + fmt(p.ec) + ' J, Epg = ' + fmt(p.epg) + ' J, Em = ' + fmt(p.ec + p.epg) + ' J, energia dissipada = ' + fmt(p.dissipada) + ' J.');
 
+      resumo.textContent = 's = ' + fmt(p.s, 1) + ' m: Ec = ' + fmt(p.ec) + ' J, Epg = ' + fmt(p.epg) + ' J, Em = ' + fmt(p.ec + p.epg) + ' J, dissipada = ' + fmt(p.dissipada) + ' J' + (parou ? '; o carrinho para em s = ' + fmt(ult.s) + ' m' : '') + '.';
       zonaTexto.textContent = '';
       const dl = criar('dl', 'painel-valores');
       const linha = (rot, v) => { dl.appendChild(criar('dt', '', rot)); dl.appendChild(criar('dd', '', v)); };

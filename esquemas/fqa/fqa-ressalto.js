@@ -48,8 +48,10 @@ Manual.esquemas.registar('fqa-ressalto', {
     svg.style.height = 'auto';
     svg.style.display = 'block';
     svg.style.margin = '8px auto';
+    const resumo = criar('p', 'esq-resumo');
+    resumo.setAttribute('aria-live', 'polite');
+    raiz.appendChild(resumo);
     const zonaTexto = criar('div');
-    zonaTexto.setAttribute('aria-live', 'polite');
     raiz.appendChild(zonaTexto);
 
     function atualizar() {
@@ -68,6 +70,7 @@ Manual.esquemas.registar('fqa-ressalto', {
       svgEl('line', { x1: X0, y1: f1(Y1 - est.h0 * ey), x2: X1, y2: f1(Y1 - est.h0 * ey), stroke: 'var(--cor-eixos)', 'stroke-dasharray': '3 3' }, svg);
       let x = X0;
       let d = '';
+      let ultimoX = -100;
       todas.forEach((h, i) => {
         const w = larg[i] * kx;
         const topo = Y1 - h * ey;
@@ -75,6 +78,8 @@ Manual.esquemas.registar('fqa-ressalto', {
         else d += ' Q' + f1(x + w / 2) + ' ' + f1(Y1 - 2 * h * ey) + ' ' + f1(x + w) + ' ' + Y1;
         const cx = i === 0 ? x : x + w / 2;
         svgEl('circle', { class: 'pico', cx: f1(cx), cy: f1(topo), r: 3.5, fill: 'var(--cor-2)', stroke: 'var(--texto)', 'stroke-width': 1 }, svg);
+        if (i > 0 && cx - ultimoX < 30) { x += w; return; }
+        ultimoX = cx;
         const t = svgEl('text', { x: f1(cx + (i === 0 ? 6 : 0)), y: f1(topo - 6), 'text-anchor': i === 0 ? 'start' : 'middle', 'font-size': 9, fill: 'var(--texto)' }, svg);
         t.textContent = (i === 0 ? 'h₀ = ' : 'h' + i + ' = ') + fmt(h);
         x += w;
@@ -82,6 +87,7 @@ Manual.esquemas.registar('fqa-ressalto', {
       svgEl('path', { class: 'trajetoria', d, fill: 'none', stroke: 'var(--cor-1)', 'stroke-width': 2 }, svg);
       svg.setAttribute('aria-label', 'Bola largada de ' + fmt(est.h0) + ' m; alturas dos ' + NR + ' primeiros ressaltos: ' + alturas.map((h) => fmt(h) + ' m').join(', ') + '.');
 
+      resumo.textContent = 'Alturas dos ' + NR + ' primeiros ressaltos: ' + alturas.map((h) => fmt(h) + ' m').join(', ') + '.';
       zonaTexto.textContent = '';
       const tab = criar('table', 'tabela-ressalto');
       const cab = criar('tr');

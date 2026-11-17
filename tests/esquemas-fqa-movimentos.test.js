@@ -99,3 +99,31 @@ test('fqa-ressalto: h0 = 1 e fração 0,8 dão 0,80, 0,64 e 0,51', () => {
   assert.ok(!/NaN/.test(t));
   assert.equal(Array.from(el.querySelectorAll('tr')).length, 6);
 });
+
+test('fqa-trabalho: setas e rótulos ficam dentro do viewBox para α notáveis e F máximo', () => {
+  for (const alfa of [0, 90, 135, 180]) {
+    for (const d of [0, 10]) {
+      const { el } = montar('fqa-trabalho', { F: 100, d, alfa });
+      const svg = el.querySelectorAll('svg')[0];
+      const largura = Number(svg.getAttribute('viewBox').split(' ')[2]);
+      const dentro = (x, ctx) => assert.ok(x >= 0 && x <= largura, ctx + ' x = ' + x + ' (α = ' + alfa + ')');
+      Array.from(el.querySelectorAll('line')).forEach((l) => { dentro(Number(l.getAttribute('x1')), 'line x1'); dentro(Number(l.getAttribute('x2')), 'line x2'); });
+      Array.from(el.querySelectorAll('polygon')).forEach((p) => p.getAttribute('points').split(' ').forEach((pt) => dentro(Number(pt.split(',')[0]), 'seta')));
+      Array.from(el.querySelectorAll('text')).forEach((t) => {
+        const x = Number(t.getAttribute('x')), w = t.textContent.length * 5.5, a = t.getAttribute('text-anchor');
+        const [e, dd] = a === 'end' ? [x - w, x] : a === 'middle' ? [x - w / 2, x + w / 2] : [x, x + w];
+        dentro(e, 'texto "' + t.textContent + '" esquerda'); dentro(dd, 'texto "' + t.textContent + '" direita');
+      });
+    }
+  }
+});
+
+test('fqa-trabalho: as setas do teclado mudam o ângulo', () => {
+  const { el } = montar('fqa-trabalho', { F: 10, d: 5, alfa: 30 });
+  const svg = el.querySelectorAll('svg')[0];
+  svg.dispatch('keydown', { key: 'ArrowRight', preventDefault() {} });
+  assert.equal(Number(slider(el, 2).value), 31);
+  svg.dispatch('keydown', { key: 'ArrowLeft', shiftKey: true, preventDefault() {} });
+  assert.equal(Number(slider(el, 2).value), 21);
+  assert.match(ver(el), /α = 21°/);
+});

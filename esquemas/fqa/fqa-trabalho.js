@@ -47,8 +47,10 @@ Manual.esquemas.registar('fqa-trabalho', {
     svg.style.height = 'auto';
     svg.style.display = 'block';
     svg.style.margin = '8px auto';
+    const resumo = criar('p', 'esq-resumo');
+    resumo.setAttribute('aria-live', 'polite');
+    raiz.appendChild(resumo);
     const zonaTexto = criar('div');
-    zonaTexto.setAttribute('aria-live', 'polite');
     raiz.appendChild(zonaTexto);
 
     function seta(x1, y1, x2, y2, cor, largura, classe) {
@@ -65,11 +67,11 @@ Manual.esquemas.registar('fqa-trabalho', {
       const tipo = W > 0 ? 'potente' : W < 0 ? 'resistente' : 'nulo';
       const rad = (est.alfa * Math.PI) / 180;
       svg.textContent = '';
-      const Y = 110, X0 = 60;
+      const Y = 110, X0 = 160;
       svgEl('line', { x1: 14, y1: Y + 12, x2: 306, y2: Y + 12, stroke: 'var(--cor-eixos)', 'stroke-width': 1.5 }, svg);
       svgEl('rect', { x: X0 - 14, y: Y - 14, width: 28, height: 26, fill: 'var(--cor-1)', 'fill-opacity': 0.35, stroke: 'var(--texto)', 'stroke-width': 1.5 }, svg);
       // deslocamento (por baixo do corpo) e força (a partir do centro do corpo)
-      const dl = (est.d / 10) * 200;
+      const dl = (est.d / 10) * 130;
       seta(X0, Y + 24, X0 + dl, Y + 24, 'var(--cor-3)', 2.5, 'desloc');
       const t1 = svgEl('text', { x: X0 + dl / 2, y: Y + 38, 'text-anchor': 'middle', 'font-size': 10, fill: 'var(--texto)' }, svg);
       t1.textContent = 'deslocamento d = ' + fmt(est.d) + ' m';
@@ -88,6 +90,7 @@ Manual.esquemas.registar('fqa-trabalho', {
       t4.textContent = 'α = ' + fmt(est.alfa, 0) + '°';
       svg.setAttribute('aria-label', 'Força de ' + fmt(est.F) + ' N a ' + fmt(est.alfa, 0) + '° do deslocamento de ' + fmt(est.d) + ' m. Componente eficaz F cos α = ' + fmt(Fef) + ' N. Trabalho W = ' + fmt(W) + ' J, trabalho ' + tipo + '.');
 
+      resumo.textContent = 'W = ' + fmt(W) + ' J (trabalho ' + tipo + '), com F = ' + fmt(est.F) + ' N, d = ' + fmt(est.d) + ' m e α = ' + fmt(est.alfa, 0) + '°.';
       zonaTexto.textContent = '';
       const lista = criar('dl', 'painel-valores');
       const linha = (rot, v) => { lista.appendChild(criar('dt', '', rot)); lista.appendChild(criar('dd', '', v)); };
