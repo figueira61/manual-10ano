@@ -17,9 +17,12 @@ self.LISTA_CACHE = [
   "esquemas/fqa/calculo-moleculas.js",
   "esquemas/fqa/calculo-quimica.js",
   "esquemas/fqa/fig-atomo.js",
+  "esquemas/fqa/fig-calorimetro.js",
   "esquemas/fqa/fig-circuito.js",
   "esquemas/fqa/fig-material-solucao.js",
+  "esquemas/fqa/fig-painel.js",
   "esquemas/fqa/fig-picnometro.js",
+  "esquemas/fqa/fqa-aquecimento.js",
   "esquemas/fqa/fqa-atomo.js",
   "esquemas/fqa/fqa-circuito.js",
   "esquemas/fqa/fqa-configuracao.js",
@@ -31,11 +34,14 @@ self.LISTA_CACHE = [
   "esquemas/fqa/fqa-geometria.js",
   "esquemas/fqa/fqa-gerador.js",
   "esquemas/fqa/fqa-isotopos.js",
+  "esquemas/fqa/fqa-mistura.js",
   "esquemas/fqa/fqa-molecula.js",
   "esquemas/fqa/fqa-niveis.js",
+  "esquemas/fqa/fqa-painel.js",
   "esquemas/fqa/fqa-ressalto.js",
   "esquemas/fqa/fqa-tabela.js",
   "esquemas/fqa/fqa-trabalho.js",
+  "esquemas/fqa/fqa-transferencias.js",
   "esquemas/mat-a/afim.js",
   "esquemas/mat-a/borda.js",
   "esquemas/mat-a/calculo-cidadania.js",
@@ -123,4 +129,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '8aa3c4b773';
+self.VERSAO_CACHE = '8611a12654';
