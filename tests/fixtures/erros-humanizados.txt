@@ -15,7 +15,9 @@ acido_por_ter_oh → Julgou ácido carboxílico um composto só por ter −OH
 acido_sem_oh → Escolheu ácido carboxílico sem haver −OH no carbono do C=O
 ag_como_metade → Tomou AG como metade da mediana
 ag_como_terco → Tomou AG como um terço da mediana
+agua_como_composto_ionico → Tomou a água por um composto iónico
 agua_deslocada_sem_somar_o_metal → Calculou a água deslocada sem somar a massa do metal
+agua_linear → Disse que a molécula de água é linear
 alargada_como_amostra → Tomou a população alargada como se fosse a amostra
 alcool_por_ter_oxigenio → Julgou álcool um composto só por ter oxigénio
 aleatoria_vista_como_enviesada → Julgou enviesada uma amostra aleatória
@@ -42,6 +44,8 @@ associou_a_zona_errada → Associou a série de riscas à zona errada do espectr
 assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
 assumiu_divergencia → Assumiu que os dois métodos dão vencedores diferentes
 atomos_iguais_logo_apolar → Julgou apolar a molécula só por ter átomos exteriores iguais
+atribuiu_o_escurecimento_ao_ar → Atribuiu o escurecimento do sal de prata ao ar e não à luz
+balao_para_medir_o_volume_a_retirar → Usou o balão volumétrico para medir o volume a retirar
 baricentro → Deu o baricentro em vez do circuncentro
 calculou_a_concentracao_molar → Calculou a concentração molar em vez da mássica
 calculou_a_percentagem → Calculou a percentagem em vez de partes por milhão
@@ -61,12 +65,15 @@ cobrou_todas_as_horas → Cobrou todas as horas, e não só as que ultrapassam o
 codigo_numerico_como_quantitativa → Tomou um código numérico por variável quantitativa
 coeficiente_trocado → Multiplicou x pelo coeficiente errado
 comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
+completou_o_nivel_ganhando_eletroes → Completou o nível ganhando eletrões em vez de os perder
+comprimento_independente_da_ordem → Achou que o comprimento da ligação não depende do número de pares partilhados
 concavidade_trocada → Trocou o sentido da concavidade
 configuracao_de_estado_excitado → Escolheu a configuração de um estado excitado
 confundiu_alcool_com_aldeido → Confundiu álcool com aldeído
 confundiu_aldeido_com_cetona → Confundiu aldeído com cetona
 confundiu_amino_com_hidroxilo → Confundiu o grupo amino com o hidroxilo
 confundiu_as_series → Confundiu as séries de riscas do hidrogénio
+confundiu_atomo_com_nucleo → Confundiu a dimensão do átomo com a do núcleo
 confundiu_com_a_balanca → Confundiu a peça assinalada com a balança
 confundiu_com_a_destruicao_pelo_cloro → Confundiu com a destruição do ozono pelo radical cloro
 confundiu_com_a_espatula → Confundiu a peça assinalada com a espátula
@@ -86,6 +93,8 @@ confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
 confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
 confundiu_com_o_vidro_de_relogio → Confundiu a peça assinalada com o vidro de relógio
+confundiu_formacao_com_ciclo_do_cloro → Confundiu a formação do ozono com a sua destruição pelo cloro
+confundiu_formacao_com_decomposicao → Confundiu a formação do ozono com a sua decomposição
 confundiu_hidroxilo_com_hidroxido → Confundiu o grupo −OH de um álcool com o ião hidróxido
 confundiu_iao_com_isotopo → Tomou um ião do mesmo átomo por outro isótopo
 confundiu_iao_com_radical → Confundiu um ião com um radical
@@ -104,6 +113,7 @@ continua_como_discreta → Tomou uma variável contínua por discreta
 continua_como_qualitativa → Tomou uma variável contínua por qualitativa
 contou_atomos_em_vez_de_moleculas → Contou os átomos em vez das moléculas
 contou_cada_elemento_uma_vez → Contou cada elemento uma só vez, sem os índices
+contou_duas_ligacoes_por_molecula → Contou duas ligações numa molécula diatómica
 contou_eletroes_em_vez_de_pares → Contou eletrões em vez de pares de eletrões
 contou_ligacoes_em_vez_de_pares → Contou ligações em vez de pares ligantes
 contou_mal_os_eletroes → Julgou de outro átomo uma configuração com Z eletrões
@@ -111,6 +121,7 @@ contou_moleculas_em_vez_de_atomos → Contou as moléculas em vez dos átomos
 contou_o_complementar → Contou o contrário do pedido
 contou_os_atomos_em_vez_das_interacoes → Comparou o número de átomos em vez das interações entre moléculas
 contou_os_elementos_em_vez_dos_atomos → Multiplicou pelo número de elementos em vez do número de átomos
+contou_os_eletroes_4s → Contou os eletrões 4s como desemparelhados
 contou_os_eletroes_de_valencia → Deu o número de eletrões de valência em vez dos desemparelhados
 contou_os_eletroes_do_cerne → Contou os eletrões do cerne em vez dos de valência
 contou_os_eletroes_do_ultimo_subnivel → Tomou todos os eletrões do último subnível por desemparelhados
@@ -118,11 +129,14 @@ contou_os_eletroes_em_vez_das_orbitais → Contou os eletrões em vez das orbita
 contou_os_zeros_a_esquerda → Contou os zeros à esquerda como algarismos significativos
 contou_so_as_casas_decimais → Contou as casas decimais em vez dos algarismos significativos
 contou_so_as_orbitais_do_ultimo_nivel → Contou só as orbitais do último nível
+contou_so_o_atomo_central → Contou só os pares não ligantes do átomo central
 contou_so_os_algarismos_diferentes_de_zero → Não contou os zeros significativos
+contou_so_os_atomos_de_h → Contou só os átomos de hidrogénio
 contou_so_os_eletroes_p → Contou só os eletrões p do último nível
 contou_so_os_eletroes_s → Contou só os eletrões s do último nível
 contou_so_os_pares_do_atomo_central → Contou só os pares não ligantes do átomo central
 contou_so_um_elemento → Contou só os átomos de um dos elementos
+contou_so_um_oxigenio → Contou os pares não ligantes de um só oxigénio
 contou_subniveis_em_vez_de_orbitais → Contou os subníveis em vez das orbitais
 contou_todos_os_atomos → Contou todos os átomos em vez dos do elemento pedido
 contou_todos_os_eletroes → Contou todos os eletrões em vez dos de valência
@@ -147,6 +161,7 @@ delta_sem_sinal → Esqueceu o sinal de menos em Δ/4a
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
+deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia → Deu a frequência em vez do comprimento de onda
@@ -181,6 +196,7 @@ deu_so_as_ligacoes_quebradas → Deu só a energia das ligações quebradas
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
 diatomica_de_atomos_diferentes_apolar → Julgou apolar uma molécula diatómica de átomos diferentes
+diatomica_heteronuclear_apolar → Achou apolar uma molécula diatómica heteronuclear
 diferenca_das_normas → Fez a diferença das normas em vez da norma da diferença
 diferenca_desfasada → Atribuiu cada diferença à classe errada
 dilatacao_contracao_trocadas → Trocou a dilatação com a contração
@@ -196,10 +212,12 @@ dividiu_ao_contrario → Dividiu pela ordem trocada
 dividiu_em_vez_de_multiplicar → Dividiu em vez de multiplicar
 dividiu_k_menos_1 → Dividiu por k − 1 em vez de por k
 dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
+dividiu_n_pelo_volume_molar → Dividiu a quantidade de matéria pelo volume molar em vez de multiplicar
 dividiu_o_deltah_pela_quantidade → Dividiu o ΔH pela quantidade em vez de multiplicar
 dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
 dividiu_pela_massa_molar → Dividiu pela massa molar em vez de multiplicar
+dividiu_pela_quantidade → Dividiu pela quantidade de matéria em vez de multiplicar
 dividiu_pela_quantidade_do_outro_componente → Dividiu pela quantidade do outro componente em vez da total
 dividiu_pelo_indice → Dividiu pelo índice em vez de multiplicar
 dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
@@ -218,6 +236,7 @@ dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
 eixo_reflexao_trocado → Trocou o eixo da reflexão
 emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocupar as orbitais vazias
+emparelhou_os_eletroes_3d → Emparelhou eletrões em orbitais 3d degeneradas (regra de Hund)
 endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
 errou_o_expoente_na_notacao_cientifica → Errou o expoente ao passar a notação científica
@@ -242,6 +261,7 @@ esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
 esqueceu_o_foton → Esqueceu o fotão nos reagentes
+esqueceu_o_grupo_acido → Esqueceu o grupo ácido carboxílico
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
 esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da fórmula
 esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
@@ -272,6 +292,9 @@ fator_nao_invertido → Não inverteu o fator
 fator_so_na_primeira → Aplicou o fator só à primeira coordenada
 forca_sobrestimada → Exagerou a força da relação
 forca_subestimada → Subestimou a força da relação
+formacao_de_ligacao_absorve_energia → Disse que formar uma ligação absorve energia
+formula_do_alcano → Escreveu a fórmula de um alcano em vez da de um alcino
+formula_do_alceno → Escreveu a fórmula de um alceno em vez da de um alcino
 fraca_como_nula → Tomou uma correlação fraca por nula
 frequencia_absoluta → Deu a frequência absoluta em vez da relativa
 fronteira_estrita → Errou se a fronteira pertence à região
@@ -283,6 +306,8 @@ g_ponto_medio_oh → Tomou G como ponto médio de OH
 ganhou_eletroes_a_mais → Fez o não metal ganhar eletrões a mais
 ganhou_em_vez_de_perder → Fez o metal ganhar eletrões em vez de os perder
 ganhou_so_um_eletrao → Fez o não metal ganhar só um eletrão
+geometria_pela_formula_no_plano → Tirou a geometria da fórmula de estrutura desenhada no plano
+gobele_para_medir → Usou o gobelé para medir um volume rigoroso
 grupo_pelos_eletroes_de_valencia → Deu o grupo pelos eletrões de valência no hélio
 grupo_pelos_eletroes_p → Deu o grupo só pelos eletrões p
 grupo_sem_somar_10 → Esqueceu de somar 10 ao grupo no bloco p
@@ -291,7 +316,9 @@ h_igual_3g → Usou H = 3G fora da origem
 hipotenusa_como_raio → Tomou a hipotenusa por raio
 ignorou_a → Ignorou o número dentro do módulo
 ignorou_a_carga → Ignorou a carga do ião
+ignorou_a_quantidade_de_materia → Ignorou a quantidade de matéria e usou a constante de Avogadro
 ignorou_fator → Ignorou o fator
+ignorou_o_par_nao_ligante → Ignorou o par de eletrões não ligante
 ignorou_os_pares_nao_ligantes → Ignorou os pares não ligantes do átomo central
 ignorou_sinais → Ignorou os sinais
 ignorou_sinal_mais → Ignorou o sinal de mais
@@ -305,6 +332,7 @@ intervalo_aberto → Deixou de fora o extremo, que pertence ao contradomínio
 intervalo_entre_extremos → Deu o intervalo entre os extremos em vez do conjunto finito
 inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto
+inverteu_o_balanco_das_ligacoes → Inverteu o balanço entre ligações quebradas e formadas
 inverteu_o_efeito_da_ordem_de_ligacao → Inverteu o efeito da ordem de ligação na energia e no comprimento
 inverteu_o_fator_de_diluicao → Inverteu o fator de diluição
 inverteu_quebradas_e_formadas → Fez formadas − quebradas (sinal de ΔH trocado)
@@ -326,14 +354,17 @@ leu_o_angulo_no_desenho → Leu o ângulo no desenho plano da molécula
 ligacao_de_hidrogenio_com_h_ligado_a_c → Viu ligações de hidrogénio com H ligado ao carbono
 ligacao_de_hidrogenio_com_h_ligado_a_cl → Viu ligações de hidrogénio com H ligado ao cloro
 ligacao_de_hidrogenio_sem_h → Viu ligações de hidrogénio numa molécula sem hidrogénio
+ligacao_multipla_mais_comprida → Disse que a ligação múltipla é a mais comprida
 ligacoes_polares_logo_molecula_polar → Julgou que ligações polares tornam sempre a molécula polar
 limites_em_vez_de_partes → Aplicou cada taxa ao limite do escalão
 linear_logo_apolar → Julgou apolar uma molécula linear com pontas diferentes
 maior_comprimento_de_onda_maior_energia → Julgou que maior comprimento de onda dá mais energia
+maior_energia_de_remocao_mais_longe_do_nucleo → Disse que o eletrão mais afastado do núcleo é o mais difícil de remover
 maior_media_maior_dispersao → Julgou que a maior média tem maior dispersão
 maior_partido → Deu o último mandato ao partido mais votado
 maior_raio_maior_energia_de_ionizacao → Julgou que um átomo maior tem maior energia de ionização
 maioria_simples → Escolheu o vencedor pelos primeiros lugares em vez de pelos pontos de Borda
+mais_hidrogenios_insaturado → Chamou insaturado ao composto com o máximo de hidrogénios
 mais_votos_nao_chega → Julgou que ter mais votos dá maioria absoluta
 media_das_frequencias → Fez a média das frequências em vez da média dos valores
 media_dos_extremos → Fez a média dos extremos
@@ -354,6 +385,7 @@ menos_pontos → Deu a vitória a quem tem menos pontos
 menos_so_no_x → Pôs o sinal de menos só no x
 mesma_amplitude_mesma_dispersao → Concluiu que a mesma amplitude dá a mesma dispersão
 mesmo_numero_de_massa → Tomou átomos com o mesmo número de massa por isótopos
+mesmo_prefixo_mesma_familia → Achou que o mesmo prefixo implica a mesma família de compostos
 metade → Tomou o baricentro como ponto médio da mediana
 metade_cateto → Dividiu um cateto por 2 em vez da hipotenusa
 metade_do_raio_inscrito → Deu metade do raio inscrito
@@ -362,8 +394,10 @@ metalica_por_ter_um_metal → Julgou metálica a ligação por haver um metal
 metodo_das_metades → Calculou o quartil pelo método das metades
 misturou_ml_e_dm3 → Misturou mL e dm³ no mesmo cálculo
 molecula_apolar_com_dipolo_dipolo → Viu interações dipolo–dipolo entre moléculas apolares
+molecula_de_atomos_radicais → Disse que os átomos de uma molécula de cloro são radicais
 monotonia_pelo_b → Deduziu a monotonia a partir de b
 mudou_as_duas → Trocou o sinal das duas coordenadas
+mudou_os_protoes_com_a_carga → Mudou o número de protões com a carga do ião
 multiplicou → Multiplicou em vez de dividir
 multiplicou_abcissa → Multiplicou também a abcissa, que devia ficar igual
 multiplicou_c_por_lambda → Multiplicou c pelo comprimento de onda
@@ -407,8 +441,11 @@ nao_ordenou → Não ordenou os dados
 nao_passou_para_zero → Não passou tudo para o primeiro membro
 nao_reconheceu_o_estado_excitado → Não reconheceu um estado excitado
 nao_rejeitou_negativa → Não rejeitou a solução negativa
+nao_somou_os_eletroes_do_aniao → Não somou os eletrões ganhos pelo anião
 nao_subtraiu → Não subtraiu os votos que já tinha
+nao_tirou_o_eletrao_do_catiao → Não tirou o eletrão perdido pelo catião
 nao_trocou_sinal → Não trocou o sinal
+nao_usou_a_quantidade → Não usou a quantidade de matéria na energia da reação
 nao_verificou_condicao → Não verificou a condição do ramo
 nao_viu_absoluta → Disse maioria simples quando havia maioria absoluta
 nao_viu_conveniencia → Não viu que a amostra era por conveniência
@@ -425,6 +462,7 @@ ordenada_como_previsao → Deu a ordenada na origem como valor previsto
 ordenada_do_ponto → Tomou a ordenada de A por ordenada na origem
 ordenada_igual_a_c → Tomou c por ordenada do vértice
 ordenada_na_origem → Deu a ordenada na origem em vez do zero da função
+ordenou_por_comprimento_de_onda → Ordenou pela energia como se fosse o comprimento de onda
 outro_angulo_reto_errado → Escolheu um vértice que não tem o ângulo reto
 outro_atomo_julgado_excitado → Tomou a configuração de outro átomo por um estado excitado
 outro_atomo_julgado_impossivel → Julgou impossível a configuração de outro átomo
@@ -464,7 +502,9 @@ pos_pares_nao_ligantes_no_carbono → Pôs pares não ligantes no carbono
 pos_um_par_nao_ligante_no_boro → Pôs um par não ligante no boro
 posicao_como_valor → Deu a posição em vez do valor
 preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
+prefixo_errado → Usou o prefixo errado para o número de carbonos
 proporcional_restos_maiores → Usou o método dos restos maiores
+proveta_para_volume_rigoroso → Usou a proveta para medir um volume rigoroso
 quadrado_da_soma → Fez o quadrado da soma em vez da soma dos quadrados
 quadrado_de_negativo → Errou o sinal ao elevar um número negativo ao quadrado
 quadrado_negativo → Errou o sinal ao elevar um número negativo ao quadrado
@@ -472,6 +512,8 @@ quadrado_sem_parenteses → Esqueceu os parênteses no quadrado
 quadrou_coeficiente → Elevou também o coeficiente ao quadrado
 qualitativa_como_quantitativa → Tomou uma variável qualitativa por quantitativa
 quatro_semanas → Contou 4 semanas por mês
+quebra_de_ligacao_liberta_energia → Disse que quebrar uma ligação liberta energia
+quebra_depende_do_tipo_de_reacao → Achou que a energia da quebra de ligações depende do tipo de reação
 quociente_de_um_ponto → Dividiu a ordenada pela abcissa de um só ponto
 quociente_menor → Deu o mandato a um quociente menor
 raio_aumenta_ao_longo_do_periodo → Julgou que o raio aumenta ao longo do período
@@ -516,11 +558,13 @@ sinal_de_x_esquecido → Esqueceu o sinal de x
 sinal_do_declive → Errou o sinal do declive
 sinal_do_declive_trocado → Trocou o sinal do declive
 sinal_negativo → Esqueceu o sinal negativo
+sinal_negativo_endotermica → Associou o sinal negativo de ΔH a uma reação endotérmica
 sinal_negativo_no_raio → Errou o sinal ao subtrair um número negativo no raio
 sinal_no_zero_do_1_ramo → Errou o sinal do zero do 1.º ramo
 sinal_no_zero_do_2_ramo → Errou o sinal do zero do 2.º ramo
 sinal_produto → Errou o sinal do produto de dois números negativos
 sinal_trocado → Não trocou o sinal ao passar para o outro membro
+sinal_trocado_formadas_menos_quebradas → Fez ligações formadas menos quebradas em vez do contrário
 so_a_segunda_coordenada → Tomou a segunda coordenada do vetor por declive
 so_contou_a_carga_nuclear → Só teve em conta a carga nuclear, sem o número de níveis
 so_descontos → Deu o total dos descontos em vez do líquido
@@ -541,6 +585,7 @@ soma_catetos → Somou os catetos em vez de aplicar o teorema de Pitágoras
 soma_componentes → Somou as componentes em vez de usar o teorema de Pitágoras
 soma_das_normas → Somou as normas em vez de calcular a norma da soma
 somou_10_no_bloco_s → Somou 10 ao grupo no bloco s
+somou_a_carga_aos_eletroes → Somou a carga ao número de eletrões em vez de a subtrair
 somou_a_com_z → Somou A e Z em vez de subtrair
 somou_antes_de_multiplicar → Somou antes de multiplicar
 somou_as_energias_dos_niveis → Somou as energias dos dois níveis
@@ -572,14 +617,20 @@ taxa_anual_por_periodo → Usou a taxa anual em vez da taxa de cada período
 taxa_da_entidade → Usou a taxa paga pela entidade patronal
 taxa_mal_convertida → Não converteu a taxa de percentagem para decimal
 taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendimento
+temperatura_contrai_o_gas → Disse que aquecer um gás o faz contrair
+terminacao_eno_num_alcano → Usou a terminação -eno num alcano
+terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
+tomou_a_como_numero_de_neutroes → Tomou o número de massa como número de neutrões
 tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
 tomou_o_hidrogenio_por_metal → Tomou o hidrogénio por um metal
 tomou_uma_molecula_polar_por_apolar → Tomou uma molécula polar por apolar
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
+trocou_a_ordem_de_2s_e_2p → Trocou a ordem de energia das subcamadas 2s e 2p
 trocou_as_abundancias → Trocou as abundâncias dos isótopos
+trocou_as_concentracoes → Trocou as concentrações na diluição
 trocou_as_condicoes → Trocou as condições dos dois ramos
 trocou_coordenadas → Trocou as coordenadas
 trocou_eixos → Trocou os eixos
@@ -604,6 +655,7 @@ um_por_partido → Deu primeiro um mandato a cada partido
 um_sexto → Deu um sexto da mediana em vez de um terço
 um_terco → Deu um terço da mediana em vez de dois terços
 um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
+uma_ligacao_oh_por_molecula → Contou só uma ligação O–H por molécula de água
 usou_10_elevado_a_3_no_ppm → Usou o fator 10³ em vez de 10⁶ nas partes por milhão
 usou_a_agua_do_picnometro_cheio → Usou a água do picnómetro cheio em vez da água deslocada
 usou_a_diferenca_de_volumes → Usou a diferença dos volumes em vez do quociente
@@ -611,6 +663,7 @@ usou_a_divisao_inteira_num_analogico → Usou a menor divisão inteira num instr
 usou_a_formula_do_alcano → Usou a fórmula geral dos alcanos
 usou_a_formula_do_alceno → Usou a fórmula geral dos alcenos
 usou_a_formula_do_alcino → Usou a fórmula geral dos alcinos
+usou_a_massa_atomica_do_o → Usou a massa atómica do oxigénio em vez da molar do O2
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
 usou_a_massa_do_solvente → Usou a massa do solvente em vez da massa da solução
 usou_a_massa_em_vez_de_n → Usou a massa em vez da quantidade de matéria
@@ -642,8 +695,12 @@ variavel_como_populacao → Tomou a variável por população
 vertice_angulo_reto → Deu o vértice do ângulo reto em vez do ponto pedido
 vetor_como_ponto → Tomou as coordenadas do vetor por coordenadas do ponto
 vetor_menos_ponto → Errou o sinal ao passar o ponto para o outro membro
+violou_o_principio_de_pauli → Violou o princípio da exclusão de Pauli
 viu_so_o_carbonilo → Viu só o C=O e não o grupo carboxilo
 viu_so_o_hidroxilo → Viu só o −OH e não o grupo carboxilo
+volume_em_ml → Usou o volume em mL em vez de dm³
+volume_molar_depende_do_gas → Achou que o volume molar depende do gás
+volume_molar_fora_de_ptn → Usou o volume molar de PTN noutras condições
 votos_dos_outros → Contou os votos de todos os adversários
 votos_novos → Contou votos novos que não existem
 zero_com_sinal_trocado → Trocou o sinal do zero

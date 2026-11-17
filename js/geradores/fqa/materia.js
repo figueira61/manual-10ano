@@ -1998,7 +1998,9 @@ globalThis.Manual = globalThis.Manual || {};
   };
   const eqTex = (k) => {
     const q = EQ_OZONO[k];
-    return '$\\mathrm{' + q.reag.join(' + ') + '}' + (q.luz ? ' + h\\nu' : '') + ' \\longrightarrow \\mathrm{' + q.prod.join(' + ') + '}$';
+    // Cada espécie no seu \mathrm{}, para a equação poder quebrar nos « + » e na seta.
+    const lado = (l) => l.map((e) => { const m = e.match(/^(\d+\\,)(.+)$/); return (m ? m[1] : '') + '\\mathrm{' + (m ? m[2] : e) + '}'; }).join(' + ');
+    return '$' + lado(q.reag) + (q.luz ? ' + h\\nu' : '') + ' \\longrightarrow ' + lado(q.prod) + '$';
   };
   // Cada pergunta: o que se pede, a equação certa, e os erros [equação, código, explicação].
   const PERGUNTAS_OZONO = {

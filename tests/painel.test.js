@@ -10,6 +10,10 @@ const PASTA = path.join(RAIZ, 'js', 'geradores', 'mat-a');
 const BASE = path.join(RAIZ, 'js', 'geradores');
 const FICHEIROS = fs.readdirSync(BASE, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()
   .flatMap((d) => fs.readdirSync(path.join(BASE, d)).filter((x) => x.endsWith('.js')).sort().map((f) => path.join(BASE, d, f)));
+// Conteúdo estático (mini-quiz, «banco»): conteudos/<disciplina>/*.js com «codigo: '…'» em errosTipicos.
+const BASE_CONTEUDOS = path.join(RAIZ, 'conteudos');
+const FICHEIROS_CONTEUDOS = fs.readdirSync(BASE_CONTEUDOS, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort()
+  .flatMap((d) => fs.readdirSync(path.join(BASE_CONTEUDOS, d)).filter((x) => x.endsWith('.js')).sort().map((f) => path.join(BASE_CONTEUDOS, d, f)));
 const SNAPSHOT = path.join(__dirname, 'fixtures', 'erros-humanizados.txt');
 
 function M() {
@@ -24,6 +28,11 @@ function codigos() {
     const s = fs.readFileSync(abs, 'utf8');
     for (const m of s.matchAll(/codigo: ([^,}]+)/g)) for (const q of m[1].matchAll(/'([a-z0-9_]+)'/g)) t.add(q[1]);
     for (const m of s.matchAll(/^\s+([a-z][a-z0-9_]*): '/gm)) if (/_/.test(m[1])) t.add(m[1]);
+  }
+  // Códigos do banco de perguntas dos conteúdos (aparecem no painel via quiz.js → erro_tipico).
+  for (const abs of FICHEIROS_CONTEUDOS) {
+    const s = fs.readFileSync(abs, 'utf8');
+    for (const m of s.matchAll(/codigo: '([a-z0-9_]+)'/g)) t.add(m[1]);
   }
   // Famílias construídas em tempo de execução: 'escolheu_' + ponto notável e 'nao_viu_' + método de amostragem.
   const geo = fs.readFileSync(path.join(PASTA, 'geometria-sintetica.js'), 'utf8');

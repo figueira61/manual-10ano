@@ -103,7 +103,7 @@ test('snapshots da semente 1', () => {
   assert.match(p.enunciado, /H\{-\}Cl\}\$ é \$428/);
   assert.equal(p.resposta, 7.11e-19); // 428 × 10³ / 6,02 × 10²³
   p = g('fotoquimica-ozono');
-  assert.equal(certa(p), '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2 + O}$');
+  assert.equal(certa(p), '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2} + \\mathrm{O}$');
 });
 
 test('notação científica corrige com toleranciaRelativa; «não dividiu por N_A» e kJ/J são detetados', () => {

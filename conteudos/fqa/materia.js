@@ -1061,7 +1061,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Calcula a variação de entalpia da reação $\\mathrm{H_2(g) + Cl_2(g) \\longrightarrow 2\\,HCl(g)}$ a partir das energias de ligação: H–H ' + E('H-H') + ', Cl–Cl ' + E('Cl-Cl') + ' e H–Cl ' + E('H-Cl') + ' $\\mathrm{kJ\\,mol^{-1}}$.',
+            enunciado: 'Calcula a variação de entalpia da reação $\\mathrm{H_2(g)} + \\mathrm{Cl_2(g)} \\longrightarrow 2\\,\\mathrm{HCl(g)}$ a partir das energias de ligação: H–H ' + E('H-H') + ', Cl–Cl ' + E('Cl-Cl') + ' e H–Cl ' + E('H-Cl') + ' $\\mathrm{kJ\\,mol^{-1}}$.',
             resolucao: [
               'Quebradas: uma H–H e uma Cl–Cl, $' + E('H-H') + ' + ' + E('Cl-Cl') + ' = ' + Q.deltaHLigacoes({ quebradas: { 'H-H': 1, 'Cl-Cl': 1 }, formadas: { 'H-Cl': 2 } }).somaQuebradas + '\\,\\mathrm{kJ}$.',
               'Formadas: duas H–Cl (o coeficiente é 2), $2 \\times ' + E('H-Cl') + ' = ' + Q.deltaHLigacoes({ quebradas: { 'H-H': 1, 'Cl-Cl': 1 }, formadas: { 'H-Cl': 2 } }).somaFormadas + '\\,\\mathrm{kJ}$.',
@@ -1073,7 +1073,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Estima $\\Delta H$ da combustão do metano, $\\mathrm{CH_4(g) + 2\\,O_2(g) \\longrightarrow CO_2(g) + 2\\,H_2O(g)}$ (energias de ligação em $\\mathrm{kJ\\,mol^{-1}}$: C–H ' + E('C-H') + ', O=O ' + E('O=O') + ', C=O no $\\mathrm{CO_2}$ ' + E('C=O') + ', O–H ' + E('O-H') + ').',
+            enunciado: 'Estima $\\Delta H$ da combustão do metano, $\\mathrm{CH_4(g)} + 2\\,\\mathrm{O_2(g)} \\longrightarrow \\mathrm{CO_2(g)} + 2\\,\\mathrm{H_2O(g)}$ (energias de ligação em $\\mathrm{kJ\\,mol^{-1}}$: C–H ' + E('C-H') + ', O=O ' + E('O=O') + ', C=O no $\\mathrm{CO_2}$ ' + E('C=O') + ', O–H ' + E('O-H') + ').',
             resolucao: [
               'Quebradas: 4 C–H e 2 O=O, $4 \\times ' + E('C-H') + ' + 2 \\times ' + E('O=O') + ' = ' + Q.deltaHLigacoes({ quebradas: { 'C-H': 4, 'O=O': 2 }, formadas: { 'C=O': 2, 'O-H': 4 } }).somaQuebradas + '\\,\\mathrm{kJ}$.',
               'Formadas: 2 C=O (no $\\mathrm{CO_2}$) e 4 O–H (2 em cada uma das 2 moléculas de água), $2 \\times ' + E('C=O') + ' + 4 \\times ' + E('O-H') + ' = ' + Q.deltaHLigacoes({ quebradas: { 'C-H': 4, 'O=O': 2 }, formadas: { 'C=O': 2, 'O-H': 4 } }).somaFormadas + '\\,\\mathrm{kJ}$.',
@@ -1102,7 +1102,7 @@ globalThis.Manual = globalThis.Manual || {};
           {
             id: 'entalpia-q01',
             tipo: 'numerica',
-            enunciado: 'Estima $\\Delta H$, em $\\mathrm{kJ\\,mol^{-1}}$, para $\\mathrm{2\\,H_2(g) + O_2(g) \\longrightarrow 2\\,H_2O(g)}$ (energias de ligação em $\\mathrm{kJ\\,mol^{-1}}$: H–H ' + E('H-H') + ', O=O ' + E('O=O') + ', O–H ' + E('O-H') + ').',
+            enunciado: 'Estima $\\Delta H$, em $\\mathrm{kJ\\,mol^{-1}}$, para $2\\,\\mathrm{H_2(g)} + \\mathrm{O_2(g)} \\longrightarrow 2\\,\\mathrm{H_2O(g)}$ (energias de ligação em $\\mathrm{kJ\\,mol^{-1}}$: H–H ' + E('H-H') + ', O=O ' + E('O=O') + ', O–H ' + E('O-H') + ').',
             resposta: -478,
             tolerancia: 0.5,
             resolucao: [
@@ -1143,7 +1143,7 @@ globalThis.Manual = globalThis.Manual || {};
           {
             id: 'entalpia-q04',
             tipo: 'numerica',
-            enunciado: 'Para a combustão do metano, $\\mathrm{CH_4(g) + 2\\,O_2(g) \\longrightarrow CO_2(g) + 2\\,H_2O(g)}$, $\\Delta H \\approx ' + Q.deltaHLigacoes({ quebradas: { 'C-H': 4, 'O=O': 2 }, formadas: { 'C=O': 2, 'O-H': 4 } }).deltaH + '\\,\\mathrm{kJ\\,mol^{-1}}$. Que energia, em kJ, é libertada na combustão de $0{,}50\\,\\mathrm{mol}$ de metano?',
+            enunciado: 'Para a combustão do metano, $\\mathrm{CH_4(g)} + 2\\,\\mathrm{O_2(g)} \\longrightarrow \\mathrm{CO_2(g)} + 2\\,\\mathrm{H_2O(g)}$, $\\Delta H \\approx ' + Q.deltaHLigacoes({ quebradas: { 'C-H': 4, 'O=O': 2 }, formadas: { 'C=O': 2, 'O-H': 4 } }).deltaH + '\\,\\mathrm{kJ\\,mol^{-1}}$. Que energia, em kJ, é libertada na combustão de $0{,}50\\,\\mathrm{mol}$ de metano?',
             resposta: 401,
             tolerancia: 0.5,
             resolucao: [
@@ -1218,7 +1218,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'formula',
-            texto: '$\\mathrm{2\\,AgCl(s)} \\xrightarrow{\\text{luz}} \\mathrm{2\\,Ag(s) + Cl_2(g)}$',
+            texto: '$\\mathrm{2\\,AgCl(s)} \\xrightarrow{\\text{luz}} 2\\,\\mathrm{Ag(s)} + \\mathrm{Cl_2(g)}$',
           },
           {
             tipo: 'texto',
@@ -1257,9 +1257,9 @@ globalThis.Manual = globalThis.Manual || {};
             cabecalho: ['Passo', 'Equação'],
             linhas: [
               ['Fotodissociação do oxigénio (UV de maior energia)', '$\\mathrm{O_2} + h\\nu \\longrightarrow 2\\,\\mathrm{O}$'],
-              ['Formação do ozono', '$\\mathrm{O + O_2 \\longrightarrow O_3}$'],
-              ['Decomposição do ozono pela luz (absorve UV)', '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2 + O}$'],
-              ['Decomposição do ozono com oxigénio atómico', '$\\mathrm{O + O_3 \\longrightarrow 2\\,O_2}$'],
+              ['Formação do ozono', '$\\mathrm{O} + \\mathrm{O_2} \\longrightarrow \\mathrm{O_3}$'],
+              ['Decomposição do ozono pela luz (absorve UV)', '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2} + \\mathrm{O}$'],
+              ['Decomposição do ozono com oxigénio atómico', '$\\mathrm{O} + \\mathrm{O_3} \\longrightarrow 2\\,\\mathrm{O_2}$'],
             ],
           },
           {
@@ -1276,7 +1276,7 @@ globalThis.Manual = globalThis.Manual || {};
             linhas: [
               ['O radical cloro destrói uma molécula de ozono', '$\\mathrm{Cl}^{\\bullet} + \\mathrm{O_3} \\longrightarrow \\mathrm{ClO}^{\\bullet} + \\mathrm{O_2}$'],
               ['O radical cloro é regenerado', '$\\mathrm{ClO}^{\\bullet} + \\mathrm{O} \\longrightarrow \\mathrm{Cl}^{\\bullet} + \\mathrm{O_2}$'],
-              ['Balanço', '$\\mathrm{O_3 + O \\longrightarrow 2\\,O_2}$'],
+              ['Balanço', '$\\mathrm{O_3} + \\mathrm{O} \\longrightarrow 2\\,\\mathrm{O_2}$'],
             ],
           },
           {
@@ -1285,7 +1285,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**O ozono na troposfera** é um **poluente**: forma-se perto do solo, em dias de sol, a partir de poluentes dos automóveis ($\\mathrm{NO_2} + h\\nu \\longrightarrow \\mathrm{NO + O}$, seguido de $\\mathrm{O + O_2 \\longrightarrow O_3}$). Faz parte do smog fotoquímico, irrita os olhos e as vias respiratórias, danifica as plantas e é um gás com efeito de estufa.',
+            texto: '**O ozono na troposfera** é um **poluente**: forma-se perto do solo, em dias de sol, a partir de poluentes dos automóveis ($\\mathrm{NO_2} + h\\nu \\longrightarrow \\mathrm{NO} + \\mathrm{O}$, seguido de $\\mathrm{O} + \\mathrm{O_2} \\longrightarrow \\mathrm{O_3}$). Faz parte do smog fotoquímico, irrita os olhos e as vias respiratórias, danifica as plantas e é um gás com efeito de estufa.',
           },
           {
             tipo: 'texto',
@@ -1298,9 +1298,9 @@ globalThis.Manual = globalThis.Manual || {};
         ],
         resumo: [
           'Reação fotoquímica: a energia vem da luz. Para quebrar uma ligação, o fotão precisa de energia ≥ energia de ligação por molécula ($E = hc/\\lambda$).',
-          'Cloreto de prata (branco) exposto à luz: $\\mathrm{2\\,AgCl \\longrightarrow 2\\,Ag + Cl_2}$, escurece; o controlo tapado não muda.',
+          'Cloreto de prata (branco) exposto à luz: $2\\,\\mathrm{AgCl} \\longrightarrow 2\\,\\mathrm{Ag} + \\mathrm{Cl_2}$, escurece; o controlo tapado não muda.',
           'Radicais livres: espécies com eletrões desemparelhados ($\\mathrm{Cl}^{\\bullet}$, $\\mathrm{HO}^{\\bullet}$), muito reativos.',
-          'Estratosfera: $\\mathrm{O_2} + h\\nu \\longrightarrow 2\\,\\mathrm{O}$; $\\mathrm{O + O_2 \\longrightarrow O_3}$; $\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2 + O}$. A camada de ozono filtra o UV.',
+          'Estratosfera: $\\mathrm{O_2} + h\\nu \\longrightarrow 2\\,\\mathrm{O}$; $\\mathrm{O} + \\mathrm{O_2} \\longrightarrow \\mathrm{O_3}$; $\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2} + \\mathrm{O}$. A camada de ozono filtra o UV.',
           'CFC: a luz UV liberta $\\mathrm{Cl}^{\\bullet}$, que destrói o ozono num ciclo em que é regenerado (um Cl destrói milhares de $\\mathrm{O_3}$).',
           'Troposfera: o ozono é poluente (smog fotoquímico). Nos seres vivos, os radicais contribuem para o envelhecimento.',
         ],
@@ -1338,10 +1338,10 @@ globalThis.Manual = globalThis.Manual || {};
             tipo: 'escolha',
             enunciado: 'Que equação traduz a **formação** de ozono na estratosfera?',
             opcoes: [
-              '$\\mathrm{O + O_2 \\longrightarrow O_3}$',
-              '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2 + O}$',
+              '$\\mathrm{O} + \\mathrm{O_2} \\longrightarrow \\mathrm{O_3}$',
+              '$\\mathrm{O_3} + h\\nu \\longrightarrow \\mathrm{O_2} + \\mathrm{O}$',
               '$\\mathrm{Cl}^{\\bullet} + \\mathrm{O_3} \\longrightarrow \\mathrm{ClO}^{\\bullet} + \\mathrm{O_2}$',
-              '$\\mathrm{O + O_3 \\longrightarrow 2\\,O_2}$',
+              '$\\mathrm{O} + \\mathrm{O_3} \\longrightarrow 2\\,\\mathrm{O_2}$',
             ],
             correta: 0,
             explicacao: 'O oxigénio atómico, obtido pela fotodissociação do $\\mathrm{O_2}$, reage com $\\mathrm{O_2}$ e forma $\\mathrm{O_3}$. As outras equações são de decomposição do ozono.',
@@ -1369,7 +1369,7 @@ globalThis.Manual = globalThis.Manual || {};
               'Serve para recolher o cloro libertado.',
             ],
             correta: 0,
-            explicacao: 'A amostra tapada passa pelas mesmas condições, exceto a luz. Se só as iluminadas escurecem, a causa é a luz: $\\mathrm{2\\,AgCl(s)} \\xrightarrow{\\text{luz}} \\mathrm{2\\,Ag(s) + Cl_2(g)}$.',
+            explicacao: 'A amostra tapada passa pelas mesmas condições, exceto a luz. Se só as iluminadas escurecem, a causa é a luz: $\\mathrm{2\\,AgCl(s)} \\xrightarrow{\\text{luz}} 2\\,\\mathrm{Ag(s)} + \\mathrm{Cl_2(g)}$.',
             errosTipicos: [
               { codigo: 'atribuiu_o_escurecimento_ao_ar', opcao: 1, explicacao: 'O escurecimento deve-se à luz, que decompõe o cloreto de prata em prata e cloro, não ao oxigénio do ar. A amostra tapada é o controlo.' },
             ],

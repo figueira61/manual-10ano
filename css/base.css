@@ -500,7 +500,7 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
 .cronometro { margin: 0 0 8px; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto-suave); text-align: right; }
 .registada { margin: 0; font-weight: 600; color: var(--texto-suave); }
 .ligacao-rever { display: inline-block; margin-top: 8px; font-weight: 600; }
-.revisao { margin-top: 16px; display: grid; gap: 12px; }
+.revisao { margin-top: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .revisao-titulo { margin: 0; }
 .revisao-item { padding: 12px; background: var(--superficie); border: 1px solid var(--borda); border-radius: 14px; overflow-wrap: anywhere; }
 

@@ -115,4 +115,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '8b95198f6c';
+self.VERSAO_CACHE = '1d12388957';
