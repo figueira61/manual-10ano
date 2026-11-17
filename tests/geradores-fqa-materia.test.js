@@ -49,8 +49,8 @@ for (const id of IDS) {
 test('snapshots da semente 1', () => {
   const g = (id) => G.gerar(id, 1);
   let p = g('ligacao-tipo');
-  assert.match(p.enunciado, /hidrogénio e de oxigénio na água/);
-  assert.equal(certa(p), 'Covalente');
+  assert.match(p.enunciado, /sódio e de oxigénio no óxido de sódio/);
+  assert.equal(certa(p), 'Iónica'); // metal + não metal
   p = g('ligacao-lewis');
   assert.match(p.enunciado, /\\mathrm\{CO_2\}/);
   assert.equal(p.resposta, 4); // 2 pares não ligantes em cada O
@@ -126,8 +126,8 @@ test('notação científica corrige com toleranciaRelativa; «não dividiu por N
     for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 20; s++) {
       const q = G.gerar(id, s, { formato: 'numerica', contexto });
       if (Math.abs(q.resposta) >= 1e5 || Math.abs(q.resposta) < 1e-3) assert.ok(q.toleranciaRelativa > 0 && q.tolerancia === undefined, id + ' ' + s);
-      // Uma resposta 0 só é tomada por um erro típico se esse erro valer mesmo 0.
-      if (!q.errosTipicos.some((e) => e.valor === 0)) assert.equal(M.aprendizagem.detetarErro(q, '0'), null, id + ' ' + contexto + ' ' + s);
+      // Uma resposta 0 (ou em branco) nunca é tomada por um erro típico.
+      assert.equal(M.aprendizagem.detetarErro(q, '0'), null, id + ' ' + contexto + ' ' + s);
     }
   }
 });
@@ -207,7 +207,28 @@ test('grupo funcional: a certa é a do catálogo e o enunciado não revela o nom
   }
 });
 
-test('todos os códigos de erro emitidos estão no snapshot de textos (leitura estática)', () => {
+test('Química (elementos e matéria): concordância com 1 («1 par», «1 eletrão», «1 mol … corresponde») e nenhum «/1» escrito (300 sementes)', () => {
+  const RE = /(^|[^0-9,])1 (pares|eletrões|ligações|carbonos|ligantes|não ligantes|átomos|moles)/;
+  const UM = /1 mol de \$[^$]*\$ correspondem|\\dfrac\{[^{}]*\}\{1\}/;
+  for (const d of G.todos().filter((x) => x.disciplina === 'fqa')) {
+    for (const formato of d.formatos) for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 300; s++) {
+      const p = G.gerar(d.id, s, { formato, contexto });
+      const textos = [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.map((r) => r.porque + ' ' + (r.calculo || '')), p.errosTipicos.map((e) => e.explicacao), [p.verificacao.calculo]);
+      for (const t of textos) assert.ok(!RE.test(String(t)) && !UM.test(String(t)), d.id + ' ' + s + ': ' + t);
+    }
+  }
+});
+
+test('Química (elementos e matéria): uma resposta numérica 0 nunca é tomada por um erro típico', () => {
+  for (const d of G.todos().filter((x) => x.disciplina === 'fqa' && x.formatos.includes('numerica'))) {
+    for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 60; s++) {
+      const q = G.gerar(d.id, s, { formato: 'numerica', contexto });
+      assert.equal(M.aprendizagem.detetarErro(q, '0'), null, d.id + ' ' + contexto + ' ' + s);
+    }
+  }
+});
+
+test('cada código de erro emitido em tempo de execução tem texto no snapshot (a leitura estática não o deixa escapar)', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const linhas = new Set(fs.readFileSync(path.join(__dirname, 'fixtures', 'erros-humanizados.txt'), 'utf8').split(/\r?\n/).map((l) => l.split(' → ')[0]));

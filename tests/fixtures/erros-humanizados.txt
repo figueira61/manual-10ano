@@ -140,6 +140,7 @@ coordenada_errada → Usou a coordenada errada
 coordenadas_trocadas → Trocou as coordenadas
 covalente_entre_atomos_iguais → Julgou covalente a ligação entre átomos de um metal
 covalente_entre_metal_e_nao_metal → Julgou covalente a ligação entre um metal e um não metal
+covalente_polar_entre_metal_e_nao_metal → Julgou covalente polar a ligação entre um metal e um não metal
 cruzou_mal → Multiplicou em cruz os termos errados
 declive_como_r → Tomou o declive por coeficiente de correlação
 declive_e_termo_trocados → Trocou o declive com a ordenada na origem
@@ -150,6 +151,7 @@ deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
+deu_a_frequencia → Deu a frequência em vez do comprimento de onda
 deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
 deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_massa_molar → Deu a massa molar em vez da massa volúmica
@@ -205,6 +207,7 @@ dividiu_pelo_indice → Dividiu pelo índice em vez de multiplicar
 dividiu_pelo_numero_de_valores → Dividiu pelo número de valores diferentes em vez de pelo de observações
 dividiu_pelo_volume_molar → Dividiu pelo volume molar em vez de multiplicar
 dividiu_por_100 → Dividiu por 100 em vez de 1000
+dividiu_por_1000_em_vez_de_multiplicar → Dividiu por 1000 em vez de multiplicar ao passar de kJ a J
 dividiu_por_2 → Dividiu por 2 onde não devia
 dividiu_por_n → Dividiu por n em vez de por n − 1
 dividiu_so_a_raiz → Dividiu só a raiz, e não o resto
@@ -375,7 +378,6 @@ multiplicou_pelo_volume → Multiplicou pelo volume em vez de dividir
 multiplicou_pelo_volume_molar → Multiplicou pelo volume molar em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
 multiplicou_por_5 → Multiplicou por 5 em vez de dividir
-multiplicou_por_na → Multiplicou pela constante de Avogadro em vez de dividir
 nao_alterou → Esqueceu que o desvio padrão também é multiplicado
 nao_arredondou → Não arredondou o resultado da calculadora
 nao_contou_o_zero_final → Não contou o zero final como algarismo significativo

@@ -88,7 +88,12 @@ globalThis.Manual = globalThis.Manual || {};
   }
   const dadosZ = (id) => Object.keys(atomosDe(id)).map((s) => '$Z(\\mathrm{' + s + '}) = ' + el(s).z + '$').join(', ');
   const juntar = (l) => (l.length === 1 ? l[0] : l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1]);
+  // Concordância com o número: plural(1, 'par', 'pares') = '1 par', plural(3, 'par', 'pares') = '3 pares'.
   const plural = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
+  // « = » se o valor mostrado com 3 a.s. é exato, « ≈ » se foi arredondado.
+  const igualAprox = (v) => (Math.abs(aAS(v, 3) - v) < 1e-9 * Math.max(1, Math.abs(v)) ? ' = ' : ' \\approx ');
+  // Artigo definido pelo género do nome (os nomes do catálogo terminados em -a são femininos: água, propanona, metilamina).
+  const artigo = (nome) => (/a$/.test(nome) ? 'a' : 'o');
 
   // ================================================================ ligacao
   // Substâncias para o tipo de ligação: [fórmula LaTeX, nome, elementos, tipo]. Só iónicos claros (metais dos grupos 1 e 2).
@@ -121,7 +126,7 @@ globalThis.Manual = globalThis.Manual || {};
     ['Cu', 'cobre', ['Cu'], 'metalica'],
     ['Fe', 'ferro', ['Fe'], 'metalica'],
   ];
-  const NOME_TIPO = { covalente: 'Covalente', ionica: 'Iónica', metalica: 'Metálica', hidrogenio: 'Ligação de hidrogénio' };
+  const NOME_TIPO = { covalente: 'Covalente', ionica: 'Iónica', metalica: 'Metálica', hidrogenio: 'Ligação de hidrogénio', covalentePolar: 'Covalente polar' };
   const tipoPorGrupos = (els) => {
     const metais = els.filter(ehMetal).length;
     if (metais === els.length) return 'metalica';
@@ -133,9 +138,9 @@ globalThis.Manual = globalThis.Manual || {};
     formatos: ['escolha', 'vf'], contextos: ['elementos', 'substancia'],
     gerar(semente, { formato, contexto, rng }) {
       return tentar(() => {
-        // Escolha: só iónicos e covalentes com H (cada opção errada é um erro típico real); vf: todos.
+        // Escolha: só iónicos e covalentes com H ligado a N, O ou F (só aí «ligação de hidrogénio» é uma confusão real); vf: todos.
         const lista = formato === 'escolha'
-          ? SUBST_LIGACAO.filter((x) => x[3] === 'ionica' || (x[3] === 'covalente' && x[2].includes('H')))
+          ? SUBST_LIGACAO.filter((x) => x[3] === 'ionica' || (x[3] === 'covalente' && x[2].includes('H') && x[2].some((y) => ['N', 'O', 'F'].includes(y))))
           : SUBST_LIGACAO;
         const [f, nome, els, tipo] = escolher(rng, lista);
         const F = '$\\mathrm{' + f + '}$';
@@ -170,11 +175,12 @@ globalThis.Manual = globalThis.Manual || {};
             ? 'A ligação de hidrogénio é uma interação entre moléculas, com H ligado a N, O ou F. ' + F + ' não é formado por moléculas: é uma rede de iões (ligação iónica).'
             : 'A ligação de hidrogénio é uma interação entre moléculas diferentes. Dentro de cada molécula, os átomos de ' + nomeEl('H') + ' e de ' + nomeEl(outro) + ' partilham pares de eletrões: ligação covalente.'),
           ionica_entre_nao_metais: 'Para haver ligação iónica é preciso um metal que ceda eletrões. ' + (els.length === 1 ? 'Os dois átomos de ' + nomeEl(els[0]) + ' são iguais e não metálicos' : 'O ' + nomeEl(els[0]) + ' e o ' + nomeEl(els[1]) + ' são não metais') + ': partilham pares de eletrões, numa ligação covalente.',
+          covalente_polar_entre_metal_e_nao_metal: 'A diferença de eletronegatividade entre o ' + (metal ? nomeEl(metal) : '') + ' e o ' + (naoMetal ? nomeEl(naoMetal) : '') + ' é tão grande que o metal cede eletrões: não há pares partilhados (nem polares), formam-se iões. É uma ligação iónica.',
           tomou_o_hidrogenio_por_metal: 'O hidrogénio está no grupo 1, mas não é um metal: com o ' + nomeEl(outro) + ' partilha pares de eletrões, numa ligação covalente. A ligação metálica é entre átomos de metais.',
           covalente_entre_atomos_iguais: 'Átomos iguais partilham pares de eletrões quando são de um não metal (como no $\\mathrm{Cl_2}$). O ' + nomeEl(els[0]) + ' é um metal: os eletrões de valência ficam deslocalizados por uma rede de catiões (ligação metálica).',
         };
         const errosPorTipo = {
-          ionica: [['covalente', 'covalente_entre_metal_e_nao_metal'], ['metalica', 'metalica_por_ter_um_metal'], ['hidrogenio', 'confundiu_ligacao_com_interacao_intermolecular']],
+          ionica: [['covalente', 'covalente_entre_metal_e_nao_metal'], ['metalica', 'metalica_por_ter_um_metal'], ['covalentePolar', 'covalente_polar_entre_metal_e_nao_metal']],
           covalente: [['ionica', 'ionica_entre_nao_metais'], ['metalica', 'tomou_o_hidrogenio_por_metal'], ['hidrogenio', 'confundiu_ligacao_com_interacao_intermolecular']],
           metalica: [['covalente', 'covalente_entre_atomos_iguais']],
         };
@@ -244,11 +250,12 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado = 'A figura mostra a fórmula de estrutura da molécula ' + F + ', sem os pares não ligantes (' + dadosZ(id) + '). Quantos pares de eletrões não ligantes tem a molécula, no total?';
           resolucao = [passoVe, passoPl, { passo: 'Os eletrões que sobram formam pares não ligantes', porque: 'Os eletrões de valência que não estão em pares ligantes ficam em pares não ligantes; confirma-se que cada átomo (exceto o H) fica com 8 eletrões.', calculo: '\\dfrac{' + ve + ' - 2 \\times ' + Pl + '}{2} = ' + Pn }];
           erros = [
-            { codigo: 'contou_eletroes_em_vez_de_pares', valor: 2 * Pn, explicacao: 'Obtiveste ' + 2 * Pn + ', que é o número de eletrões não ligantes; cada par tem 2 eletrões, por isso há ' + Pn + ' pares.' },
-            { codigo: 'somou_pares_ligantes_e_nao_ligantes', valor: Pl + Pn, explicacao: 'Obtiveste ' + (Pl + Pn) + ', que é o total de pares de valência (' + Pl + ' ligantes + ' + Pn + ' não ligantes); pedia-se só os não ligantes: ' + Pn + '.' },
-            { codigo: 'deu_os_pares_ligantes', valor: Pl, explicacao: Pl + ' é o número de pares ligantes (os traços da fórmula de estrutura); os não ligantes são os ' + Pn + ' que sobram.' },
+            { codigo: 'contou_eletroes_em_vez_de_pares', valor: 2 * Pn, explicacao: 'Obtiveste ' + 2 * Pn + ', que é o número de eletrões não ligantes; cada par tem 2 eletrões, por isso há ' + plural(Pn, 'par', 'pares') + '.' },
+            { codigo: 'somou_pares_ligantes_e_nao_ligantes', valor: Pl + Pn, explicacao: 'Obtiveste ' + (Pl + Pn) + ', que é o total de pares de valência (' + plural(Pl, 'par ligante', 'pares ligantes') + ' + ' + plural(Pn, 'par não ligante', 'pares não ligantes') + '); pedia-se só o número de pares não ligantes: ' + Pn + '.' },
+            { codigo: 'deu_os_pares_ligantes', valor: Pl, explicacao: Pl + ' é o número de pares ligantes (os traços da fórmula de estrutura); os pares que sobram, não ligantes, são ' + Pn + '.' },
           ];
-          if (centrais.length && paresCentrais !== Pn) erros.push({ codigo: 'contou_so_os_pares_do_atomo_central', valor: paresCentrais, explicacao: 'Obtiveste ' + paresCentrais + ' porque contaste só os pares não ligantes do átomo central; os átomos das pontas (exceto o H) também têm pares não ligantes: no total são ' + Pn + '.' });
+          // Só quando o átomo central tem pares não ligantes: um erro de valor 0 confundir-se-ia com uma resposta em branco.
+          if (centrais.length && paresCentrais > 0 && paresCentrais !== Pn) erros.push({ codigo: 'contou_so_os_pares_do_atomo_central', valor: paresCentrais, explicacao: 'Obtiveste ' + paresCentrais + ' porque contaste só os pares não ligantes do átomo central; os átomos das pontas (exceto o H) também têm pares não ligantes: no total há ' + plural(Pn, 'par não ligante', 'pares não ligantes') + '.' });
           verificacao = { passo: 'Completar o octeto átomo a átomo (H com 2 eletrões)', calculo: m.atomos.map((a) => a.pares).join(' + ') + ' = ' + Pn, valor: naoLigantesPeloOcteto(id) };
         } else if (contexto === 'ligantes') {
           resposta = Pl;
@@ -256,11 +263,11 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado = 'A figura mostra a fórmula de estrutura da molécula ' + F + '. Quantos pares de eletrões ligantes tem a molécula?';
           resolucao = [passoPl];
           erros = [
-            { codigo: 'contou_eletroes_em_vez_de_pares', valor: 2 * Pl, explicacao: 'Obtiveste ' + 2 * Pl + ', que é o número de eletrões ligantes; cada par tem 2 eletrões, por isso há ' + Pl + ' pares ligantes.' },
+            { codigo: 'contou_eletroes_em_vez_de_pares', valor: 2 * Pl, explicacao: 'Obtiveste ' + 2 * Pl + ', que é o número de eletrões ligantes; cada par tem 2 eletrões, por isso há ' + plural(Pl, 'par ligante', 'pares ligantes') + '.' },
           ];
-          if (multiplas) erros.push({ codigo: 'contou_ligacoes_em_vez_de_pares', valor: nLig, explicacao: 'Contaste ' + nLig + ' ligações, mas uma ligação dupla tem 2 pares ligantes e uma tripla tem 3: são ' + Pl + ' pares.' });
+          if (multiplas) erros.push({ codigo: 'contou_ligacoes_em_vez_de_pares', valor: nLig, explicacao: 'Contaste ' + plural(nLig, 'ligação', 'ligações') + ', mas uma ligação dupla tem 2 pares ligantes e uma tripla tem 3: são ' + plural(Pl, 'par', 'pares') + '.' });
           if (Pn > 0) {
-            erros.push({ codigo: 'somou_pares_ligantes_e_nao_ligantes', valor: Pl + Pn, explicacao: 'Obtiveste ' + (Pl + Pn) + ', que é o total de pares de valência (' + Pl + ' ligantes + ' + Pn + ' não ligantes); os ligantes são só os ' + Pl + ' partilhados entre átomos.' });
+            erros.push({ codigo: 'somou_pares_ligantes_e_nao_ligantes', valor: Pl + Pn, explicacao: 'Obtiveste ' + (Pl + Pn) + ', que é o total de pares de valência (' + plural(Pl, 'par ligante', 'pares ligantes') + ' + ' + plural(Pn, 'par não ligante', 'pares não ligantes') + '); os ligantes são só os partilhados entre átomos: ' + Pl + '.' });
             erros.push({ codigo: 'deu_os_pares_nao_ligantes', valor: Pn, explicacao: Pn + ' é o número de pares não ligantes; os pares ligantes são os das ligações: ' + Pl + '.' });
           }
           verificacao = Pn > 0
@@ -573,7 +580,8 @@ globalThis.Manual = globalThis.Manual || {};
         const verificacao = { passo: 'Confirmar pela simetria à volta do átomo central', calculo: '\\text{pares não ligantes no átomo central: } ' + central(id).pares, valor: null };
         const esquema = { id: 'fqa-geometria', opcoes: { molecula: id } };
         if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao, esquema }, certa, erros, certa);
-        const e = escolher(rng, erros.filter((x) => !/A conclusão está certa/.test(x.explicacao)));
+        // Sem a afirmação «é linear…» numa frase que já diz a geometria (contradição) e sem as de conclusão certa.
+        const e = escolher(rng, erros.filter((x) => !/A conclusão está certa/.test(x.explicacao) && x.codigo !== j.codigo));
         const inicio = 'A molécula $' + m.formula + '$, que é ' + m.geometria + ', ';
         const v = vfDe(rng, inicio + certa.replace(/^É (a?polar): /, 'é $1, já que '), inicio + e.texto.charAt(0).toLowerCase() + e.texto.slice(1), { codigo: e.codigo, explicacao: e.explicacao });
         dados.afirmaPolar = /, é polar/.test(v.enunciado);
@@ -709,7 +717,7 @@ globalThis.Manual = globalThis.Manual || {};
         const dados = { x, y, contexto, primeiro: a };
         const verificacao = { passo: 'Confirmar pela força das interações e pelo número de eletrões', calculo: '\\text{' + mx.nome + ': ' + eletroesDe(x) + ' eletrões;\\ ' + my.nome + ': ' + eletroesDe(y) + ' eletrões}', valor: null };
         if (formato === 'escolha') return fecharTexto(rng, { enunciado, resolucao, dados, verificacao }, certa, erros, certa);
-        const frase = (p, q) => 'O ponto de ebulição do ' + nomeF(p) + ' é mais elevado do que o do ' + nomeF(q) + '.';
+        const frase = (p, q) => 'O ponto de ebulição d' + artigo(mol(p).nome) + ' ' + nomeF(p) + ' é mais elevado do que o d' + artigo(mol(q).nome) + ' ' + nomeF(q) + '.';
         const erro = erros[0];
         const v = vfDe(rng, frase(x, y), frase(y, x), { codigo: erro.codigo, explicacao: erro.explicacao });
         dados.afirmadoMaior = v.correta ? x : y;
@@ -772,8 +780,9 @@ globalThis.Manual = globalThis.Manual || {};
           [n, fam] = HC_CATALOGO[id];
         } else {
           [n, fam] = escolher(rng, HCS);
-          if (n === 1 && formato === 'escolha') return null;
         }
+        // Com um só carbono não há alcenos nem alcinos: os distratores não existiriam (CH₂, CH₀).
+        if (n === 1) return null;
         const h = FAMILIA[fam].h(n);
         const F = '$' + formulaHC(n, h) + '$';
         const enunciado = contexto === 'estrutura'
@@ -832,7 +841,7 @@ globalThis.Manual = globalThis.Manual || {};
       return p.opcoes[p.correta] === TXT_FAM[fam];
     },
     limites(p) {
-      return p.dados.n >= 1 && p.dados.n <= 4 && !!FAMILIA[p.dados.fam];
+      return p.dados.n >= 2 && p.dados.n <= 4 && !!FAMILIA[p.dados.fam];
     },
   });
 
@@ -899,7 +908,7 @@ globalThis.Manual = globalThis.Manual || {};
         };
         const resolucao = [
           { passo: 'Procurar o grupo funcional', porque: DESC[g] },
-          { passo: 'Identificar a família', porque: 'É ' + (g === 'cetona' || g === 'amina' ? 'uma ' : 'um ') + NOME_GRUPO[g].toLowerCase() + ': o composto é o ' + m.nome + ', $' + m.formula + '$.' },
+          { passo: 'Identificar a família', porque: 'É ' + (g === 'cetona' || g === 'amina' ? 'uma ' : 'um ') + NOME_GRUPO[g].toLowerCase() + ': o composto é ' + artigo(m.nome) + ' ' + m.nome + ', $' + m.formula + '$.' },
         ];
         const dados = { molecula: id, contexto };
         const verificacao = { passo: 'Confirmar pelo nome do composto (terminação)', calculo: '\\text{' + m.nome + '}', valor: null };
@@ -950,7 +959,7 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado = 'Qual é o nome do hidrocarboneto de cadeia aberta ' + F + '?';
           certa = maiuscula(nome);
           erros = outras.map((x) => ({ codigo: codTerm[x], texto: maiuscula(nomeHC(n, x)), explicacao: 'O ' + nomeHC(n, x) + ' é um ' + FAMILIA[x].nome + ' (' + FAMILIA[x].lig + ') e teria a fórmula $' + formulaHC(n, FAMILIA[x].h(n)) + '$. Com ' + h + ' hidrogénios, é um ' + FAMILIA[fam].nome + ': ' + nome + '.' }));
-          erros.push({ codigo: 'confundiu_o_prefixo', texto: maiuscula(nomeHC(nP, fam)), explicacao: 'O prefixo ' + PREFIXO[nP] + '- é de ' + nP + ' carbonos ($' + formulaHC(nP, FAMILIA[fam].h(nP)) + '$); com ' + n + ' carbonos é ' + PREFIXO[n] + '-: ' + nome + '.' });
+          erros.push({ codigo: 'confundiu_o_prefixo', texto: maiuscula(nomeHC(nP, fam)), explicacao: 'O prefixo ' + PREFIXO[nP] + '- é de ' + nP + ' carbonos ($' + formulaHC(nP, FAMILIA[fam].h(nP)) + '$); com ' + plural(n, 'carbono', 'carbonos') + ' é ' + PREFIXO[n] + '-: ' + nome + '.' });
         } else {
           enunciado = 'Qual é a fórmula molecular do ' + nome + '?';
           certa = F;
@@ -1042,7 +1051,7 @@ globalThis.Manual = globalThis.Manual || {};
           };
           erros = [
             { codigo: 'dividiu_pelo_volume_molar', valor: n / Vm, explicacao: 'Dividiste $n$ pelo volume molar e obtiveste ' + txtAS(n / Vm, 3) + '; o volume é $V = n\\,V_m$ (mais moles, mais volume).' },
-            { codigo: 'deu_o_volume_de_uma_mole', valor: Vm, explicacao: VmTex().replace('{,}', ',') + ' dm³ é o volume de uma mole; para ' + texAS(n, 3).replace('{,}', ',') + ' mol multiplica-se: V = n × V_m.' },
+            { codigo: 'deu_o_volume_de_uma_mole', valor: Vm, explicacao: VmTex().replace('{,}', ',') + ' dm³ é o volume de uma mole; para ' + texAS(n, 3).replace('{,}', ',') + ' mol multiplica-se: $V = n\\,V_m$.' },
             { codigo: 'dividiu_o_volume_molar_por_n', valor: Vm / n, explicacao: 'Calculaste $V_m / n \\approx ' + texAS(Vm / n, 3) + '$; o volume é $V = n\\,V_m$.' },
           ];
           verificacao = (r) => ({ passo: 'Voltar à quantidade de matéria', calculo: 'n = \\dfrac{' + texAS(r, 3) + '}{' + VmTex() + '} \\approx ' + texAS(r / Vm, 3) + '\\,\\mathrm{mol}', valor: aAS(Q().volumeGasPTN(n), 3) });
@@ -1088,7 +1097,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'dividiu_pelo_volume_molar', valor: n / Vm, explicacao: 'Dividiste $n$ pelo volume molar e obtiveste ' + txtAS(n / Vm, 3) + '; o volume é $V = n\\,V_m$.' },
           ];
           if (temIndice(g[2])) erros.push({ codigo: 'esqueceu_o_indice_na_massa_molar', valor: m / massaSemIndices(g[2]) * Vm, explicacao: 'Calculaste a massa molar sem os índices ($' + texF(massaSemIndices(g[2]), 2) + '\\,\\mathrm{g\\,mol^{-1}}$) e obtiveste ' + txtAS(m / massaSemIndices(g[2]) * Vm, 3) + '; $M(\\mathrm{' + g[0] + '}) = ' + texF(M, 2) + '\\,\\mathrm{g\\,mol^{-1}}$.' });
-          verificacao = (r) => ({ passo: 'Voltar à massa: V a dividir por V_m dá n, e n vezes M dá m', calculo: '\\dfrac{' + texAS(r, 3) + '}{' + VmTex() + '} \\times ' + texF(M, 2) + ' \\approx ' + texAS(r / Vm * M, 3) + '\\,\\mathrm{g}', valor: aAS(m / massaAtomoAAtomo(g[2]) * Vm, 3) });
+          verificacao = (r) => ({ passo: 'Voltar à massa: $V / V_m$ dá $n$, e $n \\times M$ dá $m$', calculo: '\\dfrac{' + texAS(r, 3) + '}{' + VmTex() + '} \\times ' + texF(M, 2) + ' \\approx ' + texAS(r / Vm * M, 3) + '\\,\\mathrm{g}', valor: aAS(m / massaAtomoAAtomo(g[2]) * Vm, 3) });
           ex.dados = { gas: g[0], m, contexto };
         }
         return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
@@ -1399,7 +1408,7 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'Pretende-se preparar $' + texV(Vf) + '\\,\\mathrm{mL}$ de uma solução de concentração $' + texAS(cf, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$ a partir de uma solução de concentração $' + texAS(ci, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$. Que volume da solução inicial é preciso pipetar?' + AS3,
             resolucao: [
               { passo: 'A quantidade de soluto não muda na diluição', porque: 'Só se junta água: $n = c_i V_i = c_f V_f$ (os volumes podem ficar em mL, desde que na mesma unidade).' },
-              { passo: 'Resolver em ordem a V_i', porque: '$V_i = \\dfrac{c_f V_f}{c_i}$.', calculo: 'V_i = \\dfrac{' + texAS(cf, 3) + ' \\times ' + texV(Vf) + '}{' + texAS(ci, 3) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mL}' },
+              { passo: 'Resolver em ordem a $V_i$', porque: '$V_i = \\dfrac{c_f V_f}{c_i}$.', calculo: 'V_i = \\dfrac{' + texAS(cf, 3) + ' \\times ' + texV(Vf) + '}{' + texAS(ci, 3) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mL}' },
             ],
             dados: { ci, cf, Vf, contexto },
             esquema,
@@ -1419,7 +1428,7 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'Pipetaram-se $' + texV(Vi) + '\\,\\mathrm{mL}$ de uma solução de concentração $' + texAS(ci, 3) + '\\,\\mathrm{mol\\,dm^{-3}}$ para um balão volumétrico de $' + texV(Vf) + '\\,\\mathrm{mL}$, que se completou com água até à marca. Qual é a concentração da solução obtida?' + AS3,
             resolucao: [
               { passo: 'A quantidade de soluto não muda na diluição', porque: '$c_i V_i = c_f V_f$.' },
-              { passo: 'Resolver em ordem a c_f', porque: '$c_f = \\dfrac{c_i V_i}{V_f}$ (os volumes na mesma unidade).', calculo: 'c_f = \\dfrac{' + texAS(ci, 3) + ' \\times ' + texV(Vi) + '}{' + texV(Vf) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol\\,dm^{-3}}' },
+              { passo: 'Resolver em ordem a $c_f$', porque: '$c_f = \\dfrac{c_i V_i}{V_f}$ (os volumes na mesma unidade).', calculo: 'c_f = \\dfrac{' + texAS(ci, 3) + ' \\times ' + texV(Vi) + '}{' + texV(Vf) + '} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{mol\\,dm^{-3}}' },
             ],
             dados: { ci, Vi, Vf, contexto },
             esquema,
@@ -1436,7 +1445,7 @@ globalThis.Manual = globalThis.Manual || {};
           texto = (v) => '$' + texAS(v, 3) + '$';
           ex = {
             enunciado: 'Pipetaram-se $' + texV(Vi) + '\\,\\mathrm{mL}$ de uma solução para um balão volumétrico de $' + texV(Vf) + '\\,\\mathrm{mL}$, que se completou com água até à marca. Qual é o fator de diluição?' + AS3,
-            resolucao: [{ passo: 'Dividir o volume final pelo volume pipetado', porque: 'O fator de diluição é $f = \\dfrac{V_f}{V_i} = \\dfrac{c_i}{c_f}$; é sempre maior do que 1.', calculo: 'f = \\dfrac{' + texV(Vf) + '}{' + texV(Vi) + '} = ' + tex(exato, 3) }],
+            resolucao: [{ passo: 'Dividir o volume final pelo volume pipetado', porque: 'O fator de diluição é $f = \\dfrac{V_f}{V_i} = \\dfrac{c_i}{c_f}$; é sempre maior do que 1.', calculo: 'f = \\dfrac{' + texV(Vf) + '}{' + texV(Vi) + '}' + igualAprox(exato) + texAS(exato, 3) }],
             dados: { Vi, Vf, contexto },
             esquema,
           };
@@ -1445,7 +1454,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'usou_o_volume_de_agua_adicionado', valor: (Vf - Vi) / Vi, explicacao: 'Usaste o volume de água junto ($' + texV(Vf - Vi) + '\\,\\mathrm{mL}$) e obtiveste ' + txtAS((Vf - Vi) / Vi, 3) + '; o fator usa o volume final da solução, $' + texV(Vf) + '\\,\\mathrm{mL}$.' },
             { codigo: 'usou_a_diferenca_de_volumes', valor: Vf - Vi, explicacao: 'O fator não é a diferença entre os volumes (' + txtAS(Vf - Vi, 3) + '): é o quociente $V_f / V_i$.' },
           ];
-          verificacao = (r) => ({ passo: 'Confirmar com as concentrações (c_i / c_f) para uma solução inicial de 1 mol/dm³', calculo: 'c_f = \\dfrac{1 \\times ' + texV(Vi) + '}{' + texV(Vf) + '};\\quad \\dfrac{c_i}{c_f} \\approx ' + texAS(r, 3), valor: aAS(1 / (Vi / Vf), 3) });
+          verificacao = (r) => ({ passo: 'Confirmar que o volume pipetado vezes o fator dá o volume do balão', calculo: texV(Vi) + '\\,\\mathrm{mL} \\times ' + texAS(r, 3) + ' \\approx ' + texV(Vi * r) + '\\,\\mathrm{mL}', valor: aAS(Vf * (1 / Vi), 3) });
         }
         return fechar3(rng, formato, ex, exato, { erros, unidade, texto, verificacao });
       });
@@ -1511,8 +1520,8 @@ globalThis.Manual = globalThis.Manual || {};
           ];
           verificacao = (r) => ({ passo: 'Volume de etanol em 100 mL de solução (regra de três)', calculo: '\\dfrac{' + texAS(vs, 3) + '}{' + texV(Vml) + '} \\times 100\\,\\mathrm{mL} \\approx ' + texAS(r, 3) + '\\,\\mathrm{mL}', valor: aAS(vs * (100 / Vml), 3) });
         } else {
-          const ESP = [['F^-', 'ião fluoreto'], ['Na^+', 'ião sódio'], ['Ca^{2+}', 'ião cálcio'], ['NO_3^-', 'ião nitrato'], ['Pb^{2+}', 'chumbo']];
-          const e = escolher(rng, ESP.filter((x) => x[0] !== 'Pb^{2+}'));
+          const ESP = [['F^-', 'ião fluoreto'], ['Na^+', 'ião sódio'], ['Ca^{2+}', 'ião cálcio'], ['NO_3^-', 'ião nitrato']];
+          const e = escolher(rng, ESP);
           const mg = valor3AS(rng, [[1, 9.99, 0.01], [10, 99.9, 0.1]]);
           const kg = escolher(rng, [0.5, 2, 2.5, 5]);
           exato = Q().ppm(mg / 1000, kg * 1000);
@@ -1788,7 +1797,7 @@ globalThis.Manual = globalThis.Manual || {};
         const acao = reagente ? 'reagem ' : 'se formam ';
         const enunciado = 'Para a reação $' + equacaoTex(r) + '$, $\\Delta H \\approx ' + tex(dH) + kJmol + '$ (valor estimado a partir das energias de ligação, para a equação tal como está escrita). Que energia é ' + verbo + ' quando ' + acao + dadoTxt + '?' + AS3;
         const resolucao = passos.concat([
-          { passo: 'Ler o que corresponde ao ΔH da equação', porque: 'O valor de $\\Delta H$ refere-se às quantidades da equação: ' + (nu === 1 ? '1 mol' : nu + ' mol') + ' de $' + m0.formula + '$ correspondem a ' + fmt(E1) + ' kJ ' + (dH < 0 ? 'libertados' : 'absorvidos') + '.' },
+          { passo: 'Ler o que corresponde ao ΔH da equação', porque: 'O valor de $\\Delta H$ refere-se às quantidades da equação: ' + (nu === 1 ? '1 mol' : nu + ' mol') + ' de $' + m0.formula + '$ ' + (nu === 1 ? 'corresponde' : 'correspondem') + ' a ' + fmt(E1) + ' kJ ' + (dH < 0 ? 'libertados' : 'absorvidos') + '.' },
           { passo: 'Proporção direta', porque: 'A energia é proporcional à quantidade que reage ou se forma.', calculo: 'E = \\dfrac{' + texAS(n, contexto === 'massa' ? 4 : 3) + '}{' + nu + '} \\times ' + tex(E1) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{kJ}' },
         ]);
         if (nu === 1) resolucao[resolucao.length - 1].calculo = 'E = ' + texAS(n, contexto === 'massa' ? 4 : 3) + ' \\times ' + tex(E1) + ' \\approx ' + texAS(exato, 3) + '\\,\\mathrm{kJ}';
@@ -1798,12 +1807,12 @@ globalThis.Manual = globalThis.Manual || {};
           erros.push({ codigo: 'multiplicou_pelo_coeficiente', valor: E1 * n * nu, explicacao: 'Multiplicaste pelo coeficiente ' + nu + ' e obtiveste ' + txtAS(E1 * n * nu, 3) + ' kJ; ' + nu + ' mol correspondem a ' + fmt(E1) + ' kJ, por isso divide-se.' });
         }
         erros.push({ codigo: 'deu_o_deltah_da_equacao', valor: E1, explicacao: txtAS(E1, 3) + ' kJ é (com três algarismos significativos) a energia para as quantidades da equação; para a quantidade dada faz-se a proporção.' });
-        erros.push({ codigo: 'dividiu_o_deltah_pela_quantidade', valor: E1 / n * nu, explicacao: 'Dividiste em vez de multiplicar e obtiveste ' + txtAS(E1 / n * nu, 3) + ' kJ; a energia é proporcional à quantidade: $E = \\dfrac{n}{' + nu + '} \\times ' + tex(E1) + '$.' });
+        erros.push({ codigo: 'dividiu_o_deltah_pela_quantidade', valor: E1 / n * nu, explicacao: 'Dividiste em vez de multiplicar e obtiveste ' + txtAS(E1 / n * nu, 3) + ' kJ; a energia é proporcional à quantidade: $E = ' + (nu === 1 ? 'n' : '\\dfrac{n}{' + nu + '}') + ' \\times ' + tex(E1) + '$.' });
         if (contexto === 'massa') erros.unshift({ codigo: 'usou_a_massa_em_vez_de_n', valor: E1 * m / nu, explicacao: 'Usaste a massa ($' + texAS(m, 3) + '\\,\\mathrm{g}$) como se fosse a quantidade de matéria e obtiveste ' + txtAS(E1 * m / nu, 3) + ' kJ; primeiro $n = m / M$.' });
         const ex = { enunciado, resolucao, dados: { reacao: r.id, especie: id, n: contexto === 'quantidade' ? n : null, m: contexto === 'massa' ? m : null, contexto } };
         return fechar3(rng, formato, ex, exato, {
           erros, unidade: 'kJ', texto: (v) => '$' + texAS(v, 3) + '\\,\\mathrm{kJ}$',
-          verificacao: (rr) => ({ passo: 'Energia por mole da espécie e depois vezes n', calculo: '\\dfrac{' + tex(E1) + '}{' + nu + '} = ' + tex(E1 / nu, 2) + '\\,\\mathrm{kJ\\,mol^{-1}};\\quad ' + tex(E1 / nu, 2) + ' \\times ' + texAS(n, 4) + ' \\approx ' + texAS(rr, 3) + '\\,\\mathrm{kJ}', valor: aAS((E1 / nu) * n, 3) }),
+          verificacao: (rr) => ({ passo: 'Energia por mole da espécie e depois vezes n', calculo: (nu === 1 ? '' : '\\dfrac{' + tex(E1) + '}{' + nu + '} = ') + tex(E1 / nu, 2) + '\\,\\mathrm{kJ\\,mol^{-1}};\\quad ' + tex(E1 / nu, 2) + ' \\times ' + texAS(n, 4) + ' \\approx ' + texAS(rr, 3) + '\\,\\mathrm{kJ}', valor: aAS((E1 / nu) * n, 3) }),
         });
       });
     },
@@ -1934,7 +1943,7 @@ globalThis.Manual = globalThis.Manual || {};
           const erros = [
             { codigo: 'nao_dividiu_por_na', valor: E * 1000, explicacao: '$' + cient(E * 1000, 3) + '\\,\\mathrm{J}$ é a energia para uma mole de ligações; para uma molécula divide-se pela constante de Avogadro.' },
             { codigo: 'nao_converteu_kj_em_j', valor: E / NA, explicacao: 'Não converteste kJ em J e obtiveste $' + cient(E / NA, 3) + '$; a energia de ligação está em kJ/mol, por isso multiplica-se por 1000.' },
-            { codigo: 'multiplicou_por_na', valor: E * 1000 * NA, explicacao: 'Multiplicaste pela constante de Avogadro ($' + cient(E * 1000 * NA, 3) + '$); para passar de uma mole a uma molécula divide-se por $N_A$.' },
+            { codigo: 'dividiu_por_1000_em_vez_de_multiplicar', valor: E / 1000 / NA, explicacao: 'Dividiste por 1000 ao passar de kJ a J e obtiveste $' + cient(E / 1000 / NA, 3) + '\\,\\mathrm{J}$; o joule é a unidade menor, por isso $1\\,\\mathrm{kJ} = 1000\\,\\mathrm{J}$ e multiplica-se.' },
           ];
           return fechar3(rng, formato, ex, Em, {
             erros, unidade: 'J', texto: (v) => '$' + cient(v, 3) + '\\,\\mathrm{J}$',
@@ -1958,11 +1967,11 @@ globalThis.Manual = globalThis.Manual || {};
         const erros = [
           { codigo: 'nao_converteu_kj_em_j', valor: exato * 1000, explicacao: 'Não converteste kJ em J e obtiveste ' + txtAS(exato * 1000, 3) + ' nm, mil vezes mais; a energia por molécula é $' + cient(Em, 3) + '\\,\\mathrm{J}$.' },
           { codigo: 'deu_lambda_em_metros', valor: lam, explicacao: '$' + cient(lam, 3) + '$ é o comprimento de onda em metros; em nanómetros multiplica-se por $10^{9}$.' },
-          { codigo: 'nao_dividiu_por_na', valor: h * c / (E * 1000) * NM, explicacao: 'Usaste a energia de uma mole de ligações ($' + cient(E * 1000, 3) + '\\,\\mathrm{J}$) e obtiveste $' + cient(h * c / (E * 1000) * NM, 3) + '\\,\\mathrm{nm}$; um fotão quebra uma só ligação, por isso divide-se por $N_A$.' },
+          { codigo: 'deu_a_frequencia', valor: Em / h, explicacao: '$' + cient(Em / h, 3) + '$ é a frequência do fotão, $f = E / h$, em hertz; o comprimento de onda é $\\lambda = c / f$, e em nanómetros.' },
         ];
         return fechar3(rng, formato, ex, exato, {
           erros, unidade: 'nm', texto: (v) => txtAS(v, 3).replace(/\$$/, '\\,\\mathrm{nm}$'),
-          verificacao: (r) => ({ passo: 'Usar a energia por mole: λ = h c N_A / E', calculo: '\\lambda = \\dfrac{' + cient(h, 3) + ' \\times ' + cient(c, 3) + ' \\times ' + cient(NA, 3) + '}{' + E + ' \\times 10^{3}} \\approx ' + texAS(r, 3) + '\\,\\mathrm{nm}', valor: aAS(Q().lambdaParaQuebrarLigacao(E) * NM, 3) }),
+          verificacao: (r) => ({ passo: 'Usar a energia por mole: $\\lambda = h\\,c\\,N_A / E$', calculo: '\\lambda = \\dfrac{' + cient(h, 3) + ' \\times ' + cient(c, 3) + ' \\times ' + cient(NA, 3) + '}{' + E + ' \\times 10^{3}} \\approx ' + texAS(r, 3) + '\\,\\mathrm{nm}', valor: aAS(Q().lambdaParaQuebrarLigacao(E) * NM, 3) }),
         });
       });
     },
