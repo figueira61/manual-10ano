@@ -61,7 +61,6 @@ cobrou_todas_as_horas → Cobrou todas as horas, e não só as que ultrapassam o
 codigo_numerico_como_quantitativa → Tomou um código numérico por variável quantitativa
 coeficiente_trocado → Multiplicou x pelo coeficiente errado
 comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
-completou_o_nivel_ganhando_eletroes → Fez o metal ganhar eletrões até completar o nível
 concavidade_trocada → Trocou o sentido da concavidade
 configuracao_de_estado_excitado → Escolheu a configuração de um estado excitado
 confundiu_alcool_com_aldeido → Confundiu álcool com aldeído
@@ -112,7 +111,6 @@ contou_moleculas_em_vez_de_atomos → Contou as moléculas em vez dos átomos
 contou_o_complementar → Contou o contrário do pedido
 contou_os_atomos_em_vez_das_interacoes → Comparou o número de átomos em vez das interações entre moléculas
 contou_os_elementos_em_vez_dos_atomos → Multiplicou pelo número de elementos em vez do número de átomos
-contou_os_eletroes_4s → Contou os eletrões 4s como desemparelhados
 contou_os_eletroes_de_valencia → Deu o número de eletrões de valência em vez dos desemparelhados
 contou_os_eletroes_do_cerne → Contou os eletrões do cerne em vez dos de valência
 contou_os_eletroes_do_ultimo_subnivel → Tomou todos os eletrões do último subnível por desemparelhados
@@ -444,7 +442,6 @@ percentagem_como_euros → Tomou a percentagem por euros
 percentagem_sem_dividir → Não dividiu a percentagem por 100
 perdeu_eletroes_a_mais → Fez o metal perder eletrões a mais
 perdeu_em_vez_de_ganhar → Fez o não metal perder eletrões em vez de os ganhar
-perdeu_os_eletroes_de_valencia → Fez o não metal perder os eletrões de valência
 perdeu_so_um_eletrao → Fez o metal perder só um eletrão
 perdeu_zero_nulo → Perdeu a solução x = 0
 periodo_a_menos → Contou um período a menos

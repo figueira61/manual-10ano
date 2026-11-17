@@ -52,8 +52,8 @@ test('snapshots da semente 1', () => {
   assert.match(p.enunciado, /\{\}\^\{20\}_\{10\}\\mathrm\{Ne\}/);
   assert.equal(p.resposta, 10); // N = A − Z = 20 − 10
   p = g('atomo-isotopos');
-  assert.match(p.enunciado, /\{\}\^\{26\}_\{12\}\\mathrm\{Mg\}/);
-  assert.equal(certa(p), '${}^{25}_{12}\\mathrm{Mg}$'); // mesmo Z, outro A
+  assert.match(p.enunciado, /\{\}\^\{14\}_\{7\}\\mathrm\{N\}/);
+  assert.equal(certa(p), '${}^{15}_{7}\\mathrm{N}$'); // mesmo Z, outro A
   p = g('atomo-escala');
   assert.equal(p.resposta, 0.1); // S: 100 pm = 0,1 nm
   p = g('atomo-figura');
@@ -248,5 +248,23 @@ test('as explicações dos erros numéricos mostram o valor do erro', () => {
         assert.ok(formas.some((f) => e.explicacao.includes(f)), id + ' ' + contexto + ' ' + s + ' ' + e.codigo + ' ' + v + ': ' + e.explicacao);
       }
     }
+  }
+});
+
+test('isótopos: todas as espécies mostradas são nuclídeos que existem (estáveis ou radioativos dos dados)', () => {
+  const existe = (z, a) => {
+    const s = Object.keys(D.elementos).find((k) => D.elementos[k].z === z);
+    return [D.nuclideosEstaveis, D.nuclideosRadioativos].some((l) => (l[s] || []).includes(a));
+  };
+  for (const p of itens('atomo-isotopos', 150)) {
+    const textos = [p.enunciado].concat(p.opcoes || []);
+    for (const t of textos) for (const m of t.matchAll(/\{\}\^\{(\d+)\}_\{(\d+)\}/g)) assert.ok(existe(Number(m[2]), Number(m[1])), m[0] + ' em ' + t);
+  }
+  for (const s of Object.keys(D.isotopos)) for (const i of D.isotopos[s]) assert.ok(D.nuclideosEstaveis[s] ? D.nuclideosEstaveis[s].includes(i.a) : s === 'H', s + i.a);
+});
+
+test('ião mais provável: nenhuma opção com carga de módulo maior do que 3 (nada de Li⁷⁻ ou F⁷⁺)', () => {
+  for (const p of itens('tabela-periodica-iao', 100)) {
+    for (const t of [p.enunciado].concat(p.opcoes || [])) for (const m of t.matchAll(/\^\{(\d*)[+-]\}/g)) assert.ok(Number(m[1] || 1) <= 3, t);
   }
 });

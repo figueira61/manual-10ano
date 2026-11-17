@@ -19,6 +19,11 @@ globalThis.Manual = globalThis.Manual || {};
   const { fmt, tex, fechar, fecharTexto, confere, vfDe, chave } = A;
   const tentar = (construir) => A.tentar(construir, 'elementos');
   const maiuscula = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  // Concordância com o número: pl(1, 'eletrão', 'eletrões') = '1 eletrão'.
+  const pl = (n, um, varios) => n + ' ' + (n === 1 ? um : varios);
+  const PROT = ['protão', 'protões'];
+  const NEUT = ['neutrão', 'neutrões'];
+  const ELET = ['eletrão', 'eletrões'];
 
   function registar(def) {
     G.registar(Object.assign({ disciplina: 'fqa', tema: 'elementos', id: def.subtema + '-' + def.tipo }, def));
@@ -133,7 +138,7 @@ globalThis.Manual = globalThis.Manual || {};
         } else {
           resposta = a;
           const ehIao = q !== 0;
-          enunciado = 'Um' + (ehIao ? ' ião' : ' átomo') + ' de ' + nome(s) + ' tem ' + z + ' protões, ' + n + ' neutrões e ' + e + ' eletrões. Qual é o seu número de massa?';
+          enunciado = 'Um' + (ehIao ? ' ião' : ' átomo') + ' de ' + nome(s) + ' tem ' + pl(z, ...PROT) + ', ' + pl(n, ...NEUT) + ' e ' + pl(e, ...ELET) + '. Qual é o seu número de massa?';
           resolucao = [
             { passo: 'Somar protões e neutrões', porque: 'O número de massa $A$ conta os nucleões (protões e neutrões); os eletrões não contam' + (ehIao ? ', e a carga do ião também não muda $A$.' : '.'), calculo: 'A = Z + N = ' + z + ' + ' + n + ' = ' + a },
           ];
@@ -166,7 +171,7 @@ globalThis.Manual = globalThis.Manual || {};
   });
 
   // Isótopos: mesmo Z, A diferente. Distratores: mesmo A (outro elemento), mesmo N (outro elemento), ião do mesmo átomo.
-  const descreverParticulas = (x) => x.z + ' protões, ' + (x.a - x.z) + ' neutrões e ' + (x.z - x.q) + ' eletrões';
+  const descreverParticulas = (x) => pl(x.z, ...PROT) + ', ' + pl(x.a - x.z, ...NEUT) + ' e ' + pl(x.z - x.q, ...ELET);
   function textoEspecie(x, contexto) {
     return contexto === 'notacao' ? '$' + nuclideo(simboloDeZ(x.z), x.a, x.z, x.q) + '$' : maiuscula(descreverParticulas(x));
   }
@@ -189,6 +194,9 @@ globalThis.Manual = globalThis.Manual || {};
         const isobaro = { z: zA, a: alvo.a, q: 0 };
         const isotono = { z: zN, a: zN + n1, q: 0 };
         if (isobaro.a - isobaro.z < 1) return null;
+        // Só nuclídeos que existem (estáveis ou radioativos com meia-vida ≥ 1 min, dos dados): nada de ⁸Be ou ¹⁸N.
+        const existe = (x) => [D().nuclideosEstaveis, D().nuclideosRadioativos].some((l) => (l[simboloDeZ(x.z)] || []).includes(x.a));
+        if (!existe(isobaro) || !existe(isotono)) return null;
         const t = (x) => textoEspecie(x, contexto);
         const desc = (x) => (contexto === 'notacao' ? '$' + nuclideo(simboloDeZ(x.z), x.a, x.z, x.q) + '$' : 'A espécie com ' + descreverParticulas(x));
         const resolucao = [
@@ -272,7 +280,7 @@ globalThis.Manual = globalThis.Manual || {};
             ],
             dados: { simbolo: s, r },
           }, {
-            resposta: v, tolerancia: 0.0005, unidade: 'nm', texto: t,
+            resposta: v, toleranciaRelativa: 0.0005 / v, unidade: 'nm', texto: t, // relativa: o erro «micrómetros» vale perto de 0
             erros: [
               { codigo: 'dividiu_por_100', valor: r / 100, explicacao: 'Dividiste por 100 e obtiveste ' + fmt(r / 100, 6) + ' nm; $1\\,\\mathrm{nm} = 1000\\,' + PM + '$, por isso divide-se por 1000: ' + fmt(v, 6) + ' nm.' },
               { codigo: 'multiplicou_em_vez_de_dividir', valor: r * 1000, explicacao: 'Multiplicaste por 1000 e obtiveste ' + fmt(r * 1000) + ' nm; o nanómetro é a unidade maior, por isso o número fica menor: ' + fmt(v, 6) + ' nm.' },
@@ -387,7 +395,9 @@ globalThis.Manual = globalThis.Manual || {};
         const isos = isotoposDe(s).map((i) => ({ a: i.a, m: rCasas(i.massa, 4), x: i.abundancia }));
         const k = isos.length;
         const sup = (i) => '${}^{' + i.a + '}\\mathrm{' + s + '}$';
-        const listaIsos = isos.map((i) => sup(i) + ' (massa isotópica relativa ' + txt(i.m) + (contexto === 'abundancia' ? ')' : ' e abundância ' + txt(i.x) + ' %)'));
+        // Casas decimais iguais em todas as massas (4) e em todas as abundâncias do elemento (10,00 % ao lado de 78,99 %).
+        const casasAb = Math.max(...isos.map((i) => casasDe(i.x)));
+        const listaIsos = isos.map((i) => sup(i) + ' (massa isotópica relativa ' + fx(i.m, 4) + (contexto === 'abundancia' ? ')' : ' e abundância ' + fx(i.x, casasAb) + ' %)'));
         const juntar = (l) => l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1];
         const esquema = { id: 'fqa-isotopos', opcoes: { elemento: s } };
         if (contexto !== 'abundancia') {
@@ -591,7 +601,7 @@ globalThis.Manual = globalThis.Manual || {};
             ...errosM((x) => dado / x * NA, ''),
           ].filter(Boolean);
           if (formato === 'numerica') erros.push({ codigo: 'dividiu_pela_constante_de_avogadro', valor: aAS(n / NA, 3), explicacao: 'Dividiste por $N_A$ ($' + cient(n / NA, 3) + '$); o número de moléculas é $N = n \\times N_A$.' });
-          verificacao = (r) => ({ passo: 'Voltar à massa: N a dividir por N_A dá n, e n vezes M dá m', calculo: '\\dfrac{' + cient(r, 3) + '}{' + NAtex + '} \\times ' + Mt + ' \\approx ' + texAS(r / NA * M, 3) + UN.m, valor: aAS(dado / massaAtomoAAtomo(sb) * NA, 3) });
+          verificacao = (r) => ({ passo: 'Voltar à massa: $N / N_A$ dá $n$, e $n \\times M$ dá $m$', calculo: '\\dfrac{' + cient(r, 3) + '}{' + NAtex + '} \\times ' + Mt + ' \\approx ' + texAS(r / NA * M, 3) + UN.m, valor: aAS(dado / massaAtomoAAtomo(sb) * NA, 3) });
         }
         if (ambiguo(exato, 3)) return null;
         const resposta = aAS(exato, 3);
@@ -601,7 +611,7 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado, resolucao, dados: { substancia: SUBSTANCIAS.indexOf(sb), dado, contexto },
         }, Object.assign({
           resposta, unidade, algarismos: 3, texto: t, erros, verificacao: verificacao(resposta),
-        }, contexto === 'N-de-m' ? { toleranciaRelativa: tol / resposta } : { tolerancia: tol }));
+        }, { toleranciaRelativa: tol / resposta })); // relativa: alguns erros valem perto de 0 (m / M), e uma resposta 0 não é um erro típico
       });
     },
     verificarIndependente(p) {
@@ -666,7 +676,7 @@ globalThis.Manual = globalThis.Manual || {};
         }, {
           resposta, toleranciaRelativa: A.tolMeiaUnidade(resposta, 3) / resposta, algarismos: 3, unidade: 'átomos',
           texto: (v) => '$' + cient(v, 3) + '$', erros,
-          verificacao: { passo: 'Contar primeiro em mol de átomos e só depois multiplicar por N_A', calculo: 'n(\\mathrm{' + (alvo || 'total') + '}) = ' + por + ' \\times ' + nTex + ' = ' + texAS(n * por, 4) + '\\,\\mathrm{mol};\\quad ' + texAS(n * por, 4) + ' \\times ' + NAtex + ' \\approx ' + cient(n * por * NA, 3), valor: aAS(n * por * NA, 3) },
+          verificacao: { passo: 'Contar primeiro em mol de átomos e só depois multiplicar por $N_A$', calculo: 'n(\\mathrm{' + (alvo || 'total') + '}) = ' + por + ' \\times ' + nTex + ' = ' + texAS(n * por, 4) + '\\,\\mathrm{mol};\\quad ' + texAS(n * por, 4) + ' \\times ' + NAtex + ' \\approx ' + cient(n * por * NA, 3), valor: aAS(n * por * NA, 3) },
         });
       });
     },
@@ -715,7 +725,8 @@ globalThis.Manual = globalThis.Manual || {};
       medida = dig.slice(0, i).join('') + ',' + dig.slice(i).join('');
     }
     const decimais = medida.split(',')[1];
-    const finais = (dig.join('').match(/0+$/) || [''])[0].length;
+    // Zeros finais: só os que estão depois da vírgula (em 6030,0 o zero antes da vírgula conta como zero do meio).
+    const finais = (decimais.match(/0+$/) || [''])[0].length;
     const interiores = dig.slice(0, k - finais).filter((x) => x === 0).length;
     const naoZero = dig.filter((x) => x !== 0).length;
     if (!finais && !interiores && !zerosEsq) return null;
@@ -728,7 +739,7 @@ globalThis.Manual = globalThis.Manual || {};
     const erros = [
       zerosEsq && { codigo: 'contou_os_zeros_a_esquerda', texto: String(k + zerosEsq + 1), explicacao: 'Contaste os zeros à esquerda (' + (k + zerosEsq + 1) + ' algarismos). Esses zeros só marcam a posição da vírgula: mudam com a unidade e não são significativos.' },
       finais && { codigo: 'nao_contou_o_zero_final', texto: String(k - finais), explicacao: 'Não contaste ' + (finais === 1 ? 'o zero final' : 'os zeros finais') + ' (' + (k - finais) + '); depois da vírgula, os zeros no fim são significativos: indicam que a medida foi feita até essa casa.' },
-      interiores && { codigo: 'nao_contou_os_zeros_do_meio', texto: String(k - interiores), explicacao: 'Não contaste ' + (interiores === 1 ? 'o zero' : 'os zeros') + ' entre algarismos diferentes de zero (' + (k - interiores) + '); esses zeros são sempre significativos.' },
+      interiores && { codigo: 'nao_contou_os_zeros_do_meio', texto: String(k - interiores), explicacao: 'Não contaste ' + (interiores === 1 ? 'o zero' : 'os zeros') + ' entre algarismos significativos (' + (k - interiores) + '); esses zeros são sempre significativos.' },
       { codigo: 'contou_so_as_casas_decimais', texto: String(decimais.length), explicacao: decimais.length + ' é o número de casas decimais, não o de algarismos significativos; ' + (zerosEsq ? 'os zeros à esquerda não contam' : 'os algarismos antes da vírgula também contam') + '.' },
       { codigo: 'contou_so_os_algarismos_diferentes_de_zero', texto: String(naoZero), explicacao: 'Contaste só os algarismos diferentes de zero (' + naoZero + '); os zeros ' + (finais ? 'finais, depois da vírgula,' : 'entre algarismos') + ' também são significativos.' },
     ].filter((e) => e && Number(e.texto) > 0);
@@ -792,9 +803,11 @@ globalThis.Manual = globalThis.Manual || {};
     const casasMin = Math.min(am - 2, av - 2);
     const porCasas = rCasas(rho, casasMin);
     const t = (x, kk) => textoRho(x, kk);
+    // Valor como a calculadora o mostra (até 6 algarismos, sem zeros finais acrescentados).
+    const calc = (x) => '$' + String(Number(x.toPrecision(6))).replace('.', '{,}') + '\\,\\mathrm{g\\,mL^{-1}}$';
     const erros = [
       kMax > k && { codigo: 'usou_o_dado_com_mais_algarismos', texto: t(rho, kMax), explicacao: t(rho, kMax) + ' tem ' + kMax + ' algarismos significativos, como o dado mais preciso; num quociente, o resultado fica com tantos quantos o dado que tem menos (' + k + ').' },
-      { codigo: 'nao_arredondou', texto: t(rho, 6), explicacao: t(rho, 6) + ' é o valor da calculadora sem arredondar; o resultado fica com ' + k + ' algarismos significativos, como o dado que tem menos.' },
+      { codigo: 'nao_arredondou', texto: calc(rho), explicacao: calc(rho) + ' é o valor da calculadora sem arredondar; o resultado fica com ' + k + ' algarismos significativos, como o dado que tem menos.' },
       k > 1 && { codigo: 'arredondou_a_menos_algarismos', texto: t(rho, k - 1), explicacao: t(rho, k - 1) + ' tem só ' + (k - 1) + (k - 1 === 1 ? ' algarismo significativo' : ' algarismos significativos') + '; o dado com menos tem ' + k + ', por isso o resultado fica com ' + k + '.' },
       porCasas > 0 && { codigo: 'usou_a_regra_das_casas_decimais', texto: '$' + texF(porCasas, casasMin) + '\\,\\mathrm{g\\,mL^{-1}}$', explicacao: 'Arredondaste ao número de casas decimais do dado com menos casas (' + casasMin + '); essa regra é a das somas e subtrações. Num quociente contam os algarismos significativos: ' + k + '.' },
     ].filter(Boolean);
@@ -1122,7 +1135,8 @@ globalThis.Manual = globalThis.Manual || {};
           resolucao.push({ passo: 'Calcular o comprimento de onda', porque: 'O fotão tem $E = |\\Delta E| = \\dfrac{hc}{\\lambda}$, logo $\\lambda = \\dfrac{hc}{|\\Delta E|}$ (com $|\\Delta E|$ por arredondar); depois passa-se a nanómetros.', calculo: '\\lambda = \\dfrac{' + texH() + ' \\times ' + texC() + '}{' + cient(Efot, 4) + '} \\approx ' + cient(t.lambda, 4) + '\\,\\mathrm{m} \\approx ' + texAS(exato, 3) + '\\,\\mathrm{nm}', bloco: true });
           const r = aAS(exato, 3);
           verificacao = { passo: 'Confirmar que hc/λ dá a diferença de energia entre os níveis', calculo: '\\dfrac{' + texH() + ' \\times ' + texC() + '}{' + texAS(r, 3) + ' \\times 10^{-9}} \\approx ' + cient(h * c / (r * 1e-9), 3) + '\\,\\mathrm{J} \\approx |\\Delta E|', valor: aAS(h * c / (Math.abs(Ef - Ei)) * 1e9, 3) };
-          tolerancias = (x) => ({ tolerancia: A.tolMeiaUnidade(x, 3) });
+          // Relativa: o erro «em metros» vale ~10⁻⁷ e, com tolerância absoluta, uma resposta 0 seria tomada por ele.
+          tolerancias = (x) => ({ toleranciaRelativa: A.tolMeiaUnidade(x, 3) / x });
         }
         if (ambiguo(exato, 3)) return null;
         const resposta = aAS(exato, 3);
@@ -1362,8 +1376,8 @@ globalThis.Manual = globalThis.Manual || {};
             erros.push({ codigo: 'passou_ao_subnivel_seguinte_sem_completar', lista: limpar(l), explicacao: (x) => 'Em $' + escreverCfg(x, comCerne) + '$ o ' + pen[0] + ' ficou incompleto e o ' + ult[0] + ' com 2 eletrões; pelo Princípio da Construção, o ' + pen[0] + ' (de menor energia) completa-se antes.' });
           }
           if (exc) erros.push({ codigo: 'configuracao_de_estado_excitado', lista: exc, explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ é um estado excitado: um eletrão está num subnível de maior energia enquanto há lugar num de menor energia.' });
-          if (z + 1 <= 23) erros.push({ codigo: 'contou_um_eletrao_a_mais', lista: cfgQ(z + 1), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + (z + 1) + ' eletrões; o átomo de ' + nome(s) + ' tem ' + z + '.' });
-          if (z - 1 >= 1) erros.push({ codigo: 'contou_um_eletrao_a_menos', lista: cfgQ(z - 1), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + (z - 1) + ' eletrões; o átomo de ' + nome(s) + ' tem ' + z + '.' });
+          if (z + 1 <= 23) erros.push({ codigo: 'contou_um_eletrao_a_mais', lista: cfgQ(z + 1), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + pl(z + 1, ...ELET) + '; o átomo de ' + nome(s) + ' tem ' + z + '.' });
+          if (z - 1 >= 1) erros.push({ codigo: 'contou_um_eletrao_a_menos', lista: cfgQ(z - 1), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + pl(z - 1, ...ELET) + '; o átomo de ' + nome(s) + ' tem ' + z + '.' });
         } else {
           [s, q] = escolher(rng, IOES);
           z = el(s).z;
@@ -1381,7 +1395,7 @@ globalThis.Manual = globalThis.Manual || {};
           } else {
             resolucao.push({ passo: q > 0 ? 'Tirar os eletrões do nível mais exterior' : 'Continuar o preenchimento', porque: q > 0 ? 'Num catião saem os eletrões de valência; fica a configuração de um gás nobre.' : 'Num anião os eletrões a mais continuam o preenchimento; fica a configuração de um gás nobre.', calculo: escreverCfg(correta, false) });
           }
-          erros.push({ codigo: 'ignorou_a_carga', lista: cfgQ(z), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ é a configuração do átomo neutro (' + z + ' eletrões); o ião tem ' + nE + '.' });
+          erros.push({ codigo: 'ignorou_a_carga', lista: cfgQ(z), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ é a configuração do átomo neutro (' + pl(z, ...ELET) + '); o ião tem ' + nE + '.' });
           if (blocoD) {
             const l = cfgQ(z).map((x) => x.slice());
             let tirar = q;
@@ -1393,7 +1407,7 @@ globalThis.Manual = globalThis.Manual || {};
             }
             erros.push({ codigo: 'tirou_3d_antes_de_4s', lista: limpar(l), explicacao: (x) => 'Tiraste os eletrões ao 3d ($' + escreverCfg(x, comCerne) + '$); o 4s enche-se antes do 3d, mas nos catiões é o primeiro a perder eletrões.' });
           }
-          if (z + q >= 1 && z + q <= 23 && q !== 0) erros.push({ codigo: 'trocou_o_sinal_da_carga', lista: cfgQ(z, -q), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + (z + q) + ' eletrões: ' + (q > 0 ? 'somaste os eletrões que o catião perdeu' : 'tiraste os eletrões que o anião ganhou') + '. O ião tem ' + nE + '.' });
+          if (z + q >= 1 && z + q <= 23 && q !== 0) erros.push({ codigo: 'trocou_o_sinal_da_carga', lista: cfgQ(z, -q), explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ tem ' + pl(z + q, ...ELET) + ': ' + (q > 0 ? 'somaste os eletrões que o catião perdeu' : 'tiraste os eletrões que o anião ganhou') + '. O ião tem ' + nE + '.' });
           const exc = excitar(correta);
           if (exc) erros.push({ codigo: 'configuracao_de_estado_excitado', lista: exc, explicacao: (x) => '$' + escreverCfg(x, comCerne) + '$ é um estado excitado do ião: um eletrão está num subnível de maior energia enquanto há lugar num de menor energia.' });
         }
@@ -1467,8 +1481,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'nao_maximizou_os_desemparelhados', valor: pares, explicacao: 'Emparelhaste os eletrões antes de ocupar todas as orbitais (' + pares + (pares === 1 ? ' desemparelhado' : ' desemparelhados') + '); pela regra de Hund, entra primeiro um eletrão em cada orbital degenerada.' },
             { codigo: 'contou_os_eletroes_de_valencia', valor: cQ.valencia, explicacao: cQ.valencia + ' é o número de eletrões de valência; desemparelhados são só os que estão sozinhos numa orbital.' },
             { codigo: 'contou_os_eletroes_do_ultimo_subnivel', valor: ultimo[1], explicacao: 'Contaste todos os eletrões do ' + ultimo[0] + ' (' + ultimo[1] + '); só estão desemparelhados os que ficam sozinhos numa orbital (regra de Hund).' },
-          ];
-          if (el(s).bloco === 'd') erros.push({ codigo: 'contou_os_eletroes_4s', valor: resposta + 2, explicacao: 'Os 2 eletrões 4s estão emparelhados na mesma orbital; só os eletrões 3d estão desemparelhados (' + resposta + ').' });
+          ].filter((x) => formato !== 'numerica' || x.valor !== 0); // na numérica, um erro de valor 0 confundir-se-ia com uma resposta 0
           verificacao = { passo: 'Contar subnível a subnível: desemparelhados = e se e ≤ nº de orbitais, senão 2 × orbitais − e', calculo: l.map(([n, e]) => (e <= orbDe(n) ? e : 2 * orbDe(n) - e)).join(' + ') + ' = ' + desemparelhadosDe(l), valor: desemparelhadosDe(l) };
         } else if (contexto === 'valencia') {
           resposta = cQ.valencia;
@@ -1478,7 +1491,7 @@ globalThis.Manual = globalThis.Manual || {};
           erros = [
             sP.length && { codigo: 'contou_so_os_eletroes_p', valor: sP[0][1], explicacao: 'Contaste só os eletrões ' + sP[0][0] + ' (' + sP[0][1] + '); os do ' + nU + 's também são do último nível e contam.' },
             sP.length && { codigo: 'contou_so_os_eletroes_s', valor: ult[0][1], explicacao: 'Contaste só os eletrões ' + ult[0][0] + ' (' + ult[0][1] + '); os eletrões ' + sP[0][0] + ' também são do último nível.' },
-            { codigo: 'deu_o_numero_do_ultimo_nivel', valor: nU, explicacao: nU + ' é o número do último nível (o período); os eletrões de valência são os ' + resposta + ' eletrões desse nível.' },
+            { codigo: 'deu_o_numero_do_ultimo_nivel', valor: nU, explicacao: nU + ' é o número do último nível (o período); os eletrões de valência são ' + (resposta === 1 ? 'o único eletrão' : 'os ' + resposta + ' eletrões') + ' desse nível.' },
             z - resposta > 0 && { codigo: 'contou_os_eletroes_do_cerne', valor: z - resposta, explicacao: z - resposta + ' são os eletrões interiores (do cerne); os de valência são os do último nível: ' + resposta + '.' },
             { codigo: 'contou_todos_os_eletroes', valor: z, explicacao: z + ' é o número total de eletrões; os de valência são só os do último nível: ' + resposta + '.' },
           ].filter(Boolean);
@@ -1556,7 +1569,7 @@ globalThis.Manual = globalThis.Manual || {};
   }
   // Porquê de cada tipo, com os números da configuração mostrada.
   function porqueCfg(tipo, l, z) {
-    if (tipo === 'N') return 'tem ' + totalE(l) + ' eletrões, e o átomo tem ' + z;
+    if (tipo === 'N') return 'tem ' + pl(totalE(l), ...ELET) + ', e o átomo tem ' + z;
     if (tipo === 'I') {
       const [n, e] = l.find(([s, x]) => x > capDe(s));
       return 'tem ' + e + ' eletrões no ' + n + ', mas um subnível ' + n.slice(-1) + ' tem no máximo ' + capDe(n);
@@ -1565,9 +1578,9 @@ globalThis.Manual = globalThis.Manual || {};
       const f = aufbau(z);
       const falta = f.find(([n, e]) => { const x = l.find(([s]) => s === n); return !x || x[1] < e; });
       const acima = l.find(([n, e]) => { const x = f.find(([s]) => s === n); return !x || x[1] < e; });
-      return 'tem ' + z + ' eletrões, mas um eletrão está no ' + acima[0] + ', de maior energia, quando ainda cabia no ' + falta[0];
+      return 'tem ' + pl(z, ...ELET) + ', mas um eletrão está no ' + acima[0] + ', de maior energia, quando ainda cabia no ' + falta[0];
     }
-    return 'tem ' + z + ' eletrões, distribuídos pela ordem de energia, sem ultrapassar o máximo de cada subnível';
+    return 'tem ' + pl(z, ...ELET) + ', distribuídos pela ordem de energia, sem ultrapassar o máximo de cada subnível';
   }
   const CURTO_CFG = { F: 'o estado fundamental', E: 'um estado excitado', I: 'uma configuração impossível', N: 'a configuração de outro átomo' };
   const conclusaoCfg = (tipo, l, z) => 'Esta configuração ' + porqueCfg(tipo, l, z) + ': é ' + CURTO_CFG[tipo];
@@ -1679,12 +1692,12 @@ globalThis.Manual = globalThis.Manual || {};
         const comb = [];
         if (B === 'p') {
           comb.push({ codigo: 'grupo_sem_somar_10', p: P, g: v, explicacao: 'Tem ' + v + ' eletrões de valência, mas nos grupos do bloco p o número do grupo é $10 + ' + v + ' = ' + G0 + '$.' });
-          comb.push({ codigo: 'grupo_pelos_eletroes_p', p: P, g: pE, explicacao: 'Contaste só os ' + pE + ' eletrões p. Os eletrões de valência são todos os do último nível (' + v + ') e no bloco p o grupo é $10 + ' + v + ' = ' + G0 + '$.' });
+          comb.push({ codigo: 'grupo_pelos_eletroes_p', p: P, g: pE, explicacao: 'Contaste só ' + (pE === 1 ? 'o eletrão p' : 'os ' + pE + ' eletrões p') + '. Os eletrões de valência são todos os do último nível (' + v + ') e no bloco p o grupo é $10 + ' + v + ' = ' + G0 + '$.' });
         }
         if (B === 's' && z !== 2) comb.push({ codigo: 'somou_10_no_bloco_s', p: P, g: G0 + 10, explicacao: 'Somaste 10 (grupo ' + (G0 + 10) + '), mas isso só se faz no bloco p; no bloco s o grupo é o número de eletrões de valência: ' + G0 + '.' });
         if (z === 2) comb.push({ codigo: 'grupo_pelos_eletroes_de_valencia', p: P, g: 2, explicacao: 'O hélio tem 2 eletrões de valência, mas o seu nível está completo, como nos gases nobres: fica no grupo 18.' });
         if (B === 'd') {
-          comb.push({ codigo: 'grupo_so_pelos_eletroes_3d', p: P, g: d3, explicacao: 'Contaste só os ' + d3 + ' eletrões 3d; no bloco d o grupo é o número de eletrões 4s + 3d: $2 + ' + d3 + ' = ' + G0 + '$.' });
+          comb.push({ codigo: 'grupo_so_pelos_eletroes_3d', p: P, g: d3, explicacao: 'Contaste só ' + (d3 === 1 ? 'o eletrão 3d' : 'os ' + d3 + ' eletrões 3d') + '; no bloco d o grupo é o número de eletrões 4s + 3d: $2 + ' + d3 + ' = ' + G0 + '$.' });
           comb.push({ codigo: 'periodo_pelo_subnivel_3d', p: 3, g: G0, explicacao: 'O 3d é do nível 3, mas o período é o do último nível ocupado: o 4s, $n = 4$.' });
         }
         if (P >= 2) comb.push({ codigo: 'periodo_pelo_cerne', p: P - 1, g: G0, explicacao: 'O período ' + (P - 1) + ' é o do gás nobre do cerne; o período do elemento é o do último nível ocupado, $n = ' + P + '$.' });
@@ -1864,15 +1877,19 @@ globalThis.Manual = globalThis.Manual || {};
         const gas = { 2: 'hélio', 10: 'néon', 18: 'árgon' }[z - q];
         const erros = metal ? [
           { codigo: 'ganhou_em_vez_de_perder', texto: ion(-q), explicacao: 'Perder eletrões dá carga positiva. O ' + nome(s) + ' perde ' + q + (q === 1 ? ' eletrão' : ' eletrões') + ': ' + ion(q) + '.' },
-          { codigo: 'completou_o_nivel_ganhando_eletroes', texto: ion(-(8 - v)), explicacao: 'Ganhar ' + (8 - v) + ' eletrões custaria muita energia; com só ' + v + (v === 1 ? ' eletrão' : ' eletrões') + ' de valência, é muito mais fácil perdê-' + (v === 1 ? 'lo' : 'los') + ': ' + ion(q) + '.' },
           q >= 2 && { codigo: 'perdeu_so_um_eletrao', texto: ion(1), explicacao: 'Com um só eletrão perdido não ficaria com a configuração de um gás nobre; perde os ' + q + ' eletrões de valência: ' + ion(q) + '.' },
-          { codigo: 'perdeu_eletroes_a_mais', texto: ion(q + 1), explicacao: 'Depois de perder os ' + v + ' eletrões de valência fica com a configuração do ' + gas + '; tirar mais um eletrão, de um nível interior, exige muita energia.' },
+          { codigo: 'perdeu_eletroes_a_mais', texto: ion(q + 1), explicacao: 'Depois de perder ' + (v === 1 ? 'o eletrão' : 'os ' + v + ' eletrões') + ' de valência fica com a configuração do ' + gas + '; tirar mais um eletrão, de um nível interior, exige muita energia.' },
         ] : [
           { codigo: 'perdeu_em_vez_de_ganhar', texto: ion(-q), explicacao: 'Ganhar eletrões dá carga negativa. O ' + nome(s) + ' ganha ' + -q + (q === -1 ? ' eletrão' : ' eletrões') + ': ' + ion(q) + '.' },
-          { codigo: 'perdeu_os_eletroes_de_valencia', texto: ion(v), explicacao: 'Perder ' + v + ' eletrões custaria muita energia (os não metais têm energia de ionização alta); falta' + (q === -1 ? '' : 'm') + ' só ' + -q + ' para 8, por isso ganha' + (q === -1 ? '-o' : '-os') + ': ' + ion(q) + '.' },
           q <= -2 && { codigo: 'ganhou_so_um_eletrao', texto: ion(-1), explicacao: 'Com um só eletrão ganho não ficaria com a configuração de um gás nobre; faltam ' + -q + ' eletrões para 8: ' + ion(q) + '.' },
           { codigo: 'ganhou_eletroes_a_mais', texto: ion(q - 1), explicacao: 'Com ' + v + ' eletrões de valência faltam ' + -q + ' para 8; ganhando ' + (1 - q) + ' ficaria com um eletrão a mais do que o ' + gas + '.' },
         ];
+        // Só cargas plausíveis (|carga| ≤ 3): nada de Li⁷⁻ ou F⁷⁺. A escolha múltipla re-sorteia o elemento se faltarem opções.
+        const plausivel = (x) => {
+          const m = x.texto.match(/\^\{?(\d*)([+-])\}?/);
+          return !m || Number(m[1] || 1) <= 3;
+        };
+        const errosPlausiveis = erros.filter(Boolean).filter(plausivel);
         const resolucao = [
           { passo: 'Contar os eletrões de valência', porque: 'A configuração do ' + nome(s) + ' é $' + escreverCfg(l, true) + '$: tem ' + v + (v === 1 ? ' eletrão' : ' eletrões') + ' de valência.' },
           { passo: metal ? 'Perder os eletrões de valência' : 'Ganhar os eletrões que faltam', porque: metal ? 'Os metais têm energia de ionização baixa: perdem os eletrões de valência e ficam com a configuração do gás nobre anterior.' : 'Os não metais ganham os eletrões que faltam para 8 e ficam com a configuração do gás nobre seguinte.', calculo: especie(s, q) + '\\colon\\ ' + cfgIao },
@@ -1881,9 +1898,9 @@ globalThis.Manual = globalThis.Manual || {};
         const dados = { simbolo: s, contexto };
         const esquema = { id: 'fqa-tabela', opcoes: { modo: 'blocos', simbolo: s } };
         if (formato === 'escolha') {
-          return fecharTexto(rng, { enunciado: 'Que ião tende a formar o ' + nome(s) + ' ($Z = ' + z + '$)?', resolucao, dados, verificacao: Object.assign({ valor: null }, verificacao), esquema }, ion(q), erros.filter(Boolean), ion(q));
+          return fecharTexto(rng, { enunciado: 'Que ião tende a formar o ' + nome(s) + ' ($Z = ' + z + '$)?', resolucao, dados, verificacao: Object.assign({ valor: null }, verificacao), esquema }, ion(q), errosPlausiveis, ion(q));
         }
-        const falso = escolher(rng, erros.filter(Boolean));
+        const falso = escolher(rng, errosPlausiveis);
         const frase = (t) => 'O ' + nome(s) + ' ($Z = ' + z + '$) tende a formar o ião ' + t + '.';
         const vv = vfDe(rng, frase(ion(q)), frase(falso.texto), { codigo: falso.codigo, explicacao: falso.explicacao });
         dados.mostrado = vv.correta ? ion(q) : falso.texto;

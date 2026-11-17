@@ -80,6 +80,20 @@ Manual.dadosQuimicos = (function () {
     Cu: [{ a: 63, massa: 62.92959772, abundancia: 69.15 }, { a: 65, massa: 64.9277897, abundancia: 30.85 }],
   };
 
+  // Nuclídeos estáveis (números de massa) dos elementos usados nos exercícios de isótopos e dos seus vizinhos na TP,
+  // para que nenhuma opção de um exercício seja um nuclídeo que não existe (⁸Be, ¹⁸N, …).
+  const nuclideosEstaveis = {
+    He: [3, 4], Li: [6, 7], Be: [9], B: [10, 11], C: [12, 13], N: [14, 15], O: [16, 17, 18], F: [19],
+    Ne: [20, 21, 22], Na: [23], Mg: [24, 25, 26], Al: [27], S: [32, 33, 34, 36], Cl: [35, 37], Ar: [36, 38, 40],
+    Ni: [58, 60, 61, 62, 64], Cu: [63, 65], Zn: [64, 66, 67, 68, 70],
+  };
+  // Nuclídeos radioativos conhecidos, com meia-vida de pelo menos 1 minuto (existem e usam-se: ¹⁴C, ¹⁸F, ²⁴Na, …).
+  const nuclideosRadioativos = {
+    H: [3], Be: [7, 10], C: [11, 14], N: [13], O: [15], F: [17, 18], Ne: [24], Na: [22, 24], Mg: [27, 28],
+    Al: [26, 28, 29], S: [35, 37, 38], Cl: [36, 38, 39], Ar: [37, 39, 41, 42], Ni: [56, 57, 59, 63, 65, 66],
+    Cu: [61, 64, 66, 67], Zn: [62, 63, 65, 69],
+  };
+
   // energia média de ligação em kJ/mol; comprimento em pm (uma única tabela de valores médios)
   const ligacoes = {
     'H-H': { energia: 432, comprimento: 74 },
@@ -174,6 +188,9 @@ Manual.dadosQuimicos = (function () {
       + 'neutros em eV, convertida para kJ/mol (× 96,485) e arredondada às unidades.',
     raio: 'J. C. Slater, "Atomic Radii in Crystals", J. Chem. Phys. 41, 3199 (1964), raios atómicos empíricos (pm, '
       + 'arredondados a 5 pm), só para os elementos representativos; Slater não dá valores para os gases nobres.',
+    nuclideosRadioativos: 'NNDC, NuDat 3 (Brookhaven National Laboratory), meias-vidas do estado fundamental; só nuclídeos com meia-vida de pelo menos 1 minuto, dos elementos listados.',
+    nuclideosEstaveis: 'NIST, Atomic Weights and Isotopic Compositions (todos os nuclídeos com composição isotópica natural '
+      + 'representativa, IUPAC CIAAW), para os elementos listados. O ⁴⁰K, natural mas radioativo de vida longa, não entra.',
     isotopos: 'NIST, Atomic Weights and Isotopic Compositions (massas isotópicas relativas AME e composições isotópicas '
       + 'representativas da IUPAC CIAAW); abundância em percentagem de átomos.',
     ligacoes: 'Tabela de energias médias de ligação (kJ/mol) e comprimentos de ligação (pm) de J. E. Huheey, E. A. Keiter '
@@ -191,5 +208,5 @@ Manual.dadosQuimicos = (function () {
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };
 
-  return { elementos, isotopos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, atmosfera, fontes };
+  return { elementos, isotopos, nuclideosEstaveis, nuclideosRadioativos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, atmosfera, fontes };
 })();
