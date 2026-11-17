@@ -241,6 +241,27 @@ Manual.registarIndice([
           },
         ],
       },
+      {
+        id: 'movimentos',
+        titulo: 'Energia e movimentos',
+        subtemas: [
+          {
+            id: 'sistema-mecanico',
+            titulo: 'Energia de um sistema mecânico',
+            palavras: ['sistema mecânico', 'centro de massa', 'energia cinética', 'energia potencial gravítica', 'nível de referência', 'energia mecânica', 'sistema e vizinhança'],
+          },
+          {
+            id: 'trabalho',
+            titulo: 'Trabalho e Teorema da Energia Cinética',
+            palavras: ['trabalho', 'força constante', 'componente eficaz', 'trabalho potente', 'trabalho resistente', 'força resultante', 'teorema da energia cinética', 'distância de travagem'],
+          },
+          {
+            id: 'energia-mecanica',
+            titulo: 'Forças conservativas e conservação da energia mecânica',
+            palavras: ['força conservativa', 'força não conservativa', 'trabalho do peso', 'conservação da energia mecânica', 'forças dissipativas', 'energia dissipada', 'ressalto', 'rendimento'],
+          },
+        ],
+      },
     ],
   },
   { id: 'bg', nome: 'Biologia e Geologia', disponivel: false, temas: [] },

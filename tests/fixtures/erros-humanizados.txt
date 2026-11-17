@@ -56,6 +56,8 @@ calculou_oh → Calculou todo o segmento OH em vez de GH
 capitalizacao_anual → Usou capitalização anual quando os juros se juntam várias vezes por ano
 catorze_meses → Contou os 14 pagamentos como meses de trabalho
 causalidade → Concluiu que x causa y
+centro_de_massa_so_em_repouso → Achou que o modelo do centro de massa só serve para corpos parados
+centro_de_massa_so_para_corpos_pequenos → Achou que o modelo do centro de massa só serve para corpos pequenos
 centro_no_ponto → Tomou o ponto da circunferência como centro
 centro_sinais_trocados → Trocou os sinais do centro
 circuncentro → Deu o circuncentro em vez do ponto pedido
@@ -104,6 +106,7 @@ confundiu_molecula_com_radical → Tomou uma molécula com eletrões emparelhado
 confundiu_nm_com_micrometro → Converteu para micrómetros em vez de nanómetros
 confundiu_o2_com_o3 → Confundiu o oxigénio, O₂, com o ozono, O₃
 confundiu_o_prefixo → Usou o prefixo de outro número de átomos de carbono
+confundiu_peso_com_resultante → Confundiu o trabalho do peso com o da resultante
 confundiu_pm_com_nm → Usou o fator do nanómetro em vez do do picómetro
 confundiu_saturado_com_insaturado → Confundiu hidrocarboneto saturado com insaturado
 conjunto_de_chegada → Deu o conjunto de chegada em vez do pedido
@@ -162,6 +165,8 @@ desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_fracao_conservada → Deu a fração da energia conservada em vez da dissipada
+deu_a_fracao_dissipada → Deu a fração da energia dissipada em vez do rendimento
 deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
 deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia → Deu a frequência em vez do comprimento de onda
@@ -234,11 +239,14 @@ dobro_em_vez_de_quadrado → Calculou o quadrado como o dobro
 dois_tercos → Deu dois terços da mediana em vez de um terço
 dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
+ec_constante_implica_em_constante → Achou que energia cinética constante implica energia mecânica constante
 eixo_reflexao_trocado → Trocou o eixo da reflexão
 emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocupar as orbitais vazias
 emparelhou_os_eletroes_3d → Emparelhou eletrões em orbitais 3d degeneradas (regra de Hund)
 endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
+energia_mecanica_conserva_se_sempre → Achou que a energia mecânica se conserva sempre
+epg_sem_nivel_de_referencia → Esqueceu que a energia potencial gravítica depende do nível de referência
 errou_o_expoente_na_notacao_cientifica → Errou o expoente ao passar a notação científica
 escalao_errado → Usou a taxa de outro escalão
 escolheu_a_zona_de_maior_comprimento_de_onda → Escolheu a zona vizinha de maior comprimento de onda
@@ -250,25 +258,32 @@ escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
+esqueceu_a_raiz_quadrada → Esqueceu a raiz quadrada
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
 esqueceu_dividir → Esqueceu de dividir
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
+esqueceu_g_na_energia_potencial → Esqueceu g na energia potencial gravítica
 esqueceu_mais_um → Esqueceu de somar 1 à metade
 esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
+esqueceu_o_cosseno → Esqueceu o cosseno
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
+esqueceu_o_fator_2 → Esqueceu o fator 2
 esqueceu_o_foton → Esqueceu o fotão nos reagentes
 esqueceu_o_grupo_acido → Esqueceu o grupo ácido carboxílico
 esqueceu_o_indice → Esqueceu os índices da fórmula na massa molar
 esqueceu_o_indice_na_massa_molar → Calculou a massa molar sem os índices da fórmula
+esqueceu_o_meio_na_energia_cinetica → Esqueceu o ½ na energia cinética
 esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
 esqueceu_o_ponto → Esqueceu de somar o ponto
+esqueceu_o_quadrado_da_velocidade → Esqueceu o quadrado da velocidade
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_quadrado → Esqueceu o quadrado
+esqueceu_que_cos_90_e_zero → Esqueceu que cos 90° é zero
 esqueceu_raiz → Esqueceu a raiz quadrada
 esqueceu_reflexao → Esqueceu a reflexão
 esqueceu_retencao → Esqueceu a retenção
@@ -366,6 +381,7 @@ maior_raio_maior_energia_de_ionizacao → Julgou que um átomo maior tem maior e
 maioria_simples → Escolheu o vencedor pelos primeiros lugares em vez de pelos pontos de Borda
 mais_hidrogenios_insaturado → Chamou insaturado ao composto com o máximo de hidrogénios
 mais_votos_nao_chega → Julgou que ter mais votos dá maioria absoluta
+massa_em_gramas → Usou a massa em gramas em vez de quilogramas
 media_das_frequencias → Fez a média das frequências em vez da média dos valores
 media_dos_extremos → Fez a média dos extremos
 media_dos_valores → Fez a média dos valores diferentes, sem contar as repetições
@@ -505,6 +521,7 @@ preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
 prefixo_errado → Usou o prefixo errado para o número de carbonos
 proporcional_restos_maiores → Usou o método dos restos maiores
 proveta_para_volume_rigoroso → Usou a proveta para medir um volume rigoroso
+quadrado_da_diferenca_de_velocidades → Usou o quadrado da diferença das velocidades em vez da diferença das energias cinéticas
 quadrado_da_soma → Fez o quadrado da soma em vez da soma dos quadrados
 quadrado_de_negativo → Errou o sinal ao elevar um número negativo ao quadrado
 quadrado_negativo → Errou o sinal ao elevar um número negativo ao quadrado
@@ -530,7 +547,9 @@ refletiu_em_ox → Refletiu no eixo Ox
 refletiu_em_oy → Refletiu no eixo Oy
 regiao_trocada → Trocou a região do conjunto-solução
 relativa_acumulada → Deu a frequência relativa acumulada
+rendimento_maior_do_que_1 → Rendimento maior do que 1
 resolveu_para_x → Resolveu para x em vez de y
+respondeu_em_joules → Respondeu em joules quando se pedia em quilojoules
 resposta_voluntaria → Julgou aleatória uma amostra de resposta voluntária
 reta_ab → Deu a reta AB em vez da mediatriz
 reta_duas_condicoes → Deu uma reta em vez de um plano
@@ -623,9 +642,15 @@ terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
 tomou_a_como_numero_de_neutroes → Tomou o número de massa como número de neutrões
+tomou_a_diferenca_de_alturas_como_percentagem → Tomou a diferença de alturas como percentagem
+tomou_a_energia_dissipada_como_rendimento → Tomou a energia dissipada como rendimento
 tomou_a_frequencia_por_comprimento_de_onda → Tomou a frequência por comprimento de onda
 tomou_o_hidrogenio_por_metal → Tomou o hidrogénio por um metal
 tomou_uma_molecula_polar_por_apolar → Tomou uma molécula polar por apolar
+trabalho_dissipativo_com_sinal_positivo → Deu sinal positivo ao trabalho das forças dissipativas
+trabalho_do_atrito_nulo → Achou nulo o trabalho da força de atrito
+trabalho_do_atrito_positivo → Achou positivo o trabalho da força de atrito
+trabalho_do_peso_com_o_sinal_de_epg → Deu ao trabalho do peso o sinal da variação da energia potencial gravítica
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
 trocou_a_ordem_de_2s_e_2p → Trocou a ordem de energia das subcamadas 2s e 2p
@@ -679,6 +704,7 @@ usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor
+usou_o_seno_em_vez_do_cosseno → Usou o seno em vez do cosseno
 usou_o_volume_de_agua_adicionado → Usou o volume de água adicionado em vez do volume final
 usou_o_volume_do_solvente → Usou o volume do solvente em vez do volume da solução
 usou_o_volume_molar_com_a_massa → Usou o volume molar com a massa, sem calcular a quantidade de matéria
@@ -690,8 +716,10 @@ usou_um_quarto_da_divisao → Usou um quarto da menor divisão
 usou_uma_unidade_inteira → Usou uma unidade inteira como incerteza
 usou_z_em_vez_da_massa_atomica → Usou o número atómico em vez da massa atómica relativa
 usou_z_em_vez_dos_eletroes_de_valencia → Usou o número atómico em vez dos eletrões de valência
+variacao_com_o_sinal_trocado → Trocou o sinal da variação (inicial menos final)
 variavel_como_amostra → Tomou a variável por amostra
 variavel_como_populacao → Tomou a variável por população
+velocidade_em_km_h → Usou a velocidade em km/h em vez de m/s
 vertice_angulo_reto → Deu o vértice do ângulo reto em vez do ponto pedido
 vetor_como_ponto → Tomou as coordenadas do vetor por coordenadas do ponto
 vetor_menos_ponto → Errou o sinal ao passar o ponto para o outro membro

@@ -1,7 +1,7 @@
 globalThis.Manual = globalThis.Manual || {};
 Manual.ae = Manual.ae || {};
 
-// Objetivos de Química das Aprendizagens Essenciais de FQ-A, 10.º ano.
+// Objetivos de Química e de Física das Aprendizagens Essenciais de FQ-A, 10.º ano.
 // Frases literais das AE de agosto de 2018 (docs/referencias/ae-fqa-10-2018.txt), por ordem; no fim de cada
 // domínio, as frases da revisão de março de 2026 (docs/referencias/ae-fqa-10-2026.txt) sem equivalente em 2018.
 Manual.ae.fqa = [
@@ -62,4 +62,16 @@ Manual.ae.fqa = [
   'Relacionar a elevada reatividade dos radicais livres com a particularidade de serem espécies que possuem eletrões desemparelhados e explicitar alguns dos seus efeitos na atmosfera e sobre os seres vivos, por exemplo, o envelhecimento.',
   // revisão 2026
   'Reconhecer a importância química dos compostos de carbono, a variabilidade das suas estruturas moleculares e a multiplicidade das ligações estabelecidas.',
+  // ---------- Energia e sua conservação ----------
+  // Energia e movimentos
+  'Compreender as transformações de energia num sistema mecânico redutível ao seu centro de massa, em resultado da interação com outros sistemas.',
+  'Estabelecer, experimentalmente, a relação entre a variação de energia cinética e a distância percorrida por um corpo, sujeito a um sistema de forças de resultante constante, usando processos de medição e de tratamento estatístico de dados e comunicando os resultados.',
+  'Interpretar as transferências de energia como trabalho em sistemas mecânicos, e os conceitos de força conservativa (aplicando o conceito de energia potencial gravítica) e de força não conservativa (aplicando o conceito de energia mecânica).',
+  'Analisar situações do quotidiano sob o ponto de vista da conservação ou da variação da energia mecânica, identificando transformações de energia e transferências de energia.',
+  'Investigar, experimentalmente, o movimento vertical de queda e de ressalto de uma bola, com base em considerações energéticas, avaliando os resultados, tendo em conta as previsões do modelo teórico, e comunicando as conclusões.',
+  'Aplicar, na resolução de problemas, a relação entre os trabalhos (soma dos trabalhos realizados pelas forças, trabalho realizado pelo peso e soma dos trabalhos realizados pelas forças não conservativas) e as variações de energia, explicando as estratégias de resolução e os raciocínios demonstrativos que fundamentam uma conclusão.',
+  // revisão 2026
+  'Calcular o trabalho realizado por uma força constante em movimentos retilíneos, definindo o trabalho como a medida da energia transferida entre sistemas por ação de forças.',
+  'Aplicar o Teorema da Energia Cinética.',
+  'Relacionar o trabalho realizado por forças dissipativas com a diminuição da energia mecânica, calculando rendimentos.',
 ];
