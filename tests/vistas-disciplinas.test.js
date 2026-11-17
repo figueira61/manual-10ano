@@ -33,10 +33,10 @@ function escolherDisciplina(principal, id) {
   radio.dispatch('change');
 }
 
-// Uma segunda disciplina disponível e com geradores (falsos), só para estes testes.
+// fqa já está disponível no índice; regista-se um gerador falso (o BASE só carrega os de mat-a).
 function juntarFqa() {
   const fqa = Manual.indice.find((d) => d.id === 'fqa');
-  fqa.disponivel = true;
+  assert.equal(fqa.disponivel, true);
   Manual.geradores.registar({
     id: 'fqa-teste', disciplina: 'fqa', tema: 'elementos', subtema: 'atomo', tipo: 'teste', nome: 'Falso',
     formatos: ['numerica'], gerar: () => ({}), verificarIndependente: () => true, limites: () => true,
@@ -44,7 +44,8 @@ function juntarFqa() {
   return fqa;
 }
 
-test('teste: com uma só disciplina disponível, vem escolhida e com os 5 temas à vista; fqa (indisponível) não é oferecida', () => {
+test('teste: com uma só disciplina disponível, vem escolhida e com os 5 temas à vista; fqa (forçada indisponível) não é oferecida', () => {
+  Manual.indice.find((d) => d.id === 'fqa').disponivel = false;
   const principal = document.createElement('main');
   const v = Manual.vistasEstudo.teste(principal);
   const radios = Array.from(principal.querySelectorAll('input')).filter((i) => i.type === 'radio' && i.name === 'teste-disciplina');
@@ -109,7 +110,7 @@ test('treino: o esquema do feedback usa a disciplina da chave de cada pergunta',
 });
 
 // Carrega o js/app.js a sério (documento e janela falsos) com o hash dado; devolve o <main>.
-function abrirApp(hash, forcarFqa) {
+function abrirApp(hash, fqaDisponivel = true) {
   const path = require('node:path');
   const principal = document.createElement('main');
   const el = {};
@@ -131,14 +132,14 @@ function abrirApp(hash, forcarFqa) {
   const f = path.join(__dirname, '..', 'js', 'app.js');
   const extra = ['js/icones.js', 'js/progresso.js', 'js/pesquisa.js'];
   for (const e of extra) { const abs = path.join(__dirname, '..', e); delete require.cache[abs]; require(abs); }
-  if (forcarFqa) Manual.indice.find((d) => d.id === 'fqa').disponivel = true;
+  Manual.indice.find((d) => d.id === 'fqa').disponivel = fqaDisponivel;
   delete require.cache[f];
   require(f);
   return principal;
 }
 
-test('app: a página da disciplina fqa (disponível forçado) mostra os temas e "Física — em breve" sem ligação', () => {
-  const principal = abrirApp('#/fqa', true);
+test('app: a página da disciplina fqa (disponível) mostra os temas e "Física — em breve" sem ligação', () => {
+  const principal = abrirApp('#/fqa');
   assert.match(principal.textContent, /Física e Química A/);
   assert.match(principal.textContent, /Elementos químicos e sua organização/);
   const itens = Array.from(principal.querySelectorAll('li')).filter((li) => li.textContent === 'Física — em breve');
@@ -146,7 +147,7 @@ test('app: a página da disciplina fqa (disponível forçado) mostra os temas e 
   assert.equal(itens[0].querySelectorAll('a').length, 0);
 });
 
-test('app: com fqa indisponível, o tema e o subtema dão "Página não encontrada"; a disciplina diz "Em breve"', () => {
+test('app: com fqa forçada indisponível, o tema e o subtema dão "Página não encontrada"; a disciplina diz "Em breve"', () => {
   for (const hash of ['#/fqa/elementos', '#/fqa/elementos/atomo']) {
     const principal = abrirApp(hash, false);
     assert.match(principal.textContent, /Página não encontrada/, hash);
@@ -155,14 +156,14 @@ test('app: com fqa indisponível, o tema e o subtema dão "Página não encontra
   assert.doesNotMatch(abrirApp('#/fqa', false).textContent, /Física — em breve/);
 });
 
-test('app: com fqa disponível forçado, a página do tema lista os subtemas', () => {
-  const principal = abrirApp('#/fqa/elementos', true);
+test('app: com fqa disponível, a página do tema lista os subtemas', () => {
+  const principal = abrirApp('#/fqa/elementos');
   assert.match(principal.textContent, /Constituição do átomo/);
 });
 
-test('índice: fqa com 2 temas e 12 subtemas, ainda indisponível', () => {
+test('índice: fqa com 2 temas e 12 subtemas, disponível', () => {
   const fqa = Manual.indice.find((d) => d.id === 'fqa');
-  assert.equal(fqa.disponivel, false);
+  assert.equal(fqa.disponivel, true);
   assert.deepEqual(fqa.temas.map((t) => [t.id, t.subtemas.length]), [['elementos', 5], ['materia', 7]]);
   assert.deepEqual(fqa.temas.flatMap((t) => t.subtemas.map((s) => s.id)), [
     'atomo', 'mole', 'espectros', 'configuracao', 'tabela-periodica', 'ligacao', 'geometria', 'carbono', 'gases', 'solucoes',

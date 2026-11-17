@@ -63,11 +63,17 @@ test('sugestao: chave em revisão hoje vem primeiro', () => {
 });
 
 test('sugestao: tudo dominado e sem revisão não fica vazio; chaves sem geradores ficam de fora', () => {
-  const estados = comGeradores.map((chave) => ({ chave, estado: 'domina', proxima_revisao: '2099-01-01' }));
+  // com fqa disponível, as chaves com geradores são as de todas as disciplinas
+  const todas = [];
+  M.indice.filter((d) => d.disponivel).forEach((d) => d.temas.forEach((t) => t.subtemas.forEach((s) => {
+    if (M.geradores.doSubtema(d.id, s.id).length) todas.push(d.id + '/' + t.id + '/' + s.id);
+  })));
+  assert.ok(todas.some((k) => k.startsWith('fqa/')));
+  const estados = todas.map((chave) => ({ chave, estado: 'domina', proxima_revisao: '2099-01-01' }));
   estados.push({ chave: 'mat-a/xx/yy', estado: 'nao_resolvido' });
   const r = T.sugestao(estados, M.indice, agora);
   assert.ok(r.length > 0);
-  r.forEach((k) => assert.ok(comGeradores.includes(k)));
+  r.forEach((k) => assert.ok(todas.includes(k)));
 });
 
 test('montarTreino: uma chave dá 9 perguntas sem pares (tipo, semente) repetidos', () => {

@@ -166,7 +166,7 @@ Manual.registarIndice([
   {
     id: 'fqa',
     nome: 'Física e Química A',
-    disponivel: false,
+    disponivel: true,
     porFazer: ['Física'],
     temas: [
       {
