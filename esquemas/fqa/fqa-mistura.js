@@ -107,7 +107,7 @@ Manual.esquemas.registar('fqa-mistura', {
       svg.textContent = '';
 
       // barras de temperatura: θ1, θ2 e θeq (escala 0 a 100 °C)
-      const BX = 86, BW = 170;
+      const BX = 100, BW = 156;
       const barras = [['θ₁ (água)', est.theta1, 'var(--cor-3)'], ['θ₂ (' + nome2 + ')', theta2, 'var(--cor-1)'], ['θeq', r.thetaEq, 'var(--cor-2)']];
       barras.forEach(([rot, T, cor], i) => {
         const y = 14 + i * 30;

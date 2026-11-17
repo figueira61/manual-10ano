@@ -39,9 +39,9 @@ const vivos = (el) => Array.from(el.querySelectorAll('p')).filter((p) => p.getAt
 const setas = (el) => Array.from(el.querySelectorAll('line')).filter((l) => l.classes.has('seta'));
 
 // Todos os elementos desenhados (texto estimado por caracteres) ficam dentro do viewBox.
-function dentroDoViewBox(el, ctx) {
+function dentroDoViewBox(el, ctx, dims) {
   const svg = el.querySelectorAll('svg')[0];
-  const [, , W, H] = svg.getAttribute('viewBox').split(' ').map(Number);
+  const [, , W, H] = dims || svg.getAttribute('viewBox').split(' ').map(Number);
   const x = (v, o) => assert.ok(v >= 0 && v <= W, ctx + ' ' + o + ' x = ' + v);
   const y = (v, o) => assert.ok(v >= 0 && v <= H, ctx + ' ' + o + ' y = ' + v);
   const n = (e, k) => Number(e.getAttribute(k));
@@ -227,7 +227,7 @@ test('fqa-painel: a potência de funcionamento não excede a máxima; teclado e 
   const Pmax = num(valor(el, 'Ponto de potência máxima').split('P =').pop());
   assert.ok(P <= Pmax + 0.005);
   el.querySelectorAll('svg')[0].dispatch('keydown', { key: 'ArrowRight', preventDefault() {} });
-  assert.equal(Number(slider(el, 0).value), 11);
+  assert.equal(Number(slider(el, 0).value), 15);
   assert.equal(vivos(el).length, 1);
   assert.ok(!/\n/.test(vivos(el)[0].textContent));
 });
@@ -252,4 +252,68 @@ test('fig-painel: tem as 5 partes e as descrições do amperímetro e do voltím
   assert.match(fonte, /voltímetro liga-se em paralelo/);
   const cal = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'esquemas/fqa/fig-calorimetro.js'), 'utf8');
   assert.match(cal, /efeito Joule/);
+});
+
+test('fqa-painel: a resistência de carga chega à da potência máxima a qualquer irradiância', () => {
+  const { el, M } = montar('fqa-painel', {});
+  const max = Number(slider(el, 0).max);
+  for (const G of [100, 300, 1000]) {
+    const mx = M.fisica.painelPotenciaMaxima(G);
+    assert.ok(max >= 2 * (mx.U / mx.I), 'G = ' + G + ': máximo ' + max + ' Ω, R_mp = ' + mx.U / mx.I);
+  }
+  mexer(el, 1, 100);
+  mexer(el, 0, max);
+  assert.ok(!/NaN|Infinity|undefined/.test(ver(el)));
+});
+
+test('fig-calorimetro e fig-painel: tudo o que se desenha fica dentro da figura (290 × 190)', () => {
+  for (const id of ['fig-calorimetro', 'fig-painel']) {
+    const { el } = montar(id, {});
+    const partes = Array.from(el.querySelectorAll('g')).filter((g) => g.classes.has('figura-parte'));
+    assert.ok(partes.length >= 5);
+    partes.forEach((g) => dentroDoViewBox(g, id + ' ' + g.getAttribute('aria-label'), [0, 0, 290, 190]));
+  }
+});
+
+// Lê os pontos de um caminho com M, L, H e V, por subcaminho (começado por M).
+function subcaminhos(d) {
+  return d.split(/(?=M)/).filter(Boolean).map((sub) => {
+    const pts = [];
+    let cx = 0, cy = 0;
+    (sub.match(/[MLHV][^MLHV]*/g) || []).forEach((seg) => {
+      const v = seg.slice(1).trim().split(/[\s,]+/).filter(Boolean).map(Number);
+      if (seg[0] === 'H') cx = v[0]; else if (seg[0] === 'V') cy = v[0]; else { cx = v[0]; cy = v[1]; }
+      pts.push([cx, cy]);
+    });
+    return pts;
+  });
+}
+
+test('fig-painel: o voltímetro está em paralelo com o painel e o amperímetro em série no circuito', () => {
+  const { el } = montar('fig-painel', {});
+  const por = (tag, cls) => Array.from(el.querySelectorAll(tag)).filter((e) => e.classes.has(cls));
+  const [T1, T2] = por('circle', 'terminal').map((c) => [Number(c.getAttribute('cx')), Number(c.getAttribute('cy'))]);
+  assert.deepEqual([T1, T2], [[128, 80], [128, 120]]);
+  const volt = por('circle', 'voltimetro')[0], amp = por('circle', 'amperimetro')[0];
+  const ponto = (c, dx, dy) => [Number(c.getAttribute('cx')) + dx, Number(c.getAttribute('cy')) + dy];
+  const r = (c) => Number(c.getAttribute('r'));
+  // voltímetro: um fio de cada terminal do painel, cada um a acabar num lado do círculo
+  const fv = subcaminhos(por('path', 'fio-voltimetro')[0].getAttribute('d'));
+  assert.equal(fv.length, 2);
+  assert.deepEqual(fv[0][0], T1);
+  assert.deepEqual(fv[1][0], T2);
+  assert.deepEqual(fv[0][fv[0].length - 1], ponto(volt, 0, -r(volt)));
+  assert.deepEqual(fv[1][fv[1].length - 1], ponto(volt, 0, r(volt)));
+  // circuito principal: T+ → amperímetro → reóstato → T−
+  const fp = subcaminhos(por('path', 'fio-principal')[0].getAttribute('d'));
+  assert.deepEqual(fp[0][0], T1);
+  assert.deepEqual(fp[0][fp[0].length - 1], ponto(amp, -r(amp), 0));
+  assert.deepEqual(fp[1][0], ponto(amp, r(amp), 0));
+  assert.deepEqual(fp[fp.length - 1][fp[fp.length - 1].length - 1], T2);
+  const reo = Array.from(el.querySelectorAll('rect')).find((q) => Number(q.getAttribute('width')) === 90);
+  const rx = Number(reo.getAttribute('x')), ry = Number(reo.getAttribute('y')) + Number(reo.getAttribute('height')) / 2;
+  assert.deepEqual(fp[1][fp[1].length - 1], [rx + 90, ry]);
+  assert.deepEqual(fp[2][0], [rx, ry]);
+  // o amperímetro não está ligado aos terminais do voltímetro: mede só a corrente da carga
+  assert.ok(Math.abs(Number(amp.getAttribute('cy')) - Number(volt.getAttribute('cy'))) > r(amp));
 });

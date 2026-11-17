@@ -13,7 +13,10 @@ Manual.esquemas.registar('fqa-painel', {
     const F = Manual.fisica;
     const NS = 'http://www.w3.org/2000/svg';
     const mod = Manual.dadosFisica.modelos.painel;
-    const GMAX = mod.irradianciaReferencia, GMIN = 100, RMAX = 60;
+    const GMAX = mod.irradianciaReferencia, GMIN = 100;
+    // a resistência de carga vai até 3 vezes a da potência máxima à irradiância mais baixa, para o máximo ser sempre alcançável
+    const mxBaixo = F.painelPotenciaMaxima(GMIN);
+    const RMAX = Math.ceil((3 * mxBaixo.U) / mxBaixo.I / 5) * 5;
     const lim = (v, a, b, o) => { const x = Number(v); return Number.isFinite(x) && v !== undefined && v !== null ? Math.min(Math.max(x, a), b) : o; };
     const fmt = (v, d) => {
       const x = Math.abs(v) < 5e-10 ? 0 : v;
@@ -127,7 +130,7 @@ Manual.esquemas.registar('fqa-painel', {
       const d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[ev.key];
       if (!d) return;
       ev.preventDefault();
-      sliders[0].definir(Math.min(Math.max(est.R + d * (ev.shiftKey ? 5 : 1), 1), RMAX));
+      sliders[0].definir(Math.min(Math.max(est.R + d * (ev.shiftKey ? 20 : 5), 1), RMAX));
     };
     svg.addEventListener('keydown', aoTecla);
 
