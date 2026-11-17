@@ -23,13 +23,16 @@ self.LISTA_CACHE = [
   "esquemas/fqa/fqa-configuracao.js",
   "esquemas/fqa/fqa-diluicao.js",
   "esquemas/fqa/fqa-energia-distancia.js",
+  "esquemas/fqa/fqa-energias.js",
   "esquemas/fqa/fqa-entalpia.js",
   "esquemas/fqa/fqa-espectro.js",
   "esquemas/fqa/fqa-geometria.js",
   "esquemas/fqa/fqa-isotopos.js",
   "esquemas/fqa/fqa-molecula.js",
   "esquemas/fqa/fqa-niveis.js",
+  "esquemas/fqa/fqa-ressalto.js",
   "esquemas/fqa/fqa-tabela.js",
+  "esquemas/fqa/fqa-trabalho.js",
   "esquemas/mat-a/afim.js",
   "esquemas/mat-a/borda.js",
   "esquemas/mat-a/calculo-cidadania.js",
@@ -117,4 +120,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'c8208d2ee1';
+self.VERSAO_CACHE = '3ec5c1c4cb';
