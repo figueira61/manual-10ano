@@ -45,8 +45,20 @@ globalThis.Manual = globalThis.Manual || {};
   }
   // « = » se o valor mostrado é exato, « ≈ » se foi arredondado.
   const igual = (v) => (exatoAS(v, 3) ? ' = ' : ' \\approx ');
-  // Valor com unidade para as explicações: $≈ 17,8 J$.
-  const vt = (v, u) => '$' + (exatoAS(v, 3) ? '' : '\\approx ') + texN(v) + (u ? '\\,' + u : '') + '$';
+  // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
+  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= 1e-9 * Math.max(1, Math.abs(v));
+  function texI(v) {
+    if (exI(v)) return tex(v, 4);
+    const a = Math.abs(v);
+    if (a >= 1e5 || a < 1e-3) return cient(v, 4);
+    if (a >= 1000) return tex(aAS(v, 4), 0);
+    return (v < 0 ? '-' : '') + a.toPrecision(4).replace('.', '{,}');
+  }
+  // « = valor » ou « ≈ valor » de um resultado intermédio; ok = false quando algum operando já foi arredondado.
+  const eqI = (v, ok = true) => (ok && exI(v) ? ' = ' : ' \\approx ') + texI(v);
+  // O mesmo para um resultado mostrado com a precisão da resposta (3 a.s.).
+  const eqN = (v, ok = true) => (ok && exatoAS(v, 3) ? ' = ' : ' \\approx ') + texN(v);
+  const parI = (v) => (v < 0 ? '(' + texI(v) + ')' : texI(v));
   // Dado do enunciado: $2,5\,kg$.
   const q = (v, u) => '$' + tex(v) + '\\,' + u + '$';
   // Número entre parênteses se for negativo (sem sinais duplos nas contas).
@@ -63,12 +75,32 @@ globalThis.Manual = globalThis.Manual || {};
     N: '\\mathrm{N}', kmh: '\\mathrm{km\\,h^{-1}}', pct: '\\%',
   };
   const gTxt = () => '$g = ' + tex(gv()) + '\\,\\mathrm{m\\,s^{-2}}$';
-  // Texto de uma opção: $17,8\,J$ (a verificação independente usa o mesmo texto).
-  const textoDe = (u) => (v) => '$' + texN(v) + (u ? '\\,' + u : '') + '$';
+  // Texto de uma opção (regra 14): uma só notação por item, escolhida a partir das opções mostradas.
+  // sci: todas em notação científica com 3 a.s.; senão todas em notação normal com 3 a.s.
+  function texOp(v, sci) {
+    if (sci) {
+      // sempre com «× 10^e» (também 10^0), para todas as opções terem a mesma forma
+      const [mant, e] = Math.abs(v).toExponential(2).split('e');
+      return (v < 0 ? '-' : '') + mant.replace('.', '{,}') + ' \\times 10^{' + Number(e) + '}';
+    }
+    const r = aAS(v, 3);
+    const a = Math.abs(r);
+    if (a >= 1000) return tex(r, 0);
+    return (r < 0 ? '-' : '') + a.toPrecision(3).replace('.', '{,}');
+  }
+  const precisaSci = (vals) => {
+    const ab = vals.filter((x) => x !== 0).map(Math.abs);
+    return Math.max(...ab) >= 1e4 || Math.min(...ab) < 1e-3;
+  };
+  const textoDe = (u, sci) => (v) => '$' + texOp(v, sci) + (u ? '\\,' + u : '') + '$';
+  // Formatador das explicações: a mesma string da opção (sem unidade quando a explicação a dispensa).
+  const vtDe = (sci) => (v, u) => '$' + texOp(v, sci) + (u ? '\\,' + u : '') + '$';
+  // Explicação de um erro: função do formatador do item (ou texto fixo).
+  const explicar = (e, f) => Object.assign({}, e, { explicacao: typeof e.explicacao === 'function' ? e.explicacao(f) : e.explicacao });
 
   // Fecha um item numérico (ou de escolha). Resposta exata quando tem até 3 a.s.; senão pede 3 a.s. (algarismos: 3).
   // Erros: arredondados a 3 a.s., e só os que ficam longe de 0 (um «0» escrito nunca é erro típico) e na escala da resposta.
-  // o: { erros: [{ codigo, valor, explicacao }], unidade, u (LaTeX), verificacao(resposta) → { passo, calculo, valor } }.
+  // o: { erros: [{ codigo, valor, explicacao(vt) }], unidade, u (LaTeX), verificacao(resposta) → { passo, calculo, valor } }.
   function fecharNum(rng, formato, ex, exato, o) {
     if (!Number.isFinite(exato) || exato === 0) return null;
     // Curto: exato com ≤ 3 a.s. e ≤ 3 casas decimais (o quiz, sem `algarismos`, mostra até 3 casas).
@@ -78,19 +110,26 @@ globalThis.Manual = globalThis.Manual || {};
     const tol = A.tolMeiaUnidade(resposta, 3);
     const relativa = Math.abs(resposta) >= 1e4 || Math.abs(resposta) < 1e-3;
     const R = Math.abs(resposta);
-    const erros = o.erros
+    const candidatos = o.erros
       .filter((e) => e && Number.isFinite(e.valor))
       .map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) }))
       .filter((e) => Math.abs(e.valor) > 10 * tol && Math.abs(e.valor) > 1e-4 * R && Math.abs(e.valor) < 1e4 * R);
+    // As opções que vão ser mostradas (a certa e os primeiros erros distintos, com o mesmo filtro de `fechar`),
+    // para escolher a notação do item.
+    const filtrados = relativa ? A.filtrarErros(resposta, tol, candidatos, 1e-9 * R, tol / R) : A.filtrarErros(resposta, tol, candidatos);
+    const mostrados = formato === 'escolha' ? filtrados.slice(0, 3) : filtrados;
+    const sci = precisaSci([resposta].concat(mostrados.map((e) => e.valor)));
+    const erros = candidatos.map((e) => explicar(e, vtDe(sci)));
     if (!curto && formato === 'numerica') ex.enunciado += AS3;
+    ex.dados = Object.assign({}, ex.dados, { sci });
     const v = o.verificacao(resposta);
-    const base = { resposta, unidade: o.unidade, texto: textoDe(o.u), erros, verificacao: Object.assign({}, v, { valor: aAS(v.valor, 3) }) };
+    const base = { resposta, unidade: o.unidade, texto: textoDe(o.u, sci), erros, verificacao: Object.assign({}, v, { valor: aAS(v.valor, 3) }) };
     if (!curto) base.algarismos = 3;
     if (relativa) base.toleranciaRelativa = tol / R; else base.tolerancia = tol;
     return fechar(rng, formato, ex, base);
   }
   // A mesma resposta, por outro caminho, comparada como o item a mostra (verificarIndependente).
-  const confereN = (p, valor, u) => confere(p, aAS(valor, 3), textoDe(u));
+  const confereN = (p, valor, u) => confere(p, aAS(valor, 3), textoDe(u, p.dados.sci));
 
   // ================================================================ sistema-mecanico
   // Corpos para a energia cinética: massa em gramas (g) ou velocidade em km/h (kmh, v em m/s com 3,6 v inteiro).
@@ -132,12 +171,12 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, v },
           };
           erros = [
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: m * v * v, explicacao: 'Calculaste $m v^2$ e obtiveste ' + vt(m * v * v, U.J) + '. Falta o $\\tfrac{1}{2}$ de $E_c = \\tfrac{1}{2} m v^2$.' },
-            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v, explicacao: 'Obtiveste ' + vt(0.5 * m * v, U.J) + ' porque não elevaste a velocidade ao quadrado. A energia cinética é proporcional a $v^2$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: m * v * v, explicacao: (vt) => 'Calculaste $m v^2$ e obtiveste ' + vt(m * v * v, U.J) + '. Falta o $\\tfrac{1}{2}$ de $E_c = \\tfrac{1}{2} m v^2$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v, explicacao: (vt) => 'Obtiveste ' + vt(0.5 * m * v, U.J) + ' porque não elevaste a velocidade ao quadrado. A energia cinética é proporcional a $v^2$.' },
           ];
-          if (emG) erros.push({ codigo: 'massa_em_gramas', valor: 0.5 * mG * v * v, explicacao: 'Usaste a massa em gramas e obtiveste ' + vt(0.5 * mG * v * v, U.J) + '. No SI a massa está em kg ($' + tex(mG) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' });
-          else erros.push({ codigo: 'velocidade_em_km_h', valor: 0.5 * m * vk * vk, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(0.5 * m * vk * vk, U.J) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' });
-          verificacao = (r) => ({ passo: 'Voltar à velocidade, com $v = \\sqrt{2E_c/m}$', calculo: 'v = \\sqrt{' + sobre('2 \\times ' + texN(r), tex(m)) + '}' + igual(Math.sqrt(2 * r / m)) + texN(Math.sqrt(2 * r / m)) + '\\,\\mathrm{m\\,s^{-1}}', valor: Fis().ec(m, v) });
+          if (emG) erros.push({ codigo: 'massa_em_gramas', valor: 0.5 * mG * v * v, explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt(0.5 * mG * v * v, U.J) + '. No SI a massa está em kg ($' + tex(mG) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' });
+          else erros.push({ codigo: 'velocidade_em_km_h', valor: 0.5 * m * vk * vk, explicacao: (vt) => 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(0.5 * m * vk * vk, U.J) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' });
+          verificacao = () => ({ passo: 'Voltar à velocidade, com $v = \\sqrt{2E_c/m}$ (com $E_c$ por arredondar)', calculo: 'v = \\sqrt{' + sobre('2 \\times ' + texI(exato), tex(m)) + '}' + eqI(Math.sqrt(2 * exato / m), exI(exato)) + '\\,\\mathrm{m\\,s^{-1}}', valor: Fis().ec(m, v) });
         } else if (contexto === 'epg') {
           // Nível de referência acima do chão: h = h1 − h2.
           const cen = escolher(rng, [
@@ -159,11 +198,11 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, h1, h2 },
           };
           erros = [
-            { codigo: 'epg_sem_nivel_de_referencia', valor: m * g * h1, explicacao: 'Mediste a altura a partir do chão e obtiveste ' + vt(m * g * h1, U.J) + '. O nível de referência é ' + cen.ref + ', por isso $h = ' + tex(h1) + ' - ' + tex(h2) + ' = ' + tex(h) + '\\,\\mathrm{m}$.' },
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * h, explicacao: 'Calculaste só $m h$ e obtiveste ' + vt(m * h, U.J) + '. Falta multiplicar por $g = ' + tex(g) + '\\,\\mathrm{m\\,s^{-2}}$.' },
-            { codigo: 'somou_as_alturas', valor: m * g * (h1 + h2), explicacao: 'Somaste as duas alturas e obtiveste ' + vt(m * g * (h1 + h2), U.J) + '. O nível de referência está acima do chão, por isso a altura em relação a ele é a diferença, $' + tex(h) + '\\,\\mathrm{m}$.' },
+            { codigo: 'epg_sem_nivel_de_referencia', valor: m * g * h1, explicacao: (vt) => 'Mediste a altura a partir do chão e obtiveste ' + vt(m * g * h1, U.J) + '. O nível de referência é ' + cen.ref + ', por isso $h = ' + tex(h1) + ' - ' + tex(h2) + ' = ' + tex(h) + '\\,\\mathrm{m}$.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * h, explicacao: (vt) => 'Calculaste só $m h$ e obtiveste ' + vt(m * h, U.J) + '. Falta multiplicar por $g = ' + tex(g) + '\\,\\mathrm{m\\,s^{-2}}$.' },
+            { codigo: 'somou_as_alturas', valor: m * g * (h1 + h2), explicacao: (vt) => 'Somaste as duas alturas e obtiveste ' + vt(m * g * (h1 + h2), U.J) + '. O nível de referência está acima do chão, por isso a altura em relação a ele é a diferença, $' + tex(h) + '\\,\\mathrm{m}$.' },
           ];
-          verificacao = (r) => ({ passo: 'Diferença das energias medidas a partir do chão', calculo: 'm g h_1 - m g h_2 = ' + texN(m * g * h1) + ' - ' + texN(m * g * h2) + igual(m * g * h1 - m * g * h2) + texN(m * g * h1 - m * g * h2) + '\\,\\mathrm{J}', valor: Fis().epg(m, h1) - Fis().epg(m, h2) });
+          verificacao = (r) => ({ passo: 'Diferença das energias medidas a partir do chão', calculo: 'm g h_1 - m g h_2 = ' + texI(m * g * h1) + ' - ' + texI(m * g * h2) + eqI(m * g * h1 - m * g * h2, exI(m * g * h1) && exI(m * g * h2)) + '\\,\\mathrm{J}', valor: Fis().epg(m, h1) - Fis().epg(m, h2) });
         } else {
           // Variação da energia potencial gravítica entre dois andares (alturas a partir do chão).
           const m = entre(rng, 40, 90, 5);
@@ -181,11 +220,11 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, hi, hf },
           };
           erros = [
-            { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. A variação é final menos inicial e a pessoa ' + (sobe ? 'sobe' : 'desce') + ', por isso $\\Delta E_{pg}$ é ' + (sobe ? 'positiva' : 'negativa') + '.' },
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * (hf - hi), explicacao: 'Calculaste só $m \\Delta h$ e obtiveste ' + vt(m * (hf - hi), U.J) + '. Falta multiplicar por $g = ' + tex(g) + '\\,\\mathrm{m\\,s^{-2}}$.' },
-            { codigo: 'deu_a_energia_potencial_final', valor: m * g * hf, explicacao: vt(m * g * hf, U.J) + ' é a energia potencial gravítica no andar final (em relação ao chão). Pede-se a variação, $m g (h_f - h_i)$.' },
+            { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: (vt) => 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. A variação é final menos inicial e a pessoa ' + (sobe ? 'sobe' : 'desce') + ', por isso $\\Delta E_{pg}$ é ' + (sobe ? 'positiva' : 'negativa') + '.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * (hf - hi), explicacao: (vt) => 'Calculaste só $m \\Delta h$ e obtiveste ' + vt(m * (hf - hi), U.J) + '. Falta multiplicar por $g = ' + tex(g) + '\\,\\mathrm{m\\,s^{-2}}$.' },
+            { codigo: 'deu_a_energia_potencial_final', valor: m * g * hf, explicacao: (vt) => vt(m * g * hf, U.J) + ' é a energia potencial gravítica no andar final (em relação ao chão). Pede-se a variação, $m g (h_f - h_i)$.' },
           ];
-          verificacao = (r) => ({ passo: 'Energias em relação ao chão, subtraídas', calculo: m * g * hf + ' - ' + m * g * hi + ' = ' + texN(m * g * hf - m * g * hi) + '\\,\\mathrm{J}', valor: Fis().epg(m, hf) - Fis().epg(m, hi) });
+          verificacao = (r) => ({ passo: 'Energias em relação ao chão, subtraídas', calculo: texI(m * g * hf) + ' - ' + texI(m * g * hi) + eqI(m * g * hf - m * g * hi) + '\\,\\mathrm{J}', valor: Fis().epg(m, hf) - Fis().epg(m, hi) });
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade: 'J', u: U.J, verificacao });
       });
@@ -233,34 +272,33 @@ globalThis.Manual = globalThis.Manual || {};
             resolucao: [
               { passo: 'Energia cinética', porque: '$E_c = \\tfrac{1}{2} m v^2$.', calculo: 'E_c = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v) + '^2' + igual(Ec) + texN(Ec) + '\\,\\mathrm{J}' },
               passoEpg,
-              { passo: 'Somar as duas energias', porque: 'A energia mecânica é a soma da energia cinética com a energia potencial gravítica: $E_m = E_c + E_{pg}$.', calculo: 'E_m = ' + tex(Ec) + ' + ' + tex(Epg) + igual(Em) + texN(Em) + '\\,\\mathrm{J}' },
+              { passo: 'Somar as duas energias', porque: 'A energia mecânica é a soma da energia cinética com a energia potencial gravítica: $E_m = E_c + E_{pg}$.', calculo: 'E_m = ' + texI(Ec) + ' + ' + texI(Epg) + eqN(Em) + '\\,\\mathrm{J}' },
             ],
             dados: { contexto, m, v, h },
           };
           erros = [
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: m * v * v + Epg, explicacao: 'Usaste $m v^2$ na energia cinética e obtiveste ' + vt(m * v * v + Epg, U.J) + '. A energia cinética é $\\tfrac{1}{2} m v^2$.' },
-            { codigo: 'deu_so_a_energia_cinetica', valor: Ec, explicacao: vt(Ec, U.J) + ' é só a energia cinética. A energia mecânica soma-lhe a energia potencial gravítica, $' + texN(Epg) + '\\,\\mathrm{J}$.' },
-            { codigo: 'deu_so_a_energia_potencial', valor: Epg, explicacao: vt(Epg, U.J) + ' é só a energia potencial gravítica. A energia mecânica soma-lhe a energia cinética, $' + texN(Ec) + '\\,\\mathrm{J}$.' },
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: Ec + m * h, explicacao: 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(Ec + m * h, U.J) + '. Falta multiplicar por $g$: $E_{pg} = m g h$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: m * v * v + Epg, explicacao: (vt) => 'Usaste $m v^2$ na energia cinética e obtiveste ' + vt(m * v * v + Epg, U.J) + '. A energia cinética é $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'deu_so_a_energia_cinetica', valor: Ec, explicacao: (vt) => vt(Ec, U.J) + ' é só a energia cinética. A energia mecânica soma-lhe a energia potencial gravítica, $' + texI(Epg) + '\\,\\mathrm{J}$.' },
+            { codigo: 'deu_so_a_energia_potencial', valor: Epg, explicacao: (vt) => vt(Epg, U.J) + ' é só a energia potencial gravítica. A energia mecânica soma-lhe a energia cinética, $' + texI(Ec) + '\\,\\mathrm{J}$.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: Ec + m * h, explicacao: (vt) => 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(Ec + m * h, U.J) + '. Falta multiplicar por $g$: $E_{pg} = m g h$.' },
           ];
-          verificacao = (r) => ({ passo: 'Pôr a massa em evidência: $E_m = m\\left(\\tfrac{1}{2} v^2 + g h\\right)$', calculo: tex(m) + ' \\times ' + '(' + tex(v * v / 2) + ' + ' + tex(g * h) + ')' + igual(m * (v * v / 2 + g * h)) + texN(m * (v * v / 2 + g * h)) + '\\,\\mathrm{J}', valor: Fis().em(m, v, h) });
+          verificacao = (r) => ({ passo: 'Pôr a massa em evidência: $E_m = m\\left(\\tfrac{1}{2} v^2 + g h\\right)$', calculo: '\\tfrac{1}{2} v^2 + g h = ' + texI(v * v / 2) + ' + ' + texI(g * h) + ' = ' + texI(v * v / 2 + g * h) + '\\,\\mathrm{J\\,kg^{-1}};\\ E_m = ' + tex(m) + ' \\times ' + texI(v * v / 2 + g * h) + eqN(m * (v * v / 2 + g * h)) + '\\,\\mathrm{J}', valor: Fis().em(m, v, h) });
         } else {
           exato = Ec;
           ex = {
             enunciado: c.nome + ' de ' + q(m, U.kg) + ' está a ' + q(h, U.m) + ' do solo, e a energia mecânica d' + sis + ' é $' + tex(Em) + '\\,\\mathrm{J}$ (nível de referência no solo; ' + gTxt() + '). Calcula a energia cinética nesse instante.',
             resolucao: [
               passoEpg,
-              { passo: 'Tirar a energia potencial à energia mecânica', porque: 'De $E_m = E_c + E_{pg}$ vem $E_c = E_m - E_{pg}$.', calculo: 'E_c = ' + tex(Em) + ' - ' + tex(Epg) + igual(Ec) + texN(Ec) + '\\,\\mathrm{J}' },
+              { passo: 'Tirar a energia potencial à energia mecânica', porque: 'De $E_m = E_c + E_{pg}$ vem $E_c = E_m - E_{pg}$.', calculo: 'E_c = ' + texI(Em) + ' - ' + texI(Epg) + eqN(Ec) + '\\,\\mathrm{J}' },
             ],
             dados: { contexto, m, Em, h },
           };
           erros = [
-            { codigo: 'somou_a_energia_potencial', valor: Em + Epg, explicacao: 'Somaste a energia potencial gravítica e obtiveste ' + vt(Em + Epg, U.J) + '. Como $E_m = E_c + E_{pg}$, a energia cinética é a diferença, $E_m - E_{pg}$.' },
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: Em - m * h, explicacao: 'Usaste $m h$ como energia potencial gravítica e obtiveste ' + vt(Em - m * h, U.J) + '. Falta multiplicar por $g$: $E_{pg} = ' + texN(Epg) + '\\,\\mathrm{J}$.' },
-            { codigo: 'deu_a_energia_potencial', valor: Epg, explicacao: vt(Epg, U.J) + ' é a energia potencial gravítica. A energia cinética é o que falta para a energia mecânica, $E_m - E_{pg}$.' },
+            { codigo: 'somou_a_energia_potencial', valor: Em + Epg, explicacao: (vt) => 'Somaste a energia potencial gravítica e obtiveste ' + vt(Em + Epg, U.J) + '. Como $E_m = E_c + E_{pg}$, a energia cinética é a diferença, $E_m - E_{pg}$.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: Em - m * h, explicacao: (vt) => 'Usaste $m h$ como energia potencial gravítica e obtiveste ' + vt(Em - m * h, U.J) + '. Falta multiplicar por $g$: $E_{pg} = ' + texI(Epg) + '\\,\\mathrm{J}$.' },
+            { codigo: 'deu_a_energia_potencial', valor: Epg, explicacao: (vt) => vt(Epg, U.J) + ' é a energia potencial gravítica. A energia cinética é o que falta para a energia mecânica, $E_m - E_{pg}$.' },
           ];
-          const vel = Math.sqrt(2 * Ec / m);
-          verificacao = (r) => ({ passo: 'Velocidade correspondente e de novo a soma $E_c + E_{pg}$', calculo: 'v = \\sqrt{' + sobre('2 \\times ' + texN(r), tex(m)) + '}' + igual(vel) + texN(vel) + '\\,\\mathrm{m\\,s^{-1}}', valor: Fis().ec(m, vel) });
+          verificacao = () => ({ passo: 'Somar de novo $E_c + E_{pg}$ (com $E_c$ por arredondar): tem de dar a energia mecânica dada', calculo: texI(Ec) + ' + ' + texI(Epg) + ' = ' + texI(Ec + Epg) + '\\,\\mathrm{J} = E_m', valor: Fis().ec(m, v) });
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade: 'J', u: U.J, verificacao });
       });
@@ -304,9 +342,9 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, Epg },
           };
           erros = [
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: Epg / m, explicacao: 'Dividiste só pela massa e obtiveste ' + vt(Epg / m, U.m) + '. Em $E_{pg} = m g h$ também está $g$: $h = E_{pg}/(m g)$.' },
-            { codigo: 'esqueceu_a_massa', valor: Epg / g, explicacao: 'Dividiste só por $g$ e obtiveste ' + vt(Epg / g, U.m) + '. Falta a massa: $h = E_{pg}/(m g)$.' },
-            { codigo: 'dividiu_ao_contrario', valor: (m * g) / Epg, explicacao: 'Calculaste $m g / E_{pg}$ e obtiveste ' + vt((m * g) / Epg, U.m) + '. É ao contrário: $h = E_{pg}/(m g)$.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: Epg / m, explicacao: (vt) => 'Dividiste só pela massa e obtiveste ' + vt(Epg / m, U.m) + '. Em $E_{pg} = m g h$ também está $g$: $h = E_{pg}/(m g)$.' },
+            { codigo: 'esqueceu_a_massa', valor: Epg / g, explicacao: (vt) => 'Dividiste só por $g$ e obtiveste ' + vt(Epg / g, U.m) + '. Falta a massa: $h = E_{pg}/(m g)$.' },
+            { codigo: 'dividiu_ao_contrario', valor: (m * g) / Epg, explicacao: (vt) => 'Calculaste $m g / E_{pg}$ e obtiveste ' + vt((m * g) / Epg, U.m) + '. É ao contrário: $h = E_{pg}/(m g)$.' },
           ];
           verificacao = (r) => ({ passo: 'Recalcular a energia com a altura obtida', calculo: 'E_{pg} = ' + tex(m) + ' \\times ' + tex(g) + ' \\times ' + texN(r) + igual(m * g * r) + texN(m * g * r) + '\\,\\mathrm{J}', valor: Epg / (m * g) });
         } else {
@@ -327,9 +365,9 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, m, Ec },
             };
             erros = [
-              { codigo: 'esqueceu_raiz', valor: v * v, explicacao: 'Obtiveste ' + vt(v * v) + ', que é $v^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
-              { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(Ec / m), explicacao: 'Calculaste $\\sqrt{E_c/m}$ e obtiveste ' + vt(Math.sqrt(Ec / m), U.ms) + ', sem o 2. De $E_c = \\tfrac{1}{2} m v^2$ vem $v = \\sqrt{2E_c/m}$.' },
-              { codigo: 'multiplicou_pelo_meio_em_vez_de_dividir', valor: Math.sqrt(Ec / (2 * m)), explicacao: 'Multiplicaste por $\\tfrac{1}{2}$ em vez de dividir e obtiveste ' + vt(Math.sqrt(Ec / (2 * m)), U.ms) + '. Para isolar $v^2$, o $\\tfrac{1}{2}$ passa a multiplicar por 2: $v = \\sqrt{2E_c/m}$.' },
+              { codigo: 'esqueceu_raiz', valor: v * v, explicacao: (vt) => 'Obtiveste ' + vt(v * v) + ', que é $v^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
+              { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(Ec / m), explicacao: (vt) => 'Calculaste $\\sqrt{E_c/m}$ e obtiveste ' + vt(Math.sqrt(Ec / m), U.ms) + ', sem o 2. De $E_c = \\tfrac{1}{2} m v^2$ vem $v = \\sqrt{2E_c/m}$.' },
+              { codigo: 'multiplicou_pelo_meio_em_vez_de_dividir', valor: Math.sqrt(Ec / (2 * m)), explicacao: (vt) => 'Multiplicaste por $\\tfrac{1}{2}$ em vez de dividir e obtiveste ' + vt(Math.sqrt(Ec / (2 * m)), U.ms) + '. Para isolar $v^2$, o $\\tfrac{1}{2}$ passa a multiplicar por 2: $v = \\sqrt{2E_c/m}$.' },
             ];
             verificacao = (r) => ({ passo: 'Recalcular a energia cinética com a velocidade obtida', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + texN(r) + '^2' + igual(0.5 * m * r * r) + texN(0.5 * m * r * r) + '\\,\\mathrm{J}', valor: Fis().vDeEc(Ec, m) });
           } else {
@@ -342,9 +380,9 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, v, Ec },
             };
             erros = [
-              { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: Ec / (v * v), explicacao: 'Calculaste $E_c / v^2$ e obtiveste ' + vt(Ec / (v * v), U.kg) + ', como se fosse $E_c = m v^2$. Com o $\\tfrac{1}{2}$, $m = 2E_c/v^2$.' },
-              { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 2 * Ec / v, explicacao: 'Dividiste por $v$ e não por $v^2$, e obtiveste ' + vt(2 * Ec / v, U.kg) + '. A energia cinética depende do quadrado da velocidade.' },
-              { codigo: 'multiplicou_pelo_meio_em_vez_de_dividir', valor: Ec / (2 * v * v), explicacao: 'Multiplicaste por $\\tfrac{1}{2}$ em vez de dividir e obtiveste ' + vt(Ec / (2 * v * v), U.kg) + '. Para isolar $m$, o $\\tfrac{1}{2}$ passa a multiplicar por 2: $m = 2E_c/v^2$.' },
+              { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: Ec / (v * v), explicacao: (vt) => 'Calculaste $E_c / v^2$ e obtiveste ' + vt(Ec / (v * v), U.kg) + ', como se fosse $E_c = m v^2$. Com o $\\tfrac{1}{2}$, $m = 2E_c/v^2$.' },
+              { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 2 * Ec / v, explicacao: (vt) => 'Dividiste por $v$ e não por $v^2$, e obtiveste ' + vt(2 * Ec / v, U.kg) + '. A energia cinética depende do quadrado da velocidade.' },
+              { codigo: 'multiplicou_pelo_meio_em_vez_de_dividir', valor: Ec / (2 * v * v), explicacao: (vt) => 'Multiplicaste por $\\tfrac{1}{2}$ em vez de dividir e obtiveste ' + vt(Ec / (2 * v * v), U.kg) + '. Para isolar $m$, o $\\tfrac{1}{2}$ passa a multiplicar por 2: $m = 2E_c/v^2$.' },
             ];
             verificacao = (r) => ({ passo: 'Recalcular a energia cinética com a massa obtida', calculo: '\\tfrac{1}{2} \\times ' + texN(r) + ' \\times ' + tex(v) + '^2' + igual(0.5 * r * v * v) + texN(0.5 * r * v * v) + '\\,\\mathrm{J}', valor: (2 * Ec) / (v * v) });
           }
@@ -402,11 +440,11 @@ globalThis.Manual = globalThis.Manual || {};
           calculo: 'W = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + (exato === 0 ? ' = 0' : igual(exato) + texN(exato)) + '\\,\\mathrm{J}',
         });
         const erros = [];
-        if (theta !== null) erros.push({ codigo: 'usou_o_angulo_com_a_vertical', valor: Fd * Math.cos(rad(theta)), explicacao: 'Usaste o ângulo com a vertical ($' + theta + '°$) e obtiveste ' + vt(Fd * Math.cos(rad(theta)), U.J) + '. O ângulo do trabalho é o que a força faz com o deslocamento, $\\alpha = 90° - ' + theta + '° = ' + alfa + '°$.' });
-        erros.push({ codigo: 'esqueceu_o_cosseno', valor: Fd, explicacao: 'Calculaste $F d$ e obtiveste ' + vt(Fd, U.J) + ', como se a força tivesse a direção do deslocamento. Só a componente eficaz realiza trabalho, por isso multiplica-se por $' + cosTex(alfa) + '$.' });
-        if (alfa > 90) erros.push({ codigo: 'sinal_do_trabalho_trocado', valor: -exato, explicacao: 'Obtiveste ' + vt(-exato, U.J) + ', com o sinal trocado. Com $\\alpha = ' + alfa + '°$ (maior do que $90°$) o cosseno é negativo e o trabalho é resistente.' });
-        if (theta === null) erros.push({ codigo: 'usou_o_seno_em_vez_do_cosseno', valor: Fd * Math.sin(rad(alfa)), explicacao: 'Usaste $\\sin ' + alfa + '°$ e obtiveste ' + vt(Fd * Math.sin(rad(alfa)), U.J) + '. O trabalho usa o cosseno do ângulo entre a força e o deslocamento.' });
-        erros.push({ codigo: 'calculadora_em_radianos', valor: Fd * Math.cos(alfa), explicacao: 'Obtiveste ' + vt(Fd * Math.cos(alfa), U.J) + ' com a calculadora em radianos (calculaste o cosseno de ' + alfa + ' radianos). O ângulo está em graus.' });
+        if (theta !== null) erros.push({ codigo: 'usou_o_angulo_com_a_vertical', valor: Fd * Math.cos(rad(theta)), explicacao: (vt) => 'Usaste o ângulo com a vertical ($' + theta + '°$) e obtiveste ' + vt(Fd * Math.cos(rad(theta)), U.J) + '. O ângulo do trabalho é o que a força faz com o deslocamento, $\\alpha = 90° - ' + theta + '° = ' + alfa + '°$.' });
+        erros.push({ codigo: 'esqueceu_o_cosseno', valor: Fd, explicacao: (vt) => 'Calculaste $F d$ e obtiveste ' + vt(Fd, U.J) + ', como se a força tivesse a direção do deslocamento. Só a componente eficaz realiza trabalho, por isso multiplica-se por $' + cosTex(alfa) + '$.' });
+        if (alfa > 90) erros.push({ codigo: 'sinal_do_trabalho_trocado', valor: -exato, explicacao: (vt) => 'Obtiveste ' + vt(-exato, U.J) + ', com o sinal trocado. Com $\\alpha = ' + alfa + '°$ (maior do que $90°$) o cosseno é negativo e o trabalho é resistente.' });
+        if (theta === null) erros.push({ codigo: 'usou_o_seno_em_vez_do_cosseno', valor: Fd * Math.sin(rad(alfa)), explicacao: (vt) => 'Usaste $\\sin ' + alfa + '°$ e obtiveste ' + vt(Fd * Math.sin(rad(alfa)), U.J) + '. O trabalho usa o cosseno do ângulo entre a força e o deslocamento.' });
+        erros.push({ codigo: 'calculadora_em_radianos', valor: Fd * Math.cos(alfa), explicacao: (vt) => 'Obtiveste ' + vt(Fd * Math.cos(alfa), U.J) + ' com a calculadora em radianos (calculaste o cosseno de ' + alfa + ' radianos). O ângulo está em graus.' });
         const ex = { enunciado, resolucao, dados: { contexto, F, d, alfa }, esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } } };
         const verificacao = (r) => {
           const Fx = F * Math.cos(rad(alfa));
@@ -416,16 +454,19 @@ globalThis.Manual = globalThis.Manual || {};
         if (exato !== 0) return fecharNum(rng, formato, ex, exato, { erros, unidade: 'J', u: U.J, verificacao });
         // α = 90°: W = 0 (só em numérica; na escolha não há 3 erros distintos e tentar re-sorteia).
         const v = verificacao(0);
+        const errosZero = erros.map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) })).filter((e) => Math.abs(e.valor) > 5);
+        const sci = precisaSci(errosZero.map((e) => e.valor).concat([1]));
+        ex.dados.sci = sci;
         return fechar(rng, formato, ex, {
-          resposta: 0, tolerancia: 0.5, unidade: 'J', texto: textoDe(U.J), verificacao: Object.assign({}, v, { valor: 0 }),
-          erros: erros.map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) })).filter((e) => Math.abs(e.valor) > 5),
+          resposta: 0, tolerancia: 0.5, unidade: 'J', texto: textoDe(U.J, sci), verificacao: Object.assign({}, v, { valor: 0 }),
+          erros: errosZero.map((e) => explicar(e, vtDe(sci))),
         });
       });
     },
     verificarIndependente(p) {
       const { F, d, alfa } = p.dados;
       const w = trabalhoComponentes(F, d, alfa);
-      return w === 0 ? confere(p, 0, textoDe(U.J)) : confereN(p, w, U.J);
+      return w === 0 ? confere(p, 0, textoDe(U.J, p.dados.sci)) : confereN(p, w, U.J);
     },
     limites(p) {
       const { F, d, alfa } = p.dados;
@@ -463,10 +504,10 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, vi, vf },
           };
           erros = [
-            { codigo: 'quadrado_da_diferenca_de_velocidades', valor: 0.5 * m * (vf - vi) * (vf - vi), explicacao: 'Calculaste $\\tfrac{1}{2} m (\\Delta v)^2$ e obtiveste ' + vt(0.5 * m * (vf - vi) * (vf - vi), U.J) + '. A variação é das energias cinéticas, $\\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$.' },
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: 'Obtiveste ' + vt(2 * exato, U.J) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
-            { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. $\\Delta E_c = E_{c,f} - E_{c,i}$, ' + (acelera ? 'positivo porque o corpo acelera' : 'negativo porque o corpo trava') + '.' },
-            { codigo: 'deu_a_energia_cinetica_final', valor: Ecf, explicacao: vt(Ecf, U.J) + ' é a energia cinética final. O trabalho da resultante é a variação, $E_{c,f} - E_{c,i}$.' },
+            { codigo: 'quadrado_da_diferenca_de_velocidades', valor: 0.5 * m * (vf - vi) * (vf - vi), explicacao: (vt) => 'Calculaste $\\tfrac{1}{2} m (\\Delta v)^2$ e obtiveste ' + vt(0.5 * m * (vf - vi) * (vf - vi), U.J) + '. A variação é das energias cinéticas, $\\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: (vt) => 'Obtiveste ' + vt(2 * exato, U.J) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: (vt) => 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. $\\Delta E_c = E_{c,f} - E_{c,i}$, ' + (acelera ? 'positivo porque o corpo acelera' : 'negativo porque o corpo trava') + '.' },
+            { codigo: 'deu_a_energia_cinetica_final', valor: Ecf, explicacao: (vt) => vt(Ecf, U.J) + ' é a energia cinética final. O trabalho da resultante é a variação, $E_{c,f} - E_{c,i}$.' },
           ];
           verificacao = (r) => ({ passo: 'Fatorizar: $\\Delta E_c = \\tfrac{1}{2} m (v_f - v_i)(v_f + v_i)$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + par(vf - vi) + ' \\times ' + tex(vf + vi) + igual(0.5 * m * (vf - vi) * (vf + vi)) + texN(0.5 * m * (vf - vi) * (vf + vi)) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().ec(m, vi) });
         } else if (contexto === 'soma-trabalhos') {
@@ -491,9 +532,9 @@ globalThis.Manual = globalThis.Manual || {};
             esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } },
           };
           erros = [
-            { codigo: 'esqueceu_o_trabalho_do_atrito', valor: WF, explicacao: vt(WF, U.J) + ' é só o trabalho da força aplicada. Falta somar o trabalho da força de atrito, $' + tex(Wa) + '\\,\\mathrm{J}$.' },
-            { codigo: 'trabalho_do_atrito_positivo', valor: WF - Wa, explicacao: 'Somaste o trabalho do atrito como positivo e obtiveste ' + vt(WF - Wa, U.J) + '. O atrito opõe-se ao deslocamento ($\\alpha = 180°$), por isso o seu trabalho é negativo.' },
-            { codigo: 'esqueceu_o_cosseno', valor: F * d + Wa, explicacao: 'Usaste $F d$ sem o $' + cosTex(alfa) + '$ e obtiveste ' + vt(F * d + Wa, U.J) + '. Só a componente da força na direção do deslocamento realiza trabalho.' },
+            { codigo: 'esqueceu_o_trabalho_do_atrito', valor: WF, explicacao: (vt) => vt(WF, U.J) + ' é só o trabalho da força aplicada. Falta somar o trabalho da força de atrito, $' + tex(Wa) + '\\,\\mathrm{J}$.' },
+            { codigo: 'trabalho_do_atrito_positivo', valor: WF - Wa, explicacao: (vt) => 'Somaste o trabalho do atrito como positivo e obtiveste ' + vt(WF - Wa, U.J) + '. O atrito opõe-se ao deslocamento ($\\alpha = 180°$), por isso o seu trabalho é negativo.' },
+            { codigo: 'esqueceu_o_cosseno', valor: F * d + Wa, explicacao: (vt) => 'Usaste $F d$ sem o $' + cosTex(alfa) + '$ e obtiveste ' + vt(F * d + Wa, U.J) + '. Só a componente da força na direção do deslocamento realiza trabalho.' },
           ];
           verificacao = (r) => {
             const FR = F * Math.cos(rad(alfa)) - Fa;
@@ -520,13 +561,13 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, vi, d, FR },
           };
           erros = [
-            { codigo: 'esqueceu_raiz', valor: v2, explicacao: 'Obtiveste ' + vt(v2) + ', que é $v_f^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
-            { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(vi * vi + W / m), explicacao: 'Esqueceste o 2 e obtiveste ' + vt(Math.sqrt(vi * vi + W / m), U.ms) + '. De $W = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$ vem $v_f^2 = v_i^2 + 2W/m$.' },
+            { codigo: 'esqueceu_raiz', valor: v2, explicacao: (vt) => 'Obtiveste ' + vt(v2) + ', que é $v_f^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
+            { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(vi * vi + W / m), explicacao: (vt) => 'Esqueceste o 2 e obtiveste ' + vt(Math.sqrt(vi * vi + W / m), U.ms) + '. De $W = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$ vem $v_f^2 = v_i^2 + 2W/m$.' },
           ];
           if (vi > 0) {
             const semVi = Math.sqrt(2 * W / m);
-            erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semVi, explicacao: 'Obtiveste ' + vt(semVi, U.ms) + ', como se partisse do repouso. O corpo já tinha $' + tex(vi) + '\\,\\mathrm{m\\,s^{-1}}$, por isso $v_f^2 = v_i^2 + 2W/m$.' });
-            erros.push({ codigo: 'somou_as_velocidades', valor: vi + semVi, explicacao: 'Somaste a velocidade inicial à velocidade ganha a partir do repouso e obtiveste ' + vt(vi + semVi, U.ms) + '. Somam-se as energias cinéticas (os quadrados), não as velocidades.' });
+            erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semVi, explicacao: (vt) => 'Obtiveste ' + vt(semVi, U.ms) + ', como se partisse do repouso. O corpo já tinha $' + tex(vi) + '\\,\\mathrm{m\\,s^{-1}}$, por isso $v_f^2 = v_i^2 + 2W/m$.' });
+            erros.push({ codigo: 'somou_as_velocidades', valor: vi + semVi, explicacao: (vt) => 'Somaste a velocidade inicial à velocidade ganha a partir do repouso e obtiveste ' + vt(vi + semVi, U.ms) + '. Somam-se as energias cinéticas (os quadrados), não as velocidades.' });
           }
           verificacao = (r) => ({ passo: 'Variação da energia cinética com a velocidade obtida, comparada com $W_{F_R}$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + (vi === 0 ? texN(r) + '^2' : '(' + texN(r) + '^2 - ' + tex(vi) + '^2)') + igual(0.5 * m * (r * r - vi * vi)) + texN(0.5 * m * (r * r - vi * vi)) + '\\,\\mathrm{J}', valor: Fis().vDeEc(Fis().ec(m, vi) + W, m) });
         }
@@ -572,9 +613,9 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, v, Fa },
           };
           erros = [
-            { codigo: 'velocidade_em_km_h', valor: Ek / Fa, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / Fa, U.m) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / Fa, explicacao: 'Obtiveste ' + vt(2 * Ec / Fa, U.m) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
-            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / Fa, explicacao: 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / Fa, U.m) + '. A energia cinética, e por isso a distância de travagem, é proporcional a $v^2$.' },
+            { codigo: 'velocidade_em_km_h', valor: Ek / Fa, explicacao: (vt) => 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / Fa, U.m) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / Fa, explicacao: (vt) => 'Obtiveste ' + vt(2 * Ec / Fa, U.m) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / Fa, explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / Fa, U.m) + '. A energia cinética, e por isso a distância de travagem, é proporcional a $v^2$.' },
           ];
           verificacao = (r) => ({ passo: 'Trabalho do atrito nessa distância, que tem de anular a energia cinética', calculo: 'W_{F_a} = -' + tex(Fa) + ' \\times ' + texN(r) + igual(Fa * r) + '-' + texN(Fa * r) + '\\,\\mathrm{J}', valor: Fis().travagem({ m, v0: v, Fa }) });
         } else if (contexto === 'forca') {
@@ -588,9 +629,9 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, v, d },
           };
           erros = [
-            { codigo: 'velocidade_em_km_h', valor: Ek / d, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / d, U.N) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / d, explicacao: 'Obtiveste ' + vt(2 * Ec / d, U.N) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
-            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / d, explicacao: 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / d, U.N) + '. A energia cinética é proporcional a $v^2$.' },
+            { codigo: 'velocidade_em_km_h', valor: Ek / d, explicacao: (vt) => 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / d, U.N) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / d, explicacao: (vt) => 'Obtiveste ' + vt(2 * Ec / d, U.N) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / d, explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / d, U.N) + '. A energia cinética é proporcional a $v^2$.' },
           ];
           verificacao = (r) => ({ passo: 'Distância de travagem com essa força', calculo: 'd = \\dfrac{' + texN(Ec) + '}{' + texN(r) + '}' + igual(Ec / r) + texN(Ec / r) + '\\,\\mathrm{m}', valor: Fis().ec(m, v) / d });
         } else {
@@ -603,10 +644,10 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, v },
           };
           erros = [
-            { codigo: 'trabalho_do_atrito_positivo', valor: -exato, explicacao: 'Obtiveste ' + vt(-exato, U.kJ) + ', positivo. O atrito opõe-se ao deslocamento ($\\alpha = 180°$) e o automóvel perde energia cinética, por isso $W_{F_a} < 0$.' },
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: 'Obtiveste ' + vt(2 * exato, U.kJ) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
-            { codigo: 'velocidade_em_km_h', valor: -Ek / 1000, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(-Ek / 1000, U.kJ) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
-            { codigo: 'respondeu_em_joules', valor: -Ec, explicacao: 'Respondeste ' + vt(-Ec) + ', que é o valor em joules. Pede-se em quilojoules (divide-se por 1000).' },
+            { codigo: 'trabalho_do_atrito_positivo', valor: -exato, explicacao: (vt) => 'Obtiveste ' + vt(-exato, U.kJ) + ', positivo. O atrito opõe-se ao deslocamento ($\\alpha = 180°$) e o automóvel perde energia cinética, por isso $W_{F_a} < 0$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: (vt) => 'Obtiveste ' + vt(2 * exato, U.kJ) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'velocidade_em_km_h', valor: -Ek / 1000, explicacao: (vt) => 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(-Ek / 1000, U.kJ) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'respondeu_em_joules', valor: -Ec, explicacao: (vt) => 'Respondeste ' + vt(-Ec) + ', que é o valor em joules. Pede-se em quilojoules (divide-se por 1000).' },
           ];
           verificacao = (r) => ({ passo: 'Variação da energia cinética escrita em kJ desde o início', calculo: '0 - \\tfrac{1}{2} \\times ' + tex(m / 1000) + '\\,\\mathrm{t} \\times ' + tex(v) + '^2' + igual(-0.5 * (m / 1000) * v * v) + texN(-0.5 * (m / 1000) * v * v) + '\\,\\mathrm{kJ}', valor: (0 - Fis().ec(m, v)) / 1000 });
         }
@@ -669,14 +710,14 @@ globalThis.Manual = globalThis.Manual || {};
           };
           if (c.id === 'rampa') ex.esquema = { id: 'fqa-energias', opcoes: { percurso: 'rampa', h0, v0, Fa: 0 } };
           erros = [
-            { codigo: 'esqueceu_raiz', valor: v2, explicacao: 'Obtiveste ' + vt(v2) + ', que é $v^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
-            { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(v0 * v0 + g * dh), explicacao: 'Esqueceste o 2 e obtiveste ' + vt(Math.sqrt(v0 * v0 + g * dh), U.ms) + '. De $\\tfrac{1}{2} m v^2 = m g \\Delta h$ vem $v^2 = 2 g \\Delta h$.' },
-            { codigo: 'usou_a_altura_em_vez_do_desnivel', valor: Math.sqrt(v0 * v0 + 2 * g * h0), explicacao: 'Usaste a altura inicial ($' + tex(h0) + '\\,\\mathrm{m}$) em vez do desnível e obtiveste ' + vt(Math.sqrt(v0 * v0 + 2 * g * h0), U.ms) + '. A energia potencial que passa a cinética corresponde à descida, $h_0 - h = ' + tex(dh) + '\\,\\mathrm{m}$.' },
+            { codigo: 'esqueceu_raiz', valor: v2, explicacao: (vt) => 'Obtiveste ' + vt(v2) + ', que é $v^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
+            { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(v0 * v0 + g * dh), explicacao: (vt) => 'Esqueceste o 2 e obtiveste ' + vt(Math.sqrt(v0 * v0 + g * dh), U.ms) + '. De $\\tfrac{1}{2} m v^2 = m g \\Delta h$ vem $v^2 = 2 g \\Delta h$.' },
+            { codigo: 'usou_a_altura_em_vez_do_desnivel', valor: Math.sqrt(v0 * v0 + 2 * g * h0), explicacao: (vt) => 'Usaste a altura inicial ($' + tex(h0) + '\\,\\mathrm{m}$) em vez do desnível e obtiveste ' + vt(Math.sqrt(v0 * v0 + 2 * g * h0), U.ms) + '. A energia potencial que passa a cinética corresponde à descida, $h_0 - h = ' + tex(dh) + '\\,\\mathrm{m}$.' },
           ];
           if (v0 > 0) {
             const semV0 = Math.sqrt(2 * g * dh);
-            erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semV0, explicacao: 'Obtiveste ' + vt(semV0, U.ms) + ', como se partisse do repouso. Em A já havia energia cinética: $v^2 = v_0^2 + 2 g \\Delta h$.' });
-            erros.push({ codigo: 'somou_as_velocidades', valor: v0 + semV0, explicacao: 'Somaste $v_0$ à velocidade ganha na descida e obtiveste ' + vt(v0 + semV0, U.ms) + '. Somam-se as energias (os quadrados das velocidades), não as velocidades.' });
+            erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semV0, explicacao: (vt) => 'Obtiveste ' + vt(semV0, U.ms) + ', como se partisse do repouso. Em A já havia energia cinética: $v^2 = v_0^2 + 2 g \\Delta h$.' });
+            erros.push({ codigo: 'somou_as_velocidades', valor: v0 + semV0, explicacao: (vt) => 'Somaste $v_0$ à velocidade ganha na descida e obtiveste ' + vt(v0 + semV0, U.ms) + '. Somam-se as energias (os quadrados das velocidades), não as velocidades.' });
           }
           verificacao = () => {
             const Emi = Fis().em(m, v0, h0), Epf = Fis().epg(m, h), Ecf = Emi - Epf, vf = Math.sqrt(2 * Ecf / m);
@@ -698,10 +739,10 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, h0, v0 },
           };
           erros = [
-            { codigo: 'esqueceu_a_altura_de_lancamento', valor: sobe, explicacao: vt(sobe, U.m) + ' é só o que a bola sobe acima do ponto de lançamento. Pede-se a altura em relação ao solo: soma-se $' + tex(h0) + '\\,\\mathrm{m}$.' },
-            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: h0 + v0 * v0 / g, explicacao: 'Usaste $m v_0^2$ em vez de $\\tfrac{1}{2} m v_0^2$ e obtiveste ' + vt(h0 + v0 * v0 / g, U.m) + '. A subida é $v_0^2/(2g)$.' },
-            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: h0 + v0 / (2 * g), explicacao: 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(h0 + v0 / (2 * g), U.m) + '. A energia cinética é proporcional a $v^2$: a subida é $v_0^2/(2g)$.' },
-            { codigo: 'nao_dividiu_por_g', valor: h0 + v0 * v0 / 2, explicacao: 'Não dividiste por $g$ e obtiveste ' + vt(h0 + v0 * v0 / 2, U.m) + '. De $\\tfrac{1}{2} m v_0^2 = m g \\Delta h$ vem $\\Delta h = v_0^2/(2g)$.' },
+            { codigo: 'esqueceu_a_altura_de_lancamento', valor: sobe, explicacao: (vt) => vt(sobe, U.m) + ' é só o que a bola sobe acima do ponto de lançamento. Pede-se a altura em relação ao solo: soma-se $' + tex(h0) + '\\,\\mathrm{m}$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: h0 + v0 * v0 / g, explicacao: (vt) => 'Usaste $m v_0^2$ em vez de $\\tfrac{1}{2} m v_0^2$ e obtiveste ' + vt(h0 + v0 * v0 / g, U.m) + '. A subida é $v_0^2/(2g)$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: h0 + v0 / (2 * g), explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(h0 + v0 / (2 * g), U.m) + '. A energia cinética é proporcional a $v^2$: a subida é $v_0^2/(2g)$.' },
+            { codigo: 'nao_dividiu_por_g', valor: h0 + v0 * v0 / 2, explicacao: (vt) => 'Não dividiste por $g$ e obtiveste ' + vt(h0 + v0 * v0 / 2, U.m) + '. De $\\tfrac{1}{2} m v_0^2 = m g \\Delta h$ vem $\\Delta h = v_0^2/(2g)$.' },
           ];
           verificacao = (r) => ({ passo: 'Velocidade com que a bola, caindo do ponto mais alto, passa pelo ponto de lançamento', calculo: 'v = \\sqrt{2 \\times ' + tex(g) + ' \\times (' + texN(r) + ' - ' + tex(h0) + ')}' + igual(Math.sqrt(2 * g * (r - h0))) + texN(Math.sqrt(2 * g * (r - h0))) + '\\,\\mathrm{m\\,s^{-1}}', valor: h0 + Fis().ec(1, v0) / Fis().epg(1, 1) });
         }
@@ -748,10 +789,10 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, m, h, vf },
           };
           erros = [
-            { codigo: 'trabalho_fnc_sempre_negativo', valor: -exato, explicacao: 'Deste o trabalho com sinal negativo, ' + vt(-exato, U.J) + '. O cabo puxa no sentido do movimento e a energia mecânica aumenta, por isso $W_{FNC} = \\Delta E_m > 0$.' },
-            { codigo: 'esqueceu_a_energia_cinetica', valor: Epg, explicacao: vt(Epg, U.J) + ' é só a variação da energia potencial gravítica. A carga também ganhou energia cinética, $' + texN(Ec) + '\\,\\mathrm{J}$.' },
-            { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: Ec, explicacao: vt(Ec, U.J) + ' é a variação da energia cinética, igual ao trabalho da resultante. O trabalho do cabo é a variação da energia mecânica, $\\Delta E_c + \\Delta E_{pg}$.' },
-            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * h + Ec, explicacao: 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(m * h + Ec, U.J) + '. Falta multiplicar por $g$.' },
+            { codigo: 'trabalho_fnc_sempre_negativo', valor: -exato, explicacao: (vt) => 'Deste o trabalho com sinal negativo, ' + vt(-exato, U.J) + '. O cabo puxa no sentido do movimento e a energia mecânica aumenta, por isso $W_{FNC} = \\Delta E_m > 0$.' },
+            { codigo: 'esqueceu_a_energia_cinetica', valor: Epg, explicacao: (vt) => vt(Epg, U.J) + ' é só a variação da energia potencial gravítica. A carga também ganhou energia cinética, $' + texN(Ec) + '\\,\\mathrm{J}$.' },
+            { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: Ec, explicacao: (vt) => vt(Ec, U.J) + ' é a variação da energia cinética, igual ao trabalho da resultante. O trabalho do cabo é a variação da energia mecânica, $\\Delta E_c + \\Delta E_{pg}$.' },
+            { codigo: 'esqueceu_g_na_energia_potencial', valor: m * h + Ec, explicacao: (vt) => 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(m * h + Ec, U.J) + '. Falta multiplicar por $g$.' },
           ];
           verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_{cabo} + W_P = \\Delta E_c$, com $W_P = -m g h$', calculo: 'W_{cabo} = ' + tex(Ec) + ' - (' + tex(-Epg) + ')' + igual(Ec + Epg) + texN(Ec + Epg) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().trabalho(m * g, h, 180) });
         } else {
@@ -774,10 +815,10 @@ globalThis.Manual = globalThis.Manual || {};
             exato = W;
             ex = { enunciado: inicio + ' Calcula o trabalho realizado pelas forças não conservativas.', resolucao: resolucaoW, dados: { contexto, m, h, L, v0, vf } };
             erros = [
-              { codigo: 'trabalho_dissipativo_com_sinal_positivo', valor: -W, explicacao: 'Deste ' + vt(-W, U.J) + ', positivo. A energia mecânica diminuiu ($E_{m,f} < E_{m,i}$), por isso $W_{FNC} = \\Delta E_m < 0$.' },
-              { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: dEc, explicacao: vt(dEc, U.J) + ' é a variação da energia cinética, igual ao trabalho da resultante. O trabalho das forças não conservativas é a variação da energia mecânica, que inclui a energia potencial gravítica.' },
-              { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Emf - (m * v0 * v0 + m * g * h), explicacao: 'Usaste $m v^2$ nas energias cinéticas e obtiveste ' + vt(2 * Emf - (m * v0 * v0 + m * g * h), U.J) + '. A energia cinética é $\\tfrac{1}{2} m v^2$.' },
-              { codigo: 'esqueceu_g_na_energia_potencial', valor: Emf - (0.5 * m * v0 * v0 + m * h), explicacao: 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(Emf - (0.5 * m * v0 * v0 + m * h), U.J) + '. Falta multiplicar por $g$.' },
+              { codigo: 'trabalho_dissipativo_com_sinal_positivo', valor: -W, explicacao: (vt) => 'Deste ' + vt(-W, U.J) + ', positivo. A energia mecânica diminuiu ($E_{m,f} < E_{m,i}$), por isso $W_{FNC} = \\Delta E_m < 0$.' },
+              { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: dEc, explicacao: (vt) => vt(dEc, U.J) + ' é a variação da energia cinética, igual ao trabalho da resultante. O trabalho das forças não conservativas é a variação da energia mecânica, que inclui a energia potencial gravítica.' },
+              { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Emf - (m * v0 * v0 + m * g * h), explicacao: (vt) => 'Usaste $m v^2$ nas energias cinéticas e obtiveste ' + vt(2 * Emf - (m * v0 * v0 + m * g * h), U.J) + '. A energia cinética é $\\tfrac{1}{2} m v^2$.' },
+              { codigo: 'esqueceu_g_na_energia_potencial', valor: Emf - (0.5 * m * v0 * v0 + m * h), explicacao: (vt) => 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(Emf - (0.5 * m * v0 * v0 + m * h), U.J) + '. Falta multiplicar por $g$.' },
             ];
             verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_P + W_{FNC} = \\Delta E_c$, com $W_P = m g h$ (o bloco desce)', calculo: 'W_{FNC} = ' + tex(dEc) + ' - ' + tex(m * g * h) + igual(dEc - m * g * h) + texN(dEc - m * g * h) + '\\,\\mathrm{J}', valor: (Fis().ec(m, vf) - Fis().ec(m, v0)) - Fis().trabalho(m * g, h, 0) });
           } else {
@@ -790,9 +831,9 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, m, h, L, v0, vf },
             };
             erros = [
-              { codigo: 'dividiu_pela_altura', valor: -W / h, explicacao: 'Dividiste pela altura e obtiveste ' + vt(-W / h, U.N) + '. O atrito atua ao longo de todo o plano, por isso divide-se pelo comprimento, $' + tex(L) + '\\,\\mathrm{m}$.' },
-              { codigo: 'esqueceu_dividir_pela_distancia', valor: -W, explicacao: 'Respondeste ' + vt(-W) + ', que é o valor do trabalho do atrito em joules, e não a força. Como $|W_{F_a}| = F_a L$, divide-se por $' + tex(L) + '\\,\\mathrm{m}$.' },
-              { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: dEc / L, explicacao: 'Usaste a variação da energia cinética e obtiveste ' + vt(dEc / L, U.N) + '. O trabalho do atrito é a variação da energia mecânica, que inclui a energia potencial gravítica.' },
+              { codigo: 'dividiu_pela_altura', valor: -W / h, explicacao: (vt) => 'Dividiste pela altura e obtiveste ' + vt(-W / h, U.N) + '. O atrito atua ao longo de todo o plano, por isso divide-se pelo comprimento, $' + tex(L) + '\\,\\mathrm{m}$.' },
+              { codigo: 'esqueceu_dividir_pela_distancia', valor: -W, explicacao: (vt) => 'Respondeste ' + vt(-W) + ', que é o valor do trabalho do atrito em joules, e não a força. Como $|W_{F_a}| = F_a L$, divide-se por $' + tex(L) + '\\,\\mathrm{m}$.' },
+              { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: dEc / L, explicacao: (vt) => 'Usaste a variação da energia cinética e obtiveste ' + vt(dEc / L, U.N) + '. O trabalho do atrito é a variação da energia mecânica, que inclui a energia potencial gravítica.' },
             ];
             verificacao = (r) => ({ passo: 'Energia dissipada pelo atrito ao longo do plano, somada à energia final', calculo: texN(r) + ' \\times ' + tex(L) + ' + ' + tex(Emf) + igual(r * L + Emf) + texN(r * L + Emf) + '\\,\\mathrm{J} = E_{m,i}', valor: (Fis().em(m, v0, h) - Fis().em(m, vf, 0)) / L });
           }
@@ -844,9 +885,9 @@ globalThis.Manual = globalThis.Manual || {};
           };
           const linear = h0 - n * h0 * (1 - f);
           erros = [
-            { codigo: 'aplicou_a_fracao_uma_so_vez', valor: h0 * f, explicacao: vt(h0 * f, U.m) + ' é a altura do 1.º ressalto. Depois de ' + plural(n, 'ressalto', 'ressaltos') + ' a fração aplica-se ' + plural(n, 'vez', 'vezes') + ': $h_0 \\times ' + tex(f) + '^' + n + '$.' },
-            { codigo: 'usou_a_fracao_dissipada', valor: h0 * Math.pow(1 - f, n), explicacao: 'Usaste a fração dissipada ($' + tex(A.limpo(1 - f)) + '$) e obtiveste ' + vt(h0 * Math.pow(1 - f, n), U.m) + '. A altura do ressalto depende da energia que se mantém, ' + pf + ' %.' },
-            { codigo: 'subtraiu_sempre_a_mesma_altura', valor: linear > 0 ? linear : NaN, explicacao: 'Tiraste sempre a mesma altura em cada ressalto e obtiveste ' + (linear > 0 ? vt(linear, U.m) : '') + '. Perde-se sempre a mesma fração da energia, por isso a altura perdida diminui de ressalto para ressalto.' },
+            { codigo: 'aplicou_a_fracao_uma_so_vez', valor: h0 * f, explicacao: (vt) => vt(h0 * f, U.m) + ' é a altura do 1.º ressalto. Depois de ' + plural(n, 'ressalto', 'ressaltos') + ' a fração aplica-se ' + plural(n, 'vez', 'vezes') + ': $h_0 \\times ' + tex(f) + '^' + n + '$.' },
+            { codigo: 'usou_a_fracao_dissipada', valor: h0 * Math.pow(1 - f, n), explicacao: (vt) => 'Usaste a fração dissipada ($' + tex(A.limpo(1 - f)) + '$) e obtiveste ' + vt(h0 * Math.pow(1 - f, n), U.m) + '. A altura do ressalto depende da energia que se mantém, ' + pf + ' %.' },
+            { codigo: 'subtraiu_sempre_a_mesma_altura', valor: linear > 0 ? linear : NaN, explicacao: (vt) => 'Tiraste sempre a mesma altura em cada ressalto e obtiveste ' + (linear > 0 ? vt(linear, U.m) : '') + '. Perde-se sempre a mesma fração da energia, por isso a altura perdida diminui de ressalto para ressalto.' },
           ];
           verificacao = () => {
             let h = h0;
@@ -872,9 +913,9 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, hq, hr },
             };
             erros = [
-              { codigo: 'deu_a_fracao_conservada', valor: fr * 100, explicacao: vt(fr * 100, U.pct) + ' é a fração da energia mecânica que **se mantém** ($h_r/h_q$). A dissipada é o resto, $100 - ' + texN(fr * 100) + '$.' },
-              { codigo: 'tomou_a_diferenca_de_alturas_como_percentagem', valor: (hq - hr) * 100, explicacao: 'Tomaste a diferença das alturas, $' + tex(A.limpo(hq - hr)) + '\\,\\mathrm{m}$, como percentagem (' + vt((hq - hr) * 100, U.pct) + '). É preciso dividir pela altura de queda.' },
-              { codigo: 'dividiu_pela_altura_do_ressalto', valor: (hq - hr) / hr * 100, explicacao: 'Dividiste a diferença das alturas pela altura do ressalto e obtiveste ' + vt((hq - hr) / hr * 100, U.pct) + '. A energia inicial é a da queda, por isso divide-se por $h_q = ' + tex(hq) + '\\,\\mathrm{m}$.' },
+              { codigo: 'deu_a_fracao_conservada', valor: fr * 100, explicacao: (vt) => vt(fr * 100, U.pct) + ' é a fração da energia mecânica que **se mantém** ($h_r/h_q$). A dissipada é o resto, $100 - ' + texN(fr * 100) + '$.' },
+              { codigo: 'tomou_a_diferenca_de_alturas_como_percentagem', valor: (hq - hr) * 100, explicacao: (vt) => 'Tomaste a diferença das alturas, $' + tex(A.limpo(hq - hr)) + '\\,\\mathrm{m}$, como percentagem (' + vt((hq - hr) * 100, U.pct) + '). É preciso dividir pela altura de queda.' },
+              { codigo: 'dividiu_pela_altura_do_ressalto', valor: (hq - hr) / hr * 100, explicacao: (vt) => 'Dividiste a diferença das alturas pela altura do ressalto e obtiveste ' + vt((hq - hr) / hr * 100, U.pct) + '. A energia inicial é a da queda, por isso divide-se por $h_q = ' + tex(hq) + '\\,\\mathrm{m}$.' },
             ];
             verificacao = () => ({ passo: 'Diferença das alturas em relação à altura de queda', calculo: '\\dfrac{' + tex(hq) + ' - ' + tex(hr) + '}{' + tex(hq) + '} \\times 100' + igual((hq - hr) / hq * 100) + texN((hq - hr) / hq * 100) + '\\,\\%', valor: (hq - hr) / hq * 100 });
           } else {
@@ -893,10 +934,10 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, m, hq, hr },
             };
             erros = [
-              { codigo: 'massa_em_gramas', valor: mg * g * (hq - hr), explicacao: 'Usaste a massa em gramas e obtiveste ' + vt(mg * g * (hq - hr), U.J) + '. No SI a massa está em kg ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m, 4) + '\\,\\mathrm{kg}$).' },
-              { codigo: 'deu_a_energia_apos_o_ressalto', valor: m * g * hr, explicacao: vt(m * g * hr, U.J) + ' é a energia mecânica depois do ressalto (no ponto mais alto). A dissipada é a diferença, $m g (h_q - h_r)$.' },
-              { codigo: 'deu_a_energia_antes_da_colisao', valor: m * g * hq, explicacao: vt(m * g * hq, U.J) + ' é a energia mecânica inicial. A dissipada é só a parte perdida, $m g (h_q - h_r)$.' },
-              { codigo: 'esqueceu_g_na_energia_potencial', valor: m * (hq - hr), explicacao: 'Calculaste $m (h_q - h_r)$ e obtiveste ' + vt(m * (hq - hr), U.J) + '. Falta multiplicar por $g$.' },
+              { codigo: 'massa_em_gramas', valor: mg * g * (hq - hr), explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt(mg * g * (hq - hr), U.J) + '. No SI a massa está em kg ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m, 4) + '\\,\\mathrm{kg}$).' },
+              { codigo: 'deu_a_energia_apos_o_ressalto', valor: m * g * hr, explicacao: (vt) => vt(m * g * hr, U.J) + ' é a energia mecânica depois do ressalto (no ponto mais alto). A dissipada é a diferença, $m g (h_q - h_r)$.' },
+              { codigo: 'deu_a_energia_antes_da_colisao', valor: m * g * hq, explicacao: (vt) => vt(m * g * hq, U.J) + ' é a energia mecânica inicial. A dissipada é só a parte perdida, $m g (h_q - h_r)$.' },
+              { codigo: 'esqueceu_g_na_energia_potencial', valor: m * (hq - hr), explicacao: (vt) => 'Calculaste $m (h_q - h_r)$ e obtiveste ' + vt(m * (hq - hr), U.J) + '. Falta multiplicar por $g$.' },
             ];
             verificacao = () => ({ passo: 'Diferença das energias potenciais nos dois pontos mais altos', calculo: texN(m * g * hq) + ' - ' + texN(m * g * hr) + igual(m * g * hq - m * g * hr) + texN(m * g * hq - m * g * hr) + '\\,\\mathrm{J}', valor: Fis().epg(m, hq) - Fis().epg(m, hr) });
           }
