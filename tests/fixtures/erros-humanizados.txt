@@ -52,6 +52,7 @@ baricentro → Deu o baricentro em vez do circuncentro
 calculadora_em_radianos → Calculou o cosseno com a calculadora em radianos
 calculou_a_concentracao_molar → Calculou a concentração molar em vez da mássica
 calculou_a_percentagem → Calculou a percentagem em vez de partes por milhão
+calculou_a_potencia_em_vez_da_resistencia → Deu a potência máxima em vez da resistência de carga
 calculou_gm → Calculou GM em vez da mediana
 calculou_h → Parou no ortocentro H
 calculou_imagem → Calculou a imagem em vez do objeto
@@ -187,6 +188,7 @@ deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez 
 deu_a_energia_antes_da_colisao → Deu a energia mecânica antes da colisão em vez da dissipada
 deu_a_energia_apos_o_ressalto → Deu a energia mecânica depois do ressalto em vez da dissipada
 deu_a_energia_cinetica_final → Deu a energia cinética final em vez da sua variação
+deu_a_energia_fornecida → Deu a energia fornecida em vez da dissipada
 deu_a_energia_potencial → Deu a energia potencial gravítica em vez da energia cinética
 deu_a_energia_potencial_final → Deu a energia potencial gravítica final em vez da sua variação
 deu_a_fracao_conservada → Deu a fração da energia mecânica que se mantém em vez da dissipada
@@ -200,6 +202,7 @@ deu_a_maior_corrente_medida → Tomou a maior corrente medida pela corrente de c
 deu_a_massa_molar → Deu a massa molar em vez da massa volúmica
 deu_a_percentagem → Deu a percentagem em vez da fração molar
 deu_a_percentagem_do_solvente → Deu a percentagem do solvente em vez da do soluto
+deu_a_potencia_da_radiacao_incidente → Deu a potência da radiação incidente em vez da elétrica
 deu_a_potencia_dissipada_no_gerador → Deu a potência dissipada no gerador em vez da útil
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
@@ -259,6 +262,7 @@ dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de maté
 dividiu_pela_altura → Dividiu o trabalho pela altura em vez do comprimento do plano
 dividiu_pela_altura_do_ressalto → Dividiu pela altura do ressalto em vez da altura de queda
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
+dividiu_pela_energia_dissipada → Dividiu a energia útil pela dissipada
 dividiu_pela_massa_molar → Dividiu pela massa molar em vez de multiplicar
 dividiu_pela_quantidade → Dividiu pela quantidade de matéria em vez de multiplicar
 dividiu_pela_quantidade_do_outro_componente → Dividiu pela quantidade do outro componente em vez da total
@@ -598,6 +602,7 @@ pos_um_par_nao_ligante_no_boro → Pôs um par não ligante no boro
 posicao_como_valor → Deu a posição em vez do valor
 potencia_do_painel_independente_de_u → Achou que a potência do painel não depende da tensão
 potencia_em_watts_no_kwh → Usou a potência em W em vez de kW no cálculo em kWh
+potencia_maxima_como_umax_vezes_imax → Multiplicou a maior tensão pela maior corrente
 potencia_maxima_em_circuito_aberto → Pôs a potência máxima do painel em circuito aberto
 potencia_maxima_em_curto_circuito → Pôs a potência máxima do painel em curto-circuito
 preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s

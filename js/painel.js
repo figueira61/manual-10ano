@@ -890,6 +890,11 @@ globalThis.Manual = globalThis.Manual || {};
     calor_cedido_com_sinal_positivo: 'Contou o calor cedido como positivo',
     esqueceu_o_trabalho_na_primeira_lei: 'Esqueceu o trabalho na Primeira Lei',
     esqueceu_o_calor_na_primeira_lei: 'Esqueceu o calor na Primeira Lei',
+    dividiu_pela_energia_dissipada: 'Dividiu a energia útil pela dissipada',
+    deu_a_energia_fornecida: 'Deu a energia fornecida em vez da dissipada',
+    potencia_maxima_como_umax_vezes_imax: 'Multiplicou a maior tensão pela maior corrente',
+    calculou_a_potencia_em_vez_da_resistencia: 'Deu a potência máxima em vez da resistência de carga',
+    deu_a_potencia_da_radiacao_incidente: 'Deu a potência da radiação incidente em vez da elétrica',
   };
 
   function humanizarErro(codigo) {

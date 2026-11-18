@@ -48,9 +48,11 @@ globalThis.Manual = globalThis.Manual || {};
   const igual = (v) => (exatoAS(v, 3) ? ' = ' : ' \\approx ');
   // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
   // (folga absoluta de no máximo 1e-7, para que um valor grande como 78 026,666… não passe por exato)
-  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
+  const ex4 = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
+  // exI: texI escreve v exatamente (a partir de 10⁵ só se v tiver até 4 a.s.).
+  const exI = (v) => ex4(v) && (Math.abs(v) < 1e5 || exatoAS(v, 4));
   function texI(v) {
-    if (exI(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
+    if (ex4(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
     const a = Math.abs(v);
     if (a >= 1e5 || a < 1e-3) return cient(v, 4);
     if (a >= 1000) return tex(aAS(v, 4), 0);

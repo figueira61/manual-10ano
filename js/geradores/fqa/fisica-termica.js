@@ -50,9 +50,11 @@ globalThis.Manual = globalThis.Manual || {};
   const igual = (v) => (exatoAS(v, 3) ? ' = ' : ' \\approx ');
   // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
   // (folga absoluta de no máximo 1e-7, para que um valor grande como 78 026,666… não passe por exato)
-  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
+  const ex4 = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
+  // exI: texI escreve v exatamente (a partir de 10⁵ só se v tiver até 4 a.s.).
+  const exI = (v) => ex4(v) && (Math.abs(v) < 1e5 || exatoAS(v, 4));
   function texI(v) {
-    if (exI(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
+    if (ex4(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
     const a = Math.abs(v);
     if (a >= 1e5 || a < 1e-3) return cient(v, 4);
     if (a >= 1000) return tex(aAS(v, 4), 0);
@@ -706,5 +708,237 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
-  // @@GERADORES@@
+  // ================================================================ rendimento
+  // Rendimentos plausíveis de cada tipo de aparelho (nunca acima de 100 %).
+  const DISPOSITIVOS = [
+    { nome: 'Um motor elétrico', forn: 'energia elétrica', util: 'energia mecânica útil', eta: [0.7, 0.95] },
+    { nome: 'O motor a gasolina de um automóvel', forn: 'energia (libertada na combustão)', util: 'energia mecânica útil', eta: [0.2, 0.35] },
+    { nome: 'Uma lâmpada LED', forn: 'energia elétrica', util: 'energia da luz visível emitida', eta: [0.25, 0.45] },
+    { nome: 'Uma lâmpada de incandescência', forn: 'energia elétrica', util: 'energia da luz visível emitida', eta: [0.03, 0.08] },
+    { nome: 'Uma central termoelétrica', forn: 'energia (libertada na combustão)', util: 'energia elétrica produzida', eta: [0.3, 0.45] },
+  ];
+
+  registar({
+    subtema: 'rendimento', tipo: 'energia', nome: 'Rendimento e energia dissipada (aparelhos e aquecimento de água)',
+    formatos: ['numerica', 'escolha'], contextos: ['rendimento', 'dissipada', 'chaleira'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let ex, exato, erros, verificacao, unidade = '%', u = UN.pct;
+        if (contexto === 'rendimento') {
+          const d = escolher(rng, DISPOSITIVOS);
+          const Ef = entre(rng, 1000, 9000, 500);
+          const Eu = Math.round((Ef * entre(rng, d.eta[0], d.eta[1], 0.01)) / 10) * 10;
+          const eta = Eu / Ef;
+          if (eta < d.eta[0] || eta > d.eta[1] || Math.abs(eta - 0.5) < 1e-9) return null;
+          const Ed = Ef - Eu;
+          exato = eta * 100;
+          ex = {
+            enunciado: d.nome + ' recebe ' + q(Ef, UN.J) + ' de ' + d.forn + ' e fornece ' + q(Eu, UN.J) + ' de ' + d.util + '. Calcula o seu rendimento, em percentagem.',
+            resolucao: [{ passo: 'Rendimento', porque: 'O rendimento é a fração da energia fornecida que é útil, $\\eta = E_{\\text{útil}}/E_{fornecida}$. O resto é dissipado (sobretudo como energia térmica), por isso $\\eta < 100\\,\\%$.', calculo: '\\eta = \\dfrac{' + tex(Eu) + '}{' + tex(Ef) + '} \\times 100' + igual(exato) + texN(exato) + '\\,\\%' }],
+            dados: { contexto, Ef, Eu },
+          };
+          erros = [
+            { codigo: 'rendimento_maior_do_que_1', valor: (Ef / Eu) * 100, explicacao: (vt) => 'Calculaste $E_{fornecida}/E_{\\text{útil}}$ e obtiveste ' + vt((Ef / Eu) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
+            { codigo: 'deu_a_fracao_dissipada', valor: (Ed / Ef) * 100, explicacao: (vt) => vt((Ed / Ef) * 100, UN.pct) + ' é a fração dissipada ($' + tex(Ed) + '\\,\\mathrm{J}$ em $' + tex(Ef) + '\\,\\mathrm{J}$). O rendimento é a fração útil.' },
+            { codigo: 'dividiu_pela_energia_dissipada', valor: (Eu / Ed) * 100, explicacao: (vt) => 'Dividiste a energia útil pela dissipada e obtiveste ' + vt((Eu / Ed) * 100, UN.pct) + '. O rendimento compara a energia útil com a fornecida (toda a energia recebida) e nunca passa de 100 %.' },
+          ];
+          verificacao = () => ({ passo: 'Pela energia dissipada: $\\eta = 1 - E_{diss}/E_{fornecida}$', calculo: 'E_{diss} = ' + tex(Ef) + ' - ' + tex(Eu) + ' = ' + tex(Ed) + '\\,\\mathrm{J};\\ \\left(1 - \\dfrac{' + tex(Ed) + '}{' + tex(Ef) + '}\\right) \\times 100' + igual((1 - Ed / Ef) * 100) + texN((1 - Ed / Ef) * 100) + '\\,\\%', valor: Fis().rendimento(Eu, Ef) * 100 });
+        } else if (contexto === 'dissipada') {
+          const ap = escolher(rng, ['Um berbequim', 'Um aspirador', 'Uma ventoinha', 'Um motor elétrico']);
+          const P = entre(rng, 200, 2000, 100);
+          const etaP = entre(rng, 60, 95, 5);
+          const eta = etaP / 100;
+          const tmin = escolher(rng, [1, 2, 5, 10]);
+          const ts = tmin * 60;
+          const Ef = P * ts;
+          const Ed = A.limpo(Ef * (1 - eta));
+          exato = Ed;
+          unidade = 'J';
+          u = UN.J;
+          ex = {
+            enunciado: ap + ' de potência ' + q(P, UN.W) + ', com rendimento de ' + etaP + ' %, funciona durante ' + q(tmin, UN.min) + '. Calcula a energia dissipada nesse tempo.',
+            resolucao: [
+              { passo: 'Energia fornecida', porque: '$E = P\\,\\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E_{forn} = ' + tex(P) + ' \\times ' + tex(ts) + ' = ' + texI(Ef) + '\\,\\mathrm{J}' },
+              { passo: 'Energia dissipada', porque: 'Se ' + etaP + ' % da energia é útil, os outros ' + (100 - etaP) + ' % são dissipados.', calculo: 'E_{diss} = ' + tex(A.limpo(1 - eta)) + ' \\times ' + texI(Ef) + igual(Ed) + texN(Ed) + '\\,\\mathrm{J}' },
+            ],
+            dados: { contexto, P, etaP, tmin },
+          };
+          erros = [
+            { codigo: 'deu_energia_util_em_vez_de_dissipada', valor: Ef * eta, explicacao: (vt) => vt(Ef * eta, UN.J) + ' é a energia útil (' + etaP + ' %). A dissipada é o resto, ' + (100 - etaP) + ' % da energia fornecida.' },
+            { codigo: 'tempo_em_minutos', valor: P * tmin * (1 - eta), explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(P * tmin * (1 - eta), UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+            { codigo: 'deu_a_energia_fornecida', valor: Ef, explicacao: (vt) => vt(Ef, UN.J) + ' é toda a energia fornecida. Só ' + (100 - etaP) + ' % dela é dissipada.' },
+            { codigo: 'confundiu_potencia_com_energia', valor: P * (1 - eta), explicacao: (vt) => vt(P * (1 - eta)) + ' é a potência dissipada (em watts), não a energia. Multiplica-se pelo tempo.' },
+          ];
+          verificacao = () => ({ passo: 'Pela diferença entre a energia fornecida e a útil', calculo: texI(Ef) + ' - ' + texI(Ef * eta) + eqN(Ef - Ef * eta, exI(Ef * eta)) + '\\,\\mathrm{J}', valor: Ef - Ef * eta });
+        } else {
+          const cA = cDe('agua');
+          const P = escolher(rng, [1500, 1800, 2000, 2200, 2400]);
+          const m = entre(rng, 0.5, 1.7, 0.1);
+          const ti = entre(rng, 15, 25, 1);
+          const tf = escolher(rng, [80, 90, 100]);
+          const tmin = entre(rng, 1.5, 10, 0.5);
+          const ts = tmin * 60;
+          const Qu = m * cA * (tf - ti);
+          const Ef = P * ts;
+          const eta = Qu / Ef;
+          if (eta < 0.6 || eta > 0.95) return null;
+          exato = eta * 100;
+          ex = {
+            enunciado: 'Uma chaleira elétrica de ' + q(P, UN.W) + ' aquece ' + q(m, UN.kg) + ' de água de ' + temp(ti) + ' até ' + temp(tf) + ' em ' + q(tmin, UN.min) + ' ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$). Calcula o rendimento da chaleira, em percentagem.',
+            resolucao: [
+              { passo: 'Energia útil', porque: 'É a energia que a água recebe ao aquecer, $Q = m c \\Delta\\theta$.', calculo: 'E_{\\text{útil}} = ' + tex(m) + ' \\times ' + cTex(cA) + ' \\times ' + tex(tf - ti) + eqI(Qu) + '\\,\\mathrm{J}' },
+              { passo: 'Energia fornecida', porque: '$E = P\\,\\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E_{forn} = ' + tex(P) + ' \\times ' + tex(ts) + ' = ' + texI(Ef) + '\\,\\mathrm{J}' },
+              { passo: 'Rendimento', porque: '$\\eta = E_{\\text{útil}}/E_{forn}$; parte da energia aquece a própria chaleira e o ar.', calculo: '\\eta = \\dfrac{' + texI(Qu) + '}{' + texI(Ef) + '} \\times 100' + eqN(exato, exI(Qu)) + '\\,\\%' },
+            ],
+            dados: { contexto, P, m, ti, tf, tmin },
+          };
+          erros = [
+            { codigo: 'tempo_em_minutos', valor: (Qu / (P * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Qu / (P * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos.' },
+            { codigo: 'rendimento_maior_do_que_1', valor: (Ef / Qu) * 100, explicacao: (vt) => 'Calculaste $E_{forn}/E_{\\text{útil}}$ e obtiveste ' + vt((Ef / Qu) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
+            { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: ((m * cA * tf) / Ef) * 100, explicacao: (vt) => 'Usaste a temperatura final em vez da variação e obtiveste ' + vt(((m * cA * tf) / Ef) * 100, UN.pct) + '. A água aquece só $' + tex(tf - ti) + '\\,{}^{\\circ}\\mathrm{C}$, e o rendimento nunca passa de 100 %.' },
+          ];
+          verificacao = () => ({ passo: 'Pelas potências: potência útil média $E_{\\text{útil}}/\\Delta t$ comparada com a potência da chaleira', calculo: '\\dfrac{' + texI(Qu) + '}{' + tex(ts) + '}' + eqI(Qu / ts, exI(Qu)) + '\\,\\mathrm{W};\\ \\dfrac{' + texI(Qu / ts) + '}{' + tex(P) + '} \\times 100' + eqN((Qu / ts / P) * 100, exI(Qu / ts)) + '\\,\\%', valor: Fis().rendimento(Fis().calor(m, cA, tf - ti), Ef) * 100 });
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (d.contexto === 'rendimento') return confereN(p, 100 - ((d.Ef - d.Eu) / d.Ef) * 100, UN.pct);
+      if (d.contexto === 'dissipada') return confereN(p, d.P * d.tmin * 60 - d.P * d.tmin * 60 * (d.etaP / 100), UN.J);
+      return confereN(p, ((d.m * Manual.dadosFisica.capacidadeTermicaMassica.agua * (d.tf - d.ti)) / (d.tmin * 60) / d.P) * 100, UN.pct);
+    },
+    limites(p) {
+      const d = p.dados;
+      if (d.contexto === 'rendimento') return d.Eu < d.Ef;
+      if (d.contexto === 'dissipada') return d.etaP > 0 && d.etaP < 100;
+      const eta = (d.m * Manual.dadosFisica.capacidadeTermicaMassica.agua * (d.tf - d.ti)) / (d.P * d.tmin * 60);
+      return eta > 0 && eta <= 0.95;
+    },
+  });
+
+  // AL do painel fotovoltaico: pontos (U, I) do painel modelo (Manual.dadosFisica.modelos.painel) para várias resistências
+  // de carga, com U arredondada às centésimas e I às milésimas, como numa medição. P = U I de cada ponto é exata.
+  const CARGAS = [2, 4, 6, 8, 10, 12, 15, 20, 30, 50];
+  const ptT = (x) => '$R = ' + tex(x.R) + '\\,\\Omega$, $U = ' + tex(x.U, 2) + '\\,\\mathrm{V}$ e $I = ' + tex(x.I, 3) + '\\,\\mathrm{A}$';
+
+  registar({
+    subtema: 'rendimento', tipo: 'painel-maximo', nome: 'Painel fotovoltaico: potência de cada ponto e ponto de potência máxima',
+    formatos: ['numerica', 'escolha'], contextos: ['potencia-maxima', 'resistencia'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const Gi = escolher(rng, [400, 600, 800, 1000]);
+        const Rs = baralhar(rng, CARGAS).slice(0, 6).sort((a, b) => a - b);
+        const pts = Rs.map((R) => {
+          const f = Fis().painel({ irradiancia: Gi, Rcarga: R });
+          const U = A.r2(f.U), I = Math.round(f.I * 1000) / 1000;
+          return { R, U, I, P: A.limpo(U * I) };
+        });
+        if (pts.some((x) => x.I < 0.005)) return null;
+        let k = 0;
+        pts.forEach((x, i) => { if (x.P > pts[k].P) k = i; });
+        const outros = pts.filter((x, i) => i !== k).map((x) => x.P);
+        if (k === 0 || k === pts.length - 1 || pts[k].P < 1.01 * Math.max(...outros)) return null;
+        const mx = pts[k], ab = pts[pts.length - 1], cc = pts[0];
+        const enunciado = 'Numa atividade laboratorial, um pequeno painel fotovoltaico, iluminado com irradiância constante, foi ligado a várias resistências de carga. Os valores medidos foram ' + pts.map(ptT).join('; ') + '. ';
+        const passoP = { passo: 'Potência em cada ponto', porque: 'A potência fornecida pelo painel é $P = U I$; calcula-se para cada resistência de carga.', calculo: pts.map((x, i) => 'P_' + (i + 1) + ' = ' + tex(x.U, 2) + ' \\times ' + tex(x.I, 3) + igual(x.P) + texN(x.P)).join(';\\ ') + '\\,\\mathrm{W}' };
+        const passoMax = { passo: 'Ponto de potência máxima', porque: 'A potência é nula nos extremos da curva (em curto-circuito $U = 0$; em circuito aberto $I = 0$) e é máxima num ponto intermédio, aqui com $R = ' + tex(mx.R) + '\\,\\Omega$ e $P' + igual(mx.P) + texN(mx.P) + '\\,\\mathrm{W}$.' };
+        let ex, exato, erros, unidade, u;
+        if (contexto === 'potencia-maxima') {
+          exato = mx.P;
+          unidade = 'W';
+          u = UN.W;
+          ex = { enunciado: enunciado + 'Qual é a maior potência fornecida pelo painel nestas medições?', resolucao: [passoP, passoMax] };
+          erros = [
+            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.P, explicacao: (vt) => vt(ab.P, UN.W) + ' é a potência no ponto de maior $U$ (perto do circuito aberto), onde a corrente já é pequena. O máximo fica num ponto intermédio.' },
+            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.P, explicacao: (vt) => vt(cc.P, UN.W) + ' é a potência no ponto de maior corrente (perto do curto-circuito), onde $U$ é pequena. O máximo fica num ponto intermédio.' },
+            { codigo: 'potencia_maxima_como_umax_vezes_imax', valor: ab.U * cc.I, explicacao: (vt) => 'Multiplicaste a maior tensão pela maior corrente e obtiveste ' + vt(ab.U * cc.I, UN.W) + '. Esses valores não acontecem no mesmo ponto: a potência calcula-se ponto a ponto.' },
+          ];
+        } else {
+          exato = mx.R;
+          unidade = 'Ω';
+          u = '\\Omega';
+          ex = { enunciado: enunciado + 'Com que resistência de carga é máxima a potência fornecida pelo painel?', resolucao: [passoP, passoMax] };
+          erros = [
+            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.R, explicacao: (vt) => 'Com ' + vt(ab.R, '\\Omega') + ' a diferença de potencial é a maior, mas a corrente é pequena: $P = ' + tex(ab.U, 2) + ' \\times ' + tex(ab.I, 3) + '$ não é o máximo.' },
+            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.R, explicacao: (vt) => 'Com ' + vt(cc.R, '\\Omega') + ' a corrente é a maior, mas a diferença de potencial é pequena: $P = ' + tex(cc.U, 2) + ' \\times ' + tex(cc.I, 3) + '$ não é o máximo.' },
+            { codigo: 'calculou_a_potencia_em_vez_da_resistencia', valor: mx.P, explicacao: (vt) => 'Obtiveste ' + vt(mx.P) + ', que é a potência máxima (em watts). Pede-se a resistência de carga desse ponto.' },
+          ];
+        }
+        const verificacao = () => ({ passo: 'Comparar com os pontos vizinhos: a potência sobe até esse ponto e depois desce', calculo: 'P_' + k + igual(pts[k - 1].P) + texN(pts[k - 1].P) + ' < P_' + (k + 1) + igual(mx.P) + texN(mx.P) + ' > P_' + (k + 2) + igual(pts[k + 1].P) + texN(pts[k + 1].P) + '\\,\\mathrm{W}', valor: contexto === 'resistencia' ? mx.R : Math.max(...pts.map((x) => x.U * x.I)) });
+        ex.dados = { contexto, G: Gi, pontos: pts.map((x) => [x.R, x.U, x.I]) };
+        ex.esquema = { id: 'fqa-painel', opcoes: { G: Gi, Rcarga: mx.R } };
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const pts = p.dados.pontos.map(([R, U, I]) => ({ R, P: U * I }));
+      const mx = pts.reduce((a, x) => (x.P > a.P ? x : a));
+      return p.dados.contexto === 'resistencia' ? confereN(p, mx.R, '\\Omega') : confereN(p, mx.P, UN.W);
+    },
+    limites(p) {
+      return p.dados.pontos.length === 6 && p.dados.pontos.every(([R, U, I]) => R > 0 && U > 0 && I > 0);
+    },
+  });
+
+  registar({
+    subtema: 'rendimento', tipo: 'painel', nome: 'Rendimento de um painel fotovoltaico (irradiância × área)',
+    formatos: ['numerica', 'escolha'], contextos: ['rendimento', 'potencia'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const Ar = entre(rng, 1.6, 2, 0.1);
+        const Gi = entre(rng, 600, 1000, 50);
+        const Pin = A.limpo(Gi * Ar);
+        let ex, exato, erros, verificacao, unidade, u;
+        const passoInc = { passo: 'Potência da radiação incidente', porque: 'A irradiância é a potência da radiação por unidade de área: a potência que chega ao painel é $G A$.', calculo: 'P_{inc} = ' + tex(Gi) + ' \\times ' + tex(Ar) + ' = ' + tex(Pin) + '\\,\\mathrm{W}' };
+        if (contexto === 'rendimento') {
+          const P = Math.round(Pin * entre(rng, 0.15, 0.22, 0.01));
+          const eta = P / Pin;
+          if (eta < 0.14 || eta > 0.23) return null;
+          exato = eta * 100;
+          unidade = '%';
+          u = UN.pct;
+          ex = {
+            enunciado: 'Um painel fotovoltaico com ' + q(Ar, UN.m2) + ' de área, iluminado com uma irradiância de ' + q(Gi, UN.Wm2) + ', fornece uma potência elétrica de ' + q(P, UN.W) + '. Calcula o rendimento do painel, em percentagem.',
+            resolucao: [passoInc, { passo: 'Rendimento', porque: '$\\eta = P_{\\text{elétrica}}/P_{inc}$: só uma pequena parte da energia da radiação passa a energia elétrica.', calculo: '\\eta = \\dfrac{' + tex(P) + '}{' + tex(Pin) + '} \\times 100' + igual(exato) + texN(exato) + '\\,\\%' }],
+            dados: { contexto, A: Ar, G: Gi, P },
+          };
+          erros = [
+            { codigo: 'esqueceu_a_area_do_painel', valor: (P / Gi) * 100, explicacao: (vt) => 'Dividiste a potência pela irradiância e obtiveste ' + vt((P / Gi) * 100, UN.pct) + ', esquecendo a área. A potência incidente é $G A = ' + tex(Pin) + '\\,\\mathrm{W}$.' },
+            { codigo: 'rendimento_maior_do_que_1', valor: (Pin / P) * 100, explicacao: (vt) => 'Calculaste $P_{inc}/P_{\\text{elétrica}}$ e obtiveste ' + vt((Pin / P) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
+            { codigo: 'deu_a_fracao_dissipada', valor: 100 - eta * 100, explicacao: (vt) => vt(100 - eta * 100, UN.pct) + ' é a fração da energia incidente que não passa a energia elétrica. O rendimento é a fração útil.' },
+          ];
+          verificacao = () => ({ passo: 'Por metro quadrado: potência elétrica por unidade de área comparada com a irradiância', calculo: '\\dfrac{' + tex(P) + '}{' + tex(Ar) + '}' + eqI(P / Ar) + '\\,\\mathrm{W\\,m^{-2}};\\ \\dfrac{' + texI(P / Ar) + '}{' + tex(Gi) + '} \\times 100' + eqN((P / Ar / Gi) * 100, exI(P / Ar)) + '\\,\\%', valor: Fis().rendimento(P, Pin) * 100 });
+        } else {
+          const etaP = entre(rng, 15, 22, 1);
+          const P = (etaP / 100) * Pin;
+          exato = P;
+          unidade = 'W';
+          u = UN.W;
+          ex = {
+            enunciado: 'Um painel fotovoltaico com ' + q(Ar, UN.m2) + ' de área e rendimento de ' + etaP + ' % está iluminado com uma irradiância de ' + q(Gi, UN.Wm2) + '. Calcula a potência elétrica que fornece.',
+            resolucao: [passoInc, { passo: 'Potência elétrica', porque: 'O rendimento é a fração da potência incidente que passa a potência elétrica: $P = \\eta\\,G A$.', calculo: 'P = ' + tex(etaP / 100) + ' \\times ' + tex(Pin) + igual(P) + texN(P) + '\\,\\mathrm{W}' }],
+            dados: { contexto, A: Ar, G: Gi, etaP },
+          };
+          erros = [
+            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Pin, explicacao: (vt) => 'Usaste o rendimento como ' + etaP + ' em vez de ' + tex(etaP / 100) + ' e obtiveste ' + vt(etaP * Pin, UN.W) + '. ' + etaP + ' % = ' + tex(etaP / 100) + '.' },
+            { codigo: 'esqueceu_a_area_do_painel', valor: (etaP / 100) * Gi, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt((etaP / 100) * Gi, UN.W) + ' (é a potência por metro quadrado). Multiplica-se ainda por $' + tex(Ar) + '\\,\\mathrm{m^2}$.' },
+            { codigo: 'deu_a_potencia_da_radiacao_incidente', valor: Pin, explicacao: (vt) => vt(Pin, UN.W) + ' é a potência da radiação que chega ao painel. Só ' + etaP + ' % dela passa a potência elétrica.' },
+          ];
+          verificacao = () => ({ passo: 'Primeiro por metro quadrado ($\\eta G$) e depois pela área', calculo: tex(etaP / 100) + ' \\times ' + tex(Gi) + eqI((etaP / 100) * Gi) + '\\,\\mathrm{W\\,m^{-2}};\\ ' + texI((etaP / 100) * Gi) + ' \\times ' + tex(Ar) + eqN((etaP / 100) * Gi * Ar, exI((etaP / 100) * Gi)) + '\\,\\mathrm{W}', valor: (etaP / 100) * Gi * Ar });
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (d.contexto === 'rendimento') return confereN(p, ((d.P / d.A) / d.G) * 100, UN.pct);
+      return confereN(p, ((d.etaP * d.G) / 100) * d.A, UN.W);
+    },
+    limites(p) {
+      const d = p.dados;
+      const eta = d.contexto === 'rendimento' ? d.P / (d.G * d.A) : d.etaP / 100;
+      return eta > 0.1 && eta < 0.25 && d.A <= 2 && d.G <= 1000;
+    },
+  });
 })();

@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { carregarTudo } = require('../tools/verificar-geradores.js');
-const { bateria, itensDe } = require('./geradores-fisica-comum.js');
+const { bateria, itensDe, nucleo, lerTex } = require('./geradores-fisica-comum.js');
 
 const M = carregarTudo();
 require('../js/quiz.js');
@@ -13,6 +13,7 @@ const G = M.geradores;
 const IDS = [
   'transferencias-mecanismo', 'transferencias-equilibrio', 'transferencias-infravermelho',
   'balancos-calor', 'balancos-fase', 'balancos-mistura', 'balancos-primeira-lei',
+  'rendimento-energia', 'rendimento-painel-maximo', 'rendimento-painel',
 ];
 const SUBTEMAS = ['transferencias', 'balancos', 'rendimento'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'termica');
@@ -148,5 +149,42 @@ test('Primeira Lei: ΔU = W + Q + R, com o trabalho realizado e o calor cedido n
     const { a, b } = p.dados;
     assert.equal(p.resposta, a - b);
     assert.ok(p.errosTipicos.some((e) => e.codigo === 'sinais_da_primeira_lei_trocados' && e.valor === b - a));
+  }
+});
+
+test('nenhum rendimento passa de 100 %: as respostas em % de rendimento ficam em ]0, 100] e cada opção acima de 100 % é um erro que o diz', () => {
+  for (const id of ['rendimento-energia', 'rendimento-painel']) for (const p of itens(id, 150)) {
+    if (p.contexto === 'dissipada' || p.contexto === 'potencia') continue;
+    if (p.formato === 'numerica') assert.ok(p.resposta > 0 && p.resposta <= 100, id + ' ' + p.semente + ': ' + p.resposta);
+    else {
+      const v = lerTex(nucleo(p.opcoes[p.correta]));
+      assert.ok(v > 0 && v <= 100, id + ' ' + p.opcoes[p.correta]);
+    }
+    for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/, id + ' ' + e.codigo);
+  }
+});
+
+test('rendimento: η = útil/fornecida; energia dissipada = (1 − η) P Δt; chaleira com Δt em segundos', () => {
+  const cA = M.dadosFisica.capacidadeTermicaMassica.agua;
+  for (const p of itens('rendimento-energia', 80, ['numerica'])) {
+    const d = p.dados;
+    const v = d.contexto === 'rendimento' ? (d.Eu / d.Ef) * 100 : d.contexto === 'dissipada' ? d.P * d.tmin * 60 * (1 - d.etaP / 100) : (d.m * cA * (d.tf - d.ti)) / (d.P * d.tmin * 60) * 100;
+    assert.ok(Math.abs(p.resposta - v) <= tolDe(p), p.contexto + ' ' + p.semente);
+  }
+});
+
+test('painel: o máximo está num ponto intermédio da tabela; P = U I de cada ponto e η = P/(G A)', () => {
+  for (const p of itens('rendimento-painel-maximo', 80)) {
+    const pts = p.dados.pontos;
+    const P = pts.map(([, U, I]) => U * I);
+    const k = P.indexOf(Math.max(...P));
+    assert.ok(k > 0 && k < pts.length - 1);
+    assert.deepEqual(p.esquema, { id: 'fqa-painel', opcoes: { G: p.dados.G, Rcarga: pts[k][0] } });
+    if (p.formato === 'numerica') assert.ok(Math.abs(p.resposta - (p.contexto === 'resistencia' ? pts[k][0] : P[k])) <= tolDe(p));
+  }
+  for (const p of itens('rendimento-painel', 80, ['numerica'])) {
+    const d = p.dados;
+    const v = d.contexto === 'rendimento' ? (d.P / (d.G * d.A)) * 100 : (d.etaP / 100) * d.G * d.A;
+    assert.ok(Math.abs(p.resposta - v) <= tolDe(p));
   }
 });
