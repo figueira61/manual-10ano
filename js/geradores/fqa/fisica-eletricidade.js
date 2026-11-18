@@ -143,7 +143,8 @@ globalThis.Manual = globalThis.Manual || {};
           const U = entre(rng, 1.5, 12, 0.5);
           const I = entre(rng, 0.05, 1.5, 0.05);
           const R = U / I;
-          if (R < 2 || R > 200) return null;
+          // sem divisões por 1 escritas (regra 4)
+          if (R < 2 || R > 200 || I === 1) return null;
           exato = R;
           unidade = 'Ω';
           u = UN.ohm;
@@ -238,6 +239,7 @@ globalThis.Manual = globalThis.Manual || {};
         const Rs = Fis().resistenciaSerie(rs);
         const Rp = Fis().resistenciaParalelo(rs);
         const somaInv = rs.reduce((a, R) => a + 1 / R, 0);
+        if (A.proximo(somaInv, 1)) return null; // R_eq = 1/1 escrito (regra 4)
         const inicio = NUM_RES[n] + ' resistências, ' + listaR(rs) + ', estão ligadas ';
         const passoInv = { passo: 'Somar os inversos das resistências', porque: 'Em paralelo, o inverso da resistência equivalente é a soma dos inversos das resistências.', calculo: '\\dfrac{1}{R_{eq}} = ' + rs.map((R) => '\\dfrac{1}{' + tex(R) + '}').join(' + ') + eqI(somaInv) + '\\,\\Omega^{-1}' };
         const passoReq = { passo: 'Inverter', porque: 'Pede-se $R_{eq}$, não $1/R_{eq}$. Em paralelo, $R_{eq}$ é menor do que a menor das resistências: há mais caminhos para a corrente.', calculo: 'R_{eq} = \\dfrac{1}{' + texI(somaInv) + '}' + eqN(Rp, exI(somaInv)) + '\\,\\Omega' };
@@ -464,6 +466,7 @@ globalThis.Manual = globalThis.Manual || {};
     const eps = escolher(rng, FEMS);
     const r = entre(rng, 0.5, 3, 0.5);
     const I = entre(rng, 0.1, 2, 0.1);
+    if (I === 1) return null; // nas contas divide-se por I (sem «/1» escrito)
     const rI = A.limpo(r * I);
     const U = A.limpo(eps - rI);
     if (U < 0.4 * eps) return null;
@@ -486,6 +489,7 @@ globalThis.Manual = globalThis.Manual || {};
           const Rext = formato === 'numerica' && rng() < 0.12 ? 0 : entre(rng, 1, 20, 0.5);
           const g = Fis().gerador({ epsilon: eps, r, Rext });
           const Rt = A.limpo(r + Rext);
+          if (Rt === 1) return null; // sem «/1» escrito
           exato = g.I;
           unidade = 'A';
           u = UN.A;
@@ -617,6 +621,7 @@ globalThis.Manual = globalThis.Manual || {};
           ];
           verificacao = () => ({ passo: 'Pelo ponto 2: $\\varepsilon = U_2 + r I_2$', calculo: '\\varepsilon = ' + tex(U2) + ' + ' + tex(r) + ' \\times ' + tex(I2) + ' = ' + tex(eps) + '\\,\\mathrm{V}', valor: Fis().caracteristicaDeDoisPontos([I1, U1], [I2, U2]).epsilon });
         } else {
+          if (r === 1) return null; // I_cc = ε/1 escrito
           const Icc = eps / r;
           exato = Icc;
           unidade = 'A';
