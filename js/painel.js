@@ -873,6 +873,23 @@ globalThis.Manual = globalThis.Manual || {};
     mais_quente_emite_menos: 'Julgou que um corpo mais quente emite menos radiação',
     equilibrio_sem_emissao: 'Julgou que um corpo em equilíbrio térmico deixa de emitir radiação',
     infravermelho_com_lambda_menor: 'Julgou o comprimento de onda do infravermelho menor do que o do visível',
+    esqueceu_a_massa_no_calor: 'Esqueceu a massa ao isolar c em Q = m c Δθ',
+    esqueceu_a_variacao_de_temperatura: 'Esqueceu a variação de temperatura ao isolar c',
+    deu_a_variacao_de_temperatura: 'Deu a variação de temperatura em vez da temperatura final',
+    subtraiu_a_variacao: 'Subtraiu a variação de temperatura a um corpo que aquece',
+    usou_entalpia_de_fusao: 'Usou a entalpia mássica de fusão em vez da de vaporização',
+    esqueceu_aquecer_o_gelo: 'Esqueceu o aquecimento do gelo até 0 °C',
+    esqueceu_aquecer_a_agua: 'Esqueceu o aquecimento da água depois da fusão',
+    usou_c_da_agua_para_o_metal: 'Usou a capacidade térmica mássica da água para o metal',
+    trocou_as_capacidades_termicas: 'Trocou as capacidades térmicas mássicas dos dois corpos',
+    trocou_as_massas: 'Trocou as massas no balanço',
+    sinais_do_balanco_trocados: 'Esqueceu o sinal da energia cedida no balanço',
+    esqueceu_aquecer_a_agua_de_fusao: 'Esqueceu que a água de fusão também aquece',
+    fusao_com_sinal_trocado: 'Somou a energia de fusão em vez de a subtrair',
+    supos_que_todo_o_gelo_funde: 'Supôs que todo o gelo funde',
+    calor_cedido_com_sinal_positivo: 'Contou o calor cedido como positivo',
+    esqueceu_o_trabalho_na_primeira_lei: 'Esqueceu o trabalho na Primeira Lei',
+    esqueceu_o_calor_na_primeira_lei: 'Esqueceu o calor na Primeira Lei',
   };
 
   function humanizarErro(codigo) {

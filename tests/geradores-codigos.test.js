@@ -25,6 +25,7 @@ const PARTILHADOS = {
   razao_invertida: 'inverteu uma razão (proporção ou razão de Euler)',
   multiplicou_em_vez_de_dividir: 'multiplicou onde devia dividir (abcissa pelo fator, picómetros por 1000)',
   dividiu_em_vez_de_multiplicar: 'dividiu onde devia multiplicar (quantidade pela massa molar, R por I)',
+  massa_em_gramas: 'usou a massa em gramas em vez de quilogramas',
 };
 
 // Tabela código → ficheiros de geradores que o usam (leitura estática de «codigo: …», incluindo ternários).

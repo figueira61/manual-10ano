@@ -49,7 +49,8 @@ globalThis.Manual = globalThis.Manual || {};
   // « = » se o valor mostrado é exato, « ≈ » se foi arredondado.
   const igual = (v) => (exatoAS(v, 3) ? ' = ' : ' \\approx ');
   // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
-  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= 1e-9 * Math.max(1, Math.abs(v));
+  // (folga absoluta de no máximo 1e-7, para que um valor grande como 78 026,666… não passe por exato)
+  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
   function texI(v) {
     if (exI(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
     const a = Math.abs(v);
@@ -58,7 +59,7 @@ globalThis.Manual = globalThis.Manual || {};
     return (v < 0 ? '-' : '') + a.toPrecision(4).replace('.', '{,}');
   }
   // « = valor » ou « ≈ valor » de um resultado intermédio; ok = false quando algum operando já foi arredondado.
-  const eqI = (v, ok = true) => (ok && exI(v) && exatoAS(v, 4) ? ' = ' : ' \\approx ') + texI(v);
+  const eqI = (v, ok = true) => (ok && exI(v) && (Math.abs(v) < 1e5 || exatoAS(v, 4)) ? ' = ' : ' \\approx ') + texI(v);
   // O mesmo para um resultado mostrado com a precisão da resposta (3 a.s.).
   const eqN = (v, ok = true) => (ok && exatoAS(v, 3) ? ' = ' : ' \\approx ') + texN(v);
   // Dado do enunciado: $2,5\,V$.
@@ -332,6 +333,376 @@ globalThis.Manual = globalThis.Manual || {};
     },
     limites(p) {
       return !!afirmacao(p.dados.afirmacao);
+    },
+  });
+
+  // ================================================================ balancos
+  const par = (v) => (v < 0 ? '(' + tex(v) + ')' : tex(v));
+  // Valores de referência em LaTeX com os algarismos que têm (4180 → 4,18 × 10³; 2100 → 2,1 × 10³; 900 → 900).
+  const cTex = (c) => (c >= 1000 ? cient(c, String(c).replace(/0+$/, '').length) : tex(c));
+  const hTex = (h) => cient(h, String(h).replace(/0+$/, '').length);
+  const MATERIAIS = [
+    { id: 'agua', nome: 'água', corpo: 'água' },
+    { id: 'aluminio', nome: 'alumínio', corpo: 'um bloco de alumínio' },
+    { id: 'cobre', nome: 'cobre', corpo: 'um bloco de cobre' },
+    { id: 'ferro', nome: 'ferro', corpo: 'uma peça de ferro' },
+    { id: 'chumbo', nome: 'chumbo', corpo: 'um bloco de chumbo' },
+  ];
+  const cDe = (id) => D().capacidadeTermicaMassica[id];
+  const cDado = (mat) => '$c_{\\text{' + mat.nome + '}} = ' + cTex(cDe(mat.id)) + '\\,' + UN.cU + '$';
+  const temp = (t) => '$' + tex(t) + '\\,' + UN.C + '$';
+  const graus = (t) => tex(t) + '\\,' + UN.C;
+
+  registar({
+    subtema: 'balancos', tipo: 'calor', nome: 'Energia transferida como calor, Q = m c Δθ (energia, c ou temperatura final)',
+    formatos: ['numerica', 'escolha'], contextos: ['energia', 'capacidade', 'temperatura'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const mat = escolher(rng, MATERIAIS);
+        const c = cDe(mat.id);
+        const ti = entre(rng, 10, 30, 1);
+        let ex, exato, erros, verificacao, unidade, u;
+        if (contexto === 'energia') {
+          const emG = formato === 'escolha' || rng() < 0.5;
+          const mg = entre(rng, 100, 1000, 50);
+          const m = A.limpo(mg / 1000);
+          const dT = entre(rng, 5, mat.id === 'agua' ? 60 : 150, 5);
+          const tf = ti + dT;
+          const Q = A.limpo(m * c * dT);
+          exato = Q;
+          unidade = 'J';
+          u = UN.J;
+          const res = [];
+          if (emG) res.push({ passo: 'Passar a massa a quilogramas', porque: 'A capacidade térmica mássica está por quilograma: $1\\,\\mathrm{kg} = 1000\\,\\mathrm{g}$.', calculo: 'm = ' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}' });
+          res.push({ passo: 'Variação de temperatura', porque: 'Na expressão entra a variação, $\\Delta\\theta = \\theta_f - \\theta_i$ (uma variação de 1 °C é igual a uma variação de 1 K).', calculo: '\\Delta\\theta = ' + tex(tf) + ' - ' + tex(ti) + ' = ' + graus(dT) });
+          res.push({ passo: 'Aplicar $Q = m c \\Delta\\theta$', porque: 'O corpo aquece, por isso recebe energia: $Q > 0$.', calculo: 'Q = ' + tex(m) + ' \\times ' + cTex(c) + ' \\times ' + tex(dT) + igual(Q) + texN(Q) + '\\,\\mathrm{J}' });
+          ex = {
+            enunciado: 'Calcula a energia que é preciso fornecer a ' + (emG ? q(mg, UN.g) : q(m, UN.kg)) + ' de ' + mat.nome + ' para a sua temperatura subir de ' + temp(ti) + ' para ' + temp(tf) + ', sem perdas (' + cDado(mat) + ').',
+            resolucao: res,
+            dados: { contexto, mat: mat.id, m, ti, tf },
+          };
+          erros = [
+            { codigo: 'somou_273_a_variacao', valor: m * c * (dT + 273), explicacao: (vt) => 'Somaste 273 à variação de temperatura e obtiveste ' + vt(m * c * (dT + 273), UN.J) + '. Uma variação de $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$ é uma variação de $' + tex(dT) + '\\,\\mathrm{K}$.' },
+            { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: m * c * tf, explicacao: (vt) => 'Usaste a temperatura final e obtiveste ' + vt(m * c * tf, UN.J) + '. Na expressão entra a variação, $\\Delta\\theta = ' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
+          ];
+          if (emG) erros.push({ codigo: 'massa_em_gramas', valor: mg * c * dT, explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt(mg * c * dT, UN.J) + '. No SI a massa está em kg ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' });
+          verificacao = () => ({ passo: 'Pela capacidade térmica do corpo, $C = m c$ (energia por grau)', calculo: 'C = ' + tex(m) + ' \\times ' + cTex(c) + eqI(m * c) + '\\,\\mathrm{J\\,{}^{\\circ}C^{-1}};\\ Q = C \\Delta\\theta = ' + texI(m * c) + ' \\times ' + tex(dT) + eqN(m * c * dT, exI(m * c)) + '\\,\\mathrm{J}', valor: Fis().calor(m, c, dT) });
+        } else if (contexto === 'capacidade') {
+          const m = entre(rng, 0.1, 2, 0.05);
+          if (m === 1) return null;
+          const dT = entre(rng, 4, mat.id === 'agua' ? 50 : 80, 2);
+          const tf = ti + dT;
+          const Q = A.limpo(m * c * dT);
+          if (!exI(Q)) return null;
+          exato = c;
+          unidade = 'J kg⁻¹ °C⁻¹';
+          u = UN.cU;
+          ex = {
+            enunciado: 'Um corpo de ' + q(m, UN.kg) + ' recebe ' + q(Q, UN.J) + ' de energia, sem perdas, e a sua temperatura sobe de ' + temp(ti) + ' para ' + temp(tf) + '. Calcula a capacidade térmica mássica do material de que é feito.',
+            resolucao: [
+              { passo: 'Variação de temperatura', porque: '$\\Delta\\theta = \\theta_f - \\theta_i$.', calculo: '\\Delta\\theta = ' + tex(tf) + ' - ' + tex(ti) + ' = ' + graus(dT) },
+              { passo: 'Isolar $c$ em $Q = m c \\Delta\\theta$', porque: 'Divide-se a energia pela massa e pela variação de temperatura.', calculo: 'c = \\dfrac{Q}{m \\Delta\\theta} = \\dfrac{' + tex(Q) + '}{' + tex(m) + ' \\times ' + tex(dT) + '}' + igual(c) + texN(c) + '\\,' + UN.cU },
+            ],
+            dados: { contexto, Q, m, ti, tf },
+          };
+          erros = [
+            { codigo: 'multiplicou_em_vez_de_dividir', valor: Q * m * dT, explicacao: (vt) => 'Multiplicaste $Q \\times m \\times \\Delta\\theta$ e obtiveste ' + vt(Q * m * dT) + '. Isola-se $c$: $c = Q/(m \\Delta\\theta)$.' },
+            { codigo: 'esqueceu_a_massa_no_calor', valor: Q / dT, explicacao: (vt) => 'Dividiste só pela variação de temperatura e obtiveste ' + vt(Q / dT) + ' (é a capacidade térmica do corpo, em $\\mathrm{J\\,{}^{\\circ}C^{-1}}$). Falta dividir pela massa.' },
+            { codigo: 'esqueceu_a_variacao_de_temperatura', valor: Q / m, explicacao: (vt) => 'Dividiste só pela massa e obtiveste ' + vt(Q / m) + '. Falta dividir pela variação de temperatura, $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
+            { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: Q / (m * tf), explicacao: (vt) => 'Dividiste pela temperatura final e obtiveste ' + vt(Q / (m * tf), UN.cU) + '. Na expressão entra a variação, $\\Delta\\theta = ' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Recalcular a energia com o valor obtido: tem de dar $Q$', calculo: tex(m) + ' \\times ' + texN(r) + ' \\times ' + tex(dT) + ' = ' + tex(m * r * dT, 4) + '\\,\\mathrm{J}', valor: Q / m / dT });
+        } else {
+          const mg = entre(rng, 100, 800, 50);
+          const m = A.limpo(mg / 1000);
+          const Q = entre(rng, 2000, 40000, 500);
+          const dT = Q / (m * c);
+          if (dT < 3 || dT > (mat.id === 'agua' ? 60 : 200)) return null;
+          const tf = ti + dT;
+          exato = tf;
+          unidade = '°C';
+          u = UN.C;
+          ex = {
+            enunciado: maiuscula(mat.corpo === 'água' ? 'uma porção de água' : mat.corpo) + ' de ' + q(mg, UN.g) + ', a ' + temp(ti) + ', recebe ' + q(Q, UN.J) + ' de energia, sem perdas (' + cDado(mat) + '). Calcula a temperatura final.',
+            resolucao: [
+              { passo: 'Passar a massa a quilogramas', porque: 'A capacidade térmica mássica está por quilograma.', calculo: 'm = ' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}' },
+              { passo: 'Variação de temperatura', porque: 'De $Q = m c \\Delta\\theta$ vem $\\Delta\\theta = Q/(m c)$.', calculo: '\\Delta\\theta = \\dfrac{' + tex(Q) + '}{' + tex(m) + ' \\times ' + cTex(c) + '}' + eqI(dT) + '\\,' + UN.C },
+              { passo: 'Temperatura final', porque: 'O corpo recebe energia, por isso aquece: $\\theta_f = \\theta_i + \\Delta\\theta$.', calculo: '\\theta_f = ' + tex(ti) + ' + ' + texI(dT) + eqN(tf, exI(dT)) + '\\,' + UN.C },
+            ],
+            dados: { contexto, mat: mat.id, m, ti, Q },
+          };
+          erros = [
+            { codigo: 'deu_a_variacao_de_temperatura', valor: dT, explicacao: (vt) => vt(dT, UN.C) + ' é a variação de temperatura. A temperatura final soma-a à inicial, $' + graus(ti) + '$.' },
+            { codigo: 'subtraiu_a_variacao', valor: ti - dT >= -40 ? ti - dT : NaN, explicacao: (vt) => 'Subtraíste a variação e obtiveste ' + vt(ti - dT, UN.C) + '. O corpo recebe energia, por isso aquece: $\\theta_f = \\theta_i + \\Delta\\theta$.' },
+            { codigo: 'massa_em_gramas', valor: ti + Q / (mg * c), explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt(ti + Q / (mg * c), UN.C) + '. No SI a massa está em kg ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' },
+          ];
+          verificacao = () => ({ passo: 'Recalcular a energia com $\\Delta\\theta$ (por arredondar): tem de dar $Q$', calculo: tex(m) + ' \\times ' + cTex(c) + ' \\times ' + texI(dT) + eqI(m * c * dT, exI(dT)) + '\\,\\mathrm{J}', valor: ti + Q / m / c });
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (d.contexto === 'energia') return confereN(p, (d.m * cDe(d.mat)) * (d.tf - d.ti), UN.J);
+      if (d.contexto === 'capacidade') return confereN(p, (d.Q / (d.tf - d.ti)) / d.m, UN.cU);
+      return confereN(p, d.ti + (d.Q / cDe(d.mat)) / d.m, UN.C);
+    },
+    limites(p) {
+      const d = p.dados;
+      if (d.contexto === 'capacidade') return d.tf > d.ti;
+      const tf = d.contexto === 'energia' ? d.tf : d.ti + d.Q / (d.m * cDe(d.mat));
+      return tf > d.ti && tf <= (d.mat === 'agua' ? 95 : 250);
+    },
+  });
+
+  registar({
+    subtema: 'balancos', tipo: 'fase', nome: 'Fusão e vaporização, Q = m Δh, e aquecimento do gelo até água líquida',
+    formatos: ['numerica', 'escolha'], contextos: ['fusao', 'vaporizacao', 'gelo-agua'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const H = D().entalpiaMassica;
+        const cA = cDe('agua'), cG = D().capacidadeTermicaMassica.gelo;
+        const hF = '$\\Delta h_{\\text{fusão}} = ' + hTex(H.fusaoGelo) + '\\,' + UN.hU + '$';
+        const hV = '$\\Delta h_{\\text{vaporização}} = ' + hTex(H.vaporizacaoAgua) + '\\,' + UN.hU + '$';
+        let ex, exato, erros, verificacao, unidade, u;
+        if (contexto !== 'gelo-agua') {
+          const fusao = contexto === 'fusao';
+          const mg = entre(rng, 50, 500, 10);
+          const m = A.limpo(mg / 1000);
+          const dh = fusao ? H.fusaoGelo : H.vaporizacaoAgua;
+          const outra = fusao ? H.vaporizacaoAgua : H.fusaoGelo;
+          const Q = A.limpo((m * dh) / 1000);
+          exato = Q;
+          unidade = 'kJ';
+          u = UN.kJ;
+          ex = {
+            enunciado: (fusao ? 'Calcula a energia necessária para fundir completamente ' + q(mg, UN.g) + ' de gelo a $0\\,' + UN.C + '$' : 'Calcula a energia necessária para vaporizar completamente ' + q(mg, UN.g) + ' de água a $100\\,' + UN.C + '$') + ', em quilojoules, à pressão normal (' + hF + '; ' + hV + ').',
+            resolucao: [
+              { passo: 'Passar a massa a quilogramas', porque: 'A variação de entalpia mássica está por quilograma.', calculo: 'm = ' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}' },
+              { passo: 'Aplicar $Q = m \\Delta h$', porque: (fusao ? 'Fundir é passar de sólido a líquido: usa-se a variação de entalpia mássica de fusão.' : 'Vaporizar é passar de líquido a gasoso: usa-se a variação de entalpia mássica de vaporização.') + ' A temperatura não muda durante a mudança de estado.', calculo: 'Q = ' + tex(m) + ' \\times ' + hTex(dh) + eqI(m * dh) + '\\,\\mathrm{J}' + igual(Q) + texN(Q) + '\\,\\mathrm{kJ}' },
+            ],
+            dados: { contexto, m },
+          };
+          erros = [
+            { codigo: fusao ? 'usou_entalpia_de_vaporizacao' : 'usou_entalpia_de_fusao', valor: (m * outra) / 1000, explicacao: (vt) => 'Usaste a variação de entalpia mássica de ' + (fusao ? 'vaporização' : 'fusão') + ' e obtiveste ' + vt((m * outra) / 1000, UN.kJ) + '. ' + (fusao ? 'Fundir é passar de sólido a líquido.' : 'Vaporizar é passar de líquido a gasoso.') },
+            { codigo: 'massa_em_gramas', valor: (mg * dh) / 1000, explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt((mg * dh) / 1000, UN.kJ) + '. A variação de entalpia mássica está por quilograma ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' },
+            { codigo: 'dividiu_em_vez_de_multiplicar', valor: dh / m / 1000, explicacao: (vt) => 'Dividiste $\\Delta h$ pela massa e obtiveste ' + vt(dh / m / 1000, UN.kJ) + '. A energia é $Q = m \\Delta h$: multiplica-se.' },
+          ];
+          verificacao = () => ({ passo: 'Com $\\Delta h$ em quilojoules por quilograma ($' + tex(dh / 1000) + '\\,\\mathrm{kJ\\,kg^{-1}}$)', calculo: 'Q = ' + tex(m) + ' \\times ' + tex(dh / 1000) + igual(m * (dh / 1000)) + texN(m * (dh / 1000)) + '\\,\\mathrm{kJ}', valor: Fis().calorFase(m, dh) / 1000 });
+        } else {
+          const m = entre(rng, 0.1, 1, 0.05);
+          const t0 = -entre(rng, 2, 20, 1);
+          const tF = entre(rng, 0, 60, 5);
+          const trocos = Fis().aquecimentoGelo({ m, theta0: t0, thetaF: tF, P: 500, fundir: tF === 0 });
+          const [Q1, Q2, Q3 = 0] = trocos.map((t) => t.Q);
+          const Q = Q1 + Q2 + Q3;
+          // o aquecimento (sem a fusão) não pode ser desprezável, senão «esqueceu a fusão» ficaria perto de 0
+          if (Q - Q2 < 0.2 * Q) return null;
+          exato = Q;
+          unidade = 'J';
+          u = UN.J;
+          ex = {
+            enunciado: 'Calcula a energia necessária para transformar ' + q(m, UN.kg) + ' de gelo a ' + temp(t0) + ' em água líquida a ' + temp(tF) + ', à pressão normal e sem perdas ($c_{\\text{gelo}} = ' + cTex(cG) + '\\,' + UN.cU + '$; $c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$; ' + hF + ').',
+            resolucao: [
+              { passo: 'Aquecer o gelo até 0 °C', porque: 'Primeiro o gelo aquece, ainda sólido, com a capacidade térmica mássica do gelo.', calculo: 'Q_1 = ' + tex(m) + ' \\times ' + cTex(cG) + ' \\times ' + tex(-t0) + eqI(Q1) + '\\,\\mathrm{J}' },
+              { passo: 'Fundir o gelo a 0 °C', porque: 'Durante a fusão a temperatura não muda: $Q_2 = m \\Delta h_{\\text{fusão}}$.', calculo: 'Q_2 = ' + tex(m) + ' \\times ' + hTex(H.fusaoGelo) + eqI(Q2) + '\\,\\mathrm{J}' },
+            ].concat(tF > 0 ? [{ passo: 'Aquecer a água líquida', porque: 'A água de fusão aquece de 0 °C até ' + tex(tF) + ' °C, com a capacidade térmica mássica da água.', calculo: 'Q_3 = ' + tex(m) + ' \\times ' + cTex(cA) + ' \\times ' + tex(tF) + eqI(Q3) + '\\,\\mathrm{J}' }] : []).concat([
+              { passo: 'Somar os troços', porque: 'A energia total é a soma das energias de cada troço da curva de aquecimento.', calculo: 'Q = ' + [Q1, Q2].concat(tF > 0 ? [Q3] : []).map(texI).join(' + ') + eqN(Q) + '\\,\\mathrm{J}' },
+            ]),
+            dados: { contexto, m, t0, tF },
+            esquema: { id: 'fqa-aquecimento', opcoes: { m, theta0: t0, P: 500 } },
+          };
+          erros = [
+            { codigo: 'esqueceu_a_fusao_no_balanco', valor: Q - Q2, explicacao: (vt) => 'Esqueceste a fusão e obtiveste ' + vt(Q - Q2, UN.J) + '. Para o gelo passar a água líquida é preciso ainda $m \\Delta h_{\\text{fusão}} = ' + texI(Q2) + '\\,\\mathrm{J}$.' },
+            { codigo: 'usou_c_da_agua_para_o_gelo', valor: Q - Q1 + m * cA * -t0, explicacao: (vt) => 'Usaste a capacidade térmica mássica da água líquida para aquecer o gelo e obtiveste ' + vt(Q - Q1 + m * cA * -t0, UN.J) + '. Para o gelo, $c = ' + cTex(cG) + '\\,' + UN.cU + '$.' },
+            { codigo: 'esqueceu_aquecer_o_gelo', valor: Q - Q1, explicacao: (vt) => 'Começaste pela fusão e obtiveste ' + vt(Q - Q1, UN.J) + '. O gelo está a $' + graus(t0) + '$: primeiro tem de aquecer até 0 °C ($' + texI(Q1) + '\\,\\mathrm{J}$).' },
+          ];
+          if (tF > 0) erros.push({ codigo: 'esqueceu_aquecer_a_agua', valor: Q - Q3, explicacao: (vt) => 'Paraste na fusão e obtiveste ' + vt(Q - Q3, UN.J) + '. Falta aquecer a água de 0 °C até ' + tex(tF) + ' °C ($' + texI(Q3) + '\\,\\mathrm{J}$).' });
+          verificacao = () => {
+            const porKg = cG * -t0 + H.fusaoGelo + cA * tF;
+            return { passo: 'Energia por quilograma de gelo e só depois a massa', calculo: cTex(cG) + ' \\times ' + tex(-t0) + ' + ' + hTex(H.fusaoGelo) + (tF > 0 ? ' + ' + cTex(cA) + ' \\times ' + tex(tF) : '') + eqI(porKg) + '\\,\\mathrm{J\\,kg^{-1}};\\ ' + texI(porKg) + ' \\times ' + tex(m) + eqN(porKg * m, exI(porKg)) + '\\,\\mathrm{J}', valor: porKg * m };
+          };
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const H = Manual.dadosFisica.entalpiaMassica, C = Manual.dadosFisica.capacidadeTermicaMassica;
+      if (d.contexto === 'fusao') return confereN(p, d.m * (H.fusaoGelo / 1000), UN.kJ);
+      if (d.contexto === 'vaporizacao') return confereN(p, d.m * (H.vaporizacaoAgua / 1000), UN.kJ);
+      return confereN(p, d.m * C.gelo * -d.t0 + d.m * H.fusaoGelo + d.m * C.agua * d.tF, UN.J);
+    },
+    limites(p) {
+      const d = p.dados;
+      return d.m > 0 && d.m <= 1 && (d.contexto !== 'gelo-agua' || (d.t0 < 0 && d.t0 >= -20 && d.tF >= 0 && d.tF <= 60));
+    },
+  });
+
+  // Misturas num recipiente isolado (sem perdas e capacidade térmica do recipiente desprezável), com os valores do
+  // esquema fqa-mistura (massas de 0,05 kg a 1 kg em passos de 0,05 kg; temperaturas de 0 °C a 100 °C em passos de 5 °C).
+  const METAIS = MATERIAIS.filter((x) => x.id !== 'agua');
+
+  registar({
+    subtema: 'balancos', tipo: 'mistura', nome: 'Misturas e temperatura de equilíbrio (água, metal e gelo)',
+    formatos: ['numerica', 'escolha'], contextos: ['agua-agua', 'agua-metal', 'agua-gelo'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const cA = cDe('agua');
+        const Lf = D().entalpiaMassica.fusaoGelo, Lv = D().entalpiaMassica.vaporizacaoAgua;
+        const isolado = ', num recipiente isolado (sem perdas; despreza a capacidade térmica do recipiente)';
+        let ex, exato, erros, verificacao, unidade = '°C', u = UN.C, dados, metal;
+        const m1 = entre(rng, 0.1, 0.6, 0.05);
+        const t1 = contexto === 'agua-agua' ? entre(rng, 0, 40, 5) : contexto === 'agua-metal' ? entre(rng, 15, 25, 5) : entre(rng, 20, 80, 5);
+        const balanco = (t, corpos) => ({ passo: 'Balanço energético: $Q_{cedido} + Q_{recebido} = 0$', porque: 'Num sistema isolado, a energia que o corpo mais quente cede (Q < 0) é recebida pelo mais frio (Q > 0).', calculo: corpos.map((k, i) => 'Q_' + (i + 1) + ' = ' + tex(k.m) + ' \\times ' + cTex(k.c) + ' \\times ' + (t - k.t < 0 ? '(' + texI(t - k.t) + ')' : texI(t - k.t)) + eqI(k.m * k.c * (t - k.t), exI(t))).join(';\\ ') + '\\,\\mathrm{J}' });
+        if (contexto === 'agua-agua' || contexto === 'agua-metal') {
+          const ehMetal = contexto === 'agua-metal';
+          metal = ehMetal ? escolher(rng, METAIS) : null;
+          const c2 = ehMetal ? cDe(metal.id) : cA;
+          const m2 = entre(rng, 0.1, ehMetal ? 1 : 0.6, 0.05);
+          const t2 = ehMetal ? entre(rng, 80, 100, 5) : entre(rng, 50, 100, 5);
+          if (!ehMetal && m1 === m2) return null;
+          const r = Fis().mistura([{ m: m1, theta: t1, fase: 'agua' }, ehMetal ? { m: m2, c: c2, theta: t2 } : { m: m2, theta: t2, fase: 'agua' }]);
+          const t = r.thetaEq;
+          exato = t;
+          ex = {
+            enunciado: (ehMetal ? maiuscula(metal.corpo) + ' de ' + q(m2, UN.kg) + ', a ' + temp(t2) + ', é mergulhad' + (metal.corpo.startsWith('uma') ? 'a' : 'o') + ' em ' + q(m1, UN.kg) + ' de água a ' + temp(t1) : 'Misturam-se ' + q(m1, UN.kg) + ' de água a ' + temp(t1) + ' com ' + q(m2, UN.kg) + ' de água a ' + temp(t2)) + isolado + '. Calcula a temperatura de equilíbrio ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$' + (ehMetal ? '; ' + cDado(metal) : '') + ').',
+            resolucao: [
+              { passo: 'Escrever o balanço', porque: 'O corpo mais quente cede energia e o mais frio recebe, até terem a mesma temperatura $\\theta$: $m_1 c_1 (\\theta - \\theta_1) + m_2 c_2 (\\theta - \\theta_2) = 0$.' },
+              { passo: 'Isolar $\\theta$', porque: 'É uma média das temperaturas pesada por $m c$ de cada corpo.', calculo: '\\theta = \\dfrac{m_1 c_1 \\theta_1 + m_2 c_2 \\theta_2}{m_1 c_1 + m_2 c_2}' + (ehMetal
+                ? ' = \\dfrac{' + tex(m1) + ' \\times ' + cTex(cA) + ' \\times ' + tex(t1) + ' + ' + tex(m2) + ' \\times ' + tex(c2) + ' \\times ' + tex(t2) + '}{' + tex(m1) + ' \\times ' + cTex(cA) + ' + ' + tex(m2) + ' \\times ' + tex(c2) + '}'
+                : ' = \\dfrac{' + tex(m1) + ' \\times ' + tex(t1) + ' + ' + tex(m2) + ' \\times ' + tex(t2) + '}{' + tex(m1) + ' + ' + tex(m2) + '}') + igual(t) + texN(t) + '\\,' + UN.C },
+            ],
+          };
+          dados = { tipo: contexto, m1, theta1: t1, m2, theta2: t2 };
+          if (ehMetal) dados.metal = metal.id;
+          const media = (t1 + t2) / 2;
+          erros = [{ codigo: 'media_das_temperaturas_sem_massas', valor: media, explicacao: (vt) => vt(media, UN.C) + ' é a média simples das temperaturas. Cada corpo pesa na média conforme o seu $m c$.' }];
+          if (ehMetal) {
+            erros.push({ codigo: 'usou_c_da_agua_para_o_metal', valor: (m1 * t1 + m2 * t2) / (m1 + m2), explicacao: (vt) => 'Pesaste só pelas massas, como se o ' + metal.nome + ' tivesse a capacidade térmica mássica da água, e obtiveste ' + vt((m1 * t1 + m2 * t2) / (m1 + m2), UN.C) + '. O ' + metal.nome + ' tem $c$ muito menor, por isso a temperatura fica mais perto da da água.' });
+            erros.push({ codigo: 'trocou_as_capacidades_termicas', valor: (m1 * c2 * t1 + m2 * cA * t2) / (m1 * c2 + m2 * cA), explicacao: (vt) => 'Trocaste as capacidades térmicas mássicas da água e do ' + metal.nome + ' e obtiveste ' + vt((m1 * c2 * t1 + m2 * cA * t2) / (m1 * c2 + m2 * cA), UN.C) + '.' });
+          } else {
+            erros.push({ codigo: 'trocou_as_massas', valor: (m2 * t1 + m1 * t2) / (m1 + m2), explicacao: (vt) => 'Trocaste as massas das duas porções de água e obtiveste ' + vt((m2 * t1 + m1 * t2) / (m1 + m2), UN.C) + '. A temperatura de equilíbrio fica mais perto da temperatura da porção maior.' });
+            const sinal = (m1 * t1 - m2 * t2) / (m1 - m2);
+            if (sinal > -50 && sinal < 150) erros.push({ codigo: 'sinais_do_balanco_trocados', valor: sinal, explicacao: (vt) => 'Igualaste $m_1 (\\theta - \\theta_1)$ a $m_2 (\\theta - \\theta_2)$, sem o sinal de menos, e obtiveste ' + vt(sinal, UN.C) + '. A energia cedida é negativa: $Q_1 + Q_2 = 0$.' });
+          }
+          const corpos = [{ m: m1, c: cA, t: t1 }, { m: m2, c: c2, t: t2 }];
+          verificacao = () => Object.assign(balanco(t, corpos), { passo: 'As energias trocadas (com $\\theta$ por arredondar) têm de se anular: $Q_1 + Q_2 = 0$', valor: t });
+        } else {
+          const excesso = rng() < 0.5;
+          const m2 = entre(rng, 0.05, 0.4, 0.05);
+          const Qdisp = m1 * cA * t1;
+          if (excesso !== Qdisp < m2 * Lf) return null;
+          const r = Fis().mistura([{ m: m1, theta: t1, fase: 'agua' }, { m: m2, theta: 0, fase: 'gelo' }]);
+          dados = { tipo: 'agua-gelo', m1, theta1: t1, m2, theta2: 0, excesso, thetaEq: r.thetaEq };
+          const enun = 'Num recipiente isolado (sem perdas; despreza a capacidade térmica do recipiente) juntam-se ' + q(m2, UN.kg) + ' de gelo a $0\\,' + UN.C + '$ a ' + q(m1, UN.kg) + ' de água a ' + temp(t1) + ' ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$; $\\Delta h_{\\text{fusão}} = ' + hTex(Lf) + '\\,' + UN.hU + '$). ';
+          const passoComparar = { passo: 'O gelo funde todo?', porque: 'Compara-se a energia que a água pode ceder até 0 °C com a necessária para fundir todo o gelo.', calculo: 'Q_{\\text{água}} = ' + tex(m1) + ' \\times ' + cTex(cA) + ' \\times ' + tex(t1) + eqI(Qdisp) + '\\,\\mathrm{J};\\ Q_{\\text{fusão}} = ' + tex(m2) + ' \\times ' + hTex(Lf) + eqI(m2 * Lf) + '\\,\\mathrm{J}' };
+          if (!excesso) {
+            const t = r.thetaEq;
+            if (t < 2) return null;
+            exato = t;
+            ex = {
+              enunciado: enun + 'Calcula a temperatura de equilíbrio.',
+              resolucao: [passoComparar, { passo: 'Todo o gelo funde e a água de fusão aquece', porque: 'Como $Q_{\\text{água}} > Q_{\\text{fusão}}$, todo o gelo funde e a mistura fica acima de 0 °C. Balanço: $m_2 \\Delta h + m_2 c\\,\\theta + m_1 c (\\theta - \\theta_1) = 0$.', calculo: '\\theta = \\dfrac{m_1 c \\theta_1 - m_2 \\Delta h}{(m_1 + m_2) c}' + igual(t) + texN(t) + '\\,' + UN.C }],
+            };
+            const sem = (m1 * t1) / (m1 + m2);
+            const semAgua = (Qdisp - m2 * Lf) / (m1 * cA);
+            const somou = (Qdisp + m2 * Lf) / ((m1 + m2) * cA);
+            erros = [
+              { codigo: 'esqueceu_a_fusao_no_balanco', valor: sem, explicacao: (vt) => 'Tratou-se o gelo como água a 0 °C e obtiveste ' + vt(sem, UN.C) + '. O gelo precisa primeiro de $m \\Delta h_{\\text{fusão}}$ para fundir.' },
+              { codigo: 'esqueceu_aquecer_a_agua_de_fusao', valor: semAgua, explicacao: (vt) => 'Esqueceste que a água que resulta da fusão também aquece até $\\theta$ e obtiveste ' + vt(semAgua, UN.C) + '. No denominador entra a massa total, $m_1 + m_2$.' },
+              { codigo: 'fusao_com_sinal_trocado', valor: somou, explicacao: (vt) => 'Somaste a energia de fusão em vez de a subtrair e obtiveste ' + vt(somou, UN.C) + '. Fundir o gelo gasta energia que a água cede: a mistura fica mais fria.' },
+            ];
+            verificacao = () => ({ passo: 'Energia recebida pelo gelo (fusão e aquecimento até $\\theta$) e cedida pela água, com $\\theta$ por arredondar', calculo: 'Q_{gelo} = ' + tex(m2) + ' \\times ' + hTex(Lf) + ' + ' + tex(m2) + ' \\times ' + cTex(cA) + ' \\times ' + texI(t) + eqI(m2 * Lf + m2 * cA * t, false) + '\\,\\mathrm{J};\\ Q_{\\text{água}} = ' + tex(m1) + ' \\times ' + cTex(cA) + ' \\times (' + texI(t - t1) + ')' + eqI(m1 * cA * (t - t1), false) + '\\,\\mathrm{J}', valor: (Qdisp - m2 * Lf) / ((m1 + m2) * cA) });
+          } else {
+            const mf = (Qdisp / Lf) * 1000;
+            exato = mf;
+            unidade = 'g';
+            u = UN.g;
+            ex = {
+              enunciado: enun + 'Mostra que nem todo o gelo funde e calcula a massa de gelo que funde, em gramas.',
+              resolucao: [passoComparar, { passo: 'Há gelo em excesso', porque: 'Como $Q_{\\text{água}} < Q_{\\text{fusão}}$, a água arrefece até 0 °C sem fundir todo o gelo: a temperatura de equilíbrio é 0 °C, com gelo e água.', calculo: '\\theta_{eq} = 0\\,' + UN.C }, { passo: 'Massa de gelo que funde', porque: 'Funde a massa de gelo cuja fusão gasta a energia cedida pela água: $m_f \\Delta h = Q_{\\text{água}}$.', calculo: 'm_f = \\dfrac{' + texI(Qdisp) + '}{' + hTex(Lf) + '}' + eqI(Qdisp / Lf) + '\\,\\mathrm{kg}' + igual(mf) + texN(mf) + '\\,\\mathrm{g}' }],
+            };
+            erros = [
+              { codigo: 'supos_que_todo_o_gelo_funde', valor: m2 * 1000, explicacao: (vt) => vt(m2 * 1000, UN.g) + ' é toda a massa de gelo. A água só tem energia para fundir uma parte: $m_f = Q_{\\text{água}}/\\Delta h_{\\text{fusão}}$.' },
+              { codigo: 'usou_entalpia_de_vaporizacao', valor: (Qdisp / Lv) * 1000, explicacao: (vt) => 'Usaste a variação de entalpia mássica de vaporização e obtiveste ' + vt((Qdisp / Lv) * 1000, UN.g) + '. Fundir é passar de sólido a líquido.' },
+              { codigo: 'somou_273_a_variacao', valor: ((m1 * cA * (t1 + 273)) / Lf) * 1000, explicacao: (vt) => 'Somaste 273 à variação de temperatura da água e obtiveste ' + vt(((m1 * cA * (t1 + 273)) / Lf) * 1000, UN.g) + '. A água arrefece $' + tex(t1) + '\\,{}^{\\circ}\\mathrm{C}$, que é uma variação de $' + tex(t1) + '\\,\\mathrm{K}$.' },
+            ];
+            verificacao = () => ({ passo: 'Pela mistura calculada com o modelo: gelo derretido e temperatura final', calculo: '\\theta_{eq} = ' + tex(r.thetaEq) + '\\,' + UN.C + ';\\ m_f' + eqI(r.geloDerretido * 1000) + '\\,\\mathrm{g} < ' + tex(m2 * 1000) + '\\,\\mathrm{g}', valor: r.geloDerretido * 1000 });
+          }
+        }
+        ex.dados = Object.assign({ contexto }, dados);
+        ex.esquema = { id: 'fqa-mistura', opcoes: Object.assign({ tipo: dados.tipo, m1: dados.m1, theta1: dados.theta1, m2: dados.m2, theta2: dados.theta2 }, dados.metal ? { metal: dados.metal } : {}) };
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const C = Manual.dadosFisica.capacidadeTermicaMassica, Lf = Manual.dadosFisica.entalpiaMassica.fusaoGelo;
+      if (d.contexto === 'agua-gelo') {
+        const Qa = d.m1 * C.agua * d.theta1;
+        if (d.excesso) return Qa < d.m2 * Lf && confereN(p, (Qa / Lf) * 1000, UN.g);
+        // θ pela energia que sobra depois da fusão, repartida por toda a água
+        return confereN(p, (Qa - d.m2 * Lf) / (C.agua * (d.m1 + d.m2)), UN.C);
+      }
+      const c2 = d.metal ? C[d.metal] : C.agua;
+      return confereN(p, d.theta1 + (d.m2 * c2 * (d.theta2 - d.theta1)) / (d.m1 * C.agua + d.m2 * c2), UN.C);
+    },
+    limites(p) {
+      const d = p.dados;
+      const passo = (x, s) => Math.abs(x / s - Math.round(x / s)) < 1e-9;
+      return [d.m1, d.m2].every((m) => m >= 0.05 && m <= 1 && passo(m, 0.05)) && [d.theta1, d.theta2].every((t) => t >= 0 && t <= 100 && passo(t, 5));
+    },
+  });
+
+  // Primeira Lei: ΔU = W + Q + R, cada termo positivo quando o sistema recebe energia.
+  registar({
+    subtema: 'balancos', tipo: 'primeira-lei', nome: 'Primeira Lei da Termodinâmica e os sinais de W, Q e R',
+    formatos: ['numerica', 'escolha'], contextos: ['expansao', 'compressao', 'radiacao'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const a = entre(rng, 200, 2000, 50);
+        const b = entre(rng, 100, 1900, 50);
+        let ex, erros, termos;
+        if (contexto === 'expansao') {
+          // o gás recebe Q = a e realiza o trabalho |W| = b sobre a vizinhança
+          termos = { W: -b, Q: a, R: 0 };
+          ex = { enunciado: 'Um gás num cilindro recebe ' + q(a, UN.J) + ' de energia como calor e, ao expandir-se, realiza ' + q(b, UN.J) + ' de trabalho sobre a vizinhança (empurra o êmbolo). Calcula a variação da energia interna do gás.' };
+        } else if (contexto === 'compressao') {
+          termos = { W: a, Q: -b, R: 0 };
+          ex = { enunciado: 'Um gás num cilindro é comprimido: o êmbolo realiza sobre ele ' + q(a, UN.J) + ' de trabalho e, ao mesmo tempo, o gás cede ' + q(b, UN.J) + ' de energia como calor à vizinhança. Calcula a variação da energia interna do gás.' };
+        } else {
+          termos = { W: 0, Q: -b, R: a };
+          ex = { enunciado: 'Uma pedra ao sol absorve ' + q(a, UN.J) + ' de energia da radiação solar e, no mesmo intervalo de tempo, cede ' + q(b, UN.J) + ' de energia como calor ao ar à sua volta. Calcula a variação da energia interna da pedra (despreza o trabalho).' };
+        }
+        const { W, Q, R } = termos;
+        const dU = W + Q + R;
+        if (Math.abs(dU) < 50) return null;
+        const recebido = a, cedido = b;
+        const lista = [['W', W], ['Q', Q], ['R', R]].filter((x) => x[1] !== 0);
+        ex.resolucao = [
+          { passo: 'Sinal de cada termo', porque: 'Na Primeira Lei, $\\Delta U = W + Q + R$, cada termo é positivo quando o sistema recebe energia e negativo quando a cede.', calculo: lista.map((x) => x[0] + ' = ' + tex(x[1]) + '\\,\\mathrm{J}').join(';\\ ') },
+          { passo: 'Somar', porque: dU > 0 ? 'O sistema recebe mais energia do que cede: a energia interna aumenta.' : 'O sistema cede mais energia do que recebe: a energia interna diminui.', calculo: '\\Delta U = ' + lista.map((x) => par(x[1])).join(' + ') + ' = ' + tex(dU) + '\\,\\mathrm{J}' },
+        ];
+        ex.dados = { contexto, a, b };
+        erros = [
+          { codigo: 'sinais_da_primeira_lei_trocados', valor: -dU, explicacao: (vt) => 'Trocaste os sinais e obtiveste ' + vt(-dU, UN.J) + '. A energia recebida pelo sistema entra com sinal positivo e a cedida com sinal negativo.' },
+          contexto === 'expansao'
+            ? { codigo: 'trabalho_realizado_com_sinal_positivo', valor: a + b, explicacao: (vt) => 'Somaste o trabalho como positivo e obtiveste ' + vt(a + b, UN.J) + '. Quando o gás realiza trabalho sobre a vizinhança, cede energia: $W = ' + tex(-b) + '\\,\\mathrm{J}$.' }
+            : { codigo: 'calor_cedido_com_sinal_positivo', valor: a + b, explicacao: (vt) => 'Somaste o calor cedido como positivo e obtiveste ' + vt(a + b, UN.J) + '. A energia que o sistema cede como calor entra com sinal negativo: $Q = ' + tex(-b) + '\\,\\mathrm{J}$.' },
+          contexto === 'expansao'
+            ? { codigo: 'esqueceu_o_trabalho_na_primeira_lei', valor: a, explicacao: (vt) => vt(a, UN.J) + ' é só o calor recebido. Falta o trabalho realizado pelo gás, $W = ' + tex(-b) + '\\,\\mathrm{J}$.' }
+            : { codigo: 'esqueceu_o_calor_na_primeira_lei', valor: a, explicacao: (vt) => vt(a, UN.J) + ' é só a energia recebida (' + (contexto === 'compressao' ? 'trabalho' : 'radiação') + '). Falta o calor cedido, $Q = ' + tex(-b) + '\\,\\mathrm{J}$.' },
+        ];
+        const verificacao = () => ({ passo: 'Energia recebida menos energia cedida (em módulo)', calculo: tex(recebido) + ' - ' + tex(cedido) + ' = ' + tex(recebido - cedido) + '\\,\\mathrm{J}', valor: recebido - cedido });
+        return fecharNum(rng, formato, ex, dU, { erros, unidade: 'J', u: UN.J, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      return confereN(p, p.dados.a - p.dados.b, UN.J);
+    },
+    limites(p) {
+      return p.dados.a > 0 && p.dados.b > 0 && Math.abs(p.dados.a - p.dados.b) >= 50;
     },
   });
 

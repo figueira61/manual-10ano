@@ -12,6 +12,7 @@ const G = M.geradores;
 
 const IDS = [
   'transferencias-mecanismo', 'transferencias-equilibrio', 'transferencias-infravermelho',
+  'balancos-calor', 'balancos-fase', 'balancos-mistura', 'balancos-primeira-lei',
 ];
 const SUBTEMAS = ['transferencias', 'balancos', 'rendimento'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'termica');
@@ -89,5 +90,63 @@ test('infravermelho: ≥ 10 afirmações distintas, verdadeiras e falsas; na esc
   for (const p of itens('transferencias-infravermelho', 100, ['escolha'])) {
     assert.ok(verdadeiras.has(p.opcoes[p.correta]) || !falsas.has(p.opcoes[p.correta]));
     p.errosTipicos.forEach((e) => assert.ok(!verdadeiras.has(p.opcoes[e.opcao]), p.opcoes[e.opcao]));
+  }
+});
+
+const tolDe = (p) => (p.tolerancia !== undefined ? p.tolerancia : p.toleranciaRelativa * Math.abs(p.resposta)) + 1e-9;
+
+test('Q = m c Δθ: energia, capacidade térmica mássica (dá o valor tabelado) e temperatura final', () => {
+  const C = M.dadosFisica.capacidadeTermicaMassica;
+  for (const p of itens('balancos-calor', 80, ['numerica'])) {
+    const d = p.dados;
+    if (d.contexto === 'energia') assert.ok(Math.abs(p.resposta - d.m * C[d.mat] * (d.tf - d.ti)) <= tolDe(p));
+    if (d.contexto === 'capacidade') assert.ok(Object.values(C).includes(p.resposta), String(p.resposta));
+    if (d.contexto === 'temperatura') assert.ok(p.resposta > d.ti && Math.abs(p.resposta - (d.ti + d.Q / (d.m * C[d.mat]))) <= tolDe(p));
+  }
+});
+
+test('mudanças de estado: Q = m Δh e o gelo até água líquida soma os troços; nenhum troço esquecido é a resposta', () => {
+  const H = M.dadosFisica.entalpiaMassica;
+  for (const p of itens('balancos-fase', 80, ['numerica'])) {
+    const d = p.dados;
+    if (d.contexto === 'fusao') assert.ok(Math.abs(p.resposta - d.m * H.fusaoGelo / 1000) <= tolDe(p));
+    if (d.contexto === 'vaporizacao') assert.ok(Math.abs(p.resposta - d.m * H.vaporizacaoAgua / 1000) <= tolDe(p));
+    if (d.contexto === 'gelo-agua') {
+      const total = M.fisica.aquecimentoGelo({ m: d.m, theta0: d.t0, thetaF: d.tF, P: 500, fundir: d.tF === 0 }).reduce((a, t) => a + t.Q, 0);
+      assert.ok(Math.abs(p.resposta - total) <= tolDe(p));
+      assert.ok(p.errosTipicos.some((e) => e.codigo === 'esqueceu_a_fusao_no_balanco'));
+      assert.deepEqual(p.esquema, { id: 'fqa-aquecimento', opcoes: { m: d.m, theta0: d.t0, P: 500 } });
+    }
+  }
+});
+
+test('misturas: θeq entre as temperaturas iniciais; com gelo em excesso θeq = 0 °C e pede-se a massa que funde (< massa de gelo)', () => {
+  let excesso = 0, funde = 0;
+  for (const p of itens('balancos-mistura', 150)) {
+    const d = p.dados;
+    assert.equal(p.esquema.id, 'fqa-mistura');
+    assert.equal(p.esquema.opcoes.tipo, d.tipo);
+    const r = M.fisica.mistura([{ m: d.m1, theta: d.theta1, fase: 'agua' }, d.tipo === 'agua-gelo' ? { m: d.m2, theta: 0, fase: 'gelo' } : d.metal ? { m: d.m2, c: M.dadosFisica.capacidadeTermicaMassica[d.metal], theta: d.theta2 } : { m: d.m2, theta: d.theta2, fase: 'agua' }]);
+    if (d.tipo === 'agua-gelo' && d.excesso) {
+      excesso++;
+      assert.equal(r.thetaEq, 0);
+      assert.equal(d.thetaEq, 0);
+      assert.ok(r.geloRestante > 0);
+      assert.ok(p.resolucaoDetalhada.some((x) => (x.calculo || '').includes('\\theta_{eq} = 0\\,{}^{\\circ}\\mathrm{C}')));
+      if (p.formato === 'numerica') assert.ok(Math.abs(p.resposta - r.geloDerretido * 1000) <= tolDe(p) && p.resposta < d.m2 * 1000);
+    } else {
+      if (d.tipo === 'agua-gelo') { funde++; assert.ok(r.geloRestante < 1e-12); }
+      assert.ok(r.thetaEq > Math.min(d.theta1, d.theta2) && r.thetaEq < Math.max(d.theta1, d.theta2));
+      if (p.formato === 'numerica') assert.ok(Math.abs(p.resposta - r.thetaEq) <= tolDe(p));
+    }
+  }
+  assert.ok(excesso >= 20 && funde >= 20, excesso + ' / ' + funde);
+});
+
+test('Primeira Lei: ΔU = W + Q + R, com o trabalho realizado e o calor cedido negativos', () => {
+  for (const p of itens('balancos-primeira-lei', 80, ['numerica'])) {
+    const { a, b } = p.dados;
+    assert.equal(p.resposta, a - b);
+    assert.ok(p.errosTipicos.some((e) => e.codigo === 'sinais_da_primeira_lei_trocados' && e.valor === b - a));
   }
 });

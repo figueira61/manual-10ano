@@ -47,7 +47,8 @@ globalThis.Manual = globalThis.Manual || {};
   // « = » se o valor mostrado é exato, « ≈ » se foi arredondado.
   const igual = (v) => (exatoAS(v, 3) ? ' = ' : ' \\approx ');
   // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
-  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= 1e-9 * Math.max(1, Math.abs(v));
+  // (folga absoluta de no máximo 1e-7, para que um valor grande como 78 026,666… não passe por exato)
+  const exI = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
   function texI(v) {
     if (exI(v)) return Math.abs(v) >= 1e5 ? cient(v, [1, 2, 3, 4].find((k) => exatoAS(v, k)) || 4) : tex(v, 4);
     const a = Math.abs(v);
@@ -56,7 +57,7 @@ globalThis.Manual = globalThis.Manual || {};
     return (v < 0 ? '-' : '') + a.toPrecision(4).replace('.', '{,}');
   }
   // « = valor » ou « ≈ valor » de um resultado intermédio; ok = false quando algum operando já foi arredondado.
-  const eqI = (v, ok = true) => (ok && exI(v) && exatoAS(v, 4) ? ' = ' : ' \\approx ') + texI(v);
+  const eqI = (v, ok = true) => (ok && exI(v) && (Math.abs(v) < 1e5 || exatoAS(v, 4)) ? ' = ' : ' \\approx ') + texI(v);
   // O mesmo para um resultado mostrado com a precisão da resposta (3 a.s.).
   const eqN = (v, ok = true) => (ok && exatoAS(v, 3) ? ' = ' : ' \\approx ') + texN(v);
   // Dado do enunciado: $2,5\,V$.

@@ -45,7 +45,7 @@ function codigos() {
 
 const PARTILHADOS = ['nao_dividiu', 'dividiu_por_2', 'dividiu_ao_contrario', 'esqueceu_raiz', 'sem_raiz', 'subtraiu_ao_contrario',
   'sinal_trocado', 'soma_catetos', 'subtraiu_coordenadas', 'nao_dividiu_por_2', 'razao_invertida', 'multiplicou_em_vez_de_dividir',
-  'dividiu_em_vez_de_multiplicar'];
+  'dividiu_em_vez_de_multiplicar', 'massa_em_gramas'];
 
 test('todos os códigos dos geradores dão um texto simples', () => {
   const { painel } = M();
