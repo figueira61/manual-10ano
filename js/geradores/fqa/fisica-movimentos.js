@@ -421,7 +421,8 @@ globalThis.Manual = globalThis.Manual || {};
         const d = entre(rng, 1, 10, 0.5);
         let alfa, theta = null, enunciado;
         if (contexto === 'angulo') {
-          alfa = escolher(rng, [0, 30, 45, 60, 90]);
+          // α = 0° nunca dá erros típicos distintos; α = 90° (W = 0) só em numérica e em cerca de 12 % dos itens
+          alfa = formato === 'numerica' && rng() < 0.12 ? 90 : escolher(rng, [30, 45, 60]);
           enunciado = 'Um caixote desloca-se ' + q(d, U.m) + ' num chão horizontal. Uma das forças que atuam nele é constante, de intensidade ' + q(F, U.N) + ', e faz um ângulo de ' + alfa + '° com o deslocamento. Calcula o trabalho realizado por essa força.';
         } else if (contexto === 'resistente') {
           alfa = escolher(rng, [120, 135, 150, 180]);
@@ -441,15 +442,16 @@ globalThis.Manual = globalThis.Manual || {};
         });
         const erros = [];
         if (theta !== null) erros.push({ codigo: 'usou_o_angulo_com_a_vertical', valor: Fd * Math.cos(rad(theta)), explicacao: (vt) => 'Usaste o ângulo com a vertical ($' + theta + '°$) e obtiveste ' + vt(Fd * Math.cos(rad(theta)), U.J) + '. O ângulo do trabalho é o que a força faz com o deslocamento, $\\alpha = 90° - ' + theta + '° = ' + alfa + '°$.' });
-        erros.push({ codigo: 'esqueceu_o_cosseno', valor: Fd, explicacao: (vt) => 'Calculaste $F d$ e obtiveste ' + vt(Fd, U.J) + ', como se a força tivesse a direção do deslocamento. Só a componente eficaz realiza trabalho, por isso multiplica-se por $' + cosTex(alfa) + '$.' });
+        // O sinal trocado vem antes de «esqueceu o cosseno»: a 180° os dois dão +F d, e o erro é o do sinal.
         if (alfa > 90) erros.push({ codigo: 'sinal_do_trabalho_trocado', valor: -exato, explicacao: (vt) => 'Obtiveste ' + vt(-exato, U.J) + ', com o sinal trocado. Com $\\alpha = ' + alfa + '°$ (maior do que $90°$) o cosseno é negativo e o trabalho é resistente.' });
+        erros.push({ codigo: 'esqueceu_o_cosseno', valor: Fd, explicacao: (vt) => 'Calculaste $F d$ e obtiveste ' + vt(Fd, U.J) + ', como se a força tivesse a direção do deslocamento. Só a componente eficaz realiza trabalho, por isso multiplica-se por $' + cosTex(alfa) + '$.' });
         if (theta === null) erros.push({ codigo: 'usou_o_seno_em_vez_do_cosseno', valor: Fd * Math.sin(rad(alfa)), explicacao: (vt) => 'Usaste $\\sin ' + alfa + '°$ e obtiveste ' + vt(Fd * Math.sin(rad(alfa)), U.J) + '. O trabalho usa o cosseno do ângulo entre a força e o deslocamento.' });
         erros.push({ codigo: 'calculadora_em_radianos', valor: Fd * Math.cos(alfa), explicacao: (vt) => 'Obtiveste ' + vt(Fd * Math.cos(alfa), U.J) + ' com a calculadora em radianos (calculaste o cosseno de ' + alfa + ' radianos). O ângulo está em graus.' });
         const ex = { enunciado, resolucao, dados: { contexto, F, d, alfa }, esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } } };
         const verificacao = (r) => {
           const Fx = F * Math.cos(rad(alfa));
-          const Fxt = Math.abs(Fx) < 1e-9 ? '0' : texN(Fx);
-          return { passo: 'Pela componente da força na direção do deslocamento, $F_x = F\\cos\\alpha$', calculo: 'F_x = ' + tex(F) + ' \\times ' + cosTex(alfa) + (Fxt === '0' ? ' = 0' : igual(Fx) + Fxt) + '\\,\\mathrm{N};\\ W = F_x\\,d' + (r === 0 ? ' = 0' : igual(Fx * d) + texN(Fx * d)) + '\\,\\mathrm{J}', valor: trabalhoComponentes(F, d, alfa) };
+          const zero = Math.abs(Fx) < 1e-9;
+          return { passo: 'Pela componente da força na direção do deslocamento, $F_x = F\\cos\\alpha$', calculo: 'F_x = ' + tex(F) + ' \\times ' + cosTex(alfa) + (zero ? ' = 0' : eqI(Fx)) + '\\,\\mathrm{N};\\ W = F_x\\,d' + (r === 0 ? ' = 0' : (exI(Fx) ? ' = ' + texI(Fx) + ' \\times ' + tex(d) : '') + eqN(Fx * d, exI(Fx))) + '\\,\\mathrm{J}', valor: trabalhoComponentes(F, d, alfa) };
         };
         if (exato !== 0) return fecharNum(rng, formato, ex, exato, { erros, unidade: 'J', u: U.J, verificacao });
         // α = 90°: W = 0 (só em numérica; na escolha não há 3 erros distintos e tentar re-sorteia).
@@ -498,8 +500,8 @@ globalThis.Manual = globalThis.Manual || {};
           ex = {
             enunciado: comMassa(c.nome, q(m, U.kg)) + ' desloca-se em linha reta e a sua velocidade passa de ' + q(vi, U.ms) + ' para ' + q(vf, U.ms) + '. Calcula o trabalho realizado pela resultante das forças que nele atuam.',
             resolucao: [
-              { passo: 'Energias cinéticas inicial e final', porque: '$E_c = \\tfrac{1}{2} m v^2$ em cada instante.', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vi) + '^2' + igual(Eci) + texN(Eci) + '\\,\\mathrm{J};\\ E_{c,f} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + igual(Ecf) + texN(Ecf) + '\\,\\mathrm{J}' },
-              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\Delta E_c = E_{c,f} - E_{c,i}$. ' + (acelera ? 'A velocidade aumenta, por isso o trabalho da resultante é positivo.' : 'A velocidade diminui, por isso o trabalho da resultante é negativo.'), calculo: 'W_{F_R} = ' + tex(Ecf) + ' - ' + tex(Eci) + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+              { passo: 'Energias cinéticas inicial e final', porque: '$E_c = \\tfrac{1}{2} m v^2$ em cada instante.', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vi) + '^2' + eqI(Eci) + '\\,\\mathrm{J};\\ E_{c,f} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + eqI(Ecf) + '\\,\\mathrm{J}' },
+              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\Delta E_c = E_{c,f} - E_{c,i}$. ' + (acelera ? 'A velocidade aumenta, por isso o trabalho da resultante é positivo.' : 'A velocidade diminui, por isso o trabalho da resultante é negativo.'), calculo: 'W_{F_R} = ' + texI(Ecf) + ' - ' + texI(Eci) + eqN(exato, exI(Ecf) && exI(Eci)) + '\\,\\mathrm{J}' },
             ],
             dados: { contexto, m, vi, vf },
           };
@@ -509,11 +511,11 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: (vt) => 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. $\\Delta E_c = E_{c,f} - E_{c,i}$, ' + (acelera ? 'positivo porque o corpo acelera' : 'negativo porque o corpo trava') + '.' },
             { codigo: 'deu_a_energia_cinetica_final', valor: Ecf, explicacao: (vt) => vt(Ecf, U.J) + ' é a energia cinética final. O trabalho da resultante é a variação, $E_{c,f} - E_{c,i}$.' },
           ];
-          verificacao = (r) => ({ passo: 'Fatorizar: $\\Delta E_c = \\tfrac{1}{2} m (v_f - v_i)(v_f + v_i)$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + par(vf - vi) + ' \\times ' + tex(vf + vi) + igual(0.5 * m * (vf - vi) * (vf + vi)) + texN(0.5 * m * (vf - vi) * (vf + vi)) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().ec(m, vi) });
+          verificacao = (r) => ({ passo: 'Fatorizar: $\\Delta E_c = \\tfrac{1}{2} m (v_f - v_i)(v_f + v_i)$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + par(vf - vi) + ' \\times ' + tex(vf + vi) + eqN(0.5 * m * (vf - vi) * (vf + vi)) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().ec(m, vi) });
         } else if (contexto === 'soma-trabalhos') {
           const m = entre(rng, 5, 30, 1);
           const F = entre(rng, 20, 100, 5);
-          const alfa = escolher(rng, [0, 30, 45, 60]);
+          const alfa = escolher(rng, [0, 30, 45, 60]); // com 0°, «esqueceu o cosseno» coincide com o atrito esquecido: só em numérica
           const Fa = entre(rng, 5, 40, 5);
           const d = entre(rng, 2, 10, 1);
           const WF = Fis().trabalho(F, d, alfa);
@@ -524,9 +526,9 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'Um caixote de ' + q(m, U.kg) + ' é arrastado ' + q(d, U.m) + ' num chão horizontal por uma força constante de ' + q(F, U.N) + (alfa === 0 ? ' paralela ao chão' : ' que faz ' + alfa + '° com o deslocamento') + '. A força de atrito tem intensidade constante de ' + q(Fa, U.N) + '. Calcula o trabalho realizado pela resultante das forças.',
             resolucao: [
               { passo: 'Peso e força normal', porque: 'São perpendiculares ao deslocamento horizontal ($\\alpha = 90°$, $\\cos 90° = 0$): não realizam trabalho.' },
-              { passo: 'Trabalho da força aplicada', porque: '$W = F d \\cos\\alpha$.', calculo: 'W_F = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + igual(WF) + texN(WF) + '\\,\\mathrm{J}' },
+              { passo: 'Trabalho da força aplicada', porque: '$W = F d \\cos\\alpha$.', calculo: 'W_F = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + eqI(WF) + '\\,\\mathrm{J}' },
               { passo: 'Trabalho da força de atrito', porque: 'O atrito tem sentido oposto ao do deslocamento ($\\alpha = 180°$): o seu trabalho é negativo.', calculo: 'W_{F_a} = ' + tex(Fa) + ' \\times ' + tex(d) + ' \\times \\cos 180° = ' + tex(Wa) + '\\,\\mathrm{J}' },
-              { passo: 'Somar os trabalhos', porque: 'O trabalho da resultante é a soma dos trabalhos de todas as forças.', calculo: 'W_{F_R} = ' + texN(WF) + ' + ' + par(Wa) + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+              { passo: 'Somar os trabalhos', porque: 'O trabalho da resultante é a soma dos trabalhos de todas as forças.', calculo: 'W_{F_R} = ' + texI(WF) + ' + ' + par(Wa) + eqN(exato, exI(WF)) + '\\,\\mathrm{J}' },
             ],
             dados: { contexto, F, alfa, Fa, d },
             esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } },
@@ -538,7 +540,7 @@ globalThis.Manual = globalThis.Manual || {};
           ];
           verificacao = (r) => {
             const FR = F * Math.cos(rad(alfa)) - Fa;
-            return { passo: 'Pela resultante na direção do deslocamento, $F_R = F\\cos\\alpha - F_a$', calculo: 'F_R = ' + tex(F) + ' \\times ' + cosTex(alfa) + ' - ' + tex(Fa) + igual(FR) + texN(FR) + '\\,\\mathrm{N};\\ W_{F_R} = F_R\\,d' + igual(FR * d) + texN(FR * d) + '\\,\\mathrm{J}', valor: FR * d };
+            return { passo: 'Pela resultante na direção do deslocamento, $F_R = F\\cos\\alpha - F_a$', calculo: 'F_R = ' + tex(F) + ' \\times ' + cosTex(alfa) + ' - ' + tex(Fa) + eqI(FR) + '\\,\\mathrm{N};\\ W_{F_R} = F_R\\,d' + eqN(FR * d, exI(FR)) + '\\,\\mathrm{J}', valor: FR * d };
           };
         } else {
           const c = escolher(rng, CORPOS_TEC);
@@ -555,8 +557,8 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: comMassa(c.nome, q(m, U.kg)) + (vi === 0 ? ' parte do repouso' : ' move-se a ' + q(vi, U.ms)) + ' e, ao longo de ' + q(d, U.m) + ' em linha reta, a resultante das forças que nele atuam é constante, com intensidade ' + q(FR, U.N) + ' e o sentido do movimento. Calcula a velocidade no fim desse percurso.',
             resolucao: [
               { passo: 'Trabalho da resultante', porque: 'A resultante tem o sentido do deslocamento ($\\alpha = 0°$).', calculo: 'W_{F_R} = ' + tex(FR) + ' \\times ' + tex(d) + ' = ' + tex(W) + '\\,\\mathrm{J}' },
-              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$, logo $v_f^2 = v_i^2 + \\dfrac{2 W_{F_R}}{m}$.', calculo: 'v_f^2 = ' + tex(vi) + '^2 + ' + sobre('2 \\times ' + tex(W), tex(m)) + igual(v2) + texN(v2) + '\\,\\mathrm{m^2\\,s^{-2}}' },
-              { passo: 'Tirar a raiz quadrada', porque: 'Pede-se $v_f$.', calculo: 'v_f = \\sqrt{' + texN(v2) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{m\\,s^{-1}}' },
+              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$, logo $v_f^2 = v_i^2 + \\dfrac{2 W_{F_R}}{m}$.', calculo: 'v_f^2 = ' + tex(vi) + '^2 + ' + sobre('2 \\times ' + tex(W), tex(m)) + eqI(v2) + '\\,\\mathrm{m^2\\,s^{-2}}' },
+              { passo: 'Tirar a raiz quadrada', porque: 'Pede-se $v_f$.', calculo: 'v_f = \\sqrt{' + texI(v2) + '}' + eqN(exato, exI(v2)) + '\\,\\mathrm{m\\,s^{-1}}' },
             ],
             dados: { contexto, m, vi, d, FR },
           };
@@ -569,7 +571,8 @@ globalThis.Manual = globalThis.Manual || {};
             erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semVi, explicacao: (vt) => 'Obtiveste ' + vt(semVi, U.ms) + ', como se partisse do repouso. O corpo já tinha $' + tex(vi) + '\\,\\mathrm{m\\,s^{-1}}$, por isso $v_f^2 = v_i^2 + 2W/m$.' });
             erros.push({ codigo: 'somou_as_velocidades', valor: vi + semVi, explicacao: (vt) => 'Somaste a velocidade inicial à velocidade ganha a partir do repouso e obtiveste ' + vt(vi + semVi, U.ms) + '. Somam-se as energias cinéticas (os quadrados), não as velocidades.' });
           }
-          verificacao = (r) => ({ passo: 'Variação da energia cinética com a velocidade obtida, comparada com $W_{F_R}$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + (vi === 0 ? texN(r) + '^2' : '(' + texN(r) + '^2 - ' + tex(vi) + '^2)') + igual(0.5 * m * (r * r - vi * vi)) + texN(0.5 * m * (r * r - vi * vi)) + '\\,\\mathrm{J}', valor: Fis().vDeEc(Fis().ec(m, vi) + W, m) });
+          // Com v_f² por arredondar, a variação da energia cinética volta a dar o trabalho dado.
+          verificacao = () => ({ passo: 'Variação da energia cinética com $v_f^2$ (por arredondar), que tem de dar $W_{F_R}$', calculo: (vi === 0 ? '' : 'v_f^2 - v_i^2 = ' + texI(v2) + ' - ' + tex(vi * vi) + eqI(v2 - vi * vi, exI(v2)) + '\\,\\mathrm{m^2\\,s^{-2}};\\ ') + '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + texI(v2 - vi * vi) + eqI(0.5 * m * (v2 - vi * vi), exI(v2)) + '\\,\\mathrm{J} = W_{F_R}', valor: Fis().vDeEc(Fis().ec(m, vi) + W, m) });
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
       });
@@ -597,19 +600,21 @@ globalThis.Manual = globalThis.Manual || {};
         const vk = kmh(v);
         const Ec = 0.5 * m * v * v;
         const conv = { passo: 'Passar a velocidade a metros por segundo', porque: 'Divide-se por 3,6, porque $1\\,\\mathrm{km\\,h^{-1}} = \\dfrac{1000\\,\\mathrm{m}}{3600\\,\\mathrm{s}}$.', calculo: 'v = \\dfrac{' + tex(vk) + '}{3{,}6} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}' };
-        const passoEc = { passo: 'Energia cinética inicial', porque: '$E_c = \\tfrac{1}{2} m v^2$; no fim o automóvel está parado ($E_c = 0$).', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v) + '^2' + igual(Ec) + texN(Ec) + '\\,\\mathrm{J}' };
+        const passoEc = { passo: 'Energia cinética inicial', porque: '$E_c = \\tfrac{1}{2} m v^2$; no fim o automóvel está parado ($E_c = 0$).', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v) + '^2' + eqI(Ec) + '\\,\\mathrm{J}' };
         const porqueTEC = 'O peso e a força normal são perpendiculares ao deslocamento e não realizam trabalho; só o atrito ($\\alpha = 180°$) realiza trabalho, $W_{F_a} = -F_a d$. Pelo Teorema da Energia Cinética, $-F_a d = 0 - E_{c,i}$.';
         const inicio = 'Um automóvel de ' + q(m, U.kg) + ' segue a ' + q(vk, U.kmh) + ' numa estrada horizontal e trava até parar. Considera que só a força de atrito, constante, realiza trabalho durante a travagem.';
         const Ek = 0.5 * m * vk * vk;
         let ex, exato, erros, verificacao, unidade, u;
         if (contexto === 'distancia') {
           const Fa = entre(rng, 4000, 10000, 500);
+          // travagem plausível (regra 16): desaceleração F_a/m entre 2 e 8 m s⁻²
+          if (Fa / m > 8 || Fa / m < 2) return null;
           exato = Ec / Fa;
           unidade = 'm';
           u = U.m;
           ex = {
             enunciado: inicio + ' A força de atrito tem intensidade ' + q(Fa, U.N) + '. Calcula a distância de travagem.',
-            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'd = \\dfrac{E_{c,i}}{F_a} = \\dfrac{' + texN(Ec) + '}{' + tex(Fa) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{m}' }],
+            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'd = \\dfrac{E_{c,i}}{F_a} = \\dfrac{' + texI(Ec) + '}{' + tex(Fa) + '}' + eqN(exato, exI(Ec)) + '\\,\\mathrm{m}' }],
             dados: { contexto, m, v, Fa },
           };
           erros = [
@@ -617,15 +622,17 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / Fa, explicacao: (vt) => 'Obtiveste ' + vt(2 * Ec / Fa, U.m) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
             { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / Fa, explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / Fa, U.m) + '. A energia cinética, e por isso a distância de travagem, é proporcional a $v^2$.' },
           ];
-          verificacao = (r) => ({ passo: 'Trabalho do atrito nessa distância, que tem de anular a energia cinética', calculo: 'W_{F_a} = -' + tex(Fa) + ' \\times ' + texN(r) + igual(Fa * r) + '-' + texN(Fa * r) + '\\,\\mathrm{J}', valor: Fis().travagem({ m, v0: v, Fa }) });
+          verificacao = () => ({ passo: 'Trabalho do atrito nessa distância (por arredondar), que tem de anular a energia cinética', calculo: 'W_{F_a} = -' + tex(Fa) + ' \\times ' + texI(exato) + eqI(-Fa * exato, exI(exato)) + '\\,\\mathrm{J} = -E_{c,i}', valor: Fis().travagem({ m, v0: v, Fa }) });
         } else if (contexto === 'forca') {
-          const d = entre(rng, 20, 90, 5);
+          const d = entre(rng, 10, 120, 5);
+          // travagem plausível (regra 16): desaceleração v²/(2d) entre 2 e 8 m s⁻²
+          if (v * v / (2 * d) > 8 || v * v / (2 * d) < 2) return null;
           exato = Ec / d;
           unidade = 'N';
           u = U.N;
           ex = {
             enunciado: inicio + ' A distância de travagem é ' + q(d, U.m) + '. Calcula a intensidade da força de atrito.',
-            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'F_a = \\dfrac{E_{c,i}}{d} = \\dfrac{' + texN(Ec) + '}{' + tex(d) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{N}' }],
+            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'F_a = \\dfrac{E_{c,i}}{d} = \\dfrac{' + texI(Ec) + '}{' + tex(d) + '}' + eqN(exato, exI(Ec)) + '\\,\\mathrm{N}' }],
             dados: { contexto, m, v, d },
           };
           erros = [
@@ -633,7 +640,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / d, explicacao: (vt) => 'Obtiveste ' + vt(2 * Ec / d, U.N) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
             { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / d, explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / d, U.N) + '. A energia cinética é proporcional a $v^2$.' },
           ];
-          verificacao = (r) => ({ passo: 'Distância de travagem com essa força', calculo: 'd = \\dfrac{' + texN(Ec) + '}{' + texN(r) + '}' + igual(Ec / r) + texN(Ec / r) + '\\,\\mathrm{m}', valor: Fis().ec(m, v) / d });
+          verificacao = () => ({ passo: 'Distância de travagem com essa força (por arredondar): tem de dar a distância dada', calculo: 'd = \\dfrac{' + texI(Ec) + '}{' + texI(exato) + '}' + eqI(Ec / exato, exI(exato)) + '\\,\\mathrm{m}', valor: Fis().ec(m, v) / d });
         } else {
           exato = -Ec / 1000;
           unidade = 'kJ';

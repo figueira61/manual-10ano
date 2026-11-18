@@ -56,10 +56,10 @@ test('snapshots da semente 1', () => {
   assert.match(p.enunciado, /1920\\,\\mathrm\{J\}/);
   assert.equal(p.resposta, 8); // √(2 × 1920 / 60)
   p = g('trabalho-forca-constante');
-  assert.match(p.enunciado, /65\\,\\mathrm\{N\}\$, e faz um ângulo de 45°/);
-  assert.equal(p.resposta, 46); // 65 × 1 × cos 45° = 45,96
-  assert.equal(p.algarismos, 3);
-  assert.deepEqual(p.esquema, { id: 'fqa-trabalho', opcoes: { F: 65, d: 1, alfa: 45 } });
+  assert.match(p.enunciado, /65\\,\\mathrm\{N\}\$, e faz um ângulo de 60°/);
+  assert.equal(p.resposta, 32.5); // 65 × 1 × cos 60°
+  assert.equal(p.algarismos, undefined); // exata: não pede a.s.
+  assert.deepEqual(p.esquema, { id: 'fqa-trabalho', opcoes: { F: 65, d: 1, alfa: 60 } });
   p = g('trabalho-tec');
   assert.equal(p.resposta, 2850); // ½ × 60 × (12² − 7²)
   p = g('trabalho-travagem');
@@ -124,6 +124,33 @@ test('trabalho com α = 90°: W = 0, e uma resposta 0 não é tomada por erro t�
     assert.equal(M.quiz.corrigir(p, String(p.dados.F * p.dados.d).replace('.', ',')).erroTipico.codigo, 'esqueceu_o_cosseno');
   }
   assert.ok(visto >= 10, 'poucos itens com α = 90°: ' + visto);
+});
+
+test('α = 180°: +F·d é o sinal trocado; α = 0° não sai e α = 90° fica em ≤ 15 % dos itens', () => {
+  let n180 = 0;
+  for (let s = 1; s <= 300; s++) {
+    const p = G.gerar('trabalho-forca-constante', s, { formato: 'numerica', contexto: 'resistente' });
+    if (p.dados.alfa !== 180) continue;
+    n180++;
+    const det = M.aprendizagem.detetarErro(p, String(p.dados.F * p.dados.d).replace('.', ','));
+    assert.equal(det.codigo, 'sinal_do_trabalho_trocado');
+  }
+  assert.ok(n180 > 10);
+  const conta = {};
+  for (let s = 1; s <= 300; s++) {
+    const a = G.gerar('trabalho-forca-constante', s, { formato: 'numerica', contexto: 'angulo' }).dados.alfa;
+    conta[a] = (conta[a] || 0) + 1;
+  }
+  assert.equal(conta[0], undefined);
+  assert.ok(conta[90] > 0 && conta[90] <= 45, JSON.stringify(conta));
+});
+
+test('travagem plausível: desaceleração entre 2 e 8 m s⁻² (300 sementes)', () => {
+  for (const formato of ['numerica', 'escolha']) for (const contexto of ['distancia', 'forca']) for (let s = 1; s <= 300; s++) {
+    const d = G.gerar('trabalho-travagem', s, { formato, contexto }).dados;
+    const a = contexto === 'distancia' ? d.Fa / d.m : (d.v * d.v) / (2 * d.d);
+    assert.ok(a >= 2 - 1e-9 && a <= 8 + 1e-9, contexto + ' ' + s + ': ' + a);
+  }
 });
 
 test('sinal do trabalho: potente abaixo de 90°, resistente acima; o atrito na travagem é negativo', () => {
