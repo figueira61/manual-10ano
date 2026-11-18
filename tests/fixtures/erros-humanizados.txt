@@ -30,6 +30,7 @@ amperimetro_em_paralelo → Ligou o amperímetro em paralelo em vez de em série
 amplitude_total → Deu a amplitude em vez da amplitude interquartil
 angulo_reto_errado → Errou o ângulo reto
 aplicou_a_carga_aos_neutroes → Aplicou a carga do ião ao número de neutrões
+aplicou_a_fracao_uma_so_vez → Aplicou a fração da energia que se mantém uma só vez, em vez de uma vez por ressalto
 aplicou_b_antes → Somou a constante antes de multiplicar
 aplicou_dois_tercos → Multiplicou AG por 2/3 em vez de dividir por 2/3
 aplicou_na_abcissa → Aplicou o fator à abcissa
@@ -99,6 +100,7 @@ confundiu_com_o_gobele → Confundiu a peça assinalada com o gobelé
 confundiu_com_o_neutrao → Confundiu a parte assinalada com o neutrão
 confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
+confundiu_com_o_trabalho_da_resultante → Confundiu o trabalho das forças não conservativas com o da resultante (ΔEc)
 confundiu_com_o_vidro_de_relogio → Confundiu a peça assinalada com o vidro de relógio
 confundiu_formacao_com_ciclo_do_cloro → Confundiu a formação do ozono com a sua destruição pelo cloro
 confundiu_formacao_com_decomposicao → Confundiu a formação do ozono com a sua decomposição
@@ -173,6 +175,8 @@ desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_energia_antes_da_colisao → Deu a energia mecânica antes da colisão em vez da dissipada
+deu_a_energia_apos_o_ressalto → Deu a energia mecânica depois do ressalto em vez da dissipada
 deu_a_energia_cinetica_final → Deu a energia cinética final em vez da sua variação
 deu_a_energia_potencial → Deu a energia potencial gravítica em vez da energia cinética
 deu_a_energia_potencial_final → Deu a energia potencial gravítica final em vez da sua variação
@@ -235,6 +239,8 @@ dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
 dividiu_n_pelo_volume_molar → Dividiu a quantidade de matéria pelo volume molar em vez de multiplicar
 dividiu_o_deltah_pela_quantidade → Dividiu o ΔH pela quantidade em vez de multiplicar
 dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
+dividiu_pela_altura → Dividiu o trabalho pela altura em vez do comprimento do plano
+dividiu_pela_altura_do_ressalto → Dividiu pela altura do ressalto em vez da altura de queda
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
 dividiu_pela_massa_molar → Dividiu pela massa molar em vez de multiplicar
 dividiu_pela_quantidade → Dividiu pela quantidade de matéria em vez de multiplicar
@@ -275,7 +281,9 @@ escolheu_incentro → Escolheu o incentro
 escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
+esqueceu_a_altura_de_lancamento → Esqueceu a altura do ponto de lançamento
 esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
+esqueceu_a_energia_cinetica → Esqueceu a variação da energia cinética na energia mecânica
 esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
 esqueceu_a_massa → Esqueceu a massa ao isolar a grandeza pedida
@@ -284,6 +292,7 @@ esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
 esqueceu_dividir → Esqueceu de dividir
+esqueceu_dividir_pela_distancia → Deu o trabalho em vez da força (não dividiu pela distância)
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_g_na_energia_potencial → Esqueceu g na energia potencial gravítica
@@ -477,6 +486,7 @@ nao_dividiu_por_100 → Não dividiu as abundâncias por 100
 nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
 nao_dividiu_por_3 → Não dividiu por 3
+nao_dividiu_por_g → Não dividiu por g ao isolar a altura
 nao_dividiu_por_na → Não dividiu pela constante de Avogadro
 nao_isolou_o_modulo → Não isolou o módulo
 nao_maximizou_os_desemparelhados → Não maximizou os eletrões desemparelhados (regra de Hund)
@@ -681,6 +691,7 @@ subtraiu_em_vez_de_somar → Subtraiu em vez de somar
 subtraiu_o_vetor → Subtraiu o vetor ao ponto em vez de o somar
 subtraiu_percentagem → Retirou a percentagem ao montante em vez de dividir
 subtraiu_quadrados → Subtraiu os quadrados em vez de os somar
+subtraiu_sempre_a_mesma_altura → Tirou sempre a mesma altura em cada ressalto
 subtraiu_taxa → Multiplicou por 1 − taxa em vez de dividir por 1 + taxa
 taxa_1_1 → Pôs um zero a mais ao converter a taxa para decimal
 taxa_anual_por_periodo → Usou a taxa anual em vez da taxa de cada período
@@ -703,6 +714,7 @@ trabalho_dissipativo_com_sinal_positivo → Deu sinal positivo ao trabalho das f
 trabalho_do_atrito_nulo → Achou nulo o trabalho da força de atrito
 trabalho_do_atrito_positivo → Achou positivo o trabalho da força de atrito
 trabalho_do_peso_com_o_sinal_de_epg → Deu ao trabalho do peso o sinal da variação da energia potencial gravítica
+trabalho_fnc_sempre_negativo → Deu sinal negativo ao trabalho de uma força que aumenta a energia mecânica
 trabalho_realizado_com_sinal_positivo → Deu sinal positivo ao trabalho realizado pelo sistema
 tres_meios → Multiplicou por 3/2 em vez de 2/3
 triplicou_a_partir_de_g → Somou 3 vezes OG a partir de G
@@ -738,11 +750,13 @@ um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
 uma_ligacao_oh_por_molecula → Contou só uma ligação O–H por molécula de água
 usou_10_elevado_a_3_no_ppm → Usou o fator 10³ em vez de 10⁶ nas partes por milhão
 usou_a_agua_do_picnometro_cheio → Usou a água do picnómetro cheio em vez da água deslocada
+usou_a_altura_em_vez_do_desnivel → Usou a altura inicial em vez do desnível
 usou_a_diferenca_de_volumes → Usou a diferença dos volumes em vez do quociente
 usou_a_divisao_inteira_num_analogico → Usou a menor divisão inteira num instrumento analógico
 usou_a_formula_do_alcano → Usou a fórmula geral dos alcanos
 usou_a_formula_do_alceno → Usou a fórmula geral dos alcenos
 usou_a_formula_do_alcino → Usou a fórmula geral dos alcinos
+usou_a_fracao_dissipada → Usou a fração dissipada em vez da que se mantém
 usou_a_massa_atomica_do_o → Usou a massa atómica do oxigénio em vez da molar do O2
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
 usou_a_massa_do_solvente → Usou a massa do solvente em vez da massa da solução

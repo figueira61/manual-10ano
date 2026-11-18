@@ -13,8 +13,9 @@ const G = M.geradores;
 const IDS = [
   'sistema-mecanico-ec-epg', 'sistema-mecanico-energia-mecanica', 'sistema-mecanico-massa-velocidade',
   'trabalho-forca-constante', 'trabalho-tec', 'trabalho-travagem',
+  'energia-mecanica-conservacao', 'energia-mecanica-nao-conservativas', 'energia-mecanica-ressalto',
 ];
-const SUBTEMAS = ['sistema-mecanico', 'trabalho'];
+const SUBTEMAS = ['sistema-mecanico', 'trabalho', 'energia-mecanica'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'movimentos');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -64,6 +65,50 @@ test('snapshots da semente 1', () => {
   p = g('trabalho-travagem');
   assert.match(p.enunciado, /1250\\,\\mathrm\{kg\}\$ segue a \$36/);
   assert.equal(p.resposta, 8.93); // ½ × 1250 × 10² / 7000 = 8,929
+  p = g('energia-mecanica-conservacao');
+  assert.match(p.enunciado, /montanha-russa, de \$200\\,\\mathrm\{kg\}\$, passa com velocidade \$8/);
+  assert.equal(p.resposta, 23.7); // √(8² + 2 × 10 × 25) = √564
+  p = g('energia-mecanica-nao-conservativas');
+  assert.equal(p.resposta, -122); // ½ × 5 × 3,5² − (½ × 5 × 1² + 5 × 10 × 3) = −121,9
+  p = g('energia-mecanica-ressalto');
+  assert.match(p.enunciado, /1\{,\}65\\,\\mathrm\{m\}\$ sobe, depois de bater no chão, até \$0\{,\}83/);
+  assert.equal(p.resposta, 49.7); // (1 − 0,83/1,65) × 100
+});
+
+test('energia mecânica: W_FNC < 0 com atrito, > 0 com o motor; o sinal trocado é erro típico', () => {
+  for (const p of itens('energia-mecanica-nao-conservativas', 60)) {
+    if (p.formato !== 'numerica') continue;
+    if (p.contexto === 'atrito') {
+      assert.ok(p.resposta < 0);
+      assert.ok(p.errosTipicos.some((e) => e.codigo === 'trabalho_dissipativo_com_sinal_positivo'));
+    }
+    if (p.contexto === 'motor') {
+      assert.ok(p.resposta > 0);
+      assert.equal(p.errosTipicos.find((e) => e.codigo === 'trabalho_fnc_sempre_negativo').valor, -p.resposta);
+    }
+    if (p.contexto === 'forca-atrito') assert.ok(p.resposta > 0); // intensidade
+  }
+});
+
+test('conservação: a velocidade não depende da massa; o cenário «rampa» mostra o próprio item no esquema', () => {
+  const g = M.dadosFisica.constantes.g;
+  for (const p of itens('energia-mecanica-conservacao', 80)) {
+    if (p.contexto !== 'velocidade') continue;
+    const d = p.dados;
+    const v = Math.sqrt(d.v0 * d.v0 + 2 * g * (d.h0 - d.h));
+    if (p.formato === 'numerica') assert.ok(Math.abs(p.resposta - v) <= p.tolerancia + 1e-9);
+    if (d.cenario === 'rampa') assert.deepEqual(p.esquema, { id: 'fqa-energias', opcoes: { percurso: 'rampa', h0: d.h0, v0: d.v0, Fa: 0 } });
+    else assert.equal(p.esquema, undefined);
+  }
+});
+
+test('ressalto: a altura depois de n ressaltos é h0 fⁿ e o esquema recebe h0 e a fração', () => {
+  for (const p of itens('energia-mecanica-ressalto', 60)) {
+    if (p.contexto !== 'altura') continue;
+    const { h0, f, n } = p.dados;
+    assert.deepEqual(p.esquema, { id: 'fqa-ressalto', opcoes: { h0, fracao: f } });
+    if (p.formato === 'numerica') assert.ok(Math.abs(p.resposta - h0 * Math.pow(f, n)) <= p.tolerancia + 1e-9);
+  }
 });
 
 test('trabalho com α = 90°: W = 0, e uma resposta 0 não é tomada por erro típico', () => {

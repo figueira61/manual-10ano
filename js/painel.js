@@ -827,6 +827,20 @@ globalThis.Manual = globalThis.Manual || {};
     sinal_do_trabalho_trocado: 'Trocou o sinal do trabalho (resistente tomado por potente)',
     somou_as_velocidades: 'Somou velocidades em vez de energias cinéticas',
     usou_o_angulo_com_a_vertical: 'Usou o ângulo com a vertical em vez do ângulo com o deslocamento',
+    aplicou_a_fracao_uma_so_vez: 'Aplicou a fração da energia que se mantém uma só vez, em vez de uma vez por ressalto',
+    confundiu_com_o_trabalho_da_resultante: 'Confundiu o trabalho das forças não conservativas com o da resultante (ΔEc)',
+    deu_a_energia_antes_da_colisao: 'Deu a energia mecânica antes da colisão em vez da dissipada',
+    deu_a_energia_apos_o_ressalto: 'Deu a energia mecânica depois do ressalto em vez da dissipada',
+    dividiu_pela_altura: 'Dividiu o trabalho pela altura em vez do comprimento do plano',
+    dividiu_pela_altura_do_ressalto: 'Dividiu pela altura do ressalto em vez da altura de queda',
+    esqueceu_a_altura_de_lancamento: 'Esqueceu a altura do ponto de lançamento',
+    esqueceu_a_energia_cinetica: 'Esqueceu a variação da energia cinética na energia mecânica',
+    esqueceu_dividir_pela_distancia: 'Deu o trabalho em vez da força (não dividiu pela distância)',
+    nao_dividiu_por_g: 'Não dividiu por g ao isolar a altura',
+    subtraiu_sempre_a_mesma_altura: 'Tirou sempre a mesma altura em cada ressalto',
+    trabalho_fnc_sempre_negativo: 'Deu sinal negativo ao trabalho de uma força que aumenta a energia mecânica',
+    usou_a_altura_em_vez_do_desnivel: 'Usou a altura inicial em vez do desnível',
+    usou_a_fracao_dissipada: 'Usou a fração dissipada em vez da que se mantém',
   };
 
   function humanizarErro(codigo) {
