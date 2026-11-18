@@ -158,9 +158,11 @@ contou_valores_diferentes → Contou os valores diferentes em vez das observaç�
 conveccao_no_vazio → Achou que há convecção no vazio
 conveniencia → Julgou aleatória uma amostra por conveniência
 converteu_m_em_nm_ao_contrario → Converteu de metros para nanómetros no sentido errado
+converteu_minutos_em_segundos_com_3600 → Converteu minutos em segundos multiplicando por 3600
 converteu_nm_como_micrometro → Usou 1 nm = 10⁻⁶ m
 coordenada_errada → Usou a coordenada errada
 coordenadas_trocadas → Trocou as coordenadas
+corrente_em_miliamperes → Usou a corrente em miliamperes em vez de amperes
 covalente_entre_atomos_iguais → Julgou covalente a ligação entre átomos de um metal
 covalente_entre_metal_e_nao_metal → Julgou covalente a ligação entre um metal e um não metal
 covalente_polar_entre_metal_e_nao_metal → Julgou covalente polar a ligação entre um metal e um não metal
@@ -174,6 +176,7 @@ densidade_trocada_na_conveccao → Trocou o fluido quente com o frio na convecç
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
+deu_a_corrente_de_um_ramo → Deu a corrente de um só ramo em vez da corrente total
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_energia_antes_da_colisao → Deu a energia mecânica antes da colisão em vez da dissipada
 deu_a_energia_apos_o_ressalto → Deu a energia mecânica depois do ressalto em vez da dissipada
@@ -193,6 +196,8 @@ deu_a_percentagem_do_solvente → Deu a percentagem do solvente em vez da do sol
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
 deu_a_queda_de_tensao_interna → Deu a tensão na resistência interna (rI) em vez da tensão nos terminais
+deu_a_tensao_da_fonte → Deu a tensão da fonte em vez da tensão da resistência
+deu_a_tensao_nas_outras_resistencias → Deu a tensão nas outras resistências
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
@@ -231,6 +236,7 @@ discreta_como_qualitativa → Tomou uma variável discreta por qualitativa
 distancia_do_baricentro → Deu a distância do baricentro ao lado
 dividiu_a_massa_molar_por_n → Dividiu a massa molar pela quantidade de matéria
 dividiu_a_ordenada → Dividiu a ordenada pelo fator
+dividiu_a_tensao_igualmente → Dividiu a tensão por igual por resistências diferentes
 dividiu_antes → Dividiu antes de isolar o termo em x
 dividiu_ao_contrario → Dividiu pela ordem trocada
 dividiu_em_vez_de_multiplicar → Dividiu em vez de multiplicar
@@ -257,11 +263,13 @@ dividiu_so_por_a → Dividiu por a em vez de por 2a
 divisores_hondt → Usou os divisores do método de Hondt
 divisores_impares → Usou os divisores do método de Sainte-Laguë
 dobro_em_vez_de_quadrado → Calculou o quadrado como o dobro
+dobrou_em_vez_de_elevar_ao_quadrado → Multiplicou por 2 em vez de elevar ao quadrado
 dois_tercos → Deu dois terços da mediana em vez de um terço
 dois_tercos_dos_votos → Exigiu dois terços dos votos
 doze_meses → Contou só 12 salários
 ec_constante_implica_em_constante → Achou que energia cinética constante implica energia mecânica constante
 eixo_reflexao_trocado → Trocou o eixo da reflexão
+elevou_a_resistencia_ao_quadrado → Elevou a resistência ao quadrado em vez da corrente
 emparelhou_antes_de_ocupar_as_orbitais → Emparelhou os eletrões antes de ocupar as orbitais vazias
 emparelhou_os_eletroes_3d → Emparelhou eletrões em orbitais 3d degeneradas (regra de Hund)
 endotermica_liberta → Julgou que uma reação endotérmica liberta energia
@@ -293,6 +301,7 @@ esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
 esqueceu_dividir → Esqueceu de dividir
 esqueceu_dividir_pela_distancia → Deu o trabalho em vez da força (não dividiu pela distância)
+esqueceu_dividir_pela_soma → Deu só o produto das resistências, sem dividir pela soma
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
 esqueceu_dobro → Esqueceu de multiplicar por 2
 esqueceu_g_na_energia_potencial → Esqueceu g na energia potencial gravítica
@@ -396,6 +405,7 @@ juro_simples → Usou juro simples em vez de juro composto
 justificou_com_a_carga_nuclear_ao_contrario → Justificou o raio com a carga nuclear ao contrário
 justificou_pela_repulsao_entre_eletroes → Justificou a energia de ionização só pela repulsão entre eletrões
 justificou_pelo_numero_de_eletroes_de_valencia → Justificou pelo número de eletrões de valência, que é igual no grupo
+kwh_como_3600_joules → Usou 1 kWh = 3600 J
 lado_trocado → Escolheu o lado errado do zero
 lambda_no_ponto → Multiplicou λ pelo ponto em vez de pelo vetor
 letra_do_plano → Escolheu a letra errada na equação do plano
@@ -567,6 +577,7 @@ potencia_maxima_em_curto_circuito → Pôs a potência máxima do painel em curt
 preencheu_3d_antes_de_4s → Preencheu o 3d antes do 4s
 prefixo_errado → Usou o prefixo errado para o número de carbonos
 processo_espontaneo_reversivel → Achou que um processo espontâneo se inverte sozinho
+produto_sobre_soma_com_tres → Usou o produto sobre a soma com três resistências
 proporcional_restos_maiores → Usou o método dos restos maiores
 proveta_para_volume_rigoroso → Usou a proveta para medir um volume rigoroso
 quadrado_da_diferenca_de_velocidades → Usou o quadrado da diferença das velocidades em vez da diferença das energias cinéticas

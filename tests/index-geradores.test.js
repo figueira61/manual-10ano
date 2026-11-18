@@ -34,6 +34,10 @@ test('index.html: registo.js, depois ajudas.js, depois os temas, e só depois mi
   assert.ok(pos('js/geradores/fqa/materia.js') < pos('js/miniquiz.js'), 'materia.js antes de miniquiz.js');
   assert.ok(pos('js/geradores/fqa/materia.js') < pos('js/geradores/fqa/fisica-movimentos.js'), 'fisica-movimentos.js depois de materia.js');
   assert.ok(pos('js/geradores/fqa/fisica-movimentos.js') < pos('js/miniquiz.js'), 'fisica-movimentos.js antes de miniquiz.js');
+  for (const novo of ['fisica-eletricidade.js']) {
+    assert.ok(pos('js/geradores/fqa/fisica-movimentos.js') < pos('js/geradores/fqa/' + novo), novo + ' depois de fisica-movimentos.js');
+    assert.ok(pos('js/geradores/fqa/' + novo) < pos('js/miniquiz.js'), novo + ' antes de miniquiz.js');
+  }
   const ultimo = Math.max(...temas);
   for (const consumidor of ['js/miniquiz.js', 'js/render.js']) {
     assert.ok(pos(consumidor) > ultimo, consumidor + ' depois de todos os geradores');

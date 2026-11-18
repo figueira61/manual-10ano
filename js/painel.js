@@ -841,6 +841,18 @@ globalThis.Manual = globalThis.Manual || {};
     trabalho_fnc_sempre_negativo: 'Deu sinal negativo ao trabalho de uma força que aumenta a energia mecânica',
     usou_a_altura_em_vez_do_desnivel: 'Usou a altura inicial em vez do desnível',
     usou_a_fracao_dissipada: 'Usou a fração dissipada em vez da que se mantém',
+    // Física — eletricidade e térmica (geradores)
+    corrente_em_miliamperes: 'Usou a corrente em miliamperes em vez de amperes',
+    esqueceu_dividir_pela_soma: 'Deu só o produto das resistências, sem dividir pela soma',
+    produto_sobre_soma_com_tres: 'Usou o produto sobre a soma com três resistências',
+    deu_a_tensao_da_fonte: 'Deu a tensão da fonte em vez da tensão da resistência',
+    dividiu_a_tensao_igualmente: 'Dividiu a tensão por igual por resistências diferentes',
+    deu_a_tensao_nas_outras_resistencias: 'Deu a tensão nas outras resistências',
+    deu_a_corrente_de_um_ramo: 'Deu a corrente de um só ramo em vez da corrente total',
+    elevou_a_resistencia_ao_quadrado: 'Elevou a resistência ao quadrado em vez da corrente',
+    dobrou_em_vez_de_elevar_ao_quadrado: 'Multiplicou por 2 em vez de elevar ao quadrado',
+    kwh_como_3600_joules: 'Usou 1 kWh = 3600 J',
+    converteu_minutos_em_segundos_com_3600: 'Converteu minutos em segundos multiplicando por 3600',
   };
 
   function humanizarErro(codigo) {
