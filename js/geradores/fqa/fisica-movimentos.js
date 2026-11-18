@@ -71,7 +71,8 @@ globalThis.Manual = globalThis.Manual || {};
   // o: { erros: [{ codigo, valor, explicacao }], unidade, u (LaTeX), verificacao(resposta) → { passo, calculo, valor } }.
   function fecharNum(rng, formato, ex, exato, o) {
     if (!Number.isFinite(exato) || exato === 0) return null;
-    const curto = exatoAS(exato, 3);
+    // Curto: exato com ≤ 3 a.s. e ≤ 3 casas decimais (o quiz, sem `algarismos`, mostra até 3 casas).
+    const curto = exatoAS(exato, 3) && Math.abs(Number(exato.toFixed(3)) - exato) <= 1e-12;
     if (!curto && ambiguo(exato, 3)) return null;
     const resposta = aAS(exato, 3);
     const tol = A.tolMeiaUnidade(resposta, 3);
