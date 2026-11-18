@@ -178,6 +178,66 @@ test('trabalho: seno, cosseno esquecido, ângulo com a vertical e calculadora em
     'quadrado_da_diferenca_de_velocidades', 'esqueceu_o_trabalho_do_atrito', 'esqueceu_a_velocidade_inicial', 'velocidade_em_km_h', 'respondeu_em_joules']) assert.ok(codigos.has(c), c);
 });
 
+// Número LaTeX como o item o mostra: 12\,600 · 0{,}503 · -1{,}23 \times 10^{4}.
+// (o espaço de milhares \, só conta entre algarismos, para não engolir o \, antes da unidade)
+const NUM = String.raw`(-?\d(?:[\d{},]|\\,(?=\d))*(?:\s*\\times\s*10\^\{-?\d+\})?)`;
+const lerTex = (t) => {
+  const s = t.replace(/\\,/g, '').replace(/\{,\}/g, '.').trim();
+  const m = s.match(/^(-?[\d.]+)(?:\s*\\times\s*10\^\{(-?\d+)\})?$/);
+  return m ? Number(m[1]) * (m[2] ? Math.pow(10, Number(m[2])) : 1) : NaN;
+};
+
+test('aritmética mostrada: «a ± b = c» é exata e «a ± b ≈ c» fica a menos de 0,6 % (300 sementes, regra 15)', () => {
+  const RE = new RegExp(String.raw`(?:^|=\s*|;\\ |\(\s*)` + NUM + String.raw`\s*([-+])\s*\(?` + NUM + String.raw`\)?\s*(=|\\approx)\s*` + NUM, 'g');
+  for (const id of IDS) for (const p of itens(id, 300)) {
+    for (const t of [p.verificacao.calculo].concat(p.resolucaoDetalhada.map((r) => r.calculo || ''))) {
+      for (const m of t.matchAll(RE)) {
+        const a = lerTex(m[1]), b = lerTex(m[3]), c = lerTex(m[5]);
+        if ([a, b, c].some(Number.isNaN)) continue;
+        const v = m[2] === '-' ? a - b : a + b;
+        const erro = Math.abs(v - c) / Math.max(Math.abs(c), 1e-12);
+        assert.ok(m[4] === '=' ? erro < 1e-9 : erro < 0.006, id + ' ' + p.contexto + ' ' + p.semente + ': ' + m[0]);
+      }
+    }
+  }
+});
+
+test('opções (regra 14): a mesma notação e 3 a.s. em todas, e cada explicação mostra a string da sua opção', () => {
+  const nucleo = (o) => o.replace(/^\$/, '').replace(/\$$/, '').replace(/\\,(\\mathrm\{.*\}|\\%)$/, '');
+  for (const id of IDS) for (const p of itens(id, 100)) {
+    if (p.formato !== 'escolha') continue;
+    const ns = p.opcoes.map(nucleo);
+    const sci = ns.map((o) => /\\times 10\^/.test(o));
+    assert.ok(sci.every((x) => x === sci[0]), id + ' ' + p.semente + ': ' + p.opcoes.join(' ; '));
+    for (const o of ns) {
+      const mant = o.replace(/\s*\\times 10\^\{-?\d+\}$/, '').replace(/^-/, '').replace(/\\,/g, '').replace('{,}', '.');
+      // 3 a.s.: mantissa d,dd; em notação normal, 3 algarismos depois dos zeros à esquerda (inteiros ≥ 1000 arredondados a 3 a.s.)
+      const digitos = mant.replace('.', '').replace(/^0+/, '');
+      if (Number(mant) >= 1000) assert.equal(Number(Number(mant).toPrecision(3)), Number(mant), id + ': ' + o);
+      else assert.equal(digitos.length, 3, id + ' ' + p.semente + ': ' + o);
+    }
+    for (const e of p.errosTipicos) {
+      const op = p.opcoes[e.opcao];
+      assert.ok(e.explicacao.includes(op) || e.explicacao.includes('$' + nucleo(op) + '$'), id + ' ' + p.semente + ' ' + e.codigo + ': «' + op + '» :: ' + e.explicacao);
+    }
+  }
+});
+
+test('verificações que recalculam um dado do enunciado mostram esse mesmo dado', () => {
+  for (const p of itens('sistema-mecanico-energia-mecanica', 100)) {
+    if (p.contexto !== 'ec-de-em') continue;
+    assert.ok(p.verificacao.calculo.includes('= ' + M.geradores.ajudas.tex(p.dados.Em, 4) + '\\,\\mathrm{J} = E_m'), p.verificacao.calculo);
+  }
+  for (const p of itens('trabalho-tec', 100)) {
+    if (p.contexto !== 'v-de-w') continue;
+    assert.ok(p.verificacao.calculo.includes('= ' + M.geradores.ajudas.tex(p.dados.FR * p.dados.d, 4) + '\\,\\mathrm{J} = W_{F_R}'), p.verificacao.calculo);
+  }
+  for (const p of itens('energia-mecanica-conservacao', 100)) {
+    if (p.contexto !== 'altura') continue;
+    assert.ok(p.verificacao.calculo.includes('= ' + M.geradores.ajudas.tex(p.dados.v0) + '\\,\\mathrm{m\\,s^{-1}}'), p.verificacao.calculo);
+  }
+});
+
 test('nenhuma opção, resposta ou texto contém NaN ou Infinity', () => {
   for (const id of IDS) for (const p of itens(id, 60)) {
     if (p.formato === 'numerica') assert.ok(Number.isFinite(p.resposta), id);

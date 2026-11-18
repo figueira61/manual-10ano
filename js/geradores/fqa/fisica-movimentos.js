@@ -702,7 +702,7 @@ globalThis.Manual = globalThis.Manual || {};
           u = U.ms;
           const partida = v0 === 0 ? 'parte do repouso' : 'passa com velocidade ' + q(v0, U.ms);
           const enunciado = ({
-            rampa: 'Um carrinho de ' + q(m, U.kg) + ' ' + partida + ' num ponto A, a ' + q(h0, U.m) + ' acima do ponto mais baixo do percurso, e desce uma rampa até ao ponto B, ' + q(dh, U.m) + ' mais abaixo.',
+            rampa: 'Um carrinho de ' + q(m, U.kg) + ' ' + partida + ' no ponto A, no topo de uma rampa, a ' + q(h0, U.m) + ' do chão, e desce a rampa até ao ponto B, na base da rampa, a ' + q(h, U.m) + ' do chão.',
             'montanha-russa': 'Uma carruagem de montanha-russa, de ' + q(m, U.kg) + ', ' + partida + ' num ponto A, a ' + q(h0, U.m) + ' do solo, e desce até um ponto B a ' + q(h, U.m) + ' do solo.',
             escorrega: 'Uma criança de ' + q(m, U.kg) + ' parte do repouso no topo de um escorrega, a ' + q(h0, U.m) + ' do chão, e desce até à base, a ' + q(h, U.m) + ' do chão.',
           })[c.id] + ' Desprezando o atrito e a resistência do ar, calcula a velocidade ' + (c.id === 'escorrega' ? 'na base' : 'em B') + ' (' + gTxt() + ').';
@@ -710,8 +710,8 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado,
             resolucao: [
               { passo: 'A energia mecânica conserva-se', porque: 'Sem atrito nem resistência do ar, só o peso (força conservativa) realiza trabalho; a força normal é perpendicular ao deslocamento. Logo $\\tfrac{1}{2} m v_0^2 + m g h_0 = \\tfrac{1}{2} m v^2 + m g h$ e a massa simplifica-se.' },
-              { passo: 'Isolar $v^2$', porque: '$v^2 = v_0^2 + 2 g (h_0 - h)$: a energia potencial perdida passa a cinética.', calculo: 'v^2 = ' + tex(v0) + '^2 + 2 \\times ' + tex(g) + ' \\times ' + tex(dh) + igual(v2) + texN(v2) + '\\,\\mathrm{m^2\\,s^{-2}}' },
-              { passo: 'Tirar a raiz quadrada', porque: 'Pede-se $v$.', calculo: 'v = \\sqrt{' + texN(v2) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{m\\,s^{-1}}' },
+              { passo: 'Isolar $v^2$', porque: '$v^2 = v_0^2 + 2 g (h_0 - h)$: a energia potencial perdida passa a cinética.', calculo: 'v^2 = ' + tex(v0) + '^2 + 2 \\times ' + tex(g) + ' \\times ' + tex(dh) + eqI(v2) + '\\,\\mathrm{m^2\\,s^{-2}}' },
+              { passo: 'Tirar a raiz quadrada', porque: 'Pede-se $v$.', calculo: 'v = \\sqrt{' + texI(v2) + '}' + eqN(exato, exI(v2)) + '\\,\\mathrm{m\\,s^{-1}}' },
             ],
             dados: { contexto, cenario: c.id, m, h0, h, v0 },
           };
@@ -728,7 +728,7 @@ globalThis.Manual = globalThis.Manual || {};
           }
           verificacao = () => {
             const Emi = Fis().em(m, v0, h0), Epf = Fis().epg(m, h), Ecf = Emi - Epf, vf = Math.sqrt(2 * Ecf / m);
-            return { passo: 'Pelas energias, com a massa dada: $E_{c,f} = E_{m,i} - m g h$', calculo: 'E_{c,f} = ' + tex(Emi) + ' - ' + tex(Epf) + ' = ' + tex(Ecf) + '\\,\\mathrm{J};\\ v = \\sqrt{' + sobre('2 \\times ' + tex(Ecf), tex(m)) + '}' + igual(vf) + texN(vf) + '\\,\\mathrm{m\\,s^{-1}}', valor: Fis().vDeEc(Ecf, m) };
+            return { passo: 'Pelas energias, com a massa dada: $E_{c,f} = E_{m,i} - m g h$', calculo: 'E_{c,f} = ' + texI(Emi) + ' - ' + texI(Epf) + eqI(Ecf) + '\\,\\mathrm{J};\\ v = \\sqrt{' + sobre('2 \\times ' + texI(Ecf), tex(m)) + '}' + eqN(vf, exI(Ecf)) + '\\,\\mathrm{m\\,s^{-1}}', valor: Fis().vDeEc(Ecf, m) };
           };
         } else {
           const h0 = entre(rng, 1, 20, 0.5);
@@ -740,8 +740,8 @@ globalThis.Manual = globalThis.Manual || {};
           ex = {
             enunciado: 'Uma bola é lançada verticalmente para cima, a ' + q(h0, U.m) + ' do solo, com velocidade de ' + q(v0, U.ms) + '. Desprezando a resistência do ar, calcula a altura máxima, em relação ao solo, a que a bola chega (' + gTxt() + ').',
             resolucao: [
-              { passo: 'A energia mecânica conserva-se', porque: 'Só o peso realiza trabalho. No ponto mais alto a bola para por um instante: toda a energia cinética de lançamento passou a potencial gravítica.', calculo: '\\tfrac{1}{2} m v_0^2 = m g \\Delta h \\Leftrightarrow \\Delta h = \\dfrac{v_0^2}{2 g} = \\dfrac{' + tex(v0) + '^2}{2 \\times ' + tex(g) + '}' + igual(sobe) + texN(sobe) + '\\,\\mathrm{m}' },
-              { passo: 'Somar a altura de lançamento', porque: 'A subida conta a partir do ponto de lançamento, que já está acima do solo.', calculo: 'h_{max} = ' + tex(h0) + ' + ' + texN(sobe) + igual(exato) + texN(exato) + '\\,\\mathrm{m}' },
+              { passo: 'A energia mecânica conserva-se', porque: 'Só o peso realiza trabalho. No ponto mais alto a bola para por um instante: toda a energia cinética de lançamento passou a potencial gravítica.', calculo: '\\tfrac{1}{2} m v_0^2 = m g \\Delta h \\Leftrightarrow \\Delta h = \\dfrac{v_0^2}{2 g} = \\dfrac{' + tex(v0) + '^2}{2 \\times ' + tex(g) + '}' + eqI(sobe) + '\\,\\mathrm{m}' },
+              { passo: 'Somar a altura de lançamento', porque: 'A subida conta a partir do ponto de lançamento, que já está acima do solo.', calculo: 'h_{max} = ' + tex(h0) + ' + ' + texI(sobe) + eqN(exato, exI(sobe)) + '\\,\\mathrm{m}' },
             ],
             dados: { contexto, h0, v0 },
           };
@@ -751,7 +751,8 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: h0 + v0 / (2 * g), explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(h0 + v0 / (2 * g), U.m) + '. A energia cinética é proporcional a $v^2$: a subida é $v_0^2/(2g)$.' },
             { codigo: 'nao_dividiu_por_g', valor: h0 + v0 * v0 / 2, explicacao: (vt) => 'Não dividiste por $g$ e obtiveste ' + vt(h0 + v0 * v0 / 2, U.m) + '. De $\\tfrac{1}{2} m v_0^2 = m g \\Delta h$ vem $\\Delta h = v_0^2/(2g)$.' },
           ];
-          verificacao = (r) => ({ passo: 'Velocidade com que a bola, caindo do ponto mais alto, passa pelo ponto de lançamento', calculo: 'v = \\sqrt{2 \\times ' + tex(g) + ' \\times (' + texN(r) + ' - ' + tex(h0) + ')}' + igual(Math.sqrt(2 * g * (r - h0))) + texN(Math.sqrt(2 * g * (r - h0))) + '\\,\\mathrm{m\\,s^{-1}}', valor: h0 + Fis().ec(1, v0) / Fis().epg(1, 1) });
+          // Com a altura por arredondar, a queda até ao ponto de lançamento volta a dar a velocidade dada.
+          verificacao = () => ({ passo: 'Velocidade com que a bola, caindo do ponto mais alto, passa pelo ponto de lançamento: tem de ser $v_0$', calculo: 'h_{max} - h_0 = ' + texI(exato) + ' - ' + tex(h0) + eqI(sobe, exI(exato)) + '\\,\\mathrm{m};\\ v = \\sqrt{2 \\times ' + tex(g) + ' \\times ' + texI(sobe) + '}' + eqI(Math.sqrt(2 * g * sobe), exI(sobe)) + '\\,\\mathrm{m\\,s^{-1}}', valor: h0 + Fis().ec(1, v0) / Fis().epg(1, 1) });
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
       });
@@ -790,18 +791,18 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'Um guindaste eleva uma carga de ' + q(m, U.kg) + ', a partir do repouso, até ' + q(h, U.m) + ' de altura; nesse ponto a carga sobe a ' + q(vf, U.ms) + '. Desprezando a resistência do ar, calcula o trabalho realizado pela força que o cabo exerce na carga (' + gTxt() + ').',
             resolucao: [
               { passo: 'A força do cabo é a força não conservativa', porque: 'O peso é conservativo; o trabalho do cabo é o trabalho das forças não conservativas, $W_{FNC} = \\Delta E_m = \\Delta E_c + \\Delta E_{pg}$.' },
-              { passo: 'Variações das energias', porque: 'Parte do repouso no nível de referência.', calculo: '\\Delta E_c = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + igual(Ec) + texN(Ec) + '\\,\\mathrm{J};\\ \\Delta E_{pg} = ' + tex(m) + ' \\times ' + tex(g) + ' \\times ' + tex(h) + ' = ' + tex(Epg) + '\\,\\mathrm{J}' },
-              { passo: 'Somar', porque: 'A energia mecânica aumenta, por isso o trabalho do cabo é positivo.', calculo: 'W_{FNC} = ' + tex(Ec) + ' + ' + tex(Epg) + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+              { passo: 'Variações das energias', porque: 'Parte do repouso no nível de referência.', calculo: '\\Delta E_c = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + eqI(Ec) + '\\,\\mathrm{J};\\ \\Delta E_{pg} = ' + tex(m) + ' \\times ' + tex(g) + ' \\times ' + tex(h) + ' = ' + texI(Epg) + '\\,\\mathrm{J}' },
+              { passo: 'Somar', porque: 'A energia mecânica aumenta, por isso o trabalho do cabo é positivo.', calculo: 'W_{FNC} = ' + texI(Ec) + ' + ' + texI(Epg) + eqN(exato) + '\\,\\mathrm{J}' },
             ],
             dados: { contexto, m, h, vf },
           };
           erros = [
             { codigo: 'trabalho_fnc_sempre_negativo', valor: -exato, explicacao: (vt) => 'Deste o trabalho com sinal negativo, ' + vt(-exato, U.J) + '. O cabo puxa no sentido do movimento e a energia mecânica aumenta, por isso $W_{FNC} = \\Delta E_m > 0$.' },
-            { codigo: 'esqueceu_a_energia_cinetica', valor: Epg, explicacao: (vt) => vt(Epg, U.J) + ' é só a variação da energia potencial gravítica. A carga também ganhou energia cinética, $' + texN(Ec) + '\\,\\mathrm{J}$.' },
+            { codigo: 'esqueceu_a_energia_cinetica', valor: Epg, explicacao: (vt) => vt(Epg, U.J) + ' é só a variação da energia potencial gravítica. A carga também ganhou energia cinética, $' + texI(Ec) + '\\,\\mathrm{J}$.' },
             { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: Ec, explicacao: (vt) => vt(Ec, U.J) + ' é a variação da energia cinética, igual ao trabalho da resultante. O trabalho do cabo é a variação da energia mecânica, $\\Delta E_c + \\Delta E_{pg}$.' },
             { codigo: 'esqueceu_g_na_energia_potencial', valor: m * h + Ec, explicacao: (vt) => 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(m * h + Ec, U.J) + '. Falta multiplicar por $g$.' },
           ];
-          verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_{cabo} + W_P = \\Delta E_c$, com $W_P = -m g h$', calculo: 'W_{cabo} = ' + tex(Ec) + ' - (' + tex(-Epg) + ')' + igual(Ec + Epg) + texN(Ec + Epg) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().trabalho(m * g, h, 180) });
+          verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_{cabo} + W_P = \\Delta E_c$, com $W_P = -m g h$', calculo: 'W_{cabo} = ' + texI(Ec) + ' - (' + texI(-Epg) + ')' + eqI(Ec + Epg) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().trabalho(m * g, h, 180) });
         } else {
           const m = entre(rng, 1, 10, 0.5);
           const h = entre(rng, 1, 5, 0.5);
@@ -813,10 +814,10 @@ globalThis.Manual = globalThis.Manual || {};
           const Emi = 0.5 * m * v0 * v0 + m * g * h, Emf = 0.5 * m * vf * vf;
           const W = Emf - Emi;
           const dEc = 0.5 * m * (vf * vf - v0 * v0);
-          const inicio = 'Um bloco de ' + q(m, U.kg) + ' desce um plano inclinado com ' + q(L, U.m) + ' de comprimento e ' + q(h, U.m) + ' de altura. ' + (v0 === 0 ? 'Parte do repouso no topo' : 'Passa no topo com velocidade ' + q(v0, U.ms)) + ' e chega à base com ' + q(vf, U.ms) + ' (nível de referência na base; ' + gTxt() + ').';
+          const inicio = 'Um bloco de ' + q(m, U.kg) + ' desce um plano inclinado com ' + q(L, U.m) + ' de comprimento e ' + q(h, U.m) + ' de altura. ' + (v0 === 0 ? 'Parte do repouso no topo' : 'Passa no topo com velocidade ' + q(v0, U.ms)) + ' e chega à base com ' + q(vf, U.ms) + '. Despreza a resistência do ar (nível de referência na base; ' + gTxt() + ').';
           const resolucaoW = [
-            { passo: 'Energia mecânica no topo e na base', porque: '$E_m = E_c + E_{pg}$, com a altura medida a partir da base.', calculo: 'E_{m,i} = ' + (v0 === 0 ? '' : '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v0) + '^2 + ') + tex(m) + ' \\times ' + tex(g) + ' \\times ' + tex(h) + igual(Emi) + texN(Emi) + '\\,\\mathrm{J};\\ E_{m,f} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + igual(Emf) + texN(Emf) + '\\,\\mathrm{J}' },
-            { passo: 'Trabalho das forças não conservativas', porque: '$W_{FNC} = \\Delta E_m$. A normal é perpendicular ao deslocamento; só o atrito realiza este trabalho, que é negativo (a energia mecânica diminui e a energia dissipada aquece o bloco e o plano).', calculo: 'W_{FNC} = ' + tex(Emf) + ' - ' + tex(Emi) + igual(W) + texN(W) + '\\,\\mathrm{J}' },
+            { passo: 'Energia mecânica no topo e na base', porque: '$E_m = E_c + E_{pg}$, com a altura medida a partir da base.', calculo: 'E_{m,i} = ' + (v0 === 0 ? '' : '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v0) + '^2 + ') + tex(m) + ' \\times ' + tex(g) + ' \\times ' + tex(h) + eqI(Emi) + '\\,\\mathrm{J};\\ E_{m,f} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + eqI(Emf) + '\\,\\mathrm{J}' },
+            { passo: 'Trabalho das forças não conservativas', porque: '$W_{FNC} = \\Delta E_m$. A normal é perpendicular ao deslocamento; só o atrito realiza este trabalho, que é negativo (a energia mecânica diminui e a energia dissipada aquece o bloco e o plano).', calculo: 'W_{FNC} = ' + texI(Emf) + ' - ' + texI(Emi) + eqN(W) + '\\,\\mathrm{J}' },
           ];
           if (contexto === 'atrito') {
             exato = W;
@@ -827,14 +828,14 @@ globalThis.Manual = globalThis.Manual || {};
               { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Emf - (m * v0 * v0 + m * g * h), explicacao: (vt) => 'Usaste $m v^2$ nas energias cinéticas e obtiveste ' + vt(2 * Emf - (m * v0 * v0 + m * g * h), U.J) + '. A energia cinética é $\\tfrac{1}{2} m v^2$.' },
               { codigo: 'esqueceu_g_na_energia_potencial', valor: Emf - (0.5 * m * v0 * v0 + m * h), explicacao: (vt) => 'Usaste $m h$ na energia potencial gravítica e obtiveste ' + vt(Emf - (0.5 * m * v0 * v0 + m * h), U.J) + '. Falta multiplicar por $g$.' },
             ];
-            verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_P + W_{FNC} = \\Delta E_c$, com $W_P = m g h$ (o bloco desce)', calculo: 'W_{FNC} = ' + tex(dEc) + ' - ' + tex(m * g * h) + igual(dEc - m * g * h) + texN(dEc - m * g * h) + '\\,\\mathrm{J}', valor: (Fis().ec(m, vf) - Fis().ec(m, v0)) - Fis().trabalho(m * g, h, 0) });
+            verificacao = () => ({ passo: 'Pelo Teorema da Energia Cinética: $W_P + W_{FNC} = \\Delta E_c$, com $W_P = m g h$ (o bloco desce)', calculo: 'W_{FNC} = ' + texI(dEc) + ' - ' + texI(m * g * h) + eqN(dEc - m * g * h) + '\\,\\mathrm{J}', valor: (Fis().ec(m, vf) - Fis().ec(m, v0)) - Fis().trabalho(m * g, h, 0) });
           } else {
             exato = -W / L;
             unidade = 'N';
             u = U.N;
             ex = {
               enunciado: inicio + ' Calcula a intensidade da força de atrito, que se supõe constante.',
-              resolucao: resolucaoW.concat([{ passo: 'Intensidade da força de atrito', porque: 'O atrito tem o sentido oposto ao do deslocamento ao longo do plano: $W_{F_a} = -F_a L$.', calculo: 'F_a = \\dfrac{' + tex(-W) + '}{' + tex(L) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{N}' }]),
+              resolucao: resolucaoW.concat([{ passo: 'Intensidade da força de atrito', porque: 'O atrito tem o sentido oposto ao do deslocamento ao longo do plano: $W_{F_a} = -F_a L$.', calculo: 'F_a = \\dfrac{' + texI(-W) + '}{' + tex(L) + '}' + eqN(exato) + '\\,\\mathrm{N}' }]),
               dados: { contexto, m, h, L, v0, vf },
             };
             erros = [
@@ -842,7 +843,7 @@ globalThis.Manual = globalThis.Manual || {};
               { codigo: 'esqueceu_dividir_pela_distancia', valor: -W, explicacao: (vt) => 'Respondeste ' + vt(-W) + ', que é o valor do trabalho do atrito em joules, e não a força. Como $|W_{F_a}| = F_a L$, divide-se por $' + tex(L) + '\\,\\mathrm{m}$.' },
               { codigo: 'confundiu_com_o_trabalho_da_resultante', valor: dEc / L, explicacao: (vt) => 'Usaste a variação da energia cinética e obtiveste ' + vt(dEc / L, U.N) + '. O trabalho do atrito é a variação da energia mecânica, que inclui a energia potencial gravítica.' },
             ];
-            verificacao = (r) => ({ passo: 'Energia dissipada pelo atrito ao longo do plano, somada à energia final', calculo: texN(r) + ' \\times ' + tex(L) + ' + ' + tex(Emf) + igual(r * L + Emf) + texN(r * L + Emf) + '\\,\\mathrm{J} = E_{m,i}', valor: (Fis().em(m, v0, h) - Fis().em(m, vf, 0)) / L });
+            verificacao = () => ({ passo: 'Energia dissipada pelo atrito ao longo do plano ($F_a$ por arredondar), somada à energia final: tem de dar $E_{m,i}$', calculo: texI(exato) + ' \\times ' + tex(L) + ' + ' + texI(Emf) + eqI(exato * L + Emf, exI(exato)) + '\\,\\mathrm{J} = E_{m,i}', valor: (Fis().em(m, v0, h) - Fis().em(m, vf, 0)) / L });
           }
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
@@ -899,7 +900,7 @@ globalThis.Manual = globalThis.Manual || {};
           verificacao = () => {
             let h = h0;
             const passos = [];
-            for (let i = 0; i < n; i++) { h *= f; passos.push(texN(h)); }
+            for (let i = 0; i < n; i++) { h *= f; passos.push(texI(h)); }
             return { passo: 'Ressalto a ressalto', calculo: tex(h0) + ' \\to ' + passos.join(' \\to ') + '\\,\\mathrm{m}', valor: h };
           };
         } else {
@@ -914,8 +915,8 @@ globalThis.Manual = globalThis.Manual || {};
             ex = {
               enunciado: 'Numa atividade laboratorial, uma bola largada de ' + q(hq, U.m) + ' sobe, depois de bater no chão, até ' + q(hr, U.m) + '. Desprezando a resistência do ar, que percentagem da energia mecânica da bola foi dissipada na colisão?',
               resolucao: [
-                { passo: 'Fração da energia mecânica que se mantém', porque: 'Nos pontos mais altos a bola está parada: $E_m = m g h$, por isso a razão das energias é a razão das alturas.', calculo: '\\dfrac{h_r}{h_q} = \\dfrac{' + tex(hr) + '}{' + tex(hq) + '}' + igual(fr) + texN(fr) },
-                { passo: 'A fração dissipada é o resto', porque: 'O que não se mantém foi dissipado na colisão (aquece a bola e o chão).', calculo: '(1 - ' + texN(fr) + ') \\times 100' + igual(exato) + texN(exato) + '\\,\\%' },
+                { passo: 'Fração da energia mecânica que se mantém', porque: 'Nos pontos mais altos a bola está parada: $E_m = m g h$, por isso a razão das energias é a razão das alturas.', calculo: '\\dfrac{h_r}{h_q} = \\dfrac{' + tex(hr) + '}{' + tex(hq) + '}' + eqI(fr) },
+                { passo: 'A fração dissipada é o resto', porque: 'O que não se mantém foi dissipado na colisão (aquece a bola e o chão).', calculo: '(1 - ' + texI(fr) + ') \\times 100' + eqN(exato, exI(fr)) + '\\,\\%' },
               ],
               dados: { contexto, hq, hr },
             };
@@ -936,7 +937,7 @@ globalThis.Manual = globalThis.Manual || {};
               enunciado: 'Numa atividade laboratorial, ' + b[0] + ' de ' + q(mg, U.g) + ' é largada de ' + q(hq, U.m) + ' e sobe, depois de bater no chão, até ' + q(hr, U.m) + '. Desprezando a resistência do ar, calcula a energia dissipada na colisão (' + gTxt() + ').',
               resolucao: [
                 { passo: 'Passar a massa a quilogramas', porque: 'No SI a massa exprime-se em kg.', calculo: 'm = ' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m, 4) + '\\,\\mathrm{kg}' },
-                { passo: 'Energia dissipada = energia mecânica perdida', porque: 'Nos pontos mais altos $E_c = 0$, por isso $E_m = m g h$; a perda é $m g (h_q - h_r)$.', calculo: 'E_{diss} = ' + tex(m, 4) + ' \\times ' + tex(g) + ' \\times (' + tex(hq) + ' - ' + tex(hr) + ')' + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+                { passo: 'Energia dissipada = energia mecânica perdida', porque: 'Nos pontos mais altos $E_c = 0$, por isso $E_m = m g h$; a perda é $m g (h_q - h_r)$.', calculo: 'h_q - h_r = ' + tex(hq) + ' - ' + tex(hr) + ' = ' + tex(A.limpo(hq - hr)) + '\\,\\mathrm{m};\\ E_{diss} = ' + tex(m, 4) + ' \\times ' + tex(g) + ' \\times ' + tex(A.limpo(hq - hr)) + eqN(exato) + '\\,\\mathrm{J}' },
               ],
               dados: { contexto, m, hq, hr },
             };
@@ -946,7 +947,7 @@ globalThis.Manual = globalThis.Manual || {};
               { codigo: 'deu_a_energia_antes_da_colisao', valor: m * g * hq, explicacao: (vt) => vt(m * g * hq, U.J) + ' é a energia mecânica inicial. A dissipada é só a parte perdida, $m g (h_q - h_r)$.' },
               { codigo: 'esqueceu_g_na_energia_potencial', valor: m * (hq - hr), explicacao: (vt) => 'Calculaste $m (h_q - h_r)$ e obtiveste ' + vt(m * (hq - hr), U.J) + '. Falta multiplicar por $g$.' },
             ];
-            verificacao = () => ({ passo: 'Diferença das energias potenciais nos dois pontos mais altos', calculo: texN(m * g * hq) + ' - ' + texN(m * g * hr) + igual(m * g * hq - m * g * hr) + texN(m * g * hq - m * g * hr) + '\\,\\mathrm{J}', valor: Fis().epg(m, hq) - Fis().epg(m, hr) });
+            verificacao = () => ({ passo: 'Diferença das energias potenciais nos dois pontos mais altos', calculo: texI(m * g * hq) + ' - ' + texI(m * g * hr) + eqI(m * g * hq - m * g * hr, exI(m * g * hq) && exI(m * g * hr)) + '\\,\\mathrm{J}', valor: Fis().epg(m, hq) - Fis().epg(m, hr) });
           }
         }
         return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
