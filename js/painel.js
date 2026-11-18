@@ -862,6 +862,17 @@ globalThis.Manual = globalThis.Manual || {};
     deu_a_maior_corrente_medida: 'Tomou a maior corrente medida pela corrente de curto-circuito',
     deu_a_potencia_dissipada_no_gerador: 'Deu a potência dissipada no gerador em vez da útil',
     confundiu_energia_total_com_dissipada: 'Deu a energia total do gerador em vez da dissipada',
+    conveccao_em_vez_de_conducao: 'Indicou convecção onde a energia passa por condução',
+    radiacao_em_vez_de_conducao: 'Indicou radiação onde a energia passa por condução',
+    conducao_em_vez_de_radiacao: 'Indicou condução onde a energia passa por radiação',
+    conveccao_em_vez_de_radiacao: 'Indicou convecção onde a energia passa por radiação',
+    sentido_do_calor_trocado: 'Trocou o sentido do calor (do corpo frio para o quente)',
+    emissao_ambiente_no_visivel: 'Julgou que à temperatura ambiente os corpos emitem sobretudo luz visível',
+    radiacao_precisa_de_meio: 'Julgou que a radiação precisa de um meio material',
+    termografia_com_luz_visivel: 'Julgou que a termografia usa a luz visível refletida',
+    mais_quente_emite_menos: 'Julgou que um corpo mais quente emite menos radiação',
+    equilibrio_sem_emissao: 'Julgou que um corpo em equilíbrio térmico deixa de emitir radiação',
+    infravermelho_com_lambda_menor: 'Julgou o comprimento de onda do infravermelho menor do que o do visível',
   };
 
   function humanizarErro(codigo) {
