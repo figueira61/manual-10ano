@@ -811,6 +811,15 @@ globalThis.Manual = globalThis.Manual || {};
     volume_em_ml: 'Usou o volume em mL em vez de dm³',
     volume_molar_depende_do_gas: 'Achou que o volume molar depende do gás',
     volume_molar_fora_de_ptn: 'Usou o volume molar de PTN noutras condições',
+    // Física — energia e movimentos (geradores)
+    deu_a_energia_potencial: 'Deu a energia potencial gravítica em vez da energia cinética',
+    deu_a_energia_potencial_final: 'Deu a energia potencial gravítica final em vez da sua variação',
+    deu_so_a_energia_cinetica: 'Deu só a energia cinética em vez da energia mecânica',
+    deu_so_a_energia_potencial: 'Deu só a energia potencial gravítica em vez da energia mecânica',
+    esqueceu_a_massa: 'Esqueceu a massa ao isolar a grandeza pedida',
+    multiplicou_pelo_meio_em_vez_de_dividir: 'Multiplicou por ½ em vez de dividir ao isolar a grandeza',
+    somou_a_energia_potencial: 'Somou a energia potencial gravítica à energia mecânica em vez de a subtrair',
+    somou_as_alturas: 'Somou as alturas em vez de medir a partir do nível de referência',
   };
 
   function humanizarErro(codigo) {

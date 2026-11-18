@@ -172,6 +172,8 @@ desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_energia_potencial → Deu a energia potencial gravítica em vez da energia cinética
+deu_a_energia_potencial_final → Deu a energia potencial gravítica final em vez da sua variação
 deu_a_fracao_conservada → Deu a fração da energia mecânica que se mantém em vez da dissipada
 deu_a_fracao_dissipada → Deu a fração da energia dissipada em vez do rendimento
 deu_a_fracao_do_outro_componente → Deu a fração molar do outro componente
@@ -206,6 +208,8 @@ deu_o_volume_de_agua_a_juntar → Deu o volume de água a juntar em vez do volum
 deu_o_volume_de_uma_mole → Deu o volume de uma mole em vez do volume pedido
 deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
 deu_os_pares_nao_ligantes → Deu os pares não ligantes em vez dos ligantes
+deu_so_a_energia_cinetica → Deu só a energia cinética em vez da energia mecânica
+deu_so_a_energia_potencial → Deu só a energia potencial gravítica em vez da energia mecânica
 deu_so_as_ligacoes_quebradas → Deu só a energia das ligações quebradas
 devolveu_a_soma → Somou as coordenadas de M e de A
 diametro_como_raio → Tomou o diâmetro por raio
@@ -272,6 +276,7 @@ esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
 esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
+esqueceu_a_massa → Esqueceu a massa ao isolar a grandeza pedida
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
@@ -442,6 +447,7 @@ multiplicou_massa_pela_massa_molar → Multiplicou a massa pela massa molar
 multiplicou_pelo_coeficiente → Multiplicou pelo coeficiente em vez de dividir
 multiplicou_pelo_declive → Multiplicou pelo declive em vez de dividir
 multiplicou_pelo_fator → Multiplicou pelo fator em vez de dividir
+multiplicou_pelo_meio_em_vez_de_dividir → Multiplicou por ½ em vez de dividir ao isolar a grandeza
 multiplicou_pelo_volume → Multiplicou pelo volume em vez de dividir
 multiplicou_pelo_volume_molar → Multiplicou pelo volume molar em vez de dividir
 multiplicou_por_2 → Multiplicou R por 2 em vez de dividir
@@ -641,7 +647,9 @@ somou_10_no_bloco_s → Somou 10 ao grupo no bloco s
 somou_273_a_variacao → Somou 273 a uma variação de temperatura
 somou_a_carga_aos_eletroes → Somou a carga ao número de eletrões em vez de a subtrair
 somou_a_com_z → Somou A e Z em vez de subtrair
+somou_a_energia_potencial → Somou a energia potencial gravítica à energia mecânica em vez de a subtrair
 somou_antes_de_multiplicar → Somou antes de multiplicar
+somou_as_alturas → Somou as alturas em vez de medir a partir do nível de referência
 somou_as_energias_dos_niveis → Somou as energias dos dois níveis
 somou_b → Somou a constante ao desvio padrão depois de o multiplicar
 somou_b_sem_a → Somou a constante ao desvio padrão em vez de só o multiplicar
