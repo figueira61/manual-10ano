@@ -454,6 +454,285 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
+  // ================================================================ gerador
+  // Pilhas e baterias plausíveis: ε de 1,5 V a 12 V, r de 0,5 Ω a 3 Ω (dentro do esquema fqa-gerador) e U ≥ 40 % de ε.
+  const FEMS = [1.5, 3, 4.5, 6, 9, 12];
+  function pilha(rng) {
+    const eps = escolher(rng, FEMS);
+    const r = entre(rng, 0.5, 3, 0.5);
+    const I = entre(rng, 0.1, 2, 0.1);
+    const rI = A.limpo(r * I);
+    const U = A.limpo(eps - rI);
+    if (U < 0.4 * eps) return null;
+    return { eps, r, I, rI, U };
+  }
+  const epsT = (e) => '$\\varepsilon = ' + tex(e) + '\\,\\mathrm{V}$';
+  const rT = (r) => '$r = ' + tex(r) + '\\,\\Omega$';
+  const passoU = (eps, r, I, U) => ({ passo: 'Diferença de potencial nos terminais', porque: 'Num gerador que fornece corrente, parte da energia fica dentro dele (na resistência interna): $U = \\varepsilon - r I$, menor do que $\\varepsilon$.', calculo: 'U = ' + tex(eps) + ' - ' + tex(r) + ' \\times ' + tex(I) + ' = ' + tex(U) + '\\,\\mathrm{V}' });
+
+  registar({
+    subtema: 'gerador', tipo: 'caracteristica', nome: 'Característica de um gerador, U = ε − rI',
+    formatos: ['numerica', 'escolha'], contextos: ['tensao', 'fem', 'resistencia-interna', 'corrente'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let ex, exato, erros, verificacao, unidade = 'V', u = UN.V;
+        if (contexto === 'corrente') {
+          const eps = escolher(rng, FEMS);
+          const r = entre(rng, 0.5, 3, 0.5);
+          // curto-circuito (Rext = 0): só em numérica e em cerca de 12 % dos itens (na escolha não há 3 erros distintos)
+          const Rext = formato === 'numerica' && rng() < 0.12 ? 0 : entre(rng, 1, 20, 0.5);
+          const g = Fis().gerador({ epsilon: eps, r, Rext });
+          const Rt = A.limpo(r + Rext);
+          exato = g.I;
+          unidade = 'A';
+          u = UN.A;
+          const curto = Rext === 0;
+          ex = {
+            enunciado: 'Uma bateria com ' + epsT(eps) + ' e ' + rT(r) + (curto ? ' tem os terminais ligados diretamente por um fio de resistência desprezável (curto-circuito).' : ' está ligada a uma resistência exterior de ' + q(Rext, UN.ohm) + '.') + ' Calcula a corrente no circuito.',
+            resolucao: [
+              { passo: 'Resistência total do circuito', porque: 'A corrente atravessa a resistência exterior e a resistência interna do gerador, que estão em série.' + (curto ? ' Em curto-circuito, $R_{ext} = 0$: só fica a resistência interna.' : ''), calculo: 'R_{ext} + r = ' + tex(Rext) + ' + ' + tex(r) + ' = ' + tex(Rt) + '\\,\\Omega' },
+              { passo: 'Corrente', porque: 'De $U = \\varepsilon - r I$ e $U = R_{ext} I$ vem $I = \\dfrac{\\varepsilon}{R_{ext} + r}$.' + (curto ? ' É a corrente de curto-circuito, $I_{cc} = \\varepsilon / r$, a maior que o gerador pode fornecer.' : ''), calculo: 'I = \\dfrac{' + tex(eps) + '}{' + tex(Rt) + '}' + igual(g.I) + texN(g.I) + '\\,\\mathrm{A}' },
+            ],
+            dados: { contexto, eps, r, Rext },
+            esquema: { id: 'fqa-gerador', opcoes: { epsilon: eps, r, Rext } },
+          };
+          erros = [{ codigo: 'multiplicou_em_vez_de_dividir', valor: eps * Rt, explicacao: (vt) => 'Multiplicaste $\\varepsilon$ pela resistência e obtiveste ' + vt(eps * Rt) + '. A corrente é $I = \\varepsilon/(R_{ext} + r)$: divide-se.' }];
+          if (curto) erros.push({ codigo: 'dividiu_ao_contrario', valor: r / eps, explicacao: (vt) => 'Calculaste $r/\\varepsilon$ e obtiveste ' + vt(r / eps) + '. É ao contrário: $I_{cc} = \\varepsilon / r$.' });
+          else {
+            erros.push({ codigo: 'esqueceu_resistencia_interna', valor: eps / Rext, explicacao: (vt) => 'Dividiste só pela resistência exterior e obtiveste ' + vt(eps / Rext, UN.A) + '. A corrente também atravessa a resistência interna: $I = \\varepsilon/(R_{ext} + r)$.' });
+            erros.push({ codigo: 'deu_a_corrente_de_curto_circuito', valor: eps / r, explicacao: (vt) => vt(eps / r, UN.A) + ' é a corrente de curto-circuito, $\\varepsilon / r$ (com $R_{ext} = 0$). Aqui há uma resistência exterior de $' + tex(Rext) + '\\,\\Omega$ em série com $r$.' });
+          }
+          verificacao = (x) => ({ passo: 'Conservação da energia: $\\varepsilon = R_{ext} I + r I$ (com $I$ por arredondar)', calculo: (curto ? '' : tex(Rext) + ' \\times ' + texI(eps / Rt) + ' + ') + tex(r) + ' \\times ' + texI(eps / Rt) + eqI(Rt * (eps / Rt), exI(eps / Rt)) + '\\,\\mathrm{V} = \\varepsilon', valor: g.I });
+        } else {
+          const p = pilha(rng);
+          if (!p) return null;
+          const { eps, r, I, rI, U } = p;
+          if (contexto === 'tensao') {
+            exato = U;
+            ex = {
+              enunciado: 'Uma pilha com ' + epsT(eps) + ' e ' + rT(r) + ' fornece uma corrente de ' + q(I, UN.A) + ' a um circuito. Calcula a diferença de potencial elétrico nos terminais da pilha.',
+              resolucao: [{ passo: 'Aplicar a característica do gerador', porque: 'Parte da energia fica dentro da pilha (na resistência interna): $U = \\varepsilon - r I$, menor do que $\\varepsilon$.', calculo: 'U = ' + tex(eps) + ' - ' + tex(r) + ' \\times ' + tex(I) + igual(U) + texN(U) + '\\,\\mathrm{V}' }],
+            };
+            erros = [
+              { codigo: 'somou_queda_de_tensao_interna', valor: eps + rI, explicacao: (vt) => 'Calculaste $\\varepsilon + r I$ e obtiveste ' + vt(eps + rI, UN.V) + '. Nos terminais, $U$ é menor do que $\\varepsilon$: $U = \\varepsilon - r I$.' },
+              { codigo: 'deu_a_queda_de_tensao_interna', valor: rI, explicacao: (vt) => vt(rI, UN.V) + ' é só $r I$, a parte que fica dentro da pilha. Nos terminais: $U = \\varepsilon - r I$.' },
+              { codigo: 'esqueceu_a_corrente_na_queda', valor: eps - r, explicacao: (vt) => 'Calculaste $\\varepsilon - r$ e obtiveste ' + vt(eps - r, UN.V) + ', sem a corrente. A queda de tensão na resistência interna é $r I$.' },
+            ];
+            verificacao = () => ({ passo: 'Pelo balanço de potências: $U I = \\varepsilon I - r I^2$, a dividir por $I$', calculo: 'U = \\dfrac{' + texI(eps * I) + ' - ' + texI(r * I * I) + '}{' + tex(I) + '}' + eqN((eps * I - r * I * I) / I) + '\\,\\mathrm{V}', valor: (eps * I - r * I * I) / I });
+          } else if (contexto === 'fem') {
+            exato = eps;
+            ex = {
+              enunciado: 'Uma pilha com ' + rT(r) + ' fornece uma corrente de ' + q(I, UN.A) + '; a diferença de potencial nos seus terminais é ' + q(U, UN.V) + '. Calcula a força eletromotriz da pilha.',
+              resolucao: [{ passo: 'Isolar $\\varepsilon$ em $U = \\varepsilon - r I$', porque: 'A força eletromotriz é a diferença de potencial nos terminais mais a queda de tensão na resistência interna: $\\varepsilon = U + r I$.', calculo: '\\varepsilon = ' + tex(U) + ' + ' + tex(r) + ' \\times ' + tex(I) + igual(eps) + texN(eps) + '\\,\\mathrm{V}' }],
+            };
+            erros = [
+              { codigo: 'somou_queda_de_tensao_interna', valor: U - rI, explicacao: (vt) => 'Usaste $U = \\varepsilon + r I$ e obtiveste ' + vt(U - rI, UN.V) + '. A força eletromotriz é maior do que $U$: $\\varepsilon = U + r I$.' },
+              { codigo: 'deu_a_tensao_nos_terminais', valor: U, explicacao: (vt) => vt(U, UN.V) + ' é a diferença de potencial nos terminais. Só seria igual a $\\varepsilon$ sem corrente (ou com $r = 0$); aqui soma-se $r I$.' },
+              { codigo: 'esqueceu_a_corrente_na_queda', valor: U + r, explicacao: (vt) => 'Calculaste $U + r$ e obtiveste ' + vt(U + r, UN.V) + ', sem a corrente. A queda de tensão na resistência interna é $r I$.' },
+            ];
+            verificacao = (x) => ({ passo: 'Voltar a $U = \\varepsilon - r I$: tem de dar a diferença de potencial dada', calculo: tex(x) + ' - ' + tex(r) + ' \\times ' + tex(I) + ' = ' + tex(A.limpo(x - rI)) + '\\,\\mathrm{V}', valor: U + rI });
+          } else {
+            exato = r;
+            unidade = 'Ω';
+            u = UN.ohm;
+            const dU = A.limpo(eps - U);
+            ex = {
+              enunciado: 'Uma pilha com ' + epsT(eps) + ' fornece uma corrente de ' + q(I, UN.A) + '; a diferença de potencial nos seus terminais é ' + q(U, UN.V) + '. Calcula a resistência interna da pilha.',
+              resolucao: [
+                { passo: 'Queda de tensão dentro da pilha', porque: 'De $U = \\varepsilon - r I$ vem $r I = \\varepsilon - U$.', calculo: 'r I = ' + tex(eps) + ' - ' + tex(U) + ' = ' + tex(dU) + '\\,\\mathrm{V}' },
+                { passo: 'Dividir pela corrente', porque: '$r = \\dfrac{\\varepsilon - U}{I}$.', calculo: 'r = \\dfrac{' + tex(dU) + '}{' + tex(I) + '}' + igual(r) + texN(r) + '\\,\\Omega' },
+              ],
+            };
+            erros = [
+              { codigo: 'r_como_u_sobre_i', valor: U / I, explicacao: (vt) => 'Calculaste $U/I$ e obtiveste ' + vt(U / I, UN.ohm) + ': é a resistência exterior (a do circuito ligado à pilha). A resistência interna é $(\\varepsilon - U)/I$.' },
+              { codigo: 'esqueceu_dividir_pela_corrente', valor: dU, explicacao: (vt) => 'Obtiveste ' + vt(dU) + ', que é $\\varepsilon - U = r I$ (em volts). Falta dividir pela corrente.' },
+              { codigo: 'dividiu_a_fem_pela_corrente', valor: eps / I, explicacao: (vt) => 'Calculaste $\\varepsilon / I$ e obtiveste ' + vt(eps / I, UN.ohm) + ': é a resistência total do circuito ($R_{ext} + r$). A interna é $(\\varepsilon - U)/I$.' },
+            ];
+            verificacao = (x) => ({ passo: 'Voltar a $U = \\varepsilon - r I$: tem de dar a diferença de potencial dada', calculo: tex(eps) + ' - ' + tex(x) + ' \\times ' + tex(I) + ' = ' + tex(A.limpo(eps - x * I)) + '\\,\\mathrm{V}', valor: dU / I });
+          }
+          ex.dados = { contexto, eps, r, I };
+          ex.esquema = { id: 'fqa-gerador', opcoes: { epsilon: eps, r } };
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (d.contexto === 'corrente') return confereN(p, d.eps / d.r / (1 + d.Rext / d.r), UN.A);
+      const U = d.eps - d.r * d.I;
+      if (d.contexto === 'tensao') return confereN(p, U, UN.V);
+      if (d.contexto === 'fem') return confereN(p, (U * d.I + d.r * d.I * d.I) / d.I, UN.V); // potência total a dividir por I
+      return confereN(p, (d.eps * d.I - U * d.I) / (d.I * d.I), UN.ohm); // potência dissipada = r I²
+    },
+    limites(p) {
+      const d = p.dados;
+      return d.eps <= 12 && d.r >= 0.5 && d.r <= 3 && (d.contexto === 'corrente' ? d.Rext >= 0 && d.Rext <= 20 : d.eps - d.r * d.I >= 0.4 * d.eps - 1e-9);
+    },
+  });
+
+  // AL «características de uma pilha»: dois pontos (I, U) da reta de ajuste.
+  const FEMS_AL = [1.5, 4.5, 6, 9];
+  const pontoT = (i, I, U) => '$I_' + i + ' = ' + tex(I) + '\\,\\mathrm{A}$ e $U_' + i + ' = ' + tex(U) + '\\,\\mathrm{V}$';
+
+  registar({
+    subtema: 'gerador', tipo: 'dois-pontos', nome: 'Força eletromotriz, resistência interna e corrente de curto-circuito a partir de dois pontos',
+    formatos: ['numerica', 'escolha'], contextos: ['resistencia-interna', 'fem', 'curto-circuito'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const eps = escolher(rng, FEMS_AL);
+        const r = entre(rng, 0.5, 3, 0.1);
+        const I1 = entre(rng, 0.1, 0.5, 0.05);
+        const I2 = A.limpo(I1 + entre(rng, 0.2, 0.6, 0.05));
+        const U1 = A.limpo(eps - r * I1), U2 = A.limpo(eps - r * I2);
+        if (U2 < 0.3 * eps) return null;
+        const dU = A.limpo(U2 - U1), dI = A.limpo(I2 - I1);
+        const declive = dU / dI;
+        const enunciado = 'Na atividade laboratorial das características de uma pilha, dois pontos da reta de ajuste do gráfico $U$ em função de $I$ são ' + pontoT(1, I1, U1) + ', e ' + pontoT(2, I2, U2) + '. ';
+        const passoR = { passo: 'Declive da reta', porque: 'A característica é $U = \\varepsilon - r I$: o declive da reta é $-r$, por isso a resistência interna é o simétrico do declive.', calculo: '\\dfrac{\\Delta U}{\\Delta I} = \\dfrac{' + tex(U2) + ' - ' + tex(U1) + '}{' + tex(I2) + ' - ' + tex(I1) + '} = \\dfrac{' + tex(dU) + '}{' + tex(dI) + '}' + igual(declive) + texN(declive) + '\\,\\Omega;\\ r' + igual(r) + texN(r) + '\\,\\Omega' };
+        const passoE = { passo: 'Ordenada na origem', porque: 'Com $I = 0$ (circuito aberto), $U = \\varepsilon$; de um dos pontos, $\\varepsilon = U_1 + r I_1$.', calculo: '\\varepsilon = ' + tex(U1) + ' + ' + tex(r) + ' \\times ' + tex(I1) + ' = ' + tex(eps) + '\\,\\mathrm{V}' };
+        let ex, exato, erros, verificacao, unidade, u;
+        if (contexto === 'resistencia-interna') {
+          exato = r;
+          unidade = 'Ω';
+          u = UN.ohm;
+          ex = { enunciado: enunciado + 'Calcula a resistência interna da pilha.', resolucao: [passoR] };
+          erros = [
+            { codigo: 'r_igual_ao_declive', valor: -r, explicacao: (vt) => vt(-r) + ' é o declive da reta. Como $U = \\varepsilon - r I$, o declive é $-r$: a resistência interna é positiva.' },
+            { codigo: 'r_como_u_sobre_i', valor: U1 / I1, explicacao: (vt) => 'Calculaste $U_1/I_1$ e obtiveste ' + vt(U1 / I1, UN.ohm) + ': é a resistência exterior nesse ponto. A resistência interna vem do declive da reta.' },
+            { codigo: 'dividiu_ao_contrario', valor: -dI / dU, explicacao: (vt) => 'Calculaste $|\\Delta I / \\Delta U|$ e obtiveste ' + vt(-dI / dU) + '. O declive do gráfico $U$–$I$ é $\\Delta U / \\Delta I$.' },
+          ];
+          verificacao = (x) => ({ passo: 'Com $\\varepsilon = U_1 + r I_1$, o ponto 2 tem de estar na reta', calculo: '\\varepsilon = ' + tex(U1) + ' + ' + tex(x) + ' \\times ' + tex(I1) + ' = ' + tex(eps) + '\\,\\mathrm{V};\\ U_2 = ' + tex(eps) + ' - ' + tex(x) + ' \\times ' + tex(I2) + ' = ' + tex(U2) + '\\,\\mathrm{V}', valor: Fis().caracteristicaDeDoisPontos([I1, U1], [I2, U2]).r });
+        } else if (contexto === 'fem') {
+          exato = eps;
+          unidade = 'V';
+          u = UN.V;
+          ex = { enunciado: enunciado + 'Calcula a força eletromotriz da pilha.', resolucao: [passoR, passoE] };
+          erros = [
+            { codigo: 'somou_queda_de_tensao_interna', valor: U1 - r * I1, explicacao: (vt) => 'Usaste $U = \\varepsilon + r I$ e obtiveste ' + vt(U1 - r * I1, UN.V) + '. A reta desce: $\\varepsilon$ é maior do que qualquer $U$ medido, $\\varepsilon = U_1 + r I_1$.' },
+            { codigo: 'deu_a_tensao_nos_terminais', valor: U1, explicacao: (vt) => vt(U1, UN.V) + ' é a diferença de potencial no ponto 1, com corrente. A força eletromotriz é a ordenada na origem ($I = 0$).' },
+            { codigo: 'esqueceu_a_corrente_na_queda', valor: U1 + r, explicacao: (vt) => 'Calculaste $U_1 + r$ e obtiveste ' + vt(U1 + r, UN.V) + ', sem a corrente. Soma-se $r I_1$.' },
+          ];
+          verificacao = () => ({ passo: 'Pelo ponto 2: $\\varepsilon = U_2 + r I_2$', calculo: '\\varepsilon = ' + tex(U2) + ' + ' + tex(r) + ' \\times ' + tex(I2) + ' = ' + tex(eps) + '\\,\\mathrm{V}', valor: Fis().caracteristicaDeDoisPontos([I1, U1], [I2, U2]).epsilon });
+        } else {
+          const Icc = eps / r;
+          exato = Icc;
+          unidade = 'A';
+          u = UN.A;
+          ex = {
+            enunciado: enunciado + 'Calcula a corrente de curto-circuito da pilha.',
+            resolucao: [passoR, passoE, { passo: 'Corrente de curto-circuito', porque: 'É onde a reta corta o eixo das correntes: $U = 0$, logo $I_{cc} = \\varepsilon / r$.', calculo: 'I_{cc} = \\dfrac{' + tex(eps) + '}{' + tex(r) + '}' + igual(Icc) + texN(Icc) + '\\,\\mathrm{A}' }],
+          };
+          erros = [
+            { codigo: 'multiplicou_em_vez_de_dividir', valor: eps * r, explicacao: (vt) => 'Multiplicaste $\\varepsilon$ por $r$ e obtiveste ' + vt(eps * r) + '. Com $U = 0$, $0 = \\varepsilon - r I_{cc}$, logo $I_{cc} = \\varepsilon / r$.' },
+            { codigo: 'ordenada_como_corrente_de_curto_circuito', valor: eps, explicacao: (vt) => 'Obtiveste ' + vt(eps) + ', que é a ordenada na origem: a força eletromotriz, em volts. A corrente de curto-circuito é onde a reta corta o eixo das correntes.' },
+            { codigo: 'deu_a_maior_corrente_medida', valor: I2, explicacao: (vt) => vt(I2, UN.A) + ' é só a maior corrente medida. A corrente de curto-circuito obtém-se prolongando a reta até $U = 0$.' },
+          ];
+          verificacao = (x) => ({ passo: 'Pela reta a partir do ponto 1: $I_{cc} = I_1 + U_1 / r$', calculo: 'I_{cc} = ' + tex(I1) + ' + \\dfrac{' + tex(U1) + '}{' + tex(r) + '}' + eqN(I1 + U1 / r) + '\\,\\mathrm{A}', valor: I1 + U1 / r });
+        }
+        ex.dados = { contexto, I1, U1, I2, U2 };
+        ex.esquema = { id: 'fqa-gerador', opcoes: { epsilon: eps, r } };
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const { contexto, I1, U1, I2, U2 } = p.dados;
+      // reta pelos dois pontos, por determinantes: ε = (U1 I2 − U2 I1)/(I2 − I1)
+      const r = (U1 - U2) / (I2 - I1);
+      const eps = (U1 * I2 - U2 * I1) / (I2 - I1);
+      if (contexto === 'resistencia-interna') return confereN(p, r, UN.ohm);
+      if (contexto === 'fem') return confereN(p, eps, UN.V);
+      return confereN(p, eps / r, UN.A);
+    },
+    limites(p) {
+      const { I1, U1, I2, U2 } = p.dados;
+      return I2 > I1 && U2 < U1 && U2 > 0;
+    },
+  });
+
+  registar({
+    subtema: 'gerador', tipo: 'balanco', nome: 'Energia num circuito: potência útil, energia dissipada e rendimento do gerador',
+    formatos: ['numerica', 'escolha'], contextos: ['rendimento', 'potencia-util', 'energia-dissipada'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const p = pilha(rng);
+        if (!p) return null;
+        const { eps, r, I, rI, U } = p;
+        const Pt = A.limpo(eps * I), Pd = A.limpo(r * I * I), Pu = A.limpo(U * I);
+        const eta = U / eps;
+        if (eta > 0.98) return null;
+        const dadosTxt = 'Um gerador com ' + epsT(eps) + ' e ' + rT(r) + ' fornece uma corrente de ' + q(I, UN.A) + ' a um circuito exterior.';
+        const passoPot = { passo: 'Potências no gerador', porque: 'Conservação da energia: a potência total, $\\varepsilon I$, divide-se em potência útil (fornecida ao circuito exterior), $U I$, e potência dissipada na resistência interna por efeito Joule, $r I^2$.', calculo: '\\varepsilon I = ' + tex(eps) + ' \\times ' + tex(I) + ' = ' + tex(Pt) + '\\,\\mathrm{W};\\ r I^2 = ' + tex(r) + ' \\times ' + tex(I) + '^2 = ' + tex(Pd) + '\\,\\mathrm{W}' };
+        let ex, exato, erros, verificacao, unidade, u;
+        if (contexto === 'rendimento') {
+          exato = eta * 100;
+          unidade = '%';
+          u = UN.pct;
+          ex = {
+            enunciado: dadosTxt + ' Calcula o rendimento do gerador, em percentagem.',
+            resolucao: [passoU(eps, r, I, U), { passo: 'Rendimento', porque: 'O rendimento é a fração da potência total que é útil: $\\eta = \\dfrac{U I}{\\varepsilon I} = \\dfrac{U}{\\varepsilon}$. É sempre menor do que 100 %, porque há energia dissipada dentro do gerador.', calculo: '\\eta = \\dfrac{' + tex(U) + '}{' + tex(eps) + '} \\times 100' + eqN(exato) + '\\,\\%' }],
+          };
+          erros = [
+            { codigo: 'rendimento_maior_do_que_1', valor: (eps / U) * 100, explicacao: (vt) => 'Calculaste $\\varepsilon / U$ e obtiveste ' + vt((eps / U) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %: $\\eta = U / \\varepsilon$.' },
+            { codigo: 'deu_a_fracao_dissipada', valor: (rI / eps) * 100, explicacao: (vt) => vt((rI / eps) * 100, UN.pct) + ' é a fração da potência dissipada dentro do gerador, $r I / \\varepsilon$. O rendimento é a fração útil, $U / \\varepsilon$.' },
+            { codigo: 'somou_queda_de_tensao_interna', valor: ((eps + rI) / eps) * 100, explicacao: (vt) => 'Usaste $U = \\varepsilon + r I$ e obtiveste ' + vt(((eps + rI) / eps) * 100, UN.pct) + ', mais de 100 %, o que é impossível. $U = \\varepsilon - r I$.' },
+          ];
+          verificacao = () => ({ passo: 'Pelas potências: $\\eta = \\dfrac{\\varepsilon I - r I^2}{\\varepsilon I}$', calculo: '\\eta = \\dfrac{' + tex(Pt) + ' - ' + tex(Pd) + '}{' + tex(Pt) + '} \\times 100' + eqN(((Pt - Pd) / Pt) * 100) + '\\,\\%', valor: Fis().gerador({ epsilon: eps, r, Rext: U / I }).rendimento * 100 });
+        } else if (contexto === 'potencia-util') {
+          exato = Pu;
+          unidade = 'W';
+          u = UN.W;
+          ex = {
+            enunciado: dadosTxt + ' Calcula a potência útil que o gerador fornece ao circuito exterior.',
+            resolucao: [passoPot, { passo: 'Potência útil', porque: '$U I = \\varepsilon I - r I^2$: a potência total menos a dissipada no gerador.', calculo: 'P_u = ' + tex(Pt) + ' - ' + tex(Pd) + igual(Pu) + texN(Pu) + '\\,\\mathrm{W}' }],
+          };
+          erros = [
+            { codigo: 'esqueceu_potencia_dissipada_no_gerador', valor: Pt, explicacao: (vt) => vt(Pt, UN.W) + ' é a potência total, $\\varepsilon I$. Parte dela, $r I^2 = ' + tex(Pd) + '\\,\\mathrm{W}$, é dissipada no gerador.' },
+            { codigo: 'esqueceu_quadrado_da_corrente', valor: Pt - rI, explicacao: (vt) => 'Subtraíste $r I$ em vez de $r I^2$ e obtiveste ' + vt(Pt - rI, UN.W) + '. A potência dissipada na resistência interna é $r I^2$.' },
+            { codigo: 'deu_a_potencia_dissipada_no_gerador', valor: Pd, explicacao: (vt) => vt(Pd, UN.W) + ' é a potência dissipada dentro do gerador, $r I^2$. A útil é o resto: $\\varepsilon I - r I^2$.' },
+          ];
+          verificacao = () => ({ passo: 'Por $P_u = U I$, com $U = \\varepsilon - r I$', calculo: 'U = ' + tex(eps) + ' - ' + tex(rI) + ' = ' + tex(U) + '\\,\\mathrm{V};\\ U I = ' + tex(U) + ' \\times ' + tex(I) + igual(Pu) + texN(Pu) + '\\,\\mathrm{W}', valor: Fis().gerador({ epsilon: eps, r, Rext: U / I }).Putil });
+        } else {
+          const tmin = escolher(rng, [2, 5, 10, 15, 20, 30]);
+          const ts = tmin * 60;
+          const E = A.limpo(Pd * ts);
+          exato = E;
+          unidade = 'J';
+          u = UN.J;
+          ex = {
+            enunciado: dadosTxt + ' Calcula a energia dissipada dentro do gerador em ' + q(tmin, UN.min) + '.',
+            resolucao: [
+              { passo: 'Potência dissipada no gerador', porque: 'Na resistência interna a energia é dissipada por efeito Joule: $P_d = r I^2$.', calculo: 'P_d = ' + tex(r) + ' \\times ' + tex(I) + '^2 = ' + tex(Pd) + '\\,\\mathrm{W}' },
+              { passo: 'Energia dissipada', porque: '$E = P_d\\,\\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E = ' + tex(Pd) + ' \\times ' + tex(ts) + igual(E) + texN(E) + '\\,\\mathrm{J}' },
+            ],
+          };
+          erros = [
+            { codigo: 'tempo_em_minutos', valor: Pd * tmin, explicacao: (vt) => 'Multiplicaste pelo tempo em minutos e obtiveste ' + vt(Pd * tmin, UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+            { codigo: 'esqueceu_quadrado_da_corrente', valor: rI * ts, explicacao: (vt) => 'Usaste $r I \\Delta t$ e obtiveste ' + vt(rI * ts, UN.J) + '. A potência dissipada na resistência interna é $r I^2$.' },
+            { codigo: 'confundiu_energia_total_com_dissipada', valor: Pt * ts, explicacao: (vt) => vt(Pt * ts, UN.J) + ' é a energia total fornecida pelo gerador, $\\varepsilon I \\Delta t$. Dentro dele só se dissipa $r I^2 \\Delta t$.' },
+            { codigo: 'confundiu_potencia_com_energia', valor: Pd, explicacao: (vt) => vt(Pd) + ' é a potência dissipada (em watts), não a energia. Multiplica-se pelo tempo: $E = P_d\\,\\Delta t$.' },
+          ];
+          verificacao = () => ({ passo: 'Pela diferença entre a energia total e a útil: $(\\varepsilon - U) I\\,\\Delta t$', calculo: '(' + tex(eps) + ' - ' + tex(U) + ') \\times ' + tex(I) + ' \\times ' + tex(ts) + igual((eps - U) * I * ts) + texN((eps - U) * I * ts) + '\\,\\mathrm{J}', valor: (eps - U) * I * ts });
+          ex.dados = { tmin };
+        }
+        ex.dados = Object.assign({ contexto, eps, r, I }, ex.dados);
+        ex.esquema = { id: 'fqa-gerador', opcoes: { epsilon: eps, r, Rext: A.limpo(U / I) } };
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const U = d.eps - d.r * d.I;
+      if (d.contexto === 'rendimento') return confereN(p, (U * d.I) / (d.eps * d.I) * 100, UN.pct);
+      if (d.contexto === 'potencia-util') return confereN(p, d.eps * d.I - d.r * d.I * d.I, UN.W);
+      return confereN(p, (d.eps * d.I - U * d.I) * d.tmin * 60, UN.J);
+    },
+    limites(p) {
+      const d = p.dados;
+      const eta = (d.eps - d.r * d.I) / d.eps;
+      return eta > 0 && eta <= 0.98 && d.r >= 0.5 && d.r <= 3;
+    },
+  });
+
   function maiuscula(t) {
     return t.charAt(0).toUpperCase() + t.slice(1);
   }

@@ -12,6 +12,7 @@ const G = M.geradores;
 
 const IDS = [
   'circuitos-lei-ohm', 'circuitos-associacao', 'circuitos-potencia-energia',
+  'gerador-caracteristica', 'gerador-dois-pontos', 'gerador-balanco',
 ];
 const SUBTEMAS = ['circuitos', 'gerador'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'eletricidade');
@@ -71,5 +72,51 @@ test('potência e energia: P = R I², E = P Δt e 1 kWh = 3,6 × 10⁶ J nos doi
       assert.ok(Math.abs(p.resposta - v) <= tol + 1e-9, p.contexto + ' ' + p.semente);
     }
     if (d.contexto === 'energia-kwh') assert.ok(Math.abs((d.P / 1000) * (d.tmin / 60) * 3.6e6 - d.P * d.tmin * 60) < 1e-6);
+  }
+});
+
+test('característica: U = ε − rI (U < ε); curto-circuito (Rext = 0) dá I = ε/r sem divisão por zero', () => {
+  let curtos = 0;
+  for (const p of itens('gerador-caracteristica', 120)) {
+    const d = p.dados;
+    if (p.formato !== 'numerica') continue;
+    const tol = p.tolerancia + 1e-9;
+    if (d.contexto === 'tensao') assert.ok(Math.abs(p.resposta - (d.eps - d.r * d.I)) <= tol && p.resposta < d.eps);
+    if (d.contexto === 'corrente') {
+      assert.ok(Math.abs(p.resposta - d.eps / (d.r + d.Rext)) <= tol);
+      if (d.Rext === 0) {
+        curtos++;
+        assert.ok(Math.abs(p.resposta - d.eps / d.r) <= tol);
+        assert.ok(p.errosTipicos.every((e) => Number.isFinite(e.valor)));
+        assert.ok(!p.errosTipicos.some((e) => e.codigo === 'esqueceu_resistencia_interna'));
+        assert.ok(/curto-circuito/.test(p.enunciado));
+      }
+    }
+  }
+  assert.ok(curtos >= 5, 'poucos curto-circuitos: ' + curtos);
+  for (let s = 1; s <= 200; s++) assert.notEqual(G.gerar('gerador-caracteristica', s, { formato: 'escolha', contexto: 'corrente' }).dados.Rext, 0);
+});
+
+test('dois pontos: r é o simétrico do declive, ε a ordenada na origem e I_cc = ε/r', () => {
+  for (const p of itens('gerador-dois-pontos', 80)) {
+    if (p.formato !== 'numerica') continue;
+    const { I1, U1, I2, U2 } = p.dados;
+    const r = (U1 - U2) / (I2 - I1), eps = U1 + r * I1;
+    const v = p.contexto === 'resistencia-interna' ? r : p.contexto === 'fem' ? eps : eps / r;
+    assert.ok(Math.abs(p.resposta - v) <= p.tolerancia + 1e-9, p.contexto + ' ' + p.semente);
+    if (p.contexto === 'resistencia-interna') assert.ok(p.resposta > 0);
+  }
+});
+
+test('balanço do gerador: ε I = U I + r I² e nenhum rendimento passa de 100 %', () => {
+  for (const p of itens('gerador-balanco', 120)) {
+    const { eps, r, I } = p.dados;
+    const U = eps - r * I;
+    assert.ok(Math.abs(eps * I - (U * I + r * I * I)) < 1e-9);
+    if (p.formato !== 'numerica') continue;
+    if (p.contexto === 'rendimento') {
+      assert.ok(p.resposta > 0 && p.resposta <= 100, String(p.resposta));
+      for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/);
+    }
   }
 });

@@ -102,6 +102,7 @@ confundiu_com_o_nucleo → Confundiu a parte assinalada com o núcleo
 confundiu_com_o_protao → Confundiu a parte assinalada com o protão
 confundiu_com_o_trabalho_da_resultante → Confundiu o trabalho das forças não conservativas com o da resultante (ΔEc)
 confundiu_com_o_vidro_de_relogio → Confundiu a peça assinalada com o vidro de relógio
+confundiu_energia_total_com_dissipada → Deu a energia total do gerador em vez da dissipada
 confundiu_formacao_com_ciclo_do_cloro → Confundiu a formação do ozono com a sua destruição pelo cloro
 confundiu_formacao_com_decomposicao → Confundiu a formação do ozono com a sua decomposição
 confundiu_hidroxilo_com_hidroxido → Confundiu o grupo −OH de um álcool com o ião hidróxido
@@ -176,6 +177,7 @@ densidade_trocada_na_conveccao → Trocou o fluido quente com o frio na convecç
 desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
+deu_a_corrente_de_curto_circuito → Deu a corrente de curto-circuito com uma resistência exterior ligada
 deu_a_corrente_de_um_ramo → Deu a corrente de um só ramo em vez da corrente total
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
 deu_a_energia_antes_da_colisao → Deu a energia mecânica antes da colisão em vez da dissipada
@@ -190,14 +192,17 @@ deu_a_fracao_em_vez_da_percentagem → Deu a fração em vez da percentagem
 deu_a_frequencia → Deu a frequência em vez do comprimento de onda
 deu_a_frequencia_em_vez_da_energia → Deu a frequência em vez da energia do fotão
 deu_a_geometria_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_maior_corrente_medida → Tomou a maior corrente medida pela corrente de curto-circuito
 deu_a_massa_molar → Deu a massa molar em vez da massa volúmica
 deu_a_percentagem → Deu a percentagem em vez da fração molar
 deu_a_percentagem_do_solvente → Deu a percentagem do solvente em vez da do soluto
+deu_a_potencia_dissipada_no_gerador → Deu a potência dissipada no gerador em vez da útil
 deu_a_quantidade_de_atomos_em_mol → Deu a quantidade de matéria em vez do número de átomos
 deu_a_quantidade_de_materia → Deu a quantidade de matéria em vez do volume
 deu_a_queda_de_tensao_interna → Deu a tensão na resistência interna (rI) em vez da tensão nos terminais
 deu_a_tensao_da_fonte → Deu a tensão da fonte em vez da tensão da resistência
 deu_a_tensao_nas_outras_resistencias → Deu a tensão nas outras resistências
+deu_a_tensao_nos_terminais → Tomou a diferença de potencial nos terminais pela força eletromotriz
 deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
@@ -234,6 +239,7 @@ direcao_trocada → Aplicou o efeito na direção errada
 discreta_como_continua → Tomou uma variável discreta por contínua
 discreta_como_qualitativa → Tomou uma variável discreta por qualitativa
 distancia_do_baricentro → Deu a distância do baricentro ao lado
+dividiu_a_fem_pela_corrente → Dividiu a força eletromotriz pela corrente para obter r
 dividiu_a_massa_molar_por_n → Dividiu a massa molar pela quantidade de matéria
 dividiu_a_ordenada → Dividiu a ordenada pelo fator
 dividiu_a_tensao_igualmente → Dividiu a tensão por igual por resistências diferentes
@@ -291,6 +297,7 @@ esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_altura_de_lancamento → Esqueceu a altura do ponto de lançamento
 esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
+esqueceu_a_corrente_na_queda → Escreveu a queda de tensão interna como r, sem a corrente
 esqueceu_a_energia_cinetica → Esqueceu a variação da energia cinética na energia mecânica
 esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
@@ -300,6 +307,7 @@ esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
 esqueceu_dividir → Esqueceu de dividir
+esqueceu_dividir_pela_corrente → Deu ε − U sem dividir pela corrente
 esqueceu_dividir_pela_distancia → Deu o trabalho em vez da força (não dividiu pela distância)
 esqueceu_dividir_pela_soma → Deu só o produto das resistências, sem dividir pela soma
 esqueceu_dividir_por_3 → Esqueceu de dividir por 3
@@ -329,6 +337,7 @@ esqueceu_quadrado_da_corrente → Esqueceu o quadrado da corrente em RI²
 esqueceu_que_cos_90_e_zero → Esqueceu que cos 90° é zero
 esqueceu_raiz → Esqueceu a raiz quadrada
 esqueceu_reflexao → Esqueceu a reflexão
+esqueceu_resistencia_interna → Esqueceu a resistência interna do gerador
 esqueceu_retencao → Esqueceu a retenção
 esqueceu_somar_a → Esqueceu de somar a coordenada do ponto A
 esqueceu_somar_quadrados → Esqueceu de somar os quadrados

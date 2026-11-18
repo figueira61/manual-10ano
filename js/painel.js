@@ -853,6 +853,15 @@ globalThis.Manual = globalThis.Manual || {};
     dobrou_em_vez_de_elevar_ao_quadrado: 'Multiplicou por 2 em vez de elevar ao quadrado',
     kwh_como_3600_joules: 'Usou 1 kWh = 3600 J',
     converteu_minutos_em_segundos_com_3600: 'Converteu minutos em segundos multiplicando por 3600',
+    esqueceu_a_corrente_na_queda: 'Escreveu a queda de tensão interna como r, sem a corrente',
+    deu_a_tensao_nos_terminais: 'Tomou a diferença de potencial nos terminais pela força eletromotriz',
+    esqueceu_dividir_pela_corrente: 'Deu ε − U sem dividir pela corrente',
+    dividiu_a_fem_pela_corrente: 'Dividiu a força eletromotriz pela corrente para obter r',
+    esqueceu_resistencia_interna: 'Esqueceu a resistência interna do gerador',
+    deu_a_corrente_de_curto_circuito: 'Deu a corrente de curto-circuito com uma resistência exterior ligada',
+    deu_a_maior_corrente_medida: 'Tomou a maior corrente medida pela corrente de curto-circuito',
+    deu_a_potencia_dissipada_no_gerador: 'Deu a potência dissipada no gerador em vez da útil',
+    confundiu_energia_total_com_dissipada: 'Deu a energia total do gerador em vez da dissipada',
   };
 
   function humanizarErro(codigo) {
