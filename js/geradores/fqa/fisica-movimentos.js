@@ -362,4 +362,265 @@ globalThis.Manual = globalThis.Manual || {};
       return (p.dados.Ec || p.dados.Epg) > 0;
     },
   });
+
+  // ================================================================ trabalho
+  const rad = (a) => (a * Math.PI) / 180;
+  // Trabalho pelas componentes: W = F_x d, com F_x = F cos α (Math.cos; o ruído de vírgula flutuante perto de 0 conta como 0).
+  const trabalhoComponentes = (F, d, a) => {
+    const w = F * Math.cos(rad(a)) * d;
+    return Math.abs(w) < 1e-9 ? 0 : w;
+  };
+  const cosTex = (a) => '\\cos ' + a + '°';
+  const tipoTrabalho = (a) => (a < 90 ? 'potente ($W > 0$)' : a === 90 ? 'nulo ($W = 0$)' : 'resistente ($W < 0$)');
+
+  registar({
+    subtema: 'trabalho', tipo: 'forca-constante', nome: 'Trabalho de uma força constante e o seu sinal',
+    formatos: ['numerica', 'escolha'], contextos: ['angulo', 'resistente', 'vertical'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const F = entre(rng, 10, 100, 5);
+        const d = entre(rng, 1, 10, 0.5);
+        let alfa, theta = null, enunciado;
+        if (contexto === 'angulo') {
+          alfa = escolher(rng, [0, 30, 45, 60, 90]);
+          enunciado = 'Um caixote desloca-se ' + q(d, U.m) + ' num chão horizontal. Uma das forças que atuam nele é constante, de intensidade ' + q(F, U.N) + ', e faz um ângulo de ' + alfa + '° com o deslocamento. Calcula o trabalho realizado por essa força.';
+        } else if (contexto === 'resistente') {
+          alfa = escolher(rng, [120, 135, 150, 180]);
+          enunciado = 'Um carrinho desloca-se ' + q(d, U.m) + ' em linha reta. Uma pessoa exerce nele uma força constante de ' + q(F, U.N) + ', que faz um ângulo de ' + alfa + '° com o sentido do deslocamento. Calcula o trabalho realizado por essa força.';
+        } else {
+          theta = escolher(rng, [30, 45, 60]);
+          alfa = 90 - theta;
+          enunciado = 'Um trenó é puxado ' + q(d, U.m) + ' num chão horizontal por uma corda que exerce uma força constante de ' + q(F, U.N) + ' e faz um ângulo de ' + theta + '° com a vertical. Calcula o trabalho realizado pela força que a corda exerce.';
+        }
+        const exato = Fis().trabalho(F, d, alfa);
+        const Fd = F * d;
+        const resolucao = [];
+        if (theta !== null) resolucao.push({ passo: 'Ângulo entre a força e o deslocamento', porque: 'O deslocamento é horizontal e a vertical é perpendicular a ele, por isso a força faz com o deslocamento o complementar do ângulo dado.', calculo: '\\alpha = 90° - ' + theta + '° = ' + alfa + '°' });
+        resolucao.push({
+          passo: 'Aplicar $W = F d \\cos\\alpha$', porque: 'Só a componente da força na direção do deslocamento, $F\\cos\\alpha$, realiza trabalho. Com $\\alpha = ' + alfa + '°$ o trabalho é ' + tipoTrabalho(alfa) + '.',
+          calculo: 'W = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + (exato === 0 ? ' = 0' : igual(exato) + texN(exato)) + '\\,\\mathrm{J}',
+        });
+        const erros = [];
+        if (theta !== null) erros.push({ codigo: 'usou_o_angulo_com_a_vertical', valor: Fd * Math.cos(rad(theta)), explicacao: 'Usaste o ângulo com a vertical ($' + theta + '°$) e obtiveste ' + vt(Fd * Math.cos(rad(theta)), U.J) + '. O ângulo do trabalho é o que a força faz com o deslocamento, $\\alpha = 90° - ' + theta + '° = ' + alfa + '°$.' });
+        erros.push({ codigo: 'esqueceu_o_cosseno', valor: Fd, explicacao: 'Calculaste $F d$ e obtiveste ' + vt(Fd, U.J) + ', como se a força tivesse a direção do deslocamento. Só a componente eficaz realiza trabalho, por isso multiplica-se por $' + cosTex(alfa) + '$.' });
+        if (alfa > 90) erros.push({ codigo: 'sinal_do_trabalho_trocado', valor: -exato, explicacao: 'Obtiveste ' + vt(-exato, U.J) + ', com o sinal trocado. Com $\\alpha = ' + alfa + '°$ (maior do que $90°$) o cosseno é negativo e o trabalho é resistente.' });
+        if (theta === null) erros.push({ codigo: 'usou_o_seno_em_vez_do_cosseno', valor: Fd * Math.sin(rad(alfa)), explicacao: 'Usaste $\\sin ' + alfa + '°$ e obtiveste ' + vt(Fd * Math.sin(rad(alfa)), U.J) + '. O trabalho usa o cosseno do ângulo entre a força e o deslocamento.' });
+        erros.push({ codigo: 'calculadora_em_radianos', valor: Fd * Math.cos(alfa), explicacao: 'Obtiveste ' + vt(Fd * Math.cos(alfa), U.J) + ' com a calculadora em radianos (calculaste o cosseno de ' + alfa + ' radianos). O ângulo está em graus.' });
+        const ex = { enunciado, resolucao, dados: { contexto, F, d, alfa }, esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } } };
+        const verificacao = (r) => {
+          const Fx = F * Math.cos(rad(alfa));
+          const Fxt = Math.abs(Fx) < 1e-9 ? '0' : texN(Fx);
+          return { passo: 'Pela componente da força na direção do deslocamento, $F_x = F\\cos\\alpha$', calculo: 'F_x = ' + tex(F) + ' \\times ' + cosTex(alfa) + (Fxt === '0' ? ' = 0' : igual(Fx) + Fxt) + '\\,\\mathrm{N};\\ W = F_x\\,d' + (r === 0 ? ' = 0' : igual(Fx * d) + texN(Fx * d)) + '\\,\\mathrm{J}', valor: trabalhoComponentes(F, d, alfa) };
+        };
+        if (exato !== 0) return fecharNum(rng, formato, ex, exato, { erros, unidade: 'J', u: U.J, verificacao });
+        // α = 90°: W = 0 (só em numérica; na escolha não há 3 erros distintos e tentar re-sorteia).
+        const v = verificacao(0);
+        return fechar(rng, formato, ex, {
+          resposta: 0, tolerancia: 0.5, unidade: 'J', texto: textoDe(U.J), verificacao: Object.assign({}, v, { valor: 0 }),
+          erros: erros.map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) })).filter((e) => Math.abs(e.valor) > 5),
+        });
+      });
+    },
+    verificarIndependente(p) {
+      const { F, d, alfa } = p.dados;
+      const w = trabalhoComponentes(F, d, alfa);
+      return w === 0 ? confere(p, 0, textoDe(U.J)) : confereN(p, w, U.J);
+    },
+    limites(p) {
+      const { F, d, alfa } = p.dados;
+      return F > 0 && F <= 100 && d > 0 && d <= 10 && alfa >= 0 && alfa <= 180;
+    },
+  });
+
+  const CORPOS_TEC = [
+    { nome: 'Um carrinho', m: [0.5, 2, 0.5], v: [1, 6] },
+    { nome: 'Um ciclista com a sua bicicleta', m: [60, 90, 5], v: [2, 12] },
+    { nome: 'Um automóvel', m: [900, 1500, 100], v: [5, 30] },
+  ];
+
+  registar({
+    subtema: 'trabalho', tipo: 'tec', nome: 'Trabalho da resultante e Teorema da Energia Cinética',
+    formatos: ['numerica', 'escolha'], contextos: ['w-de-v', 'soma-trabalhos', 'v-de-w'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        let ex, exato, erros, verificacao, unidade = 'J', u = U.J;
+        if (contexto === 'w-de-v') {
+          const c = escolher(rng, CORPOS_TEC);
+          const m = entre(rng, c.m[0], c.m[1], c.m[2]);
+          const vi = inteiro(rng, c.v[0], c.v[1]);
+          const vf = inteiro(rng, c.v[0], c.v[1]);
+          if (Math.abs(vf - vi) < 2) return null;
+          const Eci = 0.5 * m * vi * vi, Ecf = 0.5 * m * vf * vf;
+          exato = Ecf - Eci;
+          const acelera = vf > vi;
+          ex = {
+            enunciado: comMassa(c.nome, q(m, U.kg)) + ' desloca-se em linha reta e a sua velocidade passa de ' + q(vi, U.ms) + ' para ' + q(vf, U.ms) + '. Calcula o trabalho realizado pela resultante das forças que nele atuam.',
+            resolucao: [
+              { passo: 'Energias cinéticas inicial e final', porque: '$E_c = \\tfrac{1}{2} m v^2$ em cada instante.', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vi) + '^2' + igual(Eci) + texN(Eci) + '\\,\\mathrm{J};\\ E_{c,f} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(vf) + '^2' + igual(Ecf) + texN(Ecf) + '\\,\\mathrm{J}' },
+              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\Delta E_c = E_{c,f} - E_{c,i}$. ' + (acelera ? 'A velocidade aumenta, por isso o trabalho da resultante é positivo.' : 'A velocidade diminui, por isso o trabalho da resultante é negativo.'), calculo: 'W_{F_R} = ' + tex(Ecf) + ' - ' + tex(Eci) + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+            ],
+            dados: { contexto, m, vi, vf },
+          };
+          erros = [
+            { codigo: 'quadrado_da_diferenca_de_velocidades', valor: 0.5 * m * (vf - vi) * (vf - vi), explicacao: 'Calculaste $\\tfrac{1}{2} m (\\Delta v)^2$ e obtiveste ' + vt(0.5 * m * (vf - vi) * (vf - vi), U.J) + '. A variação é das energias cinéticas, $\\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: 'Obtiveste ' + vt(2 * exato, U.J) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'variacao_com_o_sinal_trocado', valor: -exato, explicacao: 'Fizeste inicial menos final e obtiveste ' + vt(-exato, U.J) + '. $\\Delta E_c = E_{c,f} - E_{c,i}$, ' + (acelera ? 'positivo porque o corpo acelera' : 'negativo porque o corpo trava') + '.' },
+            { codigo: 'deu_a_energia_cinetica_final', valor: Ecf, explicacao: vt(Ecf, U.J) + ' é a energia cinética final. O trabalho da resultante é a variação, $E_{c,f} - E_{c,i}$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Fatorizar: $\\Delta E_c = \\tfrac{1}{2} m (v_f - v_i)(v_f + v_i)$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + par(vf - vi) + ' \\times ' + tex(vf + vi) + igual(0.5 * m * (vf - vi) * (vf + vi)) + texN(0.5 * m * (vf - vi) * (vf + vi)) + '\\,\\mathrm{J}', valor: Fis().ec(m, vf) - Fis().ec(m, vi) });
+        } else if (contexto === 'soma-trabalhos') {
+          const m = entre(rng, 5, 30, 1);
+          const F = entre(rng, 20, 100, 5);
+          const alfa = escolher(rng, [0, 30, 45, 60]);
+          const Fa = entre(rng, 5, 40, 5);
+          const d = entre(rng, 2, 10, 1);
+          const WF = Fis().trabalho(F, d, alfa);
+          const Wa = Fis().trabalho(Fa, d, 180);
+          if (WF + Wa < 0.2 * F * d) return null;
+          exato = WF + Wa;
+          ex = {
+            enunciado: 'Um caixote de ' + q(m, U.kg) + ' é arrastado ' + q(d, U.m) + ' num chão horizontal por uma força constante de ' + q(F, U.N) + (alfa === 0 ? ' paralela ao chão' : ' que faz ' + alfa + '° com o deslocamento') + '. A força de atrito tem intensidade constante de ' + q(Fa, U.N) + '. Calcula o trabalho realizado pela resultante das forças.',
+            resolucao: [
+              { passo: 'Peso e força normal', porque: 'São perpendiculares ao deslocamento horizontal ($\\alpha = 90°$, $\\cos 90° = 0$): não realizam trabalho.' },
+              { passo: 'Trabalho da força aplicada', porque: '$W = F d \\cos\\alpha$.', calculo: 'W_F = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + igual(WF) + texN(WF) + '\\,\\mathrm{J}' },
+              { passo: 'Trabalho da força de atrito', porque: 'O atrito tem sentido oposto ao do deslocamento ($\\alpha = 180°$): o seu trabalho é negativo.', calculo: 'W_{F_a} = ' + tex(Fa) + ' \\times ' + tex(d) + ' \\times \\cos 180° = ' + tex(Wa) + '\\,\\mathrm{J}' },
+              { passo: 'Somar os trabalhos', porque: 'O trabalho da resultante é a soma dos trabalhos de todas as forças.', calculo: 'W_{F_R} = ' + texN(WF) + ' + ' + par(Wa) + igual(exato) + texN(exato) + '\\,\\mathrm{J}' },
+            ],
+            dados: { contexto, F, alfa, Fa, d },
+            esquema: { id: 'fqa-trabalho', opcoes: { F, d, alfa } },
+          };
+          erros = [
+            { codigo: 'esqueceu_o_trabalho_do_atrito', valor: WF, explicacao: vt(WF, U.J) + ' é só o trabalho da força aplicada. Falta somar o trabalho da força de atrito, $' + tex(Wa) + '\\,\\mathrm{J}$.' },
+            { codigo: 'trabalho_do_atrito_positivo', valor: WF - Wa, explicacao: 'Somaste o trabalho do atrito como positivo e obtiveste ' + vt(WF - Wa, U.J) + '. O atrito opõe-se ao deslocamento ($\\alpha = 180°$), por isso o seu trabalho é negativo.' },
+            { codigo: 'esqueceu_o_cosseno', valor: F * d + Wa, explicacao: 'Usaste $F d$ sem o $' + cosTex(alfa) + '$ e obtiveste ' + vt(F * d + Wa, U.J) + '. Só a componente da força na direção do deslocamento realiza trabalho.' },
+          ];
+          verificacao = (r) => {
+            const FR = F * Math.cos(rad(alfa)) - Fa;
+            return { passo: 'Pela resultante na direção do deslocamento, $F_R = F\\cos\\alpha - F_a$', calculo: 'F_R = ' + tex(F) + ' \\times ' + cosTex(alfa) + ' - ' + tex(Fa) + igual(FR) + texN(FR) + '\\,\\mathrm{N};\\ W_{F_R} = F_R\\,d' + igual(FR * d) + texN(FR * d) + '\\,\\mathrm{J}', valor: FR * d };
+          };
+        } else {
+          const c = escolher(rng, CORPOS_TEC);
+          const m = entre(rng, c.m[0], c.m[1], c.m[2]);
+          const vi = inteiro(rng, 0, 5);
+          const d = entre(rng, 2, 20, 1);
+          const FR = A.limpo(m * entre(rng, 0.5, 3, 0.5));
+          const W = FR * d;
+          const v2 = vi * vi + 2 * W / m;
+          exato = Math.sqrt(v2);
+          unidade = 'm/s';
+          u = U.ms;
+          ex = {
+            enunciado: comMassa(c.nome, q(m, U.kg)) + (vi === 0 ? ' parte do repouso' : ' move-se a ' + q(vi, U.ms)) + ' e, ao longo de ' + q(d, U.m) + ' em linha reta, a resultante das forças que nele atuam é constante, com intensidade ' + q(FR, U.N) + ' e o sentido do movimento. Calcula a velocidade no fim desse percurso.',
+            resolucao: [
+              { passo: 'Trabalho da resultante', porque: 'A resultante tem o sentido do deslocamento ($\\alpha = 0°$).', calculo: 'W_{F_R} = ' + tex(FR) + ' \\times ' + tex(d) + ' = ' + tex(W) + '\\,\\mathrm{J}' },
+              { passo: 'Teorema da Energia Cinética', porque: '$W_{F_R} = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$, logo $v_f^2 = v_i^2 + \\dfrac{2 W_{F_R}}{m}$.', calculo: 'v_f^2 = ' + tex(vi) + '^2 + ' + sobre('2 \\times ' + tex(W), tex(m)) + igual(v2) + texN(v2) + '\\,\\mathrm{m^2\\,s^{-2}}' },
+              { passo: 'Tirar a raiz quadrada', porque: 'Pede-se $v_f$.', calculo: 'v_f = \\sqrt{' + texN(v2) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{m\\,s^{-1}}' },
+            ],
+            dados: { contexto, m, vi, d, FR },
+          };
+          erros = [
+            { codigo: 'esqueceu_raiz', valor: v2, explicacao: 'Obtiveste ' + vt(v2) + ', que é $v_f^2$ (em $\\mathrm{m^2\\,s^{-2}}$). Falta a raiz quadrada.' },
+            { codigo: 'esqueceu_o_fator_2', valor: Math.sqrt(vi * vi + W / m), explicacao: 'Esqueceste o 2 e obtiveste ' + vt(Math.sqrt(vi * vi + W / m), U.ms) + '. De $W = \\tfrac{1}{2} m v_f^2 - \\tfrac{1}{2} m v_i^2$ vem $v_f^2 = v_i^2 + 2W/m$.' },
+          ];
+          if (vi > 0) {
+            const semVi = Math.sqrt(2 * W / m);
+            erros.push({ codigo: 'esqueceu_a_velocidade_inicial', valor: semVi, explicacao: 'Obtiveste ' + vt(semVi, U.ms) + ', como se partisse do repouso. O corpo já tinha $' + tex(vi) + '\\,\\mathrm{m\\,s^{-1}}$, por isso $v_f^2 = v_i^2 + 2W/m$.' });
+            erros.push({ codigo: 'somou_as_velocidades', valor: vi + semVi, explicacao: 'Somaste a velocidade inicial à velocidade ganha a partir do repouso e obtiveste ' + vt(vi + semVi, U.ms) + '. Somam-se as energias cinéticas (os quadrados), não as velocidades.' });
+          }
+          verificacao = (r) => ({ passo: 'Variação da energia cinética com a velocidade obtida, comparada com $W_{F_R}$', calculo: '\\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + (vi === 0 ? texN(r) + '^2' : '(' + texN(r) + '^2 - ' + tex(vi) + '^2)') + igual(0.5 * m * (r * r - vi * vi)) + texN(0.5 * m * (r * r - vi * vi)) + '\\,\\mathrm{J}', valor: Fis().vDeEc(Fis().ec(m, vi) + W, m) });
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (d.contexto === 'w-de-v') return confereN(p, (d.m / 2) * (d.vf - d.vi) * (d.vf + d.vi), U.J);
+      if (d.contexto === 'soma-trabalhos') return confereN(p, (d.F * Math.cos(rad(d.alfa)) - d.Fa) * d.d, U.J);
+      // aceleração constante: v² = v0² + 2 a d, com a = F_R / m
+      return confereN(p, Math.sqrt(d.vi * d.vi + 2 * (d.FR / d.m) * d.d), U.ms);
+    },
+    limites(p) {
+      return p.dados.contexto !== 'soma-trabalhos' || p.dados.F <= 100;
+    },
+  });
+
+  // Travagem de um automóvel numa estrada horizontal, só com a força de atrito (constante): F_a d = E_c0.
+  registar({
+    subtema: 'trabalho', tipo: 'travagem', nome: 'Travagem: distância, força de atrito e trabalho do atrito',
+    formatos: ['numerica', 'escolha'], contextos: ['distancia', 'forca', 'trabalho'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const m = entre(rng, 800, 1500, 50);
+        const v = escolher(rng, [10, 12.5, 15, 17.5, 20, 25, 30]);
+        const vk = kmh(v);
+        const Ec = 0.5 * m * v * v;
+        const conv = { passo: 'Passar a velocidade a metros por segundo', porque: 'Divide-se por 3,6, porque $1\\,\\mathrm{km\\,h^{-1}} = \\dfrac{1000\\,\\mathrm{m}}{3600\\,\\mathrm{s}}$.', calculo: 'v = \\dfrac{' + tex(vk) + '}{3{,}6} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}' };
+        const passoEc = { passo: 'Energia cinética inicial', porque: '$E_c = \\tfrac{1}{2} m v^2$; no fim o automóvel está parado ($E_c = 0$).', calculo: 'E_{c,i} = \\tfrac{1}{2} \\times ' + tex(m) + ' \\times ' + tex(v) + '^2' + igual(Ec) + texN(Ec) + '\\,\\mathrm{J}' };
+        const porqueTEC = 'O peso e a força normal são perpendiculares ao deslocamento e não realizam trabalho; só o atrito ($\\alpha = 180°$) realiza trabalho, $W_{F_a} = -F_a d$. Pelo Teorema da Energia Cinética, $-F_a d = 0 - E_{c,i}$.';
+        const inicio = 'Um automóvel de ' + q(m, U.kg) + ' segue a ' + q(vk, U.kmh) + ' numa estrada horizontal e trava até parar. Considera que só a força de atrito, constante, realiza trabalho durante a travagem.';
+        const Ek = 0.5 * m * vk * vk;
+        let ex, exato, erros, verificacao, unidade, u;
+        if (contexto === 'distancia') {
+          const Fa = entre(rng, 4000, 10000, 500);
+          exato = Ec / Fa;
+          unidade = 'm';
+          u = U.m;
+          ex = {
+            enunciado: inicio + ' A força de atrito tem intensidade ' + q(Fa, U.N) + '. Calcula a distância de travagem.',
+            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'd = \\dfrac{E_{c,i}}{F_a} = \\dfrac{' + texN(Ec) + '}{' + tex(Fa) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{m}' }],
+            dados: { contexto, m, v, Fa },
+          };
+          erros = [
+            { codigo: 'velocidade_em_km_h', valor: Ek / Fa, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / Fa, U.m) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / Fa, explicacao: 'Obtiveste ' + vt(2 * Ec / Fa, U.m) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / Fa, explicacao: 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / Fa, U.m) + '. A energia cinética, e por isso a distância de travagem, é proporcional a $v^2$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Trabalho do atrito nessa distância, que tem de anular a energia cinética', calculo: 'W_{F_a} = -' + tex(Fa) + ' \\times ' + texN(r) + igual(Fa * r) + '-' + texN(Fa * r) + '\\,\\mathrm{J}', valor: Fis().travagem({ m, v0: v, Fa }) });
+        } else if (contexto === 'forca') {
+          const d = entre(rng, 20, 90, 5);
+          exato = Ec / d;
+          unidade = 'N';
+          u = U.N;
+          ex = {
+            enunciado: inicio + ' A distância de travagem é ' + q(d, U.m) + '. Calcula a intensidade da força de atrito.',
+            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: porqueTEC, calculo: 'F_a = \\dfrac{E_{c,i}}{d} = \\dfrac{' + texN(Ec) + '}{' + tex(d) + '}' + igual(exato) + texN(exato) + '\\,\\mathrm{N}' }],
+            dados: { contexto, m, v, d },
+          };
+          erros = [
+            { codigo: 'velocidade_em_km_h', valor: Ek / d, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(Ek / d, U.N) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * Ec / d, explicacao: 'Obtiveste ' + vt(2 * Ec / d, U.N) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: 0.5 * m * v / d, explicacao: 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(0.5 * m * v / d, U.N) + '. A energia cinética é proporcional a $v^2$.' },
+          ];
+          verificacao = (r) => ({ passo: 'Distância de travagem com essa força', calculo: 'd = \\dfrac{' + texN(Ec) + '}{' + texN(r) + '}' + igual(Ec / r) + texN(Ec / r) + '\\,\\mathrm{m}', valor: Fis().ec(m, v) / d });
+        } else {
+          exato = -Ec / 1000;
+          unidade = 'kJ';
+          u = U.kJ;
+          ex = {
+            enunciado: inicio + ' Calcula o trabalho realizado pela força de atrito durante a travagem, em quilojoules.',
+            resolucao: [conv, passoEc, { passo: 'Teorema da Energia Cinética', porque: 'Só o atrito realiza trabalho, por isso $W_{F_a} = \\Delta E_c = 0 - E_{c,i}$: é negativo, porque o atrito retira energia ao automóvel.', calculo: 'W_{F_a} = -' + texN(Ec) + '\\,\\mathrm{J}' + igual(exato) + texN(exato) + '\\,\\mathrm{kJ}' }],
+            dados: { contexto, m, v },
+          };
+          erros = [
+            { codigo: 'trabalho_do_atrito_positivo', valor: -exato, explicacao: 'Obtiveste ' + vt(-exato, U.kJ) + ', positivo. O atrito opõe-se ao deslocamento ($\\alpha = 180°$) e o automóvel perde energia cinética, por isso $W_{F_a} < 0$.' },
+            { codigo: 'esqueceu_o_meio_na_energia_cinetica', valor: 2 * exato, explicacao: 'Obtiveste ' + vt(2 * exato, U.kJ) + ' por usares $m v^2$ em vez de $\\tfrac{1}{2} m v^2$.' },
+            { codigo: 'velocidade_em_km_h', valor: -Ek / 1000, explicacao: 'Usaste a velocidade em $\\mathrm{km\\,h^{-1}}$ e obtiveste ' + vt(-Ek / 1000, U.kJ) + '. Primeiro passa-se a $\\mathrm{m\\,s^{-1}}$ ($' + tex(vk) + '\\,\\mathrm{km\\,h^{-1}} = ' + tex(v) + '\\,\\mathrm{m\\,s^{-1}}$).' },
+            { codigo: 'respondeu_em_joules', valor: -Ec, explicacao: 'Respondeste ' + vt(-Ec) + ', que é o valor em joules. Pede-se em quilojoules (divide-se por 1000).' },
+          ];
+          verificacao = (r) => ({ passo: 'Variação da energia cinética escrita em kJ desde o início', calculo: '0 - \\tfrac{1}{2} \\times ' + tex(m / 1000) + '\\,\\mathrm{t} \\times ' + tex(v) + '^2' + igual(-0.5 * (m / 1000) * v * v) + texN(-0.5 * (m / 1000) * v * v) + '\\,\\mathrm{kJ}', valor: (0 - Fis().ec(m, v)) / 1000 });
+        }
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      const Ec = (d.m * d.v * d.v) / 2;
+      if (d.contexto === 'distancia') return confereN(p, Ec / d.Fa, U.m);
+      if (d.contexto === 'forca') return confereN(p, Ec / d.d, U.N);
+      return confereN(p, -(d.m / 1000) * d.v * d.v / 2, U.kJ);
+    },
+    limites(p) {
+      return p.dados.m >= 800 && p.dados.m <= 1500 && p.dados.v <= 30;
+    },
+  });
 })();

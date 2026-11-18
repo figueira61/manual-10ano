@@ -48,6 +48,7 @@ atomos_iguais_logo_apolar → Julgou apolar a molécula só por ter átomos exte
 atribuiu_o_escurecimento_ao_ar → Atribuiu o escurecimento do sal de prata ao ar e não à luz
 balao_para_medir_o_volume_a_retirar → Usou o balão volumétrico para medir o volume a retirar
 baricentro → Deu o baricentro em vez do circuncentro
+calculadora_em_radianos → Calculou o cosseno com a calculadora em radianos
 calculou_a_concentracao_molar → Calculou a concentração molar em vez da mássica
 calculou_a_percentagem → Calculou a percentagem em vez de partes por milhão
 calculou_gm → Calculou GM em vez da mediana
@@ -172,6 +173,7 @@ desvio_medio → Calculou o desvio médio em vez do desvio padrão
 deu_a_abundancia_do_outro_isotopo → Deu a abundância do outro isótopo
 deu_a_agua_que_ficou_com_o_metal → Deu a água que ficou junto do metal em vez da água deslocada
 deu_a_disposicao_dos_pares → Deu a disposição dos pares de eletrões em vez da geometria da molécula
+deu_a_energia_cinetica_final → Deu a energia cinética final em vez da sua variação
 deu_a_energia_potencial → Deu a energia potencial gravítica em vez da energia cinética
 deu_a_energia_potencial_final → Deu a energia potencial gravítica final em vez da sua variação
 deu_a_fracao_conservada → Deu a fração da energia mecânica que se mantém em vez da dissipada
@@ -277,6 +279,7 @@ esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
 esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
 esqueceu_a_ligacao_de_hidrogenio → Esqueceu as ligações de hidrogénio
 esqueceu_a_massa → Esqueceu a massa ao isolar a grandeza pedida
+esqueceu_a_velocidade_inicial → Esqueceu a velocidade inicial (como se partisse do repouso)
 esqueceu_altura_inicial → Esqueceu a altura inicial
 esqueceu_b → Esqueceu de somar a constante
 esqueceu_cota → Ignorou a cota (z)
@@ -299,6 +302,7 @@ esqueceu_o_meio_na_energia_cinetica → Esqueceu o ½ na energia cinética
 esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_o_quadrado_da_velocidade → Esqueceu que a energia cinética depende do quadrado da velocidade
+esqueceu_o_trabalho_do_atrito → Esqueceu o trabalho da força de atrito na soma dos trabalhos
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
 esqueceu_potencia_dissipada_no_gerador → Esqueceu a potência dissipada no gerador
@@ -615,6 +619,7 @@ sinal_de_m_esquecido → Esqueceu o sinal de m
 sinal_de_x_esquecido → Esqueceu o sinal de x
 sinal_do_declive → Errou o sinal do declive
 sinal_do_declive_trocado → Trocou o sinal do declive
+sinal_do_trabalho_trocado → Trocou o sinal do trabalho (resistente tomado por potente)
 sinal_negativo → Esqueceu o sinal negativo
 sinal_negativo_endotermica → Associou o sinal negativo de ΔH a uma reação endotérmica
 sinal_negativo_no_raio → Errou o sinal ao subtrair um número negativo no raio
@@ -651,6 +656,7 @@ somou_a_energia_potencial → Somou a energia potencial gravítica à energia me
 somou_antes_de_multiplicar → Somou antes de multiplicar
 somou_as_alturas → Somou as alturas em vez de medir a partir do nível de referência
 somou_as_energias_dos_niveis → Somou as energias dos dois níveis
+somou_as_velocidades → Somou velocidades em vez de energias cinéticas
 somou_b → Somou a constante ao desvio padrão depois de o multiplicar
 somou_b_sem_a → Somou a constante ao desvio padrão em vez de só o multiplicar
 somou_coordenadas → Somou as coordenadas em vez de as subtrair ou de usar Pitágoras
@@ -752,6 +758,7 @@ usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
 usou_h_sobre_lambda → Calculou E = h/λ sem a velocidade da luz
 usou_metade_da_divisao_num_digital → Usou metade da divisão num instrumento digital
 usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
+usou_o_angulo_com_a_vertical → Usou o ângulo com a vertical em vez do ângulo com o deslocamento
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes
 usou_o_dado_com_mais_algarismos → Usou os algarismos significativos do dado mais preciso
 usou_o_ponto → Dividiu as coordenadas do ponto em vez das do vetor diretor

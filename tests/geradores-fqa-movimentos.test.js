@@ -12,8 +12,9 @@ const G = M.geradores;
 
 const IDS = [
   'sistema-mecanico-ec-epg', 'sistema-mecanico-energia-mecanica', 'sistema-mecanico-massa-velocidade',
+  'trabalho-forca-constante', 'trabalho-tec', 'trabalho-travagem',
 ];
-const SUBTEMAS = ['sistema-mecanico'];
+const SUBTEMAS = ['sistema-mecanico', 'trabalho'];
 const defs = () => G.todos().filter((d) => d.disciplina === 'fqa' && d.tema === 'movimentos');
 function* itens(id, sementes) {
   const d = G.obter(id);
@@ -53,6 +54,56 @@ test('snapshots da semente 1', () => {
   p = g('sistema-mecanico-massa-velocidade');
   assert.match(p.enunciado, /1920\\,\\mathrm\{J\}/);
   assert.equal(p.resposta, 8); // √(2 × 1920 / 60)
+  p = g('trabalho-forca-constante');
+  assert.match(p.enunciado, /65\\,\\mathrm\{N\}\$, e faz um ângulo de 45°/);
+  assert.equal(p.resposta, 46); // 65 × 1 × cos 45° = 45,96
+  assert.equal(p.algarismos, 3);
+  assert.deepEqual(p.esquema, { id: 'fqa-trabalho', opcoes: { F: 65, d: 1, alfa: 45 } });
+  p = g('trabalho-tec');
+  assert.equal(p.resposta, 2850); // ½ × 60 × (12² − 7²)
+  p = g('trabalho-travagem');
+  assert.match(p.enunciado, /1250\\,\\mathrm\{kg\}\$ segue a \$36/);
+  assert.equal(p.resposta, 8.93); // ½ × 1250 × 10² / 7000 = 8,929
+});
+
+test('trabalho com α = 90°: W = 0, e uma resposta 0 não é tomada por erro típico', () => {
+  let visto = 0;
+  for (let s = 1; s <= 200; s++) {
+    const p = G.gerar('trabalho-forca-constante', s, { formato: 'numerica', contexto: 'angulo' });
+    if (p.dados.alfa !== 90) continue;
+    visto++;
+    assert.equal(p.resposta, 0);
+    assert.equal(M.aprendizagem.detetarErro(p, '0'), null);
+    assert.ok(M.quiz.corrigir(p, '0').certa);
+    assert.ok(p.errosTipicos.length >= 1 && p.errosTipicos.every((e) => Math.abs(e.valor) > 10 * p.tolerancia));
+    assert.equal(M.quiz.corrigir(p, String(p.dados.F * p.dados.d).replace('.', ',')).erroTipico.codigo, 'esqueceu_o_cosseno');
+  }
+  assert.ok(visto >= 10, 'poucos itens com α = 90°: ' + visto);
+});
+
+test('sinal do trabalho: potente abaixo de 90°, resistente acima; o atrito na travagem é negativo', () => {
+  for (const p of itens('trabalho-forca-constante', 80)) {
+    if (p.formato !== 'numerica') continue;
+    const a = p.dados.alfa;
+    assert.equal(Math.sign(p.resposta), a < 90 ? 1 : a === 90 ? 0 : -1, 'α = ' + a);
+  }
+  for (const p of itens('trabalho-travagem', 60)) {
+    if (p.contexto !== 'trabalho') continue;
+    const v = p.formato === 'numerica' ? p.resposta : Number(certa(p).replace(/[$]/g, '').replace('{,}', '.').match(/-?[\d.]+/)[0]);
+    assert.ok(v < 0, 'W do atrito ' + v);
+    assert.ok(p.errosTipicos.some((e) => e.codigo === 'trabalho_do_atrito_positivo'));
+  }
+  for (const p of itens('trabalho-tec', 60)) {
+    if (p.contexto !== 'w-de-v' || p.formato !== 'numerica') continue;
+    assert.equal(Math.sign(p.resposta), Math.sign(p.dados.vf - p.dados.vi)); // W_FR = ΔEc
+  }
+});
+
+test('trabalho: seno, cosseno esquecido, ângulo com a vertical e calculadora em radianos aparecem como erros típicos', () => {
+  const codigos = new Set();
+  for (const id of ['trabalho-forca-constante', 'trabalho-tec', 'trabalho-travagem']) for (const p of itens(id, 40)) p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+  for (const c of ['usou_o_seno_em_vez_do_cosseno', 'esqueceu_o_cosseno', 'usou_o_angulo_com_a_vertical', 'calculadora_em_radianos', 'sinal_do_trabalho_trocado',
+    'quadrado_da_diferenca_de_velocidades', 'esqueceu_o_trabalho_do_atrito', 'esqueceu_a_velocidade_inicial', 'velocidade_em_km_h', 'respondeu_em_joules']) assert.ok(codigos.has(c), c);
 });
 
 test('nenhuma opção, resposta ou texto contém NaN ou Infinity', () => {

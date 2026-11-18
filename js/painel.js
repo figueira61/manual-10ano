@@ -820,6 +820,13 @@ globalThis.Manual = globalThis.Manual || {};
     multiplicou_pelo_meio_em_vez_de_dividir: 'Multiplicou por ½ em vez de dividir ao isolar a grandeza',
     somou_a_energia_potencial: 'Somou a energia potencial gravítica à energia mecânica em vez de a subtrair',
     somou_as_alturas: 'Somou as alturas em vez de medir a partir do nível de referência',
+    calculadora_em_radianos: 'Calculou o cosseno com a calculadora em radianos',
+    deu_a_energia_cinetica_final: 'Deu a energia cinética final em vez da sua variação',
+    esqueceu_a_velocidade_inicial: 'Esqueceu a velocidade inicial (como se partisse do repouso)',
+    esqueceu_o_trabalho_do_atrito: 'Esqueceu o trabalho da força de atrito na soma dos trabalhos',
+    sinal_do_trabalho_trocado: 'Trocou o sinal do trabalho (resistente tomado por potente)',
+    somou_as_velocidades: 'Somou velocidades em vez de energias cinéticas',
+    usou_o_angulo_com_a_vertical: 'Usou o ângulo com a vertical em vez do ângulo com o deslocamento',
   };
 
   function humanizarErro(codigo) {
