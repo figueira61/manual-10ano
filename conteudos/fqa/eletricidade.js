@@ -10,9 +10,8 @@ globalThis.Manual = globalThis.Manual || {};
   const F = Manual.fisica;
   const PILHA = D.modelos.pilha;
 
-  // número com vírgula decimal: em KaTeX ({,}) e em texto corrido (,)
+  // número com vírgula decimal em KaTeX ({,})
   const dec = (x, casas) => x.toFixed(casas).replace('.', '{,}');
-  const decT = (x, casas) => x.toFixed(casas).replace('.', ',').replace('-', '−');
   // notação científica em KaTeX, mantissa em [1, 10) com `as` algarismos significativos
   const cient = (x, as) => {
     const [m, e] = x.toExponential(as - 1).split('e');
@@ -154,7 +153,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'definicao',
-            texto: '**Efeito Joule.** Quando a corrente percorre uma resistência, a energia elétrica é transferida para a vizinhança como energia térmica: a resistência aquece. É o que se aproveita em aquecedores, chaleiras e torradeiras, e o que se perde nos fios e nos aparelhos. Numa resistência, como $U = R I$: $$P = R I^2 = \\dfrac{U^2}{R}$$',
+            texto: '**Efeito Joule.** Quando a corrente percorre uma resistência, a energia elétrica aumenta a energia interna da resistência, que aquece e transfere energia, como calor, para a vizinhança. É o que se aproveita em aquecedores, chaleiras e torradeiras, e o que se perde nos fios e nos aparelhos. Numa resistência, como $U = R I$: $$P = R I^2 = \\dfrac{U^2}{R}$$',
           },
           {
             tipo: 'exemplo',
@@ -182,7 +181,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'erro-frequente',
-            texto: 'Não confundas **potência** com **energia**. O watt (W) e o quilowatt (kW) são unidades de potência (energia por segundo); o joule (J) e o quilowatt-hora (kWh) são unidades de energia. Um aparelho mais potente não gasta, por isso, mais energia: depende também do tempo, $E = P\\,\\Delta t$. Para kWh, usa $P$ em kW e $\\Delta t$ em h; para J, $P$ em W e $\\Delta t$ em s.',
+            texto: 'Não confundas **potência** com **energia**. O watt (W) e o quilowatt (kW) são unidades de potência (energia por segundo); o joule (J) e o quilowatt-hora (kWh) são unidades de energia. Um aparelho mais potente não gasta necessariamente mais energia: depende também do tempo, $E = P\\,\\Delta t$. Para kWh, usa $P$ em kW e $\\Delta t$ em h; para J, $P$ em W e $\\Delta t$ em s.',
           },
         ],
         resumo: [
@@ -293,7 +292,7 @@ globalThis.Manual = globalThis.Manual || {};
         ae: [
           'Compreender a função e as características de um gerador e determinar as características de uma pilha numa atividade experimental, avaliando os procedimentos e comunicando os resultados.',
           'Aplicar, na resolução de problemas, a conservação da energia num circuito elétrico, tendo em conta o efeito Joule, explicando as estratégias de resolução.',
-          'Avaliar, numa perspetiva intra e interdisciplinar, como a energia elétrica e as suas diversas aplicações são vitais na sociedade actual e as repercurssões a nível social, económico, político e ambiental.',
+          'Avaliar, numa perspetiva intra e interdisciplinar, como a energia elétrica e as suas diversas aplicações são vitais na sociedade atual e as repercussões a nível social, económico, político e ambiental.',
         ],
         minutos: 16,
         essencial: [

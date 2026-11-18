@@ -4,6 +4,8 @@ Manual.ae = Manual.ae || {};
 // Objetivos de Química e de Física das Aprendizagens Essenciais de FQ-A, 10.º ano.
 // Frases literais das AE de agosto de 2018 (docs/referencias/ae-fqa-10-2018.txt), por ordem; no fim de cada
 // domínio, as frases da revisão de março de 2026 (docs/referencias/ae-fqa-10-2026.txt) sem equivalente em 2018.
+// Correção ortográfica do texto oficial de 2018 (Física): "actual" → "atual", "repercurssões" → "repercussões",
+// "interpretandos" → "interpretando" (as mesmas frases corrigidas estão nos `ae` dos subtemas).
 Manual.ae.fqa = [
   // ---------- Elementos químicos e sua organização ----------
   // Massa e tamanho dos átomos
@@ -79,7 +81,7 @@ Manual.ae.fqa = [
   'Montar circuitos elétricos, associando componentes elétricos em série e em paralelo, e, a partir de medições, caracterizá-los quanto à corrente elétrica que os percorre e à diferença de potencial elétrico aos seus terminais.',
   'Compreender a função e as características de um gerador e determinar as características de uma pilha numa atividade experimental, avaliando os procedimentos e comunicando os resultados.',
   'Aplicar, na resolução de problemas, a conservação da energia num circuito elétrico, tendo em conta o efeito Joule, explicando as estratégias de resolução.',
-  'Avaliar, numa perspetiva intra e interdisciplinar, como a energia elétrica e as suas diversas aplicações são vitais na sociedade actual e as repercurssões a nível social, económico, político e ambiental.',
+  'Avaliar, numa perspetiva intra e interdisciplinar, como a energia elétrica e as suas diversas aplicações são vitais na sociedade atual e as repercussões a nível social, económico, político e ambiental.',
   // revisão 2026
   'Aplicar a definição de potência a sistemas elétricos e, em particular, ao efeito de Joule.',
   // Energia, fenómenos térmicos e radiação
@@ -89,8 +91,8 @@ Manual.ae.fqa = [
   'Compreender a Primeira Lei da Termodinâmica e enquadrar as descobertas científicas que levaram à sua formulação no contexto histórico, social e político.',
   'Explicar fenómenos do dia a dia utilizando balanços energéticos.',
   'Aplicar, na resolução de problemas de balanços energéticos, os conceitos de capacidade térmica mássica e de variação de entalpia mássica de transição de fase, descrevendo argumentos e raciocínios, explicando as soluções encontradas.',
-  'Determinar, experimentalmente, a capacidade térmica mássica de um material e a variação de entalpia mássica de fusão do gelo, avaliando os procedimentos, interpretandos os resultados e comunicando as conclusões.',
-  'Investigar, experimentalmente, a influência da irradiância e da diferença de potencial elétrico na potência elétrica fornecida por um painel fotovoltaico, avaliando os procedimentos, interpretandos os resultados e comunicando as conclusões.',
+  'Determinar, experimentalmente, a capacidade térmica mássica de um material e a variação de entalpia mássica de fusão do gelo, avaliando os procedimentos, interpretando os resultados e comunicando as conclusões.',
+  'Investigar, experimentalmente, a influência da irradiância e da diferença de potencial elétrico na potência elétrica fornecida por um painel fotovoltaico, avaliando os procedimentos, interpretando os resultados e comunicando as conclusões.',
   'Explicitar que os processos que ocorrem espontaneamente na Natureza se dão sempre no sentido da diminuição da energia útil.',
   'Compreender o rendimento de um processo, interpretando a degradação de energia com base na Segunda Lei da Termodinâmica, analisando a responsabilidade individual e coletiva na utilização sustentável de recursos.',
   // revisão 2026

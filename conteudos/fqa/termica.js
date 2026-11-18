@@ -119,7 +119,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'definicao',
-            texto: '**Calor** é a energia transferida **espontaneamente** entre sistemas a temperaturas diferentes: sempre do sistema a temperatura **mais alta** para o de temperatura **mais baixa**, até ficarem em equilíbrio térmico. A energia também se pode transferir como **trabalho** (por ação de forças: comprimir um gás, agitar um líquido) ou como **radiação**.',
+            texto: '**Calor** é a energia transferida **espontaneamente** entre sistemas a temperaturas diferentes: sempre do sistema a temperatura **mais alta** para o de temperatura **mais baixa**, até ficarem em equilíbrio térmico. O calor transfere-se por três mecanismos: **condução**, **convecção** e **radiação** (quadro abaixo). A energia também se pode transferir como **trabalho** (por ação de forças: comprimir um gás, agitar um líquido).',
           },
           {
             tipo: 'erro-frequente',
@@ -142,7 +142,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: 'Nos balanços de energia da Primeira Lei (subtema seguinte), a energia transferida por radiação costuma contar-se à parte, no termo $R$; o termo $Q$ fica para a condução e a convecção.',
+            texto: 'Por convenção, nos balanços da Primeira Lei (subtema seguinte), a energia transferida por radiação conta-se à parte, no termo $R$; $Q$ fica para a condução e a convecção.',
           },
           {
             tipo: 'texto',
@@ -276,7 +276,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Compreender a Primeira Lei da Termodinâmica e enquadrar as descobertas científicas que levaram à sua formulação no contexto histórico, social e político.',
           'Explicar fenómenos do dia a dia utilizando balanços energéticos.',
           'Aplicar, na resolução de problemas de balanços energéticos, os conceitos de capacidade térmica mássica e de variação de entalpia mássica de transição de fase, descrevendo argumentos e raciocínios, explicando as soluções encontradas.',
-          'Determinar, experimentalmente, a capacidade térmica mássica de um material e a variação de entalpia mássica de fusão do gelo, avaliando os procedimentos, interpretandos os resultados e comunicando as conclusões.',
+          'Determinar, experimentalmente, a capacidade térmica mássica de um material e a variação de entalpia mássica de fusão do gelo, avaliando os procedimentos, interpretando os resultados e comunicando as conclusões.',
           'Determinar a variação de energia interna de um sistema num aquecimento ou arrefecimento, aplicando os conceitos de capacidade térmica mássica e de variação de entalpia (de fusão ou de vaporização), interpretando o sinal dessa variação.',
         ],
         minutos: 20,
@@ -297,7 +297,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Um pouco de história.** Até meados do século XIX, muitos cientistas pensavam que o calor era um fluido invisível (o "calórico") contido nos corpos. Com a Revolução Industrial e as máquinas a vapor, tornou-se importante perceber a relação entre calor e trabalho. Por volta de 1840, o médico alemão **Julius Robert Mayer** propôs que o calor e o trabalho são formas de transferir a mesma coisa, a energia, que se conserva. O inglês **James Prescott Joule** mostrou-o com medições: pesos a cair faziam rodar pás dentro de água e a água aquecia, sempre na mesma proporção entre o trabalho realizado e o aumento de temperatura. Daí nasceu a Primeira Lei, e a unidade de energia chama-se joule em sua honra.',
+            texto: '**Um pouco de história.** Até meados do século XIX, muitos cientistas pensavam que o calor era um fluido invisível (o "calórico") contido nos corpos. Com a Revolução Industrial e as máquinas a vapor, e com a competição industrial e militar entre as nações pela eficiência dessas máquinas, tornou-se importante perceber a relação entre calor e trabalho. Por volta de 1840, o médico alemão **Julius Robert Mayer** propôs que o calor e o trabalho são formas de transferir a mesma coisa, a energia, que se conserva. O inglês **James Prescott Joule** mostrou-o com medições: pesos a cair faziam rodar pás dentro de água e a água aquecia, sempre na mesma proporção entre o trabalho realizado e o aumento de temperatura. Daí nasceu a Primeira Lei, e a unidade de energia chama-se joule em sua honra.',
           },
           {
             tipo: 'definicao',
@@ -388,13 +388,13 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'definicao',
-            texto: '**Misturas.** Num recipiente isolado (sem trocas com o exterior), os corpos trocam energia entre si até ficarem à mesma temperatura, a **temperatura de equilíbrio** $\\theta_{eq}$. A energia cedida por uns é recebida pelos outros: $$Q_{\\text{cedido}} + Q_{\\text{recebido}} = 0$$',
+            texto: '**Misturas.** Num recipiente isolado (sem trocas com o exterior), os corpos trocam energia entre si até ficarem à mesma temperatura, a **temperatura de equilíbrio** $\\theta_{eq}$. A energia cedida por uns é recebida pelos outros: $$Q_{\\text{cedido}} + Q_{\\text{recebido}} = 0$$ (o $Q$ de quem cede é negativo, por isso a soma é nula). Com dois corpos: $Q_1 + Q_2 = 0$.',
           },
           {
             tipo: 'exemplo',
             enunciado: 'Misturam-se 0,20 kg de água a 20 °C com 0,10 kg de água a 80 °C, num recipiente isolado. Calcula a temperatura de equilíbrio.',
             resolucao: [
-              '$0{,}20\\, c\\, (\\theta_{eq} - 20) + 0{,}10\\, c\\, (\\theta_{eq} - 80) = 0$ (o $c$ da água simplifica).',
+              '$Q_1 + Q_2 = 0$: $0{,}20\\, c\\, (\\theta_{eq} - 20) + 0{,}10\\, c\\, (\\theta_{eq} - 80) = 0$ (o $c$ da água simplifica; o $Q$ da água quente sai negativo).',
               '$0{,}30\\, \\theta_{eq} = 0{,}20 \\times 20 + 0{,}10 \\times 80 = 12$, logo $\\theta_{eq} = ' + MIX.thetaEq + '\\,{}^{\\circ}\\mathrm{C}$: mais perto de 20 °C, porque essa massa é maior.',
             ],
             resultado: 40,
@@ -431,8 +431,8 @@ globalThis.Manual = globalThis.Manual || {};
             enunciado: 'A tabela tem dados ilustrativos para um bloco de alumínio de 1,000 kg, aquecido por uma resistência com $U = 12{,}0\\,\\mathrm{V}$ e $I = 2{,}50\\,\\mathrm{A}$. Determina a capacidade térmica mássica do alumínio e o erro relativo, comparando com o valor tabelado (' + cAl + ' J kg⁻¹ °C⁻¹).',
             resolucao: [
               '$P = U I = 12{,}0 \\times 2{,}50 = ' + dec(ALC.P, 1) + '\\,\\mathrm{W}$.',
-              'Regressão linear de $\\theta$ em função de $t$: declive $\\approx ' + dec(ALC.reta.declive, 4) + '\\,{}^{\\circ}\\mathrm{C\\,s^{-1}}$.',
-              '$c = \\dfrac{P}{m \\times \\text{declive}} = \\dfrac{' + dec(ALC.P, 1) + '}{1{,}000 \\times ' + dec(ALC.reta.declive, 4) + '} \\approx ' + Math.round(ALC.c) + unC + '$.',
+              'Regressão linear de $\\theta$ em função de $t$: declive $\\approx ' + dec(ALC.reta.declive, 5) + '\\,{}^{\\circ}\\mathrm{C\\,s^{-1}}$.',
+              '$c = \\dfrac{P}{m \\times \\text{declive}} = \\dfrac{' + dec(ALC.P, 1) + '}{1{,}000 \\times ' + dec(ALC.reta.declive, 5) + '} \\approx ' + Math.round(ALC.c) + unC + '$.',
               'Erro relativo: $\\dfrac{|' + Math.round(ALC.c) + ' - ' + cAl + '|}{' + cAl + '} \\times 100 \\approx ' + dec(ALC.erro, 0) + '\\,\\%$. O valor sai por excesso porque parte da energia se perde para a vizinhança: o bloco aquece menos do que aqueceria sem perdas.',
             ],
             resultado: 941,
@@ -466,7 +466,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Sem mudança de estado: $Q = m c \\Delta\\theta$ ($\\Delta\\theta$ igual em °C e em K).',
           'Mudança de estado, a temperatura constante: $Q = m\\,\\Delta h$ (fusão do gelo $3{,}34 \\times 10^{5}$, vaporização da água $2{,}26 \\times 10^{6}\\,\\mathrm{J\\,kg^{-1}}$).',
           'Aquecimento: $\\Delta U > 0$; arrefecimento: $\\Delta U < 0$.',
-          'Mistura isolada: $Q_{\\text{cedido}} + Q_{\\text{recebido}} = 0$; não esquecer a fusão do gelo.',
+          'Mistura isolada: $Q_{\\text{cedido}} + Q_{\\text{recebido}} = 0$ ($Q_{\\text{cedido}} < 0$); não esquecer a fusão do gelo.',
         ],
         quiz: [
           {
@@ -569,7 +569,7 @@ globalThis.Manual = globalThis.Manual || {};
         id: 'rendimento',
         titulo: 'Rendimento e Segunda Lei',
         ae: [
-          'Investigar, experimentalmente, a influência da irradiância e da diferença de potencial elétrico na potência elétrica fornecida por um painel fotovoltaico, avaliando os procedimentos, interpretandos os resultados e comunicando as conclusões.',
+          'Investigar, experimentalmente, a influência da irradiância e da diferença de potencial elétrico na potência elétrica fornecida por um painel fotovoltaico, avaliando os procedimentos, interpretando os resultados e comunicando as conclusões.',
           'Explicitar que os processos que ocorrem espontaneamente na Natureza se dão sempre no sentido da diminuição da energia útil.',
           'Compreender o rendimento de um processo, interpretando a degradação de energia com base na Segunda Lei da Termodinâmica, analisando a responsabilidade individual e coletiva na utilização sustentável de recursos.',
         ],
@@ -636,9 +636,9 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Para o painel modelo da tabela ($A = ' + dec(PAINEL.area, 3) + '\\,\\mathrm{m^2}$, $G = ' + G0 + '\\,\\mathrm{W\\,m^{-2}}$), a curva completa tem o máximo em $U \\approx ' + dec(MAX.U, 1) + '\\,\\mathrm{V}$, com $I \\approx ' + dec(MAX.I, 2) + '\\,\\mathrm{A}$. Calcula a potência máxima e o rendimento do painel nesse ponto.',
+            enunciado: 'Para o painel modelo da tabela ($A = ' + dec(PAINEL.area, 3) + '\\,\\mathrm{m^2}$, $G = ' + G0 + '\\,\\mathrm{W\\,m^{-2}}$), a curva completa tem o máximo em $U \\approx ' + dec(MAX.U, 2) + '\\,\\mathrm{V}$, com $I \\approx ' + dec(MAX.I, 3) + '\\,\\mathrm{A}$. Calcula a potência máxima e o rendimento do painel nesse ponto.',
             resolucao: [
-              '$P_{\\text{máx}} = U I \\approx ' + dec(MAX.U, 2) + ' \\times ' + dec(MAX.I, 3) + ' \\approx ' + dec(MAX.P, 2) + '\\,\\mathrm{W}$ (na tabela, o maior valor está entre $R = 10\\,\\Omega$ e $R = 12\\,\\Omega$).',
+              '$P_{\\text{máx}} = U I \\approx ' + dec(MAX.U, 2) + ' \\times ' + dec(MAX.I, 3) + ' \\approx ' + dec(MAX.P, 2) + '\\,\\mathrm{W}$. Na tabela, o maior valor é ' + decT(PONTOS.find((p) => p.R === 10).P, 2) + ' W, com $R = 10\\,\\Omega$; o máximo da curva fica entre $R = 10\\,\\Omega$ e $R = 12\\,\\Omega$ (em $R = U/I \\approx ' + dec(MAX.U / MAX.I, 1) + '\\,\\Omega$).',
               'Potência incidente: $G A = ' + G0 + ' \\times ' + dec(PAINEL.area, 3) + ' = ' + PINC + '\\,\\mathrm{W}$.',
               '$\\eta = \\dfrac{' + dec(MAX.P, 2) + '}{' + PINC + '} \\approx ' + dec(F.rendimento(MAX.P, PINC), 3) + '$, isto é, cerca de ' + Math.round(F.rendimento(MAX.P, PINC) * 100) + ' %.',
               'Com metade da irradiância (' + 500 + ' W m⁻²), a potência máxima do modelo desce para cerca de ' + decT(MAX500.P, 2) + ' W: a potência é aproximadamente proporcional à irradiância.',
