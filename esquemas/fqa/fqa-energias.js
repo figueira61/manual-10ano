@@ -201,7 +201,7 @@ Manual.esquemas.registar('fqa-energias', {
       } else if (est.Fa > 0) {
         zonaTexto.appendChild(criar('p', 'esq-legenda', 'A força de atrito é não conservativa: a energia mecânica diminui e a energia dissipada aumenta, W(FNC) = ΔEm.'));
       } else {
-        zonaTexto.appendChild(criar('p', 'esq-legenda', 'Sem atrito só atua o peso (força conservativa): a energia mecânica conserva-se e Ec + Epg é constante.'));
+        zonaTexto.appendChild(criar('p', 'esq-legenda', 'Sem atrito, só o peso (força conservativa) realiza trabalho; a força normal é perpendicular ao movimento e não realiza trabalho. A energia mecânica conserva-se e Ec + Epg é constante.'));
       }
       zonaTexto.appendChild(criar('p', 'esq-legenda', 'Massa do carrinho: ' + fmt(M, 1) + ' kg; g = ' + fmt(Manual.dadosFisica.constantes.g, 0) + ' m s⁻²; alturas medidas a partir do nível de referência (h = 0), que pode ficar abaixo do fim do percurso.'));
     }
