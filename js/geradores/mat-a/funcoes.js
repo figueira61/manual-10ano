@@ -435,7 +435,27 @@ globalThis.Manual = globalThis.Manual || {};
   const LARGO = { '<=': '<', '>=': '>' };
   const OPOSTO = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' };
   // { intervalos: [{a, b, fechadoA, fechadoB}], pontosIsolados } → LaTeX (intervalos e {a}; só pontos: um conjunto).
-  function solTex(sol) {
+  // Forma canónica de um conjunto: junta intervalos sobrepostos ou contíguos (]a, b] ∪ [b, c] = ]a, c]) e absorve
+  // os pontos isolados que já estão dentro de um intervalo ou que o fecham. Dois conjuntos iguais escrevem-se igual.
+  function normalizarSol(sol) {
+    const partes = sol.intervalos.map((i) => ({ a: i.a, b: i.b, fa: i.fechadoA, fb: i.fechadoB }))
+      .concat(sol.pontosIsolados.map((x) => ({ a: x, b: x, fa: true, fb: true })))
+      .sort((u, v) => u.a - v.a || (v.fa ? 1 : 0) - (u.fa ? 1 : 0));
+    const juntas = [];
+    for (const p of partes) {
+      const u = juntas[juntas.length - 1];
+      if (u && (p.a < u.b || (p.a === u.b && (u.fb || p.fa)))) {
+        if (p.a === u.a) u.fa = u.fa || p.fa;
+        if (p.b > u.b) { u.b = p.b; u.fb = p.fb; } else if (p.b === u.b) u.fb = u.fb || p.fb;
+      } else juntas.push(Object.assign({}, p));
+    }
+    return {
+      intervalos: juntas.filter((j) => j.a !== j.b).map((j) => ({ a: j.a, b: j.b, fechadoA: j.fa, fechadoB: j.fb })),
+      pontosIsolados: juntas.filter((j) => j.a === j.b).map((j) => j.a),
+    };
+  }
+  function solTex(sol0) {
+    const sol = normalizarSol(sol0);
     if (!sol.intervalos.length) return conjTex(sol.pontosIsolados);
     const partes = sol.intervalos.map((i) => ({ x: i.a, t: intervaloTex({ de: i.a, ate: i.b, fechadoDe: i.fechadoA, fechadoAte: i.fechadoB }) }))
       .concat(sol.pontosIsolados.map((x) => ({ x, t: '\\{' + texQ(x) + '\\}' })))

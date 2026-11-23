@@ -441,3 +441,20 @@ test('condições: o 3 fica fechado no extremo do domínio com <; ∅ e pontos i
   }
   assert.ok(fechadoNoExtremo > 10, 'extremo do domínio fechado: ' + fechadoNoExtremo);
 });
+
+test('condições: nenhum par de opções descreve o mesmo conjunto (comparação como conjuntos, não como texto)', () => {
+  const grelha = [];
+  for (let x = -12; x <= 12; x += 0.25) grelha.push(x);
+  let n = 0;
+  for (const p of amostras('generalidades-condicoes', 1500)) {
+    const assinaturas = p.opcoes.map((o) => { const I = lerCondicao(o); return grelha.map((x) => (pertence(I, x) ? '1' : '0')).join(''); });
+    assert.equal(new Set(assinaturas).size, 4, 'semente ' + p.semente + ' ' + p.contexto + ': ' + p.opcoes.join(' | '));
+    // e nenhuma opção tem intervalos contíguos por unir (]a, b] ∪ [b, c])
+    for (const o of p.opcoes) {
+      const I = lerCondicao(o);
+      for (let i = 0; i + 1 < I.length; i++) assert.ok(I[i].b < I[i + 1].a || (I[i].b === I[i + 1].a && !I[i].fb && !I[i + 1].fa), 'por unir: ' + o);
+    }
+    n++;
+  }
+  assert.equal(n, 4500);
+});
