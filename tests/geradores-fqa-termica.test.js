@@ -241,3 +241,18 @@ test('energia dissipada: cada aparelho com a sua gama de potências (uma ventoin
 test('equilíbrio: só corpos finitos e fechados (sem rios nem o corpo humano como reservatório)', () => {
   for (const p of itens('transferencias-equilibrio', 300)) assert.ok(!/(^|\s)rio\b|febre|braço/.test(p.enunciado), p.enunciado);
 });
+
+test('painel (AL): U e I medidas com três casas decimais, e o ponto de curto-circuito/circuito aberto nomeado pela resistência', () => {
+  for (const p of itens('rendimento-painel-maximo', 60)) {
+    const U = [...p.enunciado.matchAll(/\$U = ([\d{},]+)\\,\\mathrm\{V\}\$/g)].map((m) => m[1]);
+    const I = [...p.enunciado.matchAll(/\$I = ([\d{},]+)\\,\\mathrm\{A\}\$/g)].map((m) => m[1]);
+    assert.equal(U.length, 6, p.enunciado);
+    assert.equal(I.length, 6, p.enunciado);
+    for (const v of U.concat(I)) assert.match(v, /^\d\{,\}\d{3}$/, p.enunciado);
+    for (const e of p.errosTipicos) {
+      // várias medições podem ter a mesma corrente: o ponto nomeia-se pela resistência, não por «maior corrente»
+      assert.ok(!/ponto de maior corrente|ponto de maior \$U\$/.test(e.explicacao), e.explicacao);
+      if (/^potencia_maxima_em_(curto_circuito|circuito_aberto)$/.test(e.codigo)) assert.match(e.explicacao, /(menor|maior) resistência de carga/, e.explicacao);
+    }
+  }
+});

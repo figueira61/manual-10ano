@@ -777,9 +777,9 @@ globalThis.Manual = globalThis.Manual || {};
           u = UN.W;
           ex = { enunciado: enunciado + 'Qual é a maior potência fornecida pelo painel nestas medições?', resolucao: [passoP, passoMax] };
           erros = [
-            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.P, explicacao: (vt) => vt(ab.P, UN.W) + ' é a potência no ponto de maior $U$ (perto do circuito aberto), onde a corrente já é pequena. O máximo fica num ponto intermédio.' },
-            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.P, explicacao: (vt) => vt(cc.P, UN.W) + ' é a potência no ponto de maior corrente (perto do curto-circuito), onde $U$ é pequena. O máximo fica num ponto intermédio.' },
-            { codigo: 'potencia_maxima_como_umax_vezes_imax', valor: ab.U * cc.I, explicacao: (vt) => 'Multiplicaste a maior tensão pela maior corrente e obtiveste ' + vt(ab.U * cc.I, UN.W) + '. Esses valores não acontecem no mesmo ponto: a potência calcula-se ponto a ponto.' },
+            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.P, explicacao: (vt) => vt(ab.P, UN.W) + ' é a potência no ponto de maior resistência de carga ($R = ' + dado(ab.R) + '\\,\\Omega$, perto do circuito aberto), onde a corrente já é pequena. O máximo fica num ponto intermédio.' },
+            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.P, explicacao: (vt) => vt(cc.P, UN.W) + ' é a potência no ponto de menor resistência de carga ($R = ' + dado(cc.R) + '\\,\\Omega$, perto do curto-circuito), onde $U$ é pequena. O máximo fica num ponto intermédio.' },
+            { codigo: 'potencia_maxima_como_umax_vezes_imax', valor: ab.U * cc.I, explicacao: (vt) => 'Multiplicaste a maior diferença de potencial ($' + mil(ab.U) + '\\,\\mathrm{V}$) pela maior corrente ($' + mil(cc.I) + '\\,\\mathrm{A}$) e obtiveste ' + vt(ab.U * cc.I, UN.W) + '. Esses valores não acontecem no mesmo ponto: a potência calcula-se ponto a ponto.' },
           ];
         } else {
           exato = mx.R;
@@ -787,8 +787,8 @@ globalThis.Manual = globalThis.Manual || {};
           u = '\\Omega';
           ex = { enunciado: enunciado + 'Com que resistência de carga é máxima a potência fornecida pelo painel?', resolucao: [passoP, passoMax] };
           erros = [
-            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.R, explicacao: (vt) => 'Com ' + vt(ab.R, '\\Omega') + ' a diferença de potencial é a maior, mas a corrente é pequena: $P = ' + mil(ab.U) + ' \\times ' + mil(ab.I) + '$ não é o máximo.' },
-            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.R, explicacao: (vt) => 'Com ' + vt(cc.R, '\\Omega') + ' a corrente é a maior, mas a diferença de potencial é pequena: $P = ' + mil(cc.U) + ' \\times ' + mil(cc.I) + '$ não é o máximo.' },
+            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.R, explicacao: (vt) => 'Com ' + vt(ab.R, '\\Omega') + ' (a maior resistência de carga, perto do circuito aberto) a diferença de potencial é a maior, mas a corrente é pequena: $P = ' + mil(ab.U) + ' \\times ' + mil(ab.I) + '$ não é o máximo.' },
+            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.R, explicacao: (vt) => 'Com ' + vt(cc.R, '\\Omega') + ' (a menor resistência de carga, perto do curto-circuito) a corrente é grande, mas a diferença de potencial é pequena: $P = ' + mil(cc.U) + ' \\times ' + mil(cc.I) + '$ não é o máximo.' },
             { codigo: 'calculou_a_potencia_em_vez_da_resistencia', valor: mx.P, explicacao: (vt) => 'Obtiveste ' + vt(mx.P) + ', que é a potência máxima (em watts). Pede-se a resistência de carga desse ponto.' },
           ];
         }
