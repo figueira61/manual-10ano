@@ -34,6 +34,11 @@ test('index.html: registo.js, depois ajudas.js, depois os temas, e só depois mi
   assert.ok(pos('js/geradores/fqa/materia.js') < pos('js/miniquiz.js'), 'materia.js antes de miniquiz.js');
   assert.ok(pos('js/geradores/fqa/materia.js') < pos('js/geradores/fqa/fisica-movimentos.js'), 'fisica-movimentos.js depois de materia.js');
   assert.ok(pos('js/geradores/fqa/fisica-movimentos.js') < pos('js/miniquiz.js'), 'fisica-movimentos.js antes de miniquiz.js');
+  // Os números partilhados da Física antes dos três ficheiros que os usam.
+  for (const f of ['fisica-movimentos.js', 'fisica-eletricidade.js', 'fisica-termica.js']) {
+    assert.ok(pos('js/geradores/fqa/fisica-comum.js') < pos('js/geradores/fqa/' + f), 'fisica-comum.js antes de ' + f);
+    assert.ok(pos('js/geradores/fqa/materia.js') < pos('js/geradores/fqa/fisica-comum.js'), 'fisica-comum.js depois de materia.js');
+  }
   for (const novo of ['fisica-eletricidade.js', 'fisica-termica.js']) {
     assert.ok(pos('js/geradores/fqa/fisica-movimentos.js') < pos('js/geradores/fqa/' + novo), novo + ' depois de fisica-movimentos.js');
     assert.ok(pos('js/geradores/fqa/' + novo) < pos('js/miniquiz.js'), novo + ' antes de miniquiz.js');

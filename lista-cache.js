@@ -80,6 +80,7 @@ self.LISTA_CACHE = [
   "js/fila.js",
   "js/geradores/ajudas.js",
   "js/geradores/fqa/elementos.js",
+  "js/geradores/fqa/fisica-comum.js",
   "js/geradores/fqa/fisica-eletricidade.js",
   "js/geradores/fqa/fisica-movimentos.js",
   "js/geradores/fqa/fisica-termica.js",
@@ -135,4 +136,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'daaf6d9e44';
+self.VERSAO_CACHE = '251d835ba8';
