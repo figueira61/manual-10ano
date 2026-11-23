@@ -229,6 +229,7 @@ deu_o_numero_de_neutroes → Deu o número de neutrões em vez do pedido
 deu_o_numero_de_pares → Deu o número de pares em vez do número de eletrões
 deu_o_numero_do_ultimo_nivel → Deu o número do último nível em vez dos eletrões de valência
 deu_o_restante → Deu o que sobra depois do desconto
+deu_o_valor_de_k → Deu o valor de k em vez dos objetos com imagem k
 deu_o_volume_de_agua_a_juntar → Deu o volume de água a juntar em vez do volume a pipetar
 deu_o_volume_de_uma_mole → Deu o volume de uma mole em vez do volume pedido
 deu_os_pares_ligantes → Deu os pares ligantes em vez dos não ligantes
@@ -336,6 +337,7 @@ esqueceu_multiplicar_por_x → Esqueceu de multiplicar por x
 esqueceu_o_calor_na_primeira_lei → Esqueceu o calor na Primeira Lei
 esqueceu_o_coeficiente_da_especie → Esqueceu o coeficiente da espécie na equação
 esqueceu_o_cosseno → Esqueceu o cosseno do ângulo no trabalho
+esqueceu_o_dominio → Prolongou o conjunto-solução para fora do domínio
 esqueceu_o_fator → Não multiplicou o vetor pelo fator
 esqueceu_o_fator_2 → Esqueceu o fator 2 ao calcular a velocidade
 esqueceu_o_foton → Esqueceu o fotão nos reagentes
@@ -350,6 +352,7 @@ esqueceu_o_trabalho_do_atrito → Esqueceu o trabalho da força de atrito na som
 esqueceu_o_trabalho_na_primeira_lei → Esqueceu o trabalho na Primeira Lei
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações
 esqueceu_partido_menor → Esqueceu os quocientes do partido menos votado
+esqueceu_ponto_isolado → Esqueceu o ponto isolado em que o gráfico toca a reta y = k
 esqueceu_potencia_dissipada_no_gerador → Esqueceu a potência dissipada no gerador
 esqueceu_quadrado → Esqueceu o quadrado
 esqueceu_quadrado_da_corrente → Esqueceu o quadrado da corrente em RI²
@@ -364,14 +367,17 @@ esqueceu_ss → Esqueceu o desconto para a Segurança Social
 esqueceu_subtrair → Esqueceu de subtrair
 esqueceu_ultimo_escalao → Esqueceu o último escalão
 esqueceu_um_candidato → Esqueceu os votos de um candidato
+esqueceu_uma_solucao → Esqueceu uma das soluções de f(x) = k
 esqueceu_valor_base → Esqueceu o valor base
 excitado_como_impossivel → Julgou impossível uma configuração de um estado excitado
 excitado_julgado_de_outro_atomo → Julgou de outro átomo a configuração de um estado excitado
 excluiu_extremo → Excluiu o extremo em «no máximo»
+excluiu_pontos_de_igualdade → Deixou de fora os pontos em que f(x) = k, numa desigualdade larga
 exotermica_absorve → Julgou que uma reação exotérmica absorve energia
 expoente_em_anos → Pôs o número de anos no expoente, em vez do de períodos
 extremo_errado → Errou o extremo
 extremos_errados → Errou se os zeros pertencem ao conjunto
+extremos_trocados → Trocou os parênteses abertos e fechados
 fator_invertido → Inverteu o fator
 fator_na_ordenada → Aplicou o fator às ordenadas
 fator_nao_invertido → Não inverteu o fator
@@ -415,9 +421,11 @@ impossivel_julgado_de_outro_atomo → Julgou de outro átomo uma configuração 
 incerteza_na_casa_decimal_anterior → Pôs a incerteza na casa decimal anterior
 incerteza_na_casa_decimal_seguinte → Pôs a incerteza numa casa decimal que o mostrador não tem
 incluiu_extremo → Incluiu o extremo em «menos de»
+incluiu_pontos_de_igualdade → Incluiu os pontos em que f(x) = k, numa desigualdade estrita
 incluiu_quociente_seguinte → Incluiu um quociente a mais
 infravermelho_com_lambda_menor → Julgou o comprimento de onda do infravermelho menor do que o do visível
 intervalo_aberto → Deixou de fora o extremo, que pertence ao contradomínio
+intervalo_em_vez_de_pontos → Deu um intervalo em vez dos pontos de interseção
 intervalo_entre_extremos → Deu o intervalo entre os extremos em vez do conjunto finito
 inverso_composto → Usou juro composto num caso de juro simples
 inverso_juro_simples → Usou juro simples num caso de juro composto

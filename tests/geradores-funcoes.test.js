@@ -8,7 +8,7 @@ const FICHEIROS = [
   'js/geradores/registo.js', 'js/geradores/ajudas.js', 'js/geradores/mat-a/funcoes.js',
 ];
 const IDS = [
-  'generalidades-imagem', 'generalidades-objeto', 'generalidades-dominio-contradominio',
+  'generalidades-imagem', 'generalidades-objeto', 'generalidades-dominio-contradominio', 'generalidades-condicoes',
   'afim-zero', 'afim-declive-dois-pontos', 'afim-sinal-monotonia',
   'quadratica-vertice', 'quadratica-zeros', 'quadratica-contradominio',
   'transformacoes-vertice-transformado', 'transformacoes-expressao', 'transformacoes-efeito-a',
@@ -53,7 +53,7 @@ const amostras = (id, n, extra = {}) => {
 };
 const textosDoItem = (p) => [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.flatMap((r) => [r.passo, r.porque, r.calculo || '']), [p.verificacao.passo, p.verificacao.calculo], p.errosTipicos.map((e) => e.explicacao));
 
-test('regista os 18 geradores de funções, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
+test('regista os 19 geradores de funções, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
   const ids = G.todos().filter((d) => d.tema === 'funcoes').map((d) => d.id);
   assert.deepEqual(ids, IDS);
   for (const id of IDS) {
@@ -350,4 +350,94 @@ test('esquemas só com valores que cabem nos controlos', () => {
       else assert.ok(Math.abs(o.a) <= 3 && Math.abs(o.h) <= 5 && Math.abs(o.k) <= 5);
     }
   }
+});
+
+// ---------------------------------------------------------------- condições f(x) □ k pelo gráfico
+// Lê "$]-2, 0[ \cup \{3\}$" → [{ a, b, fa, fb }] (pontos como intervalos degenerados fechados).
+function lerCondicao(t) {
+  const s = String(t).replace(/\$/g, '');
+  if (s === '\\emptyset') return [];
+  return s.split(' \\cup ').flatMap((parte) => {
+    const c = parte.match(/^\\\{(.*)\\\}$/);
+    if (c) return c[1].split(', ').map((x) => { const v = lerNumero(x); return { a: v, b: v, fa: true, fb: true }; });
+    const m = parte.match(/^([[\]])(.+), (.+)([[\]])$/);
+    assert.ok(m, 'não é intervalo: ' + parte);
+    const extremo = (x) => (x === '-\\infty' ? -Infinity : x === '+\\infty' ? Infinity : lerNumero(x));
+    return [{ a: extremo(m[2]), b: extremo(m[3]), fa: m[1] === '[', fb: m[4] === ']' }];
+  });
+}
+const pertence = (I, x) => I.some((i) => (i.fa ? x >= i.a : x > i.a) && (i.fb ? x <= i.b : x < i.b));
+function fDe(pontos, x) {
+  for (let i = 0; i + 1 < pontos.length; i++) {
+    const [x1, y1] = pontos[i], [x2, y2] = pontos[i + 1];
+    if (x >= x1 && x <= x2) return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
+  }
+  return NaN;
+}
+const CUMPRE = { '=': (d) => Math.abs(d) < 1e-9, '<': (d) => d < -1e-9, '>': (d) => d > 1e-9, '<=': (d) => d < 1e-9, '>=': (d) => d > -1e-9 };
+
+test('condições: a opção certa é o conjunto dos x do domínio que cumprem a condição (testado de 0,25 em 0,25)', () => {
+  const vistos = new Set();
+  for (const p of amostras('generalidades-condicoes', 120)) {
+    const { pontos, sg, k } = p.dados;
+    vistos.add(sg);
+    assert.equal(p.opcoes.length, 4);
+    assert.equal(new Set(p.opcoes).size, 4);
+    const I = lerCondicao(certa(p));
+    const x0 = pontos[0][0], xn = pontos[pontos.length - 1][0];
+    for (let x = x0; x <= xn + 1e-9; x += 0.25) assert.equal(pertence(I, x), CUMPRE[sg](fDe(pontos, x) - k), certa(p) + ' em x = ' + x);
+    if (sg !== '=') {
+      // as opções erradas não cumprem a condição em algum ponto (ou dizem respeito a x fora do domínio)
+      for (const o of p.opcoes.filter((_, i) => i !== p.correta)) assert.notEqual(o, certa(p));
+    }
+    assert.match(p.enunciado, /Qual é o conjunto-solução de \$f\(x\) (=|<|>|\\leq|\\geq) -?\d\$\?$/);
+  }
+  assert.deepEqual([...vistos].sort(), ['<', '<=', '=', '>', '>=']);
+});
+
+test('condições: a figura do enunciado não revela a solução; o esquema da resposta sim', () => {
+  for (const p of amostras('generalidades-condicoes', 30)) {
+    assert.equal(p.figuraEnunciado.id, 'condicoes');
+    assert.deepEqual(Object.keys(p.figuraEnunciado.opcoes).sort(), ['k', 'modo', 'pontos']);
+    assert.equal(p.figuraEnunciado.opcoes.modo, 'enunciado');
+    assert.deepEqual(p.figuraEnunciado.opcoes.pontos, p.dados.pontos);
+    assert.deepEqual(p.esquema, { id: 'condicoes', opcoes: { pontos: p.dados.pontos, sinal: p.dados.sg, k: p.dados.k } });
+  }
+});
+
+test('condições: cada distrator é um erro real, com o valor da opção na explicação', () => {
+  const contagem = {};
+  for (const p of amostras('generalidades-condicoes', 120)) {
+    const { sg } = p.dados;
+    for (const e of p.errosTipicos) {
+      contagem[e.codigo] = (contagem[e.codigo] || 0) + 1;
+      assert.ok(e.explicacao.includes(p.opcoes[e.opcao]), e.codigo + ': ' + e.explicacao + ' vs ' + p.opcoes[e.opcao]);
+      assert.ok(e.explicacao.includes(certa(p)), 'fim com a resposta: ' + e.explicacao);
+    }
+    const codigos = p.errosTipicos.map((e) => e.codigo);
+    if (sg === '<' || sg === '>') assert.ok(!codigos.includes('excluiu_pontos_de_igualdade') && !codigos.includes('esqueceu_ponto_isolado'));
+    if (sg === '<=' || sg === '>=') assert.ok(!codigos.includes('incluiu_pontos_de_igualdade'));
+    if (sg === '=') assert.ok(codigos.every((c) => ['esqueceu_uma_solucao', 'calculou_imagem', 'intervalo_em_vez_de_pontos', 'deu_o_valor_de_k'].includes(c)), codigos.join());
+    // incluir os pontos de f(x) = k numa desigualdade estrita dá a solução da larga
+    const inc = erro(p, 'incluiu_pontos_de_igualdade');
+    if (inc) {
+      const I = lerCondicao(p.opcoes[inc.opcao]);
+      const { pontos, k } = p.dados;
+      const x0 = pontos[0][0], xn = pontos[pontos.length - 1][0];
+      for (let x = x0; x <= xn + 1e-9; x += 0.25) assert.equal(pertence(I, x), CUMPRE[sg + '='](fDe(pontos, x) - p.dados.k));
+      void k;
+    }
+  }
+  for (const c of ['regiao_trocada', 'extremos_trocados', 'incluiu_pontos_de_igualdade', 'excluiu_pontos_de_igualdade', 'esqueceu_uma_solucao', 'intervalo_em_vez_de_pontos']) {
+    assert.ok(contagem[c] > 20, c + ': ' + contagem[c]);
+  }
+});
+
+test('condições: o 3 fica fechado no extremo do domínio com <; ∅ e pontos isolados escritos como no manual', () => {
+  let fechadoNoExtremo = 0;
+  for (const p of amostras('generalidades-condicoes', 120).filter((q) => q.dados.sg === '<' || q.dados.sg === '>')) {
+    const xn = p.dados.pontos[p.dados.pontos.length - 1][0];
+    if (certa(p).endsWith(', ' + xn + ']$')) fechadoNoExtremo++;
+  }
+  assert.ok(fechadoNoExtremo > 10, 'extremo do domínio fechado: ' + fechadoNoExtremo);
 });

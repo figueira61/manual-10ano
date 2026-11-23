@@ -427,6 +427,191 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
+  // Condições f(x) □ k lidas no gráfico de uma função afim por troços (polilinha de domínio fechado).
+  // A resposta vem de calc().resolverCondicao; a verificação testa a condição em todos os múltiplos de 0,5
+  // do domínio (os cortes são inteiros, por isso cada meio inteiro está no interior de uma parte).
+  const SIMB_COND = { '=': '=', '<': '<', '>': '>', '<=': '\\leq', '>=': '\\geq' };
+  const ESTRITO = { '<': '<=', '>': '>=' };
+  const LARGO = { '<=': '<', '>=': '>' };
+  const OPOSTO = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' };
+  // { intervalos: [{a, b, fechadoA, fechadoB}], pontosIsolados } → LaTeX (intervalos e {a}; só pontos: um conjunto).
+  function solTex(sol) {
+    if (!sol.intervalos.length) return conjTex(sol.pontosIsolados);
+    const partes = sol.intervalos.map((i) => ({ x: i.a, t: intervaloTex({ de: i.a, ate: i.b, fechadoDe: i.fechadoA, fechadoAte: i.fechadoB }) }))
+      .concat(sol.pontosIsolados.map((x) => ({ x, t: '\\{' + texQ(x) + '\\}' })))
+      .sort((u, v) => u.x - v.x);
+    return partes.map((p) => p.t).join(' \\cup ');
+  }
+  const opCond = (sol) => '$' + solTex(sol) + '$';
+  const vazia = (sol) => !sol.intervalos.length && !sol.pontosIsolados.length;
+  // f num ponto do domínio (interpolação no segmento que o contém).
+  function fPoli(P, x) {
+    for (let i = 0; i + 1 < P.length; i++) {
+      if (x >= P[i].x && x <= P[i + 1].x) return limpo(P[i].y + ((P[i + 1].y - P[i].y) * (x - P[i].x)) / (P[i + 1].x - P[i].x));
+    }
+    return NaN;
+  }
+  const TESTE_COND = { '=': (d) => d === 0, '<': (d) => d < 0, '>': (d) => d > 0, '<=': (d) => d <= 0, '>=': (d) => d >= 0 };
+  // Outro método: testa a condição em x0, x0 + 0,5, …, xn e junta as partes seguidas que a satisfazem.
+  function condicaoPorAmostragem(P, sg, k) {
+    const x0 = P[0].x, xn = P[P.length - 1].x;
+    const marcas = [];
+    for (let t = x0; t <= xn + 1e-9; t = limpo(t + 0.5)) marcas.push({ t, sim: TESTE_COND[sg](limpo(fPoli(P, t) - k)), inteiro: ehInteiro(t) });
+    const intervalos = [], pontosIsolados = [];
+    for (let i = 0; i < marcas.length;) {
+      if (!marcas[i].sim) { i++; continue; }
+      let j = i;
+      while (j + 1 < marcas.length && marcas[j + 1].sim) j++;
+      if (i === j && marcas[i].inteiro) pontosIsolados.push(marcas[i].t);
+      else {
+        // corrida a começar (ou acabar) num meio inteiro: o extremo inteiro vizinho fica de fora
+        const ia = marcas[i].inteiro, ib = marcas[j].inteiro;
+        intervalos.push({ a: ia ? marcas[i].t : limpo(marcas[i].t - 0.5), b: ib ? marcas[j].t : limpo(marcas[j].t + 0.5), fechadoA: ia, fechadoB: ib });
+      }
+      i = j + 1;
+    }
+    return { intervalos, pontosIsolados };
+  }
+  // «a, b e c»
+  const enumerar = (l) => (l.length < 2 ? l.join('') : l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1]);
+  const ptsTex = (P) => enumerar(P.map((p) => '$' + ptTex(p.x, p.y) + '$'));
+  const listaX = (xs) => enumerar(xs.map((x) => '$x = ' + texQ(x) + '$'));
+
+  function condicaoGrafico(rng, contexto) {
+    const n = inteiro(rng, 4, 5);
+    const P = [{ x: inteiro(rng, -6, -3), y: inteiro(rng, -4, 4) }];
+    while (P.length < n) {
+      const x = P[P.length - 1].x + escolher(rng, [1, 2, 2, 3]);
+      let y;
+      do y = inteiro(rng, -4, 4); while (y === P[P.length - 1].y);
+      P.push({ x, y });
+    }
+    const x0 = P[0].x, xn = P[n - 1].x;
+    if (xn > 6 || xn - x0 < 6) return null;
+    const k = inteiro(rng, -3, 3);
+    const sg = contexto === 'equacao' ? '=' : contexto === 'estrita' ? escolher(rng, ['<', '>']) : escolher(rng, ['<=', '>=']);
+    const C = calc();
+    const iguais = C.resolverCondicao(P, '=', k);
+    const zs = iguais.pontosIsolados;
+    // Cortes inteiros (legíveis no gráfico), pelo menos 2 pontos com f(x) = k.
+    if (iguais.intervalos.length || zs.length < 2 || !zs.every(ehInteiro)) return null;
+    const certo = C.resolverCondicao(P, sg, k);
+    const tudo = certo.intervalos.length === 1 && certo.intervalos[0].a === x0 && certo.intervalos[0].b === xn;
+    if (vazia(certo) || tudo) return null;
+
+    const D = '[' + tex(x0) + ', ' + tex(xn) + ']';
+    const cond = 'f(x) ' + SIMB_COND[sg] + ' ' + tex(k);
+    const fim = ' O conjunto-solução é $' + solTex(certo) + '$.';
+    const vertices = new Set(P.map((p) => p.x));
+    const meioSeg = zs.filter((z) => !vertices.has(z));
+    const erros = [];
+    if (sg === '=') {
+      // Falta uma solução: de preferência a que fica a meio de um segmento (a mais difícil de ler).
+      const falta = meioSeg.length ? meioSeg[meioSeg.length - 1] : zs[zs.length - 1];
+      const semUma = { intervalos: [], pontosIsolados: zs.filter((z) => z !== falta) };
+      erros.push({ codigo: 'esqueceu_uma_solucao', texto: opCond(semUma), explicacao: 'Em $' + solTex(semUma) + '$ falta $x = ' + texQ(falta) + '$. Aí o gráfico também corta a reta $y = ' + tex(k) + '$, ' + (vertices.has(falta) ? 'num vértice.' : 'a meio de um segmento.') + fim });
+      const fk = k >= x0 && k <= xn ? fPoli(P, k) : NaN;
+      if (ehInteiro(fk)) {
+        const S = { intervalos: [], pontosIsolados: [fk] };
+        erros.push({ codigo: 'calculou_imagem', texto: opCond(S), explicacao: 'Escreveste $' + solTex(S) + '$, com a imagem $f(' + tex(k) + ') = ' + tex(fk) + '$. Pede-se o contrário, os objetos $x$ cuja imagem é $' + tex(k) + '$.' + fim });
+      }
+      const I = { intervalos: [{ a: zs[0], b: zs[zs.length - 1], fechadoA: true, fechadoB: true }], pontosIsolados: [] };
+      erros.push({ codigo: 'intervalo_em_vez_de_pontos', texto: opCond(I), explicacao: 'Escreveste o intervalo $' + solTex(I) + '$, mas entre $' + tex(zs[0]) + '$ e $' + tex(zs[zs.length - 1]) + '$ o gráfico afasta-se da reta. Só nos pontos de interseção é que $f(x) = ' + tex(k) + '$.' + fim });
+      const K = { intervalos: [], pontosIsolados: [k] };
+      erros.push({ codigo: 'deu_o_valor_de_k', texto: opCond(K), explicacao: 'Escreveste $' + solTex(K) + '$, que é o valor da imagem. As soluções são as abcissas dos pontos em que o gráfico corta a reta $y = ' + tex(k) + '$.' + fim });
+    } else {
+      const largo = sg.length === 2;
+      const acima = sg[0] === '>';
+      const lado = (cima) => (cima ? 'acima' : 'abaixo');
+      const nos = ' (' + listaX(zs) + ')';
+      const principais = [];
+      const R = C.resolverCondicao(P, OPOSTO[sg], k);
+      if (!vazia(R)) principais.push({ codigo: 'regiao_trocada', texto: opCond(R), explicacao: 'Escolheste $' + solTex(R) + '$, onde o gráfico fica ' + lado(!acima) + ' da reta $y = ' + tex(k) + '$' + (largo ? ' ou sobre ela' : '') + '. Esse é o conjunto-solução de $f(x) ' + SIMB_COND[OPOSTO[sg]] + ' ' + tex(k) + '$. Para $' + cond + '$ procura-se onde o gráfico fica ' + lado(acima) + (largo ? ' da reta ou sobre ela.' : ' da reta.') + fim });
+      const T = { intervalos: certo.intervalos.map((i) => ({ a: i.a, b: i.b, fechadoA: !i.fechadoA, fechadoB: !i.fechadoB })), pontosIsolados: certo.pontosIsolados };
+      const tocaDominio = certo.intervalos.some((i) => i.a === x0 || i.b === xn);
+      principais.push({ codigo: 'extremos_trocados', texto: opCond(T), explicacao: 'Em $' + solTex(T) + '$ trocaste os parênteses abertos e fechados. Nos pontos em que $f(x) = ' + tex(k) + '$ o parêntese é ' + (largo ? 'fechado, porque a desigualdade é larga.' : 'aberto, porque a desigualdade é estrita.') + (tocaDominio ? ' Nos extremos do domínio que satisfazem a condição, o parêntese é fechado.' : '') + fim });
+      if (!largo) {
+        const W = C.resolverCondicao(P, ESTRITO[sg], k);
+        principais.push({ codigo: 'incluiu_pontos_de_igualdade', texto: opCond(W), explicacao: 'Em $' + solTex(W) + '$ incluíste os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade não serve, por isso esses pontos ficam de fora. $' + solTex(W) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[ESTRITO[sg]] + ' ' + tex(k) + '$.' + fim });
+      } else {
+        const E = C.resolverCondicao(P, LARGO[sg], k);
+        if (!vazia(E)) principais.push({ codigo: 'excluiu_pontos_de_igualdade', texto: opCond(E), explicacao: 'Em $' + solTex(E) + '$ deixaste de fora os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade também serve, por isso esses pontos entram. $' + solTex(E) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[LARGO[sg]] + ' ' + tex(k) + '$.' + fim });
+      }
+      erros.push(...baralhar(rng, principais));
+      if (largo && certo.pontosIsolados.length && certo.intervalos.length) {
+        const S = { intervalos: certo.intervalos, pontosIsolados: [] };
+        erros.push({ codigo: 'esqueceu_ponto_isolado', texto: opCond(S), explicacao: 'Em $' + solTex(S) + '$ falta' + (certo.pontosIsolados.length > 1 ? 'm os pontos isolados ' : ' o ponto isolado ') + listaX(certo.pontosIsolados) + ', em que o gráfico só toca a reta $y = ' + tex(k) + '$. Aí $f(x) = ' + tex(k) + '$, que satisfaz $' + cond + '$.' + fim });
+      }
+      if (tocaDominio) {
+        const S = { intervalos: certo.intervalos.map((i) => ({ a: i.a === x0 ? -Infinity : i.a, b: i.b === xn ? Infinity : i.b, fechadoA: i.a === x0 ? false : i.fechadoA, fechadoB: i.b === xn ? false : i.fechadoB })), pontosIsolados: certo.pontosIsolados };
+        erros.push({ codigo: 'esqueceu_o_dominio', texto: opCond(S), explicacao: 'Em $' + solTex(S) + '$ prolongaste a solução até ao infinito, mas $f$ só está definida em $' + D + '$. O conjunto-solução não sai do domínio.' + fim });
+      }
+    }
+
+    // Resolução: a reta, os pontos com f(x) = k (vértices ou interior de um segmento) e a leitura.
+    const cortesTex = meioSeg.map((z) => {
+      const i = P.findIndex((p, j) => j + 1 < P.length && p.x < z && P[j + 1].x > z);
+      const A = P[i], B = P[i + 1];
+      let num = k - A.y, den = B.y - A.y;
+      if (den < 0) { num = -num; den = -den; }
+      const dx = B.x - A.x;
+      const xa = A.x === 0 ? 'x' : 'x ' + (A.x < 0 ? '+ ' + tex(-A.x) : '- ' + tex(A.x));
+      const esq = dx === 1 ? xa : '\\dfrac{' + xa + '}{' + tex(dx) + '}';
+      const dir = den === 1 ? tex(num) : '\\dfrac{' + tex(num) + '}{' + tex(den) + '}';
+      return { A, B, t: esq + ' = ' + dir + ' \\Leftrightarrow x = ' + tex(z) };
+    });
+    const noVertice = zs.filter((z) => vertices.has(z));
+    const resolucao = [
+      { passo: 'Traçar a reta $y = ' + tex(k) + '$', porque: 'A condição compara cada imagem $f(x)$ com $' + tex(k) + '$, por isso interessa saber onde o gráfico fica acima da reta, abaixo dela ou sobre ela.' },
+    ];
+    if (noVertice.length) resolucao.push({ passo: 'Pontos do gráfico sobre a reta', porque: 'Há vértices com ordenada $' + tex(k) + '$, por isso $f(x) = ' + tex(k) + '$ em ' + listaX(noVertice) + '.' });
+    cortesTex.forEach((c) => resolucao.push({ passo: 'Cortar a reta a meio de um segmento', porque: 'No segmento de $' + ptTex(c.A.x, c.A.y) + '$ a $' + ptTex(c.B.x, c.B.y) + '$, a variação de $x$ é proporcional à variação de $y$.', calculo: c.t }));
+    if (sg === '=') {
+      resolucao.push({ passo: 'Juntar as abcissas', porque: 'As soluções de $f(x) = ' + tex(k) + '$ são as abcissas dos pontos de interseção do gráfico com a reta.', calculo: '\\text{C.S.} = ' + solTex(certo) });
+    } else {
+      const largo = sg.length === 2;
+      const ladoTxt = sg[0] === '>' ? 'acima' : 'abaixo';
+      const domTxt = certo.intervalos.some((i) => i.a === x0 || i.b === xn) ? ' Os extremos do domínio $' + tex(x0) + '$ e $' + tex(xn) + '$ só entram se satisfizerem a condição, e então o parêntese é fechado.' : '';
+      resolucao.push({ passo: 'Ler o conjunto-solução no eixo $Ox$', porque: 'Procuram-se os $x$ em que o gráfico fica ' + ladoTxt + ' da reta' + (largo ? ' ou sobre ela. Os pontos em que $f(x) = ' + tex(k) + '$ entram (parêntese fechado).' : '. Os pontos em que $f(x) = ' + tex(k) + '$ ficam de fora (parêntese aberto).') + domTxt, calculo: '\\text{C.S.} = ' + solTex(certo) });
+    }
+
+    // Verificação: um valor de teste em cada parte entre cortes seguidos e nos cortes.
+    const cortes = [...new Set([x0, xn, ...zs])].sort((a, b) => a - b);
+    const testes = [];
+    for (let i = 0; i + 1 < cortes.length; i++) {
+      const t = cortes[i + 1] - cortes[i] >= 2 ? cortes[i] + 1 : limpo((cortes[i] + cortes[i + 1]) / 2);
+      const v = fPoli(P, t);
+      testes.push('f' + argQ(t) + ' = ' + texQ(v) + (v > k ? ' > ' : ' < ') + tex(k));
+    }
+    const porAmostragem = condicaoPorAmostragem(P, sg, k);
+    const ex = {
+      enunciado: 'Na figura está o gráfico da função $f$, de domínio $' + D + '$, formado pelos segmentos de reta que unem os pontos ' + ptsTex(P) + '. Também está traçada a reta $y = ' + tex(k) + '$. Qual é o conjunto-solução de $' + cond + '$?',
+      resolucao,
+      verificacao: { passo: 'Confirmar com um valor de teste entre cada dois cortes seguidos', calculo: '\\begin{array}{l} ' + testes.join(',\\quad ') + ' \\\\ f(x) = ' + tex(k) + ' \\text{ em } x \\in ' + conjTex(zs) + ' \\end{array}', bloco: true },
+      dados: { contexto, pontos: P.map((p) => [p.x, p.y]), sg, k },
+      figuraEnunciado: { id: 'condicoes', opcoes: { pontos: P.map((p) => [p.x, p.y]), k, modo: 'enunciado' } },
+      esquema: { id: 'condicoes', opcoes: { pontos: P.map((p) => [p.x, p.y]), sinal: sg, k } },
+    };
+    return fecharTexto(rng, ex, opCond(certo), erros, opCond(porAmostragem));
+  }
+
+  registar({
+    subtema: 'generalidades', tipo: 'condicoes', nome: 'Condições f(x) = k, f(x) < k, f(x) > k pelo gráfico',
+    formatos: ['escolha'], contextos: ['equacao', 'estrita', 'larga'],
+    gerar(semente, { contexto, rng }) {
+      return tentar(() => condicaoGrafico(rng, contexto));
+    },
+    verificarIndependente(p) {
+      const { pontos, sg, k } = p.dados;
+      const P = pontos.map(([x, y]) => ({ x, y }));
+      return chave(p.opcoes[p.correta]) === chave(opCond(condicaoPorAmostragem(P, sg, k)));
+    },
+    limites(p) {
+      const { pontos, k } = p.dados;
+      return pontos.length >= 4 && dentro(pontos.flat(), 6) && Math.abs(k) <= 3;
+    },
+  });
+
   // ================================================================ afim
 
   // Zero de f(x) = mx + b, escrita mx + b (reduzida) ou b + mx (constante primeiro).
