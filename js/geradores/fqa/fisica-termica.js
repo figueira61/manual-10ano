@@ -167,7 +167,7 @@ globalThis.Manual = globalThis.Manual || {};
   const PORQUE_MEC = {
     conducao: 'A condução precisa de contacto: a energia passa de partícula em partícula, por colisões, sem deslocação de matéria.',
     conveccao: 'A convecção só acontece em fluidos (líquidos e gases), com deslocação do próprio fluido.',
-    radiacao: 'A radiação transfere energia por ondas eletromagnéticas, sem contacto nem meio material, mas aqui não é o mecanismo principal.',
+    radiacao: 'A radiação transfere energia por ondas eletromagnéticas, sem contacto nem meio material, mas não é o mecanismo principal nesta situação.',
   };
   // Códigos escritos por extenso (a leitura estática dos códigos, no painel e nos testes, só vê literais).
   const CODIGO_MEC = {
