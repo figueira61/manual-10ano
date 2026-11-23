@@ -131,7 +131,7 @@ Manual.esquemas.registar('fqa-transferencias', {
       zonaTexto.appendChild(dl);
       zonaTexto.appendChild(criar('p', 'esq-legenda', equilibrio
         ? 'Quando as temperaturas são iguais, o sistema está em equilíbrio térmico e não há calor transferido em termos líquidos.'
-        : 'O calor passa espontaneamente do corpo mais quente para o mais frio, e a transferência pára quando as temperaturas se igualam (equilíbrio térmico). Baixa a temperatura até ' + fmt(T_FRIO) + ' °C para o veres.'));
+        : 'O calor passa espontaneamente do corpo mais quente para o mais frio, e deixa de haver transferência quando as temperaturas se igualam (equilíbrio térmico). Baixa a temperatura até ' + fmt(T_FRIO) + ' °C para o veres.'));
     }
 
     const aoTecla = (ev) => {
