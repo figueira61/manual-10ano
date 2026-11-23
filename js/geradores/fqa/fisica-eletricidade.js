@@ -178,7 +178,8 @@ globalThis.Manual = globalThis.Manual || {};
           };
           erros = [
             { codigo: 'corrente_em_miliamperes', valor: R * ImA, explicacao: (vt) => 'Usaste a corrente em miliamperes e obtiveste ' + vt(R * ImA, UN.V) + '. No SI a corrente está em amperes ($' + tex(ImA) + '\\,\\mathrm{mA} = ' + tex(I, 4) + '\\,\\mathrm{A}$).' },
-            { codigo: 'dividiu_em_vez_de_multiplicar', valor: R / I, explicacao: (vt) => 'Dividiste $R$ por $I$ e obtiveste ' + vt(R / I) + '. De $R = U/I$ vem $U = R I$: multiplica-se.' },
+            // só quando fica na escala da resposta (até 10³ vezes), para não ser um valor absurdo
+            { codigo: 'dividiu_em_vez_de_multiplicar', valor: R / I <= 1000 * Uv ? R / I : NaN, explicacao: (vt) => 'Dividiste $R$ por $I$ e obtiveste ' + vt(R / I) + '. De $R = U/I$ vem $U = R I$: multiplica-se.' },
           ];
           verificacao = () => ({ passo: 'Voltar à corrente, $I = U/R$ (com $U$ por arredondar): tem de dar a corrente dada', calculo: 'I = \\dfrac{' + texI(Uv) + '}{' + tex(R) + '}' + eqI(Uv / R) + '\\,\\mathrm{A} = ' + tex(ImA) + '\\,\\mathrm{mA}', valor: (R * ImA) / 1000 });
         } else {
@@ -417,7 +418,7 @@ globalThis.Manual = globalThis.Manual || {};
             };
             erros = [
               { codigo: 'potencia_em_watts_no_kwh', valor: P * th, explicacao: (vt) => 'Usaste a potência em watts e obtiveste ' + vt(P * th) + ' (são watts-hora). Para kWh, a potência entra em kW.' },
-              { codigo: 'tempo_em_minutos', valor: kW * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(kW * tmin, UN.kWh) + '. Para kWh, o tempo entra em horas.' },
+              { codigo: 'tempo_em_minutos_em_vez_de_horas', valor: kW * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(kW * tmin, UN.kWh) + '. Para kWh, o tempo entra em horas.' },
               { codigo: 'confundiu_potencia_com_energia', valor: kW, explicacao: (vt) => vt(kW) + ' é a potência do aparelho (em kW), não a energia. A energia é a potência vezes o tempo: $E = P\\,\\Delta t$.' },
               { codigo: 'dividiu_em_vez_de_multiplicar', valor: kW / th, explicacao: (vt) => 'Dividiste a potência pelo tempo e obtiveste ' + vt(kW / th) + '. A energia é a potência vezes o tempo: $E = P\\,\\Delta t$.' },
             ];
@@ -682,7 +683,8 @@ globalThis.Manual = globalThis.Manual || {};
           erros = [
             { codigo: 'rendimento_maior_do_que_1', valor: (eps / U) * 100, explicacao: (vt) => 'Calculaste $\\varepsilon / U$ e obtiveste ' + vt((eps / U) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %: $\\eta = U / \\varepsilon$.' },
             { codigo: 'deu_a_fracao_dissipada', valor: (rI / eps) * 100, explicacao: (vt) => vt((rI / eps) * 100, UN.pct) + ' é a fração da potência dissipada dentro do gerador, $r I / \\varepsilon$. O rendimento é a fração útil, $U / \\varepsilon$.' },
-            { codigo: 'somou_queda_de_tensao_interna', valor: ((eps + rI) / eps) * 100, explicacao: (vt) => 'Usaste $U = \\varepsilon + r I$ e obtiveste ' + vt(((eps + rI) / eps) * 100, UN.pct) + ', mais de 100 %, o que é impossível. $U = \\varepsilon - r I$.' },
+            // um só erro acima de 100 % por item (regra 3): o outro distrator é real e fica abaixo de 100 %
+            { codigo: 'esqueceu_quadrado_da_corrente', valor: r < eps ? (1 - r / eps) * 100 : NaN, explicacao: (vt) => 'Usaste $r I$ em vez de $r I^2$ na potência dissipada, $\\eta = (\\varepsilon I - r I)/(\\varepsilon I)$, e obtiveste ' + vt((1 - r / eps) * 100, UN.pct) + '. A potência dissipada na resistência interna é $r I^2$.' },
           ];
           verificacao = () => ({ passo: 'Pelas potências: $\\eta = \\dfrac{\\varepsilon I - r I^2}{\\varepsilon I}$', calculo: '\\eta = \\dfrac{' + tex(Pt) + ' - ' + tex(Pd) + '}{' + tex(Pt) + '} \\times 100' + eqN(((Pt - Pd) / Pt) * 100) + '\\,\\%', valor: Fis().gerador({ epsilon: eps, r, Rext: U / I }).rendimento * 100 });
         } else if (contexto === 'potencia-util') {

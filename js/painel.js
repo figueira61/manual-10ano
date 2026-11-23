@@ -895,6 +895,7 @@ globalThis.Manual = globalThis.Manual || {};
     potencia_maxima_como_umax_vezes_imax: 'Multiplicou a maior tensão pela maior corrente',
     calculou_a_potencia_em_vez_da_resistencia: 'Deu a potência máxima em vez da resistência de carga',
     deu_a_potencia_da_radiacao_incidente: 'Deu a potência da radiação incidente em vez da elétrica',
+    tempo_em_minutos_em_vez_de_horas: 'Usou o tempo em minutos em vez de horas no cálculo em kWh',
   };
 
   function humanizarErro(codigo) {

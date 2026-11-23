@@ -26,7 +26,7 @@ const PARTILHADOS = {
   multiplicou_em_vez_de_dividir: 'multiplicou onde devia dividir (abcissa pelo fator, picómetros por 1000)',
   dividiu_em_vez_de_multiplicar: 'dividiu onde devia multiplicar (quantidade pela massa molar, R por I)',
   massa_em_gramas: 'usou a massa em gramas em vez de quilogramas',
-  tempo_em_minutos: 'usou o tempo em minutos onde devia usar segundos (ou horas)',
+  tempo_em_minutos: 'usou o tempo em minutos onde devia usar segundos',
   confundiu_potencia_com_energia: 'deu a potência em vez da energia (faltou multiplicar pelo tempo)',
   rendimento_maior_do_que_1: 'obteve um rendimento acima de 100 % (dividiu ao contrário)',
   deu_a_fracao_dissipada: 'deu a fração dissipada em vez do rendimento',

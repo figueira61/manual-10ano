@@ -748,6 +748,7 @@ taxa_mal_convertida → Não converteu a taxa de percentagem para decimal
 taxa_unica_ultimo_escalao → Aplicou a taxa do último escalão a todo o rendimento
 temperatura_contrai_o_gas → Disse que aquecer um gás o faz contrair
 tempo_em_minutos → Usou o tempo em minutos em vez de segundos
+tempo_em_minutos_em_vez_de_horas → Usou o tempo em minutos em vez de horas no cálculo em kWh
 terminacao_eno_num_alcano → Usou a terminação -eno num alcano
 terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 termografia_com_luz_visivel → Julgou que a termografia usa a luz visível refletida

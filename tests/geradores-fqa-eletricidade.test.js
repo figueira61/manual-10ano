@@ -2,7 +2,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { carregarTudo } = require('../tools/verificar-geradores.js');
-const { bateria, itensDe } = require('./geradores-fisica-comum.js');
+const { bateria, itensDe, nucleo, lerTex } = require('./geradores-fisica-comum.js');
 
 const M = carregarTudo();
 require('../js/quiz.js');
@@ -119,4 +119,22 @@ test('balanço do gerador: ε I = U I + r I² e nenhum rendimento passa de 100 %
       for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/);
     }
   }
+  // no máximo uma opção impossível (> 100 %) por item de escolha
+  for (const p of itens('gerador-balanco', 300, ['escolha'])) {
+    if (p.contexto !== 'rendimento') continue;
+    assert.ok(p.opcoes.map((o) => lerTex(nucleo(o))).filter((v) => v > 100).length <= 1, p.opcoes.join(' ; '));
+  }
+});
+
+test('kWh: o tempo em minutos em vez de horas tem código próprio (tempo_em_minutos é só minutos em vez de segundos)', () => {
+  const codigos = new Set();
+  for (const p of itens('circuitos-potencia-energia', 80)) {
+    for (const e of p.errosTipicos) codigos.add(p.contexto + ':' + e.codigo);
+  }
+  assert.ok(codigos.has('energia-kwh:tempo_em_minutos_em_vez_de_horas'));
+  assert.ok(![...codigos].includes('energia-kwh:tempo_em_minutos'));
+});
+
+test('lei de Ohm (tensão): nenhum erro típico passa de 10³ vezes a resposta', () => {
+  for (const p of itens('circuitos-lei-ohm', 200)) if (p.contexto === 'tensao') for (const e of p.errosTipicos) assert.ok(Math.abs(e.valor) <= 1000 * p.resposta + 1e-9, e.codigo + ' ' + e.valor);
 });
