@@ -138,13 +138,26 @@ function abrirApp(hash, fqaDisponivel = true) {
   return principal;
 }
 
-test('app: a página da disciplina fqa (disponível) mostra os temas e "Física — em breve" sem ligação', () => {
+test('app: a página da disciplina fqa (disponível, sem porFazer) mostra os temas e não mostra a nota "em breve"', () => {
   const principal = abrirApp('#/fqa');
   assert.match(principal.textContent, /Física e Química A/);
   assert.match(principal.textContent, /Elementos químicos e sua organização/);
-  const itens = Array.from(principal.querySelectorAll('li')).filter((li) => li.textContent === 'Física — em breve');
-  assert.equal(itens.length, 1);
-  assert.equal(itens[0].querySelectorAll('a').length, 0);
+  assert.doesNotMatch(principal.textContent, /em breve/);
+  assert.equal(Array.from(principal.querySelectorAll('li')).filter((li) => li.textContent === 'Física — em breve').length, 0);
+});
+
+test('app: com porFazer forçado no índice, a página da disciplina mostra "Física — em breve" sem ligação', () => {
+  const fqa = Manual.indice.find((d) => d.id === 'fqa');
+  const antes = fqa.porFazer;
+  fqa.porFazer = ['Física'];
+  try {
+    const principal = abrirApp('#/fqa');
+    const itens = Array.from(principal.querySelectorAll('li')).filter((li) => li.textContent === 'Física — em breve');
+    assert.equal(itens.length, 1);
+    assert.equal(itens[0].querySelectorAll('a').length, 0);
+  } finally {
+    if (antes === undefined) delete fqa.porFazer; else fqa.porFazer = antes;
+  }
 });
 
 test('app: com fqa forçada indisponível, o tema e o subtema dão "Página não encontrada"; a disciplina diz "Em breve"', () => {
