@@ -477,6 +477,7 @@ a.cartao:hover { transform: translateY(-2px); box-shadow: var(--sombra); border-
   color: var(--texto);
   font: inherit;
 }
+.ajuda-formato { margin: 6px 0 0; color: var(--texto-suave); font-size: 0.85rem; }
 .erro-tipico { background: var(--aviso-fundo); border-left: 4px solid var(--cor-5); border-radius: 4px; padding: 8px 12px; margin: 8px 0; }
 .erro-tipico .feedback-titulo { margin-top: 0; }
 .aviso-erro { color: var(--errado); font-weight: 600; }

@@ -275,6 +275,7 @@ function doisAlgarismos(n) {
 //   cronometro: boolean (teste): mm:ss a contar.
 //   ligacaoRever(pergunta) -> href|null: "Rever no manual" no feedback (treino) e na revisão (teste).
 //   fim(cartao, certas, total, respostas): substitui o conteúdo do cartão final (sem "Repetir").
+let contadorAjudaFormato = 0; // ids únicos para aria-describedby
 Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoes) {
   const R = Manual.render;
   const o = opcoes || {};
@@ -388,8 +389,14 @@ Manual.quiz.montar = function (el, perguntasOuFn, aoTerminar, aoResponder, opcoe
       campo.className = 'campo-numero';
       campo.autocomplete = 'off';
       campo.setAttribute('aria-label', 'Resposta');
+      campo.setAttribute('inputmode', 'text'); // não 'decimal': o teclado do iOS não tem «−» nem «e»
       grupo.appendChild(campo);
       if (pergunta.unidade) grupo.appendChild(R.criar('span', 'unidade', ' ' + pergunta.unidade));
+      contadorAjudaFormato += 1;
+      const ajudaFormato = R.criar('p', 'ajuda-formato', 'Escreve só o número (com vírgula ou ponto). Notação científica: 6,02e23 · 6,02*10^23 · 6,02×10²³');
+      ajudaFormato.id = 'ajuda-formato-' + contadorAjudaFormato;
+      campo.setAttribute('aria-describedby', ajudaFormato.id);
+      grupo.appendChild(ajudaFormato);
     }
     cartao.appendChild(grupo);
 

@@ -316,3 +316,60 @@ test('textoNumero com algarismos: mostra os algarismos significativos pedidos (b
   for (const [v, a] of [[0.5, 3], [6.02e23, 3], [1300, 2], [-2.5, 3]]) assert.equal(Manual.quiz.lerNumero(t(v, a)), v);
   assert.equal(Manual.quiz.corrigir({ tipo: 'numerica', resposta: 0.5, tolerancia: 0.0005, algarismos: 3, unidade: 'mol' }, '').respostaCorreta, '0,500 mol');
 });
+
+// ---- Ajuda de formato nos campos numéricos (Fase 3C) ----
+function montarComDom(perguntas) {
+  const { criarDocumento } = require('./dom-minimo.js');
+  globalThis.document = criarDocumento();
+  globalThis.katex = { render(v, el) { el.textContent = v; } };
+  Manual = carregar('js/texto.js', 'js/quiz.js', 'js/render.js');
+  const el = document.createElement('div');
+  Manual.quiz.montar(el, perguntas, () => {}, () => {});
+  return el;
+}
+
+test('ajuda de formato aparece por baixo do campo numérico', () => {
+  try {
+    const el = montarComDom([{ tipo: 'numerica', enunciado: 'x', resposta: 1, unidade: 'm' }]);
+    const ajudas = el.querySelectorAll('.ajuda-formato');
+    assert.equal(ajudas.length, 1);
+    for (const parte of ['6,02e23', '6,02*10^23', '6,02×10²³']) assert.ok(ajudas[0].textContent.includes(parte), parte);
+    const campo = el.querySelector('input.campo-numero');
+    assert.ok(campo.getAttribute('aria-describedby'));
+    assert.equal(campo.getAttribute('aria-describedby'), ajudas[0].id);
+    assert.equal(campo.getAttribute('inputmode'), 'text');
+  } finally {
+    delete globalThis.document;
+    delete globalThis.katex;
+  }
+});
+
+test('ajuda de formato não aparece em escolha nem em V/F', () => {
+  try {
+    const el = montarComDom([
+      { tipo: 'escolha', enunciado: 'x', opcoes: ['a', 'b'], correta: 0 },
+    ]);
+    assert.equal(el.querySelectorAll('.ajuda-formato').length, 0);
+    const el2 = montarComDom([{ tipo: 'vf', enunciado: 'x', correta: true }]);
+    assert.equal(el2.querySelectorAll('.ajuda-formato').length, 0);
+  } finally {
+    delete globalThis.document;
+    delete globalThis.katex;
+  }
+});
+
+test('ajuda de formato tem id único por pergunta mesmo com Math.random fixo', () => {
+  const original = Math.random;
+  Math.random = () => 0.5;
+  try {
+    const a = montarComDom([{ tipo: 'numerica', enunciado: 'x', resposta: 1 }]);
+    const idA = a.querySelector('.ajuda-formato').id;
+    const b = document.createElement('div');
+    Manual.quiz.montar(b, [{ tipo: 'numerica', enunciado: 'x', resposta: 1 }], () => {}, () => {});
+    assert.notEqual(idA, b.querySelector('.ajuda-formato').id);
+  } finally {
+    Math.random = original;
+    delete globalThis.document;
+    delete globalThis.katex;
+  }
+});
