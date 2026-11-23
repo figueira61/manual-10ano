@@ -87,3 +87,68 @@ test('quadratica tolera ruído de vírgula flutuante em Δ', () => {
     }
   }
 });
+
+// ---------------------------------------------------------------- condições f(x) = k, < k, > k, ≤ k, ≥ k pelo gráfico
+const PONTOS = [{ x: -3, y: 2 }, { x: -1, y: -2 }, { x: 1, y: 2 }, { x: 3, y: -1 }];
+const perto = (a, b, ctx) => assert.ok(Math.abs(a - b) < 1e-9, (ctx || '') + ' ' + a + ' ≉ ' + b);
+function igualCondicao(r, esperado) {
+  assert.equal(r.intervalos.length, esperado.intervalos.length, JSON.stringify(r));
+  r.intervalos.forEach((i, n) => {
+    const e = esperado.intervalos[n];
+    perto(i.a, e.a, 'a'); perto(i.b, e.b, 'b');
+    assert.equal(i.fechadoA, e.fechadoA, 'fechadoA ' + JSON.stringify(i));
+    assert.equal(i.fechadoB, e.fechadoB, 'fechadoB ' + JSON.stringify(i));
+  });
+  assert.equal(r.pontosIsolados.length, esperado.pontosIsolados.length, JSON.stringify(r));
+  r.pontosIsolados.forEach((x, n) => perto(x, esperado.pontosIsolados[n], 'ponto'));
+}
+
+test('resolverCondicao: f(x) = 0 dá os três zeros', () => {
+  igualCondicao(F.resolverCondicao(PONTOS, '=', 0), { intervalos: [], pontosIsolados: [-2, 0, 7 / 3] });
+});
+
+test('resolverCondicao: f(x) < 0, aberto nos zeros e fechado no extremo do domínio', () => {
+  igualCondicao(F.resolverCondicao(PONTOS, '<', 0), {
+    intervalos: [{ a: -2, b: 0, fechadoA: false, fechadoB: false }, { a: 7 / 3, b: 3, fechadoA: false, fechadoB: true }],
+    pontosIsolados: [],
+  });
+});
+
+test('resolverCondicao: f(x) ≤ 0 fecha os zeros', () => {
+  igualCondicao(F.resolverCondicao(PONTOS, '<=', 0), {
+    intervalos: [{ a: -2, b: 0, fechadoA: true, fechadoB: true }, { a: 7 / 3, b: 3, fechadoA: true, fechadoB: true }],
+    pontosIsolados: [],
+  });
+});
+
+test('resolverCondicao: f(x) > 5 é o conjunto vazio', () => {
+  igualCondicao(F.resolverCondicao(PONTOS, '>', 5), { intervalos: [], pontosIsolados: [] });
+});
+
+test('resolverCondicao: f(x) ≥ 2 só em pontos isolados (extremo do domínio e máximo)', () => {
+  igualCondicao(F.resolverCondicao(PONTOS, '>=', 2), { intervalos: [], pontosIsolados: [-3, 1] });
+  igualCondicao(F.resolverCondicao(PONTOS, '>', 2), { intervalos: [], pontosIsolados: [] });
+});
+
+test('resolverCondicao: os complementares cobrem o domínio; troço sobre y = k; ponto isolado com intervalo', () => {
+  // f(x) > 0 é o complementar de f(x) ≤ 0 em [−3, 3]
+  igualCondicao(F.resolverCondicao(PONTOS, '>', 0), {
+    intervalos: [{ a: -3, b: -2, fechadoA: true, fechadoB: false }, { a: 0, b: 7 / 3, fechadoA: false, fechadoB: false }],
+    pontosIsolados: [],
+  });
+  // troço horizontal em y = 1, entre x = 0 e x = 2
+  const plano = [{ x: -2, y: 3 }, { x: 0, y: 1 }, { x: 2, y: 1 }, { x: 4, y: -1 }];
+  igualCondicao(F.resolverCondicao(plano, '=', 1), { intervalos: [{ a: 0, b: 2, fechadoA: true, fechadoB: true }], pontosIsolados: [] });
+  igualCondicao(F.resolverCondicao(plano, '>', 1), { intervalos: [{ a: -2, b: 0, fechadoA: true, fechadoB: false }], pontosIsolados: [] });
+  igualCondicao(F.resolverCondicao(plano, '>=', 1), { intervalos: [{ a: -2, b: 2, fechadoA: true, fechadoB: true }], pontosIsolados: [] });
+  // mínimo que toca em y = k: f(x) ≤ k junta um intervalo e um ponto isolado
+  const toque = [{ x: -3, y: -2 }, { x: -1, y: 2 }, { x: 1, y: 0 }, { x: 3, y: 2 }];
+  igualCondicao(F.resolverCondicao(toque, '<=', 0), { intervalos: [{ a: -3, b: -2, fechadoA: true, fechadoB: true }], pontosIsolados: [1] });
+  // ordenados e unidos: tudo
+  igualCondicao(F.resolverCondicao(toque, '<=', 9), { intervalos: [{ a: -3, b: 3, fechadoA: true, fechadoB: true }], pontosIsolados: [] });
+  assert.throws(() => F.resolverCondicao(toque, '!=', 0), Error);
+});
+
+test('resolverCondicao também em Manual.funcoes (interface do plano)', () => {
+  assert.equal(globalThis.Manual.funcoes.resolverCondicao, F.resolverCondicao);
+});

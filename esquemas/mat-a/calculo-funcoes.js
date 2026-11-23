@@ -89,5 +89,68 @@ Manual.calc.funcoes = (function () {
     return undefined;
   }
 
-  return { afim, quadratica, canonicaParaGeral, inequacao2, avaliarRamos };
+  // Condição f(x) □ k (□ ∈ =, <, >, <=, >=) para f contínua e afim por troços, dada pelos vértices
+  // ordenados [{x, y}] e definida em [pontos[0].x, pontos.at(-1).x].
+  // Devolve { intervalos: [{a, b, fechadoA, fechadoB}], pontosIsolados: [x] }, unidos e ordenados.
+  // Método: parte-se o domínio nos vértices e nos pontos onde f(x) = k; entre dois cortes seguidos f − k tem
+  // sinal constante. Percorre-se a sequência ponto, troço aberto, ponto, … e juntam-se as partes seguidas que
+  // satisfazem a condição.
+  const TESTES = {
+    '=': (d) => d === 0, '<': (d) => d < 0, '>': (d) => d > 0, '<=': (d) => d <= 0, '>=': (d) => d >= 0,
+  };
+  function resolverCondicao(pontos, sinal, k) {
+    const ok = TESTES[sinal];
+    if (!ok) throw new Error('resolverCondicao: sinal inválido ' + sinal);
+    if (!Array.isArray(pontos) || pontos.length < 2) throw new Error('resolverCondicao: são precisos 2 pontos');
+    const eps = 1e-9;
+    const dif = (y) => (Math.abs(y - k) <= eps ? 0 : y - k);
+    // cortes: [x, f(x) − k]
+    const cortes = [[pontos[0].x, dif(pontos[0].y)]];
+    for (let i = 0; i + 1 < pontos.length; i++) {
+      const P = pontos[i], Q = pontos[i + 1];
+      const dp = dif(P.y), dq = dif(Q.y);
+      if (dp * dq < 0) cortes.push([n0(P.x + ((k - P.y) * (Q.x - P.x)) / (Q.y - P.y)), 0]);
+      cortes.push([Q.x, dq]);
+    }
+    // f no meio de cada troço aberto entre cortes seguidos (afim por troços: basta um ponto)
+    const fEm = (x) => {
+      for (let i = 0; i + 1 < pontos.length; i++) {
+        const P = pontos[i], Q = pontos[i + 1];
+        if (x >= P.x && x <= Q.x) return P.y + ((Q.y - P.y) * (x - P.x)) / (Q.x - P.x);
+      }
+      return NaN;
+    };
+    // partes: { x } (ponto) ou { de, ate } (aberto), com a marca da condição
+    const partes = [{ x: cortes[0][0], sim: ok(cortes[0][1]) }];
+    for (let i = 1; i < cortes.length; i++) {
+      const de = cortes[i - 1][0], ate = cortes[i][0];
+      partes.push({ de, ate, sim: ok(dif(fEm((de + ate) / 2))) });
+      partes.push({ x: ate, sim: ok(cortes[i][1]) });
+    }
+    const intervalos = [], pontosIsolados = [];
+    let i = 0;
+    while (i < partes.length) {
+      if (!partes[i].sim) { i++; continue; }
+      let j = i;
+      while (j + 1 < partes.length && partes[j + 1].sim) j++;
+      const A = partes[i], B = partes[j];
+      if (i === j && A.x !== undefined) pontosIsolados.push(A.x);
+      else {
+        intervalos.push({
+          a: A.x !== undefined ? A.x : A.de,
+          b: B.x !== undefined ? B.x : B.ate,
+          fechadoA: A.x !== undefined,
+          fechadoB: B.x !== undefined,
+        });
+      }
+      i = j + 1;
+    }
+    return { intervalos, pontosIsolados };
+  }
+
+  return { afim, quadratica, canonicaParaGeral, inequacao2, avaliarRamos, resolverCondicao };
 })();
+
+// Interface do plano da Fase 3C: o mesmo solucionador em Manual.funcoes.
+Manual.funcoes = Manual.funcoes || {};
+Manual.funcoes.resolverCondicao = Manual.calc.funcoes.resolverCondicao;
