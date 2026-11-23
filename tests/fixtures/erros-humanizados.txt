@@ -819,6 +819,7 @@ usou_as_massas_em_vez_de_n → Usou as massas em vez das quantidades de matéria
 usou_c → Usou o termo independente c em vez da ordenada do vértice
 usou_c_da_agua_para_o_gelo → Usou a capacidade térmica mássica da água para o gelo
 usou_c_da_agua_para_o_metal → Usou a capacidade térmica mássica da água para o metal
+usou_c_do_gelo_para_a_agua → Usou a capacidade térmica mássica do gelo para a água líquida
 usou_entalpia_de_fusao → Usou a entalpia mássica de fusão em vez da de vaporização
 usou_entalpia_de_vaporizacao → Usou a entalpia de vaporização em vez da de fusão
 usou_h → Usou a abcissa do vértice em vez da ordenada

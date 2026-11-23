@@ -226,10 +226,10 @@ globalThis.Manual = globalThis.Manual || {};
     { id: 'lata', cena: 'Uma lata de refrigerante a 5 °C é mergulhada num balde com água a 25 °C.', a: 'a lata', ta: 5, b: 'a água do balde', tb: 25, cede: 'b' },
     { id: 'ovo', cena: 'Um ovo cozido a 90 °C é posto numa taça com água fria a 15 °C.', a: 'o ovo', ta: 90, b: 'a água fria', tb: 15, cede: 'a' },
     { id: 'colher', cena: 'Uma colher de alumínio a 20 °C é mergulhada numa chávena de chá a 70 °C.', a: 'a colher', ta: 20, b: 'o chá', tb: 70, cede: 'b' },
-    { id: 'termometro', cena: 'Um termómetro a 22 °C é posto debaixo do braço de uma pessoa com febre, a 38 °C.', a: 'o termómetro', ta: 22, b: 'o corpo da pessoa', tb: 38, cede: 'b' },
+    { id: 'cubo-aluminio', cena: 'Um cubo de alumínio a 150 °C é posto num copo com água a 20 °C, num recipiente isolado.', a: 'o cubo de alumínio', ta: 150, b: 'a água do copo', tb: 20, cede: 'a' },
     { id: 'prego', cena: 'Um prego de ferro a 300 °C, acabado de sair da forja, é mergulhado num balde com água a 18 °C.', a: 'o prego', ta: 300, b: 'a água do balde', tb: 18, cede: 'a' },
     { id: 'leite', cena: 'Junta-se leite a 4 °C, acabado de sair do frigorífico, a um café a 75 °C.', a: 'o leite', ta: 4, b: 'o café', tb: 75, cede: 'b' },
-    { id: 'garrafa', cena: 'Uma garrafa de água a 28 °C é mergulhada na água de um rio, a 12 °C.', a: 'a garrafa de água', ta: 28, b: 'a água do rio', tb: 12, cede: 'a' },
+    { id: 'garrafa', cena: 'Uma garrafa de sumo a 30 °C é mergulhada numa caixa térmica fechada com água a 5 °C.', a: 'a garrafa de sumo', ta: 30, b: 'a água da caixa', tb: 5, cede: 'a' },
     { id: 'chumbo', cena: 'Um bloco de chumbo a 100 °C é mergulhado em óleo a 25 °C, num recipiente isolado.', a: 'o bloco de chumbo', ta: 100, b: 'o óleo', tb: 25, cede: 'a' },
     { id: 'botija', cena: 'Uma botija de água quente a 60 °C é posta numa cama, entre os lençóis, a 15 °C.', a: 'a botija', ta: 60, b: 'os lençóis', tb: 15, cede: 'a' },
     { id: 'pedra', cena: 'Uma pedra aquecida ao sol, a 45 °C, é posta numa poça de água a 20 °C.', a: 'a pedra', ta: 45, b: 'a água da poça', tb: 20, cede: 'a' },
@@ -248,8 +248,8 @@ globalThis.Manual = globalThis.Manual || {};
         const intervalo = 'entre ' + grau(tf) + ' e ' + grau(tq);
         const certa = maiuscula(Q) + ' cede energia ' + ao(F) + ' até ficarem ' + dois + ' à mesma temperatura, ' + intervalo + '.';
         const erros = baralhar(rng, [
-          { codigo: 'sentido_do_calor_trocado', texto: maiuscula(F) + ' cede energia ' + ao(Q) + ' até ficarem ' + dois + ' à mesma temperatura.', explicacao: 'O calor passa espontaneamente do corpo a temperatura mais alta para o de temperatura mais baixa. Quem cede energia é ' + Q + ', a ' + grau(tq) + '.' },
-          { codigo: 'frio_transferido', texto: maiuscula(F) + ' transfere frio para ' + Q + ' até ficarem ' + dois + ' à mesma temperatura.', explicacao: 'Não há «frio» a passar. É ' + Q + ', mais quente, que cede energia ' + ao(F) + ', que aquece.' },
+          { codigo: 'sentido_do_calor_trocado', texto: maiuscula(F) + ' cede energia ' + ao(Q) + ' até ficarem ' + dois + ' à mesma temperatura, ' + intervalo + '.', explicacao: 'O calor passa espontaneamente do corpo a temperatura mais alta para o de temperatura mais baixa. Quem cede energia é ' + Q + ', a ' + grau(tq) + '.' },
+          { codigo: 'frio_transferido', texto: maiuscula(F) + ' transfere frio para ' + Q + ' até ficarem ' + dois + ' à mesma temperatura, ' + intervalo + '.', explicacao: 'Não há «frio» a passar. É ' + Q + ', mais quente, que cede energia ' + ao(F) + ', que aquece.' },
           { codigo: 'equilibrio_como_energias_internas_iguais', texto: maiuscula(Q) + ' cede energia ' + ao(F) + ' até ' + dois + ' terem a mesma energia interna.', explicacao: 'O equilíbrio térmico é ter a mesma temperatura, não a mesma energia interna (que depende também da massa e do material).' },
           { codigo: 'equilibrio_a_temperatura_do_corpo_frio', texto: maiuscula(Q) + ' cede energia ' + ao(F) + ' até ficar à temperatura inicial ' + doDe(F) + ', ' + grau(tf) + '.', explicacao: 'Ao receber energia, ' + F + ' também aquece. A temperatura final fica ' + intervalo + ', e não nos ' + grau(tf) + ' iniciais.' },
         ]);
@@ -586,7 +586,8 @@ globalThis.Manual = globalThis.Manual || {};
           } else {
             erros.push({ codigo: 'trocou_as_massas', valor: (m2 * t1 + m1 * t2) / (m1 + m2), explicacao: (vt) => 'Trocaste as massas das duas porções de água e obtiveste ' + vt((m2 * t1 + m1 * t2) / (m1 + m2), UN.C) + '. A temperatura de equilíbrio fica mais perto da temperatura da porção maior.' });
             const sinal = (m1 * t1 - m2 * t2) / (m1 - m2);
-            if (sinal > -50 && sinal < 150) erros.push({ codigo: 'sinais_do_balanco_trocados', valor: sinal, explicacao: (vt) => 'Igualaste $m_1 (\\theta - \\theta_1)$ a $m_2 (\\theta - \\theta_2)$, sem o sinal de menos, e obtiveste ' + vt(sinal, UN.C) + '. A energia cedida é negativa: $Q_1 + Q_2 = 0$.' });
+            // só como água líquida plausível (0 °C a 100 °C)
+            if (sinal > 0 && sinal < 100) erros.push({ codigo: 'sinais_do_balanco_trocados', valor: sinal, explicacao: (vt) => 'Igualaste $m_1 (\\theta - \\theta_1)$ a $m_2 (\\theta - \\theta_2)$, sem o sinal de menos, e obtiveste ' + vt(sinal, UN.C) + '. A energia cedida é negativa: $Q_1 + Q_2 = 0$.' });
           }
           const corpos = [{ m: m1, c: cA, t: t1 }, { m: m2, c: c2, t: t2 }];
           verificacao = () => Object.assign(balanco(t, corpos), { passo: 'As energias trocadas (com $\\theta$ por arredondar) têm de se anular: $Q_1 + Q_2 = 0$', valor: t });
@@ -613,7 +614,7 @@ globalThis.Manual = globalThis.Manual || {};
             erros = [
               { codigo: 'esqueceu_a_fusao_no_balanco', valor: sem, explicacao: (vt) => 'Tratou-se o gelo como água a 0 °C e obtiveste ' + vt(sem, UN.C) + '. O gelo precisa primeiro de $m \\Delta h_{\\text{fusão}}$ para fundir.' },
               { codigo: 'esqueceu_aquecer_a_agua_de_fusao', valor: semAgua, explicacao: (vt) => 'Esqueceste que a água que resulta da fusão também aquece até $\\theta$ e obtiveste ' + vt(semAgua, UN.C) + '. No denominador entra a massa total, $m_1 + m_2$.' },
-              { codigo: 'fusao_com_sinal_trocado', valor: somou, explicacao: (vt) => 'Somaste a energia de fusão em vez de a subtrair e obtiveste ' + vt(somou, UN.C) + '. Fundir o gelo gasta energia que a água cede: a mistura fica mais fria.' },
+              { codigo: 'fusao_com_sinal_trocado', valor: somou <= 100 ? somou : NaN, explicacao: (vt) => 'Somaste a energia de fusão em vez de a subtrair e obtiveste ' + vt(somou, UN.C) + '. Fundir o gelo gasta energia que a água cede: a mistura fica mais fria.' },
             ];
             verificacao = () => ({ passo: 'Energia recebida pelo gelo (fusão e aquecimento até $\\theta$) e cedida pela água, com $\\theta$ por arredondar', calculo: 'Q_{gelo} = ' + tex(m2) + ' \\times ' + hTex(Lf) + ' + ' + tex(m2) + ' \\times ' + cTex(cA) + ' \\times ' + texI(t) + eqI(m2 * Lf + m2 * cA * t, false) + '\\,\\mathrm{J};\\ Q_{\\text{água}} = ' + tex(m1) + ' \\times ' + cTex(cA) + ' \\times (' + texI(t - t1) + ')' + eqI(m1 * cA * (t - t1), false) + '\\,\\mathrm{J}', valor: (Qdisp - m2 * Lf) / ((m1 + m2) * cA) });
           } else {
@@ -628,7 +629,9 @@ globalThis.Manual = globalThis.Manual || {};
             erros = [
               { codigo: 'supos_que_todo_o_gelo_funde', valor: m2 * 1000, explicacao: (vt) => vt(m2 * 1000, UN.g) + ' é toda a massa de gelo. A água só tem energia para fundir uma parte: $m_f = Q_{\\text{água}}/\\Delta h_{\\text{fusão}}$.' },
               { codigo: 'usou_entalpia_de_vaporizacao', valor: (Qdisp / Lv) * 1000, explicacao: (vt) => 'Usaste a variação de entalpia mássica de vaporização e obtiveste ' + vt((Qdisp / Lv) * 1000, UN.g) + '. Fundir é passar de sólido a líquido.' },
-              { codigo: 'somou_273_a_variacao', valor: ((m1 * cA * (t1 + 273)) / Lf) * 1000, explicacao: (vt) => 'Somaste 273 à variação de temperatura da água e obtiveste ' + vt(((m1 * cA * (t1 + 273)) / Lf) * 1000, UN.g) + '. A água arrefece $' + tex(t1) + '\\,{}^{\\circ}\\mathrm{C}$, que é uma variação de $' + tex(t1) + '\\,\\mathrm{K}$.' },
+              { codigo: 'usou_c_do_gelo_para_a_agua', valor: ((m1 * D().capacidadeTermicaMassica.gelo * t1) / Lf) * 1000, explicacao: (vt) => 'Usaste a capacidade térmica mássica do gelo para a água que arrefece e obtiveste ' + vt(((m1 * D().capacidadeTermicaMassica.gelo * t1) / Lf) * 1000, UN.g) + '. A água líquida tem $c = ' + cTex(cA) + '\\,' + UN.cU + '$.' },
+              // só se a massa obtida não passar da massa de gelo (uma opção maior do que o gelo todo não é plausível)
+              { codigo: 'somou_273_a_variacao', valor: (m1 * cA * (t1 + 273)) / Lf <= m2 ? ((m1 * cA * (t1 + 273)) / Lf) * 1000 : NaN, explicacao: (vt) => 'Somaste 273 à variação de temperatura da água e obtiveste ' + vt(((m1 * cA * (t1 + 273)) / Lf) * 1000, UN.g) + '. A água arrefece $' + tex(t1) + '\\,{}^{\\circ}\\mathrm{C}$, que é uma variação de $' + tex(t1) + '\\,\\mathrm{K}$.' },
             ];
             verificacao = () => ({ passo: 'Pela mistura calculada com o modelo: gelo derretido e temperatura final', calculo: '\\theta_{eq} = ' + tex(r.thetaEq) + '\\,' + UN.C + ';\\ m_f' + eqI(r.geloDerretido * 1000) + '\\,\\mathrm{g} < ' + tex(m2 * 1000) + '\\,\\mathrm{g}', valor: r.geloDerretido * 1000 });
           }
@@ -710,11 +713,25 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ================================================================ rendimento
   // Rendimentos plausíveis de cada tipo de aparelho (nunca acima de 100 %).
+  // Potências plausíveis de cada aparelho: [nome, mínimo, máximo, passo] (W).
+  const APARELHOS_P = [['Um berbequim', 400, 1000, 50], ['Um aspirador', 600, 2000, 100], ['Uma ventoinha', 30, 120, 10], ['Um motor elétrico', 200, 2000, 100]];
+  // Regra 3 (opções plausíveis): na escolha, no máximo uma opção impossível (rendimento > 100 %), e nunca acima de 1000 %;
+  // os erros vêm pela ordem de preferência, por isso fica o primeiro. Na numérica todos servem para reconhecer o erro.
+  function umImpossivel(erros, formato) {
+    if (formato !== 'escolha') return erros;
+    let visto = false;
+    return erros.filter((e) => {
+      if (!(e.valor > 100)) return true;
+      if (visto || e.valor > 1000) return false;
+      visto = true;
+      return true;
+    });
+  }
   const DISPOSITIVOS = [
     { nome: 'Um motor elétrico', forn: 'energia elétrica', util: 'energia mecânica útil', eta: [0.7, 0.95] },
     { nome: 'O motor a gasolina de um automóvel', forn: 'energia (libertada na combustão)', util: 'energia mecânica útil', eta: [0.2, 0.35] },
     { nome: 'Uma lâmpada LED', forn: 'energia elétrica', util: 'energia da luz visível emitida', eta: [0.25, 0.45] },
-    { nome: 'Uma lâmpada de incandescência', forn: 'energia elétrica', util: 'energia da luz visível emitida', eta: [0.03, 0.08] },
+    { nome: 'Um coletor solar térmico', forn: 'energia da radiação solar', util: 'energia transferida para a água', eta: [0.4, 0.7] },
     { nome: 'Uma central termoelétrica', forn: 'energia (libertada na combustão)', util: 'energia elétrica produzida', eta: [0.3, 0.45] },
   ];
 
@@ -744,8 +761,9 @@ globalThis.Manual = globalThis.Manual || {};
           ];
           verificacao = () => ({ passo: 'Pela energia dissipada: $\\eta = 1 - E_{diss}/E_{fornecida}$', calculo: 'E_{diss} = ' + tex(Ef) + ' - ' + tex(Eu) + ' = ' + tex(Ed) + '\\,\\mathrm{J};\\ \\left(1 - \\dfrac{' + tex(Ed) + '}{' + tex(Ef) + '}\\right) \\times 100' + igual((1 - Ed / Ef) * 100) + texN((1 - Ed / Ef) * 100) + '\\,\\%', valor: Fis().rendimento(Eu, Ef) * 100 });
         } else if (contexto === 'dissipada') {
-          const ap = escolher(rng, ['Um berbequim', 'Um aspirador', 'Uma ventoinha', 'Um motor elétrico']);
-          const P = entre(rng, 200, 2000, 100);
+          // cada aparelho com a sua gama de potências (regra 16)
+          const [ap, Pmin, Pmax, Ppasso] = escolher(rng, APARELHOS_P);
+          const P = entre(rng, Pmin, Pmax, Ppasso);
           const etaP = entre(rng, 60, 95, 5);
           const eta = etaP / 100;
           const tmin = escolher(rng, [1, 2, 5, 10]);
@@ -792,13 +810,17 @@ globalThis.Manual = globalThis.Manual || {};
             ],
             dados: { contexto, P, m, ti, tf, tmin },
           };
+          // por ordem de preferência: na escolha fica no máximo um valor impossível (umImpossivel)
           erros = [
-            { codigo: 'tempo_em_minutos', valor: (Qu / (P * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Qu / (P * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos.' },
             { codigo: 'rendimento_maior_do_que_1', valor: (Ef / Qu) * 100, explicacao: (vt) => 'Calculaste $E_{forn}/E_{\\text{útil}}$ e obtiveste ' + vt((Ef / Qu) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
+            { codigo: 'deu_a_fracao_dissipada', valor: (1 - eta) * 100, explicacao: (vt) => vt((1 - eta) * 100, UN.pct) + ' é a fração da energia fornecida que não aqueceu a água (aqueceu a chaleira e o ar). O rendimento é a fração útil.' },
+            { codigo: 'converteu_minutos_em_segundos_com_3600', valor: (Qu / (P * tmin * 3600)) * 100, explicacao: (vt) => 'Passaste os minutos a segundos multiplicando por 3600 e obtiveste ' + vt((Qu / (P * tmin * 3600)) * 100, UN.pct) + '. Um minuto tem 60 s ($3600\\,\\mathrm{s}$ é uma hora).' },
             { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: ((m * cA * tf) / Ef) * 100, explicacao: (vt) => 'Usaste a temperatura final em vez da variação e obtiveste ' + vt(((m * cA * tf) / Ef) * 100, UN.pct) + '. A água aquece só $' + tex(tf - ti) + '\\,{}^{\\circ}\\mathrm{C}$, e o rendimento nunca passa de 100 %.' },
+            { codigo: 'tempo_em_minutos', valor: (Qu / (P * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Qu / (P * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos.' },
           ];
           verificacao = () => ({ passo: 'Pelas potências: potência útil média $E_{\\text{útil}}/\\Delta t$ comparada com a potência da chaleira', calculo: '\\dfrac{' + texI(Qu) + '}{' + tex(ts) + '}' + eqI(Qu / ts, exI(Qu)) + '\\,\\mathrm{W};\\ \\dfrac{' + texI(Qu / ts) + '}{' + tex(P) + '} \\times 100' + eqN((Qu / ts / P) * 100, exI(Qu / ts)) + '\\,\\%', valor: Fis().rendimento(Fis().calor(m, cA, tf - ti), Ef) * 100 });
         }
+        if (unidade === '%') erros = umImpossivel(erros, formato);
         return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
       });
     },
@@ -921,7 +943,7 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, A: Ar, G: Gi, etaP },
           };
           erros = [
-            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Pin, explicacao: (vt) => 'Usaste o rendimento como ' + etaP + ' em vez de ' + tex(etaP / 100) + ' e obtiveste ' + vt(etaP * Pin, UN.W) + '. ' + etaP + ' % = ' + tex(etaP / 100) + '.' },
+            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Pin, explicacao: (vt) => 'Usaste o rendimento como $' + etaP + '$ em vez de $' + tex(etaP / 100) + '$ e obtiveste ' + vt(etaP * Pin, UN.W) + '. A percentagem divide-se por 100: ' + etaP + ' % = $' + tex(etaP / 100) + '$.' },
             { codigo: 'esqueceu_a_area_do_painel', valor: (etaP / 100) * Gi, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt((etaP / 100) * Gi, UN.W) + ' (é a potência por metro quadrado). Multiplica-se ainda por $' + tex(Ar) + '\\,\\mathrm{m^2}$.' },
             { codigo: 'deu_a_potencia_da_radiacao_incidente', valor: Pin, explicacao: (vt) => vt(Pin, UN.W) + ' é a potência da radiação que chega ao painel. Só ' + etaP + ' % dela passa a potência elétrica.' },
           ];

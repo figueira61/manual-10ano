@@ -896,6 +896,7 @@ globalThis.Manual = globalThis.Manual || {};
     calculou_a_potencia_em_vez_da_resistencia: 'Deu a potência máxima em vez da resistência de carga',
     deu_a_potencia_da_radiacao_incidente: 'Deu a potência da radiação incidente em vez da elétrica',
     tempo_em_minutos_em_vez_de_horas: 'Usou o tempo em minutos em vez de horas no cálculo em kWh',
+    usou_c_do_gelo_para_a_agua: 'Usou a capacidade térmica mássica do gelo para a água líquida',
   };
 
   function humanizarErro(codigo) {

@@ -63,14 +63,20 @@ test('equilíbrio: ≥ 10 situações distintas; quem cede energia é o corpo ma
   const c = corpus('transferencias-equilibrio', 'situacao');
   assert.ok(c.size >= 10, 'só ' + c.size + ' situações');
   const cenas = new Set();
+  let pista = 0;
   for (const p of itens('transferencias-equilibrio', 300, ['escolha'])) {
     const t = [...p.enunciado.matchAll(/(−?\d+) °C/g)].map((m) => Number(m[1].replace('−', '-')));
     assert.equal(t.length, 2, p.enunciado);
     cenas.add(p.enunciado);
     const certa = p.opcoes[p.correta];
     assert.match(certa, new RegExp('entre ' + String(Math.min(...t)).replace('-', '−') + ' °C e ' + Math.max(...t) + ' °C'));
-    assert.ok(p.errosTipicos.every((e) => !/mesma temperatura, entre/.test(p.opcoes[e.opcao])));
+    // nenhuma opção errada diz que o corpo quente cede energia ao frio até ficarem à mesma temperatura, entre as duas
+    const inicioCerto = certa.split(' até ')[0];
+    assert.ok(p.errosTipicos.every((e) => !(p.opcoes[e.opcao].startsWith(inicioCerto) && /mesma temperatura, entre/.test(p.opcoes[e.opcao]))));
+    if (p.opcoes.filter((o) => /entre/.test(o)).length === 1) pista++;
   }
+  // a frase «à mesma temperatura, entre …» não denuncia a resposta (lição da revisão)
+  assert.equal(pista, 0, 'a certa é a única com o intervalo em ' + pista + ' itens');
   assert.equal(cenas.size, c.size, 'situações com o mesmo texto');
   const vf = [...itens('transferencias-equilibrio', 200, ['vf'])];
   assert.ok(vf.some((p) => p.correta) && vf.some((p) => !p.correta));
@@ -187,4 +193,51 @@ test('painel: o máximo está num ponto intermédio da tabela; P = U I de cada p
     const v = d.contexto === 'rendimento' ? (d.P / (d.G * d.A)) * 100 : (d.etaP / 100) * d.G * d.A;
     assert.ok(Math.abs(p.resposta - v) <= tolDe(p));
   }
+});
+
+// ---------------------------------------------------------------- correções da revisão (fix round 1)
+test('nenhum texto de um gerador de FQ-A tem «{,}» fora de $…$ (300 sementes)', () => {
+  for (const d of G.todos().filter((x) => x.disciplina === 'fqa')) {
+    for (const formato of d.formatos) for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 300; s++) {
+      const p = G.gerar(d.id, s, { formato, contexto });
+      const textos = [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.map((r) => r.porque), p.errosTipicos.map((e) => e.explicacao));
+      for (const t of textos) {
+        const fora = String(t).replace(/\$\$[\s\S]*?\$\$/g, '').replace(/\$[^$]*\$/g, '');
+        assert.ok(!fora.includes('{,}'), d.id + ' ' + s + ': ' + t);
+      }
+    }
+  }
+});
+
+test('opções de rendimento plausíveis: no máximo uma acima de 100 % e nenhuma acima de 1000 % (500 sementes)', () => {
+  for (const id of ['rendimento-energia', 'rendimento-painel']) for (const p of itens(id, 500, ['escolha'])) {
+    if (!/\\%/.test(p.opcoes[0])) continue;
+    const v = p.opcoes.map((o) => lerTex(nucleo(o)));
+    assert.ok(v.filter((x) => x > 100).length <= 1 && v.every((x) => x <= 1000), id + ' ' + p.contexto + ' ' + p.semente + ': ' + p.opcoes.join(' ; '));
+  }
+});
+
+test('misturas: com gelo em excesso nenhuma opção passa da massa de gelo; nenhuma temperatura de água fora de 0–100 °C', () => {
+  for (const p of itens('balancos-mistura', 500, ['escolha'])) {
+    const v = p.opcoes.map((o) => lerTex(nucleo(o)));
+    if (p.dados.excesso) assert.ok(v.every((x) => x <= p.dados.m2 * 1000 + 1e-9), p.semente + ': ' + p.opcoes.join(' ; '));
+    else assert.ok(v.every((x) => x >= 0 && x <= 100), p.contexto + ' ' + p.semente + ': ' + p.opcoes.join(' ; '));
+  }
+});
+
+test('energia dissipada: cada aparelho com a sua gama de potências (uma ventoinha não tem 2000 W)', () => {
+  const gamas = { 'Um berbequim': [400, 1000], 'Um aspirador': [600, 2000], 'Uma ventoinha': [30, 120], 'Um motor elétrico': [200, 2000] };
+  const vistos = new Set();
+  for (const p of itens('rendimento-energia', 300)) {
+    if (p.contexto !== 'dissipada') continue;
+    const ap = Object.keys(gamas).find((k) => p.enunciado.startsWith(k));
+    assert.ok(ap, p.enunciado);
+    vistos.add(ap);
+    assert.ok(p.dados.P >= gamas[ap][0] && p.dados.P <= gamas[ap][1], ap + ' ' + p.dados.P);
+  }
+  assert.equal(vistos.size, 4);
+});
+
+test('equilíbrio: só corpos finitos e fechados (sem rios nem o corpo humano como reservatório)', () => {
+  for (const p of itens('transferencias-equilibrio', 300)) assert.ok(!/(^|\s)rio\b|febre|braço/.test(p.enunciado), p.enunciado);
 });
