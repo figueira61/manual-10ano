@@ -318,3 +318,18 @@ test('variação da energia potencial gravítica: positiva a subir, negativa a d
     assert.equal(Math.sign(p.resposta), Math.sign(hf - hi));
   }
 });
+
+test('altura máxima: a subida pesa na resposta e as opções ficam a pelo menos 5 % da resposta umas das outras', () => {
+  const valor = (o) => lerTex(o.replace(/^\$/, '').replace(/\$$/, '').replace(/\\,(?!\d).*$/, ''));
+  for (const p of itens('energia-mecanica-conservacao', 150)) {
+    if (p.contexto !== 'altura') continue;
+    const sobe = p.dados.v0 * p.dados.v0 / 20;
+    assert.ok(sobe >= 0.1 * p.dados.h0, p.enunciado);
+    if (p.formato !== 'escolha') continue;
+    const vs = p.opcoes.map(valor);
+    const r = vs[p.correta];
+    for (let i = 0; i < vs.length; i++) for (let j = i + 1; j < vs.length; j++) {
+      assert.ok(Math.abs(vs[i] - vs[j]) >= 0.05 * r - 1e-9, p.semente + ': ' + p.opcoes.join(' ; '));
+    }
+  }
+});

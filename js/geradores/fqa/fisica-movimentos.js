@@ -634,8 +634,10 @@ globalThis.Manual = globalThis.Manual || {};
           };
         } else {
           const h0 = entre(rng, 1, 20, 0.5);
-          const v0 = entre(rng, 2, 15, 1);
+          const v0 = entre(rng, 4, 15, 1);
           const sobe = v0 * v0 / (2 * g);
+          // A subida tem de pesar na resposta (≥ 10 % da altura de lançamento), senão o item só testa a leitura de h0.
+          if (sobe < 0.1 * h0) return null;
           exato = h0 + sobe;
           unidade = 'm';
           u = U.m;
@@ -653,6 +655,9 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'esqueceu_o_quadrado_da_velocidade', valor: h0 + v0 / (2 * g), explicacao: (vt) => 'Não elevaste a velocidade ao quadrado e obtiveste ' + vt(h0 + v0 / (2 * g), U.m) + '. A energia cinética é proporcional a $v^2$: a subida é $v_0^2/(2g)$.' },
             { codigo: 'nao_dividiu_por_g', valor: h0 + v0 * v0 / 2, explicacao: (vt) => 'Não dividiste por $g$ e obtiveste ' + vt(h0 + v0 * v0 / 2, U.m) + '. De $\\tfrac{1}{2} m v_0^2 = m g \\Delta h$ vem $\\Delta h = v_0^2/(2g)$.' },
           ];
+          // Opções bem separadas: a resposta e os erros típicos ficam a pelo menos 5 % da resposta uns dos outros.
+          const valores = [exato].concat(erros.map((e) => e.valor));
+          if (valores.some((a, i) => valores.some((b, j) => j > i && Math.abs(a - b) < 0.05 * exato))) return null;
           // Com a altura por arredondar, a queda até ao ponto de lançamento volta a dar a velocidade dada.
           verificacao = () => ({ passo: 'Velocidade com que a bola, caindo do ponto mais alto, passa pelo ponto de lançamento: tem de ser $v_0$', calculo: 'h_{max} - h_0 = ' + texI(exato) + ' - ' + tex(h0) + eqI(sobe, exI(exato)) + '\\,\\mathrm{m};\\ v = \\sqrt{2 \\times ' + tex(g) + ' \\times ' + texI(sobe) + '}' + eqI(Math.sqrt(2 * g * sobe), exI(sobe)) + '\\,\\mathrm{m\\,s^{-1}}', valor: h0 + Fis().ec(1, v0) / Fis().epg(1, 1) });
         }
