@@ -125,10 +125,11 @@ globalThis.Manual = globalThis.Manual || {};
         .filter((e) => e && Number.isFinite(e.valor))
         .map((e) => Object.assign({}, e, { valor: aAS(e.valor, 3) }))
         .filter((e) => ((formato === 'escolha' && !afastarNaEscolha) || Math.abs(e.valor) > 10 * tol) && Math.abs(e.valor) > R / esc && Math.abs(e.valor) < R * esc);
-      // As opções que vão ser mostradas (a certa e os primeiros erros distintos, com o mesmo filtro de `fechar`),
-      // para escolher a notação do item.
+      // Notação do item (regra 14). Na escolha, a partir das opções que vão ser mostradas (a certa e os primeiros erros
+      // distintos, com o mesmo filtro de `fechar`). Na numérica não há opções lado a lado: a aluna só vê a explicação do
+      // erro que fez, por isso a notação é a da resposta (6,25 × 10¹ kJ nunca aparece por causa de um erro grande).
       const filtrados = relativa ? A.filtrarErros(resposta, tol, candidatos, 1e-9 * R, tol / R) : A.filtrarErros(resposta, tol, candidatos);
-      const mostrados = formato === 'escolha' ? filtrados.slice(0, 3) : filtrados;
+      const mostrados = formato === 'escolha' ? filtrados.slice(0, 3) : [];
       const sci = precisaSci([resposta].concat(mostrados.map((e) => e.valor)));
       const erros = candidatos.map((e) => explicar(e, vtDe(sci)));
       if (!curto && formato === 'numerica') ex.enunciado += AS3;

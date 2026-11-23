@@ -1,6 +1,7 @@
 // Física: quando um item pede o resultado com 3 algarismos significativos (algarismos: 3), todos os dados medidos
 // do enunciado estão escritos com pelo menos 3 a.s. (o resultado não pode ter mais a.s. do que os dados).
 // Só ficam de fora g e as constantes de referência com nome, numa lista explícita.
+// E, no formato numérico, as explicações dos erros usam a notação da resposta (regra 14).
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { carregarTudo } = require('../tools/verificar-geradores.js');
@@ -64,4 +65,20 @@ test('Física: com algarismos = 3, todos os dados medidos do enunciado têm pelo
     }
   }
   assert.deepEqual(falhas.slice(0, 15), [], falhas.length + ' itens com dados com menos de 3 a.s.');
+});
+
+test('Física, numérica: cada explicação mostra o valor do erro com o formatador e a notação da resposta (regra 14)', () => {
+  const N = G.fisicaNumeros.criar();
+  for (const d of G.todos().filter((x) => x.disciplina === 'fqa' && TEMAS.includes(x.tema) && x.formatos.includes('numerica'))) {
+    for (const contexto of G.contextosDe(d)) for (let s = 1; s <= 40; s++) {
+      const p = G.gerar(d.id, s, { formato: 'numerica', contexto });
+      if (!p.dados || p.dados.sci === undefined) continue; // itens fechados fora de fecharNum
+      assert.equal(p.dados.sci, N.precisaSci([p.resposta]), d.id + ' ' + contexto + ' ' + s);
+      for (const e of p.errosTipicos) {
+        if (e.valor === undefined) continue;
+        const v = '$' + N.texOp(e.valor, p.dados.sci);
+        assert.ok(e.explicacao.includes(v), d.id + ' ' + contexto + ' ' + s + ' ' + e.codigo + ': «' + v + '» :: ' + e.explicacao);
+      }
+    }
+  }
 });

@@ -151,7 +151,8 @@ function bateria(M, IDS) {
         for (const e of p.errosTipicos) {
           const a = Math.abs(e.valor);
           const mant = a.toExponential(2).split('e')[0].replace('.', '{,}');
-          const formas = [String(a).replace('.', '{,}'), a.toPrecision(3).replace('.', '{,}'), mant, mant.replace(/0+$/, '').replace(/\{,\}$/, '')];
+          // (inteiros grandes em notação normal com o espaço de milhares: 3\,480\,000)
+          const formas = [String(a).replace('.', '{,}'), a.toPrecision(3).replace('.', '{,}'), mant, mant.replace(/0+$/, '').replace(/\{,\}$/, ''), M.geradores.ajudas.tex(Number(a.toPrecision(3)), 0)];
           assert.ok(formas.some((f) => e.explicacao.includes(f)), id + ' ' + contexto + ' ' + s + ' ' + e.codigo + ' ' + e.valor + ': ' + e.explicacao);
         }
       }
