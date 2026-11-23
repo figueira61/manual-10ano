@@ -307,3 +307,82 @@ test('fqa-isotopos: notação {}^{A}X em KaTeX e "massa isotópica relativa"', (
   assert.ok(ver(el).includes('Massa isotópica relativa'));
   assert.ok(ver(el).includes('34{,}9689'));
 });
+
+// ---------------------------------------------------------------- fig-bohr
+const ROTULOS_BOHR = ['Núcleo (+)', 'n = 1 (fundamental)', 'n = 2 (excitado)', 'n = 3 (excitado)', 'n = 4 (excitado)',
+  'n = ∞ (ionização)', 'Absorção de um fotão', 'Emissão de um fotão'];
+const partesDe = (el) => Array.from(el.querySelectorAll('g')).filter((g) => g.classes.has('figura-parte'));
+
+test('fig-bohr: 8 partes legendadas, também no texto alternativo; monta e desmonta sem ouvintes', () => {
+  const { el } = montar('fig-bohr', {});
+  const partes = partesDe(el);
+  assert.equal(partes.length, 8);
+  ROTULOS_BOHR.forEach((r, i) => {
+    assert.ok(ver(el).includes(r), 'legenda ' + r);
+    assert.equal(partes[i].getAttribute('aria-label'), r + ', parte ' + (i + 1), 'texto alternativo ' + r);
+  });
+  ciclo('fig-bohr', {});
+});
+
+test('fig-bohr: cada parte tem a descrição do seu papel (energia negativa, 0 na ionização)', () => {
+  const fonte = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'esquemas/fqa/fig-bohr.js'), 'utf8');
+  assert.match(fonte, /estado fundamental/);
+  assert.match(fonte, /estado excitado/);
+  assert.match(fonte, /energia 0/);
+  assert.match(fonte, /absorve/);
+  assert.match(fonte, /emite/);
+});
+
+// Caixa (em coordenadas da vista) de tudo o que uma parte desenha, com a translação da parte e do corpo.
+function caixaParte(g, corpo) {
+  const t = /translate\((-?[\d.]+) (-?[\d.]+)\) scale\(([\d.]+)\)/.exec(corpo.getAttribute('transform'));
+  const [tx, ty, s] = [Number(t[1]), Number(t[2]), Number(t[3])];
+  const d = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(g.style.transform || 'translate(0px, 0px)');
+  const [dx, dy] = [Number(d[1]), Number(d[2])];
+  const xs = [], ys = [];
+  const pt = (x, y) => { xs.push(tx + s * (x + dx)); ys.push(ty + s * (y + dy)); };
+  const n = (e, k) => Number(e.getAttribute(k));
+  const filhos = (no) => (no.childNodes || []).flatMap((c) => [c].concat(filhos(c)));
+  for (const e of filhos(g)) {
+    const tag = String(e.tagName || '').toLowerCase();
+    if (tag === 'circle') { const r = n(e, 'r'); pt(n(e, 'cx') - r, n(e, 'cy') - r); pt(n(e, 'cx') + r, n(e, 'cy') + r); }
+    else if (tag === 'line') { pt(n(e, 'x1'), n(e, 'y1')); pt(n(e, 'x2'), n(e, 'y2')); }
+    else if (tag === 'rect') { pt(n(e, 'x'), n(e, 'y')); pt(n(e, 'x') + n(e, 'width'), n(e, 'y') + n(e, 'height')); }
+    else if (tag === 'path') {
+      let cx = 0, cy = 0;
+      (e.getAttribute('d').match(/[MLHV][^MLHV]*/g) || []).forEach((seg) => {
+        const v = seg.slice(1).trim().split(/[\s,]+/).filter(Boolean).map(Number);
+        if (seg[0] === 'H') cx = v[0]; else if (seg[0] === 'V') cy = v[0]; else { cx = v[0]; cy = v[1]; }
+        assert.ok(!Number.isNaN(cx) && !Number.isNaN(cy), 'path NaN ' + e.getAttribute('d'));
+        pt(cx, cy);
+      });
+    } else if (tag === 'text') {
+      const x = n(e, 'x'), y = n(e, 'y'), tam = n(e, 'font-size') || 10;
+      const w = e.textContent.length * tam * 0.6, a = e.getAttribute('text-anchor');
+      const [esq, dir] = a === 'end' ? [x - w, x] : a === 'middle' ? [x - w / 2, x + w / 2] : [x, x + w];
+      pt(esq, y - tam); pt(dir, y + tam * 0.25);
+    }
+  }
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+}
+
+test('fig-bohr: separada (e junta), tudo o que se desenha fica dentro da viewBox, fora da coluna das legendas', () => {
+  const { el, M } = montar('fig-bohr', {});
+  const svg = el.querySelectorAll('svg')[0];
+  const corpo = svg.childNodes[1];
+  for (const estado of ['montada', 'explodida']) {
+    if (estado === 'explodida') botao(el, 'Separar as partes');
+    const [, , W, H] = svg.getAttribute('viewBox').split(' ').map(Number);
+    const legL = 160; // coluna das legendas a 600 px (modo lateral)
+    const partes = partesDe(el);
+    assert.equal(partes.length, 8);
+    partes.forEach((g) => {
+      const c = caixaParte(g, corpo);
+      const ctx = estado + ' ' + g.getAttribute('aria-label') + ' ' + JSON.stringify(c);
+      assert.ok(c.x0 >= 0 && c.y0 >= 0 && c.y1 <= H, ctx);
+      assert.ok(c.x1 <= W - legL, ctx);
+    });
+  }
+  assert.ok(el.querySelectorAll('div')[0].classes.has('figura-explodida'));
+  assert.ok(M.figura);
+});
