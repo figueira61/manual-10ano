@@ -311,11 +311,16 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, Q, m, ti, tf },
           };
           erros = [
-            { codigo: 'multiplicou_em_vez_de_dividir', valor: Q * m * dT, explicacao: (vt) => 'Multiplicaste $Q \\times m \\times \\Delta\\theta$ e obtiveste ' + vt(Q * m * dT) + '. Isola-se $c$: $c = Q/(m \\Delta\\theta)$.' },
+            // Por ordem de preferência na escolha (as três primeiras distintas): os erros na escala de c primeiro.
             { codigo: 'esqueceu_a_massa_no_calor', valor: Q / dT, explicacao: (vt) => 'Dividiste só pela variação de temperatura e obtiveste ' + vt(Q / dT) + ' (é a capacidade térmica do corpo, em $\\mathrm{J\\,{}^{\\circ}C^{-1}}$). Falta dividir pela massa.' },
-            { codigo: 'esqueceu_a_variacao_de_temperatura', valor: Q / m, explicacao: (vt) => 'Dividiste só pela massa e obtiveste ' + vt(Q / m) + '. Falta dividir pela variação de temperatura, $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
             { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: Q / (m * tf), explicacao: (vt) => 'Dividiste pela temperatura final e obtiveste ' + vt(Q / (m * tf), UN.cU) + '. Na expressão entra a variação, $\\Delta\\theta = ' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
+            { codigo: 'somou_273_a_variacao', valor: Q / (m * (dT + 273)), explicacao: (vt) => 'Somaste 273 à variação de temperatura e obtiveste ' + vt(Q / (m * (dT + 273)), UN.cU) + '. Uma variação de $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$ é uma variação de $' + tex(dT) + '\\,\\mathrm{K}$.' },
+            { codigo: 'esqueceu_a_variacao_de_temperatura', valor: Q / m, explicacao: (vt) => 'Dividiste só pela massa e obtiveste ' + vt(Q / m) + '. Falta dividir pela variação de temperatura, $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' },
+            { codigo: 'multiplicou_em_vez_de_dividir', valor: Q * m * dT, explicacao: (vt) => 'Multiplicaste $Q \\times m \\times \\Delta\\theta$ e obtiveste ' + vt(Q * m * dT) + '. Isola-se $c$: $c = Q/(m \\Delta\\theta)$.' },
           ];
+          // Na escolha, só opções abaixo de 10⁴, como a própria c: todas ficam em notação normal, como a tabela de c da página.
+          // Q m Δθ, que é (m Δθ)² vezes c (milhares de vezes), e Q/m na água ficam só na numérica, para reconhecer o erro.
+          if (formato === 'escolha') erros = erros.filter((e) => Math.abs(e.valor) < 1e4);
           verificacao = (r) => ({ passo: 'Recalcular a energia com o valor obtido: tem de dar $Q$', calculo: tex(m) + ' \\times ' + texN(r) + ' \\times ' + tex(dT) + ' = ' + tex(m * r * dT, 4) + '\\,\\mathrm{J}', valor: Q / m / dT });
         } else {
           const mg = entre(rng, 100, 800, 50);

@@ -256,3 +256,12 @@ test('painel (AL): U e I medidas com três casas decimais, e o ponto de curto-ci
     }
   }
 });
+
+test('capacidade térmica mássica (escolha): opções em notação normal, sem o Q m Δθ milhares de vezes maior do que c', () => {
+  for (const p of itens('balancos-calor', 200, ['escolha'])) {
+    if (p.contexto !== 'capacidade') continue;
+    assert.equal(p.dados.sci, false, p.opcoes.join(' ; '));
+    for (const o of p.opcoes) assert.ok(!/\\times 10\^/.test(o), o);
+    for (const e of p.errosTipicos) assert.ok(Math.abs(e.valor) < 1e4, e.codigo + ' ' + e.valor);
+  }
+});
