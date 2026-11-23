@@ -51,6 +51,7 @@ self.LISTA_CACHE = [
   "esquemas/mat-a/calculo-estatistica.js",
   "esquemas/mat-a/calculo-funcoes.js",
   "esquemas/mat-a/calculo-geometria.js",
+  "esquemas/mat-a/condicoes.js",
   "esquemas/mat-a/espaco3d.js",
   "esquemas/mat-a/formatar.js",
   "esquemas/mat-a/histograma.js",
@@ -136,4 +137,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '9006895e16';
+self.VERSAO_CACHE = '3a2e993e52';
