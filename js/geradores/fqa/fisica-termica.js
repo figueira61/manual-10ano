@@ -25,7 +25,7 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ---------------------------------------------------------------- números (js/geradores/fqa/fisica-comum.js)
   const {
-    cient, texN, igual, exI, texI, eqI, eqN, q, par, sobre, confereN, fecharNum,
+    dado, percentagem, cient, texN, igual, exI, texI, eqI, eqN, q, par, sobre, confereN, fecharNum,
   } = G.fisicaNumeros.criar({ grandesEmCientifica: true });
 
   const UN = {
@@ -255,7 +255,7 @@ globalThis.Manual = globalThis.Manual || {};
   ];
   const cDe = (id) => D().capacidadeTermicaMassica[id];
   const cDado = (mat) => '$c_{\\text{' + mat.nome + '}} = ' + cTex(cDe(mat.id)) + '\\,' + UN.cU + '$';
-  const temp = (t) => '$' + tex(t) + '\\,' + UN.C + '$';
+  const temp = (t) => '$' + dado(t) + '\\,' + UN.C + '$';
   const graus = (t) => tex(t) + '\\,' + UN.C;
 
   registar({
@@ -337,7 +337,7 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { contexto, mat: mat.id, m, ti, Q },
           };
           erros = [
-            { codigo: 'deu_a_variacao_de_temperatura', valor: dT, explicacao: (vt) => vt(dT, UN.C) + ' é a variação de temperatura. A temperatura final soma-a à inicial, $' + graus(ti) + '$.' },
+            { codigo: 'deu_a_variacao_de_temperatura', valor: dT, explicacao: (vt) => vt(dT, UN.C) + ' é a variação de temperatura. A temperatura final soma-a à inicial, ' + temp(ti) + '.' },
             { codigo: 'subtraiu_a_variacao', valor: ti - dT >= -40 ? ti - dT : NaN, explicacao: (vt) => 'Subtraíste a variação e obtiveste ' + vt(ti - dT, UN.C) + '. O corpo recebe energia, por isso aquece: $\\theta_f = \\theta_i + \\Delta\\theta$.' },
             { codigo: 'massa_em_gramas', valor: ti + Q / (mg * c), explicacao: (vt) => 'Usaste a massa em gramas e obtiveste ' + vt(ti + Q / (mg * c), UN.C) + '. No SI a massa está em kg ($' + tex(mg) + '\\,\\mathrm{g} = ' + tex(m) + '\\,\\mathrm{kg}$).' },
           ];
@@ -420,7 +420,7 @@ globalThis.Manual = globalThis.Manual || {};
           erros = [
             { codigo: 'esqueceu_a_fusao_no_balanco', valor: Q - Q2, explicacao: (vt) => 'Esqueceste a fusão e obtiveste ' + vt(Q - Q2, UN.J) + '. Para o gelo passar a água líquida é preciso ainda $m \\Delta h_{\\text{fusão}} = ' + texI(Q2) + '\\,\\mathrm{J}$.' },
             { codigo: 'usou_c_da_agua_para_o_gelo', valor: Q - Q1 + m * cA * -t0, explicacao: (vt) => 'Usaste a capacidade térmica mássica da água líquida para aquecer o gelo e obtiveste ' + vt(Q - Q1 + m * cA * -t0, UN.J) + '. Para o gelo, $c = ' + cTex(cG) + '\\,' + UN.cU + '$.' },
-            { codigo: 'esqueceu_aquecer_o_gelo', valor: Q - Q1, explicacao: (vt) => 'Começaste pela fusão e obtiveste ' + vt(Q - Q1, UN.J) + '. O gelo está a $' + graus(t0) + '$: primeiro tem de aquecer até 0 °C ($' + texI(Q1) + '\\,\\mathrm{J}$).' },
+            { codigo: 'esqueceu_aquecer_o_gelo', valor: Q - Q1, explicacao: (vt) => 'Começaste pela fusão e obtiveste ' + vt(Q - Q1, UN.J) + '. O gelo está a ' + temp(t0) + ': primeiro tem de aquecer até 0 °C ($' + texI(Q1) + '\\,\\mathrm{J}$).' },
           ];
           if (tF > 0) erros.push({ codigo: 'esqueceu_aquecer_a_agua', valor: Q - Q3, explicacao: (vt) => 'Paraste na fusão e obtiveste ' + vt(Q - Q3, UN.J) + '. Falta aquecer a água de 0 °C até ' + tex(tF) + ' °C ($' + texI(Q3) + '\\,\\mathrm{J}$).' });
           verificacao = () => {
@@ -677,7 +677,7 @@ globalThis.Manual = globalThis.Manual || {};
           unidade = 'J';
           u = UN.J;
           ex = {
-            enunciado: ap + ' de potência ' + q(P, UN.W) + ', com rendimento de ' + etaP + ' %, funciona durante ' + q(tmin, UN.min) + '. Calcula a energia dissipada nesse tempo.',
+            enunciado: ap + ' de potência ' + q(P, UN.W) + ', com rendimento de ' + percentagem(etaP) + ', funciona durante ' + q(tmin, UN.min) + '. Calcula a energia dissipada nesse tempo.',
             resolucao: [
               { passo: 'Energia fornecida', porque: '$E = P\\,\\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E_{forn} = ' + tex(P) + ' \\times ' + tex(ts) + ' = ' + texI(Ef) + '\\,\\mathrm{J}' },
               { passo: 'Energia dissipada', porque: 'Se ' + etaP + ' % da energia é útil, os outros ' + (100 - etaP) + ' % são dissipados.', calculo: 'E_{diss} = ' + tex(A.limpo(1 - eta)) + ' \\times ' + texI(Ef) + igual(Ed) + texN(Ed) + '\\,\\mathrm{J}' },
@@ -743,9 +743,11 @@ globalThis.Manual = globalThis.Manual || {};
   });
 
   // AL do painel fotovoltaico: pontos (U, I) do painel modelo (Manual.dadosFisica.modelos.painel) para várias resistências
-  // de carga, com U arredondada às centésimas e I às milésimas, como numa medição. P = U I de cada ponto é exata.
+  // de carga, com U e I arredondadas às milésimas, como numa medição, e todas escritas com essas três casas (U ≥ 0,4 V e
+  // I ≥ 0,1 A, por isso têm pelo menos 3 a.s.). P = U I de cada ponto é exata.
   const CARGAS = [2, 4, 6, 8, 10, 12, 15, 20, 30, 50];
-  const ptT = (x) => '$R = ' + tex(x.R) + '\\,\\Omega$, $U = ' + tex(x.U, 2) + '\\,\\mathrm{V}$ e $I = ' + tex(x.I, 3) + '\\,\\mathrm{A}$';
+  const mil = (v) => v.toFixed(3).replace('.', '{,}');
+  const ptT = (x) => '$R = ' + dado(x.R) + '\\,\\Omega$, $U = ' + mil(x.U) + '\\,\\mathrm{V}$ e $I = ' + mil(x.I) + '\\,\\mathrm{A}$';
 
   registar({
     subtema: 'rendimento', tipo: 'painel-maximo', nome: 'Painel fotovoltaico: potência de cada ponto e ponto de potência máxima',
@@ -756,7 +758,7 @@ globalThis.Manual = globalThis.Manual || {};
         const Rs = baralhar(rng, CARGAS).slice(0, 6).sort((a, b) => a - b);
         const pts = Rs.map((R) => {
           const f = Fis().painel({ irradiancia: Gi, Rcarga: R });
-          const U = A.r2(f.U), I = Math.round(f.I * 1000) / 1000;
+          const U = Math.round(f.U * 1000) / 1000, I = Math.round(f.I * 1000) / 1000;
           return { R, U, I, P: A.limpo(U * I) };
         });
         if (pts.some((x) => x.I < 0.005)) return null;
@@ -766,8 +768,8 @@ globalThis.Manual = globalThis.Manual || {};
         if (k === 0 || k === pts.length - 1 || pts[k].P < 1.01 * Math.max(...outros)) return null;
         const mx = pts[k], ab = pts[pts.length - 1], cc = pts[0];
         const enunciado = 'Numa atividade laboratorial, um pequeno painel fotovoltaico, iluminado com irradiância constante, foi ligado a várias resistências de carga. Os valores medidos foram ' + pts.map(ptT).join('; ') + '. ';
-        const passoP = { passo: 'Potência em cada ponto', porque: 'A potência fornecida pelo painel é $P = U I$; calcula-se para cada resistência de carga.', calculo: pts.map((x, i) => 'P_' + (i + 1) + ' = ' + tex(x.U, 2) + ' \\times ' + tex(x.I, 3) + igual(x.P) + texN(x.P)).join(';\\ ') + '\\,\\mathrm{W}' };
-        const passoMax = { passo: 'Ponto de potência máxima', porque: 'A potência é nula nos extremos da curva (em curto-circuito $U = 0$; em circuito aberto $I = 0$) e é máxima num ponto intermédio, aqui com $R = ' + tex(mx.R) + '\\,\\Omega$ e $P' + igual(mx.P) + texN(mx.P) + '\\,\\mathrm{W}$.' };
+        const passoP = { passo: 'Potência em cada ponto', porque: 'A potência fornecida pelo painel é $P = U I$; calcula-se para cada resistência de carga.', calculo: pts.map((x, i) => 'P_' + (i + 1) + ' = ' + mil(x.U) + ' \\times ' + mil(x.I) + igual(x.P) + texN(x.P)).join(';\\ ') + '\\,\\mathrm{W}' };
+        const passoMax = { passo: 'Ponto de potência máxima', porque: 'A potência é nula nos extremos da curva (em curto-circuito $U = 0$; em circuito aberto $I = 0$) e é máxima num ponto intermédio, aqui com $R = ' + dado(mx.R) + '\\,\\Omega$ e $P' + igual(mx.P) + texN(mx.P) + '\\,\\mathrm{W}$.' };
         let ex, exato, erros, unidade, u;
         if (contexto === 'potencia-maxima') {
           exato = mx.P;
@@ -785,8 +787,8 @@ globalThis.Manual = globalThis.Manual || {};
           u = '\\Omega';
           ex = { enunciado: enunciado + 'Com que resistência de carga é máxima a potência fornecida pelo painel?', resolucao: [passoP, passoMax] };
           erros = [
-            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.R, explicacao: (vt) => 'Com ' + vt(ab.R, '\\Omega') + ' a diferença de potencial é a maior, mas a corrente é pequena: $P = ' + tex(ab.U, 2) + ' \\times ' + tex(ab.I, 3) + '$ não é o máximo.' },
-            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.R, explicacao: (vt) => 'Com ' + vt(cc.R, '\\Omega') + ' a corrente é a maior, mas a diferença de potencial é pequena: $P = ' + tex(cc.U, 2) + ' \\times ' + tex(cc.I, 3) + '$ não é o máximo.' },
+            { codigo: 'potencia_maxima_em_circuito_aberto', valor: ab.R, explicacao: (vt) => 'Com ' + vt(ab.R, '\\Omega') + ' a diferença de potencial é a maior, mas a corrente é pequena: $P = ' + mil(ab.U) + ' \\times ' + mil(ab.I) + '$ não é o máximo.' },
+            { codigo: 'potencia_maxima_em_curto_circuito', valor: cc.R, explicacao: (vt) => 'Com ' + vt(cc.R, '\\Omega') + ' a corrente é a maior, mas a diferença de potencial é pequena: $P = ' + mil(cc.U) + ' \\times ' + mil(cc.I) + '$ não é o máximo.' },
             { codigo: 'calculou_a_potencia_em_vez_da_resistencia', valor: mx.P, explicacao: (vt) => 'Obtiveste ' + vt(mx.P) + ', que é a potência máxima (em watts). Pede-se a resistência de carga desse ponto.' },
           ];
         }
@@ -841,7 +843,7 @@ globalThis.Manual = globalThis.Manual || {};
           unidade = 'W';
           u = UN.W;
           ex = {
-            enunciado: 'Um painel fotovoltaico com ' + q(Ar, UN.m2) + ' de área e rendimento de ' + etaP + ' % está iluminado com uma irradiância de ' + q(Gi, UN.Wm2) + '. Calcula a potência elétrica que fornece.',
+            enunciado: 'Um painel fotovoltaico com ' + q(Ar, UN.m2) + ' de área e rendimento de ' + percentagem(etaP) + ' está iluminado com uma irradiância de ' + q(Gi, UN.Wm2) + '. Calcula a potência elétrica que fornece.',
             resolucao: [passoInc, { passo: 'Potência elétrica', porque: 'O rendimento é a fração da potência incidente que passa a potência elétrica: $P = \\eta\\,G A$.', calculo: 'P = ' + tex(etaP / 100) + ' \\times ' + tex(Pin) + igual(P) + texN(P) + '\\,\\mathrm{W}' }],
             dados: { contexto, A: Ar, G: Gi, etaP },
           };

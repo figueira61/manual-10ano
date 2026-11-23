@@ -22,7 +22,7 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ---------------------------------------------------------------- números (js/geradores/fqa/fisica-comum.js)
   const {
-    aAS, texN, igual, exI, texI, eqI, eqN, q, par, plural, sobre, precisaSci, textoDe, vtDe, explicar, confereN, fecharNum,
+    angulo, percentagem, aAS, texN, igual, exI, texI, eqI, eqN, q, par, plural, sobre, precisaSci, textoDe, vtDe, explicar, confereN, fecharNum,
   } = G.fisicaNumeros.criar({ afastarNaEscolha: true });
   // «um atleta de 50 kg»; com acompanhante, «um ciclista com a sua bicicleta (massa total de 70 kg)».
   const comMassa = (nome, mTxt) => (/ com /.test(nome) ? nome + ' (massa total de ' + mTxt + ')' : nome + ' de ' + mTxt);
@@ -325,14 +325,14 @@ globalThis.Manual = globalThis.Manual || {};
         if (contexto === 'angulo') {
           // α = 0° nunca dá erros típicos distintos; α = 90° (W = 0) só em numérica e em cerca de 12 % dos itens
           alfa = formato === 'numerica' && rng() < 0.12 ? 90 : escolher(rng, [30, 45, 60]);
-          enunciado = 'Um caixote desloca-se ' + q(d, U.m) + ' num chão horizontal. Uma das forças que atuam nele é constante, de intensidade ' + q(F, U.N) + ', e faz um ângulo de ' + alfa + '° com o deslocamento. Calcula o trabalho realizado por essa força.';
+          enunciado = 'Um caixote desloca-se ' + q(d, U.m) + ' num chão horizontal. Uma das forças que atuam nele é constante, de intensidade ' + q(F, U.N) + ', e faz um ângulo de ' + angulo(alfa) + ' com o deslocamento. Calcula o trabalho realizado por essa força.';
         } else if (contexto === 'resistente') {
           alfa = escolher(rng, [120, 135, 150, 180]);
-          enunciado = 'Um carrinho desloca-se ' + q(d, U.m) + ' em linha reta. Uma pessoa exerce nele uma força constante de ' + q(F, U.N) + ', que faz um ângulo de ' + alfa + '° com o sentido do deslocamento. Calcula o trabalho realizado por essa força.';
+          enunciado = 'Um carrinho desloca-se ' + q(d, U.m) + ' em linha reta. Uma pessoa exerce nele uma força constante de ' + q(F, U.N) + ', que faz um ângulo de ' + angulo(alfa) + ' com o sentido do deslocamento. Calcula o trabalho realizado por essa força.';
         } else {
           theta = escolher(rng, [30, 45, 60]);
           alfa = 90 - theta;
-          enunciado = 'Um trenó é puxado ' + q(d, U.m) + ' num chão horizontal por uma corda que exerce uma força constante de ' + q(F, U.N) + ' e faz um ângulo de ' + theta + '° com a vertical. Calcula o trabalho realizado pela força que a corda exerce.';
+          enunciado = 'Um trenó é puxado ' + q(d, U.m) + ' num chão horizontal por uma corda que exerce uma força constante de ' + q(F, U.N) + ' e faz um ângulo de ' + angulo(theta) + ' com a vertical. Calcula o trabalho realizado pela força que a corda exerce.';
         }
         const exato = Fis().trabalho(F, d, alfa);
         const Fd = F * d;
@@ -425,7 +425,7 @@ globalThis.Manual = globalThis.Manual || {};
           if (WF + Wa < 0.2 * F * d) return null;
           exato = WF + Wa;
           ex = {
-            enunciado: 'Um caixote de ' + q(m, U.kg) + ' é arrastado ' + q(d, U.m) + ' num chão horizontal por uma força constante de ' + q(F, U.N) + (alfa === 0 ? ' paralela ao chão' : ' que faz ' + alfa + '° com o deslocamento') + '. A força de atrito tem intensidade constante de ' + q(Fa, U.N) + '. Calcula o trabalho realizado pela resultante das forças.',
+            enunciado: 'Um caixote de ' + q(m, U.kg) + ' é arrastado ' + q(d, U.m) + ' num chão horizontal por uma força constante de ' + q(F, U.N) + (alfa === 0 ? ' paralela ao chão' : ' que faz ' + angulo(alfa) + ' com o deslocamento') + '. A força de atrito tem intensidade constante de ' + q(Fa, U.N) + '. Calcula o trabalho realizado pela resultante das forças.',
             resolucao: [
               { passo: 'Peso e força normal', porque: 'São perpendiculares ao deslocamento horizontal ($\\alpha = 90°$, $\\cos 90° = 0$): não realizam trabalho.' },
               { passo: 'Trabalho da força aplicada', porque: '$W = F d \\cos\\alpha$.', calculo: 'W_F = ' + tex(F) + ' \\times ' + tex(d) + ' \\times ' + cosTex(alfa) + eqI(WF) + '\\,\\mathrm{J}' },
@@ -785,7 +785,7 @@ globalThis.Manual = globalThis.Manual || {};
           unidade = 'm';
           u = U.m;
           ex = {
-            enunciado: 'Uma bola é largada de ' + q(h0, U.m) + ' de altura. Em cada colisão com o chão mantém-se ' + pf + ' % da energia mecânica (despreza a resistência do ar). A que altura sobe a bola depois do ' + n + '.º ressalto?',
+            enunciado: 'Uma bola é largada de ' + q(h0, U.m) + ' de altura. Em cada colisão com o chão mantém-se ' + percentagem(pf) + ' da energia mecânica (despreza a resistência do ar). A que altura sobe a bola depois do ' + n + '.º ressalto?',
             resolucao: [
               { passo: 'Em cada ressalto a altura é multiplicada pela mesma fração', porque: 'No ponto mais alto $E_m = m g h$, por isso a altura é proporcional à energia mecânica: cada ressalto sobe ' + pf + ' % da altura anterior.' },
               { passo: 'Aplicar ' + plural(n, 'vez', 'vezes') + ' a fração', porque: 'A fração aplica-se à altura do ressalto anterior, não à altura inicial.', calculo: 'h_' + n + ' = ' + tex(h0) + ' \\times ' + tex(f) + '^' + n + igual(exato) + texN(exato) + '\\,\\mathrm{m}' },

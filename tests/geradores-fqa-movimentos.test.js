@@ -46,17 +46,17 @@ for (const id of IDS) {
 test('snapshots da semente 1', () => {
   const g = (id) => G.gerar(id, 1);
   let p = g('sistema-mecanico-ec-epg');
-  assert.match(p.enunciado, /massa total de \$60\\,\\mathrm\{kg\}\$\), que se move a \$36\\,\\mathrm\{km\\,h\^\{-1\}\}/);
+  assert.match(p.enunciado, /massa total de \$60\{,\}0\\,\\mathrm\{kg\}\$\), que se move a \$36\{,\}0\\,\\mathrm\{km\\,h\^\{-1\}\}/);
   assert.equal(p.resposta, 3000); // ½ × 60 × 10²
   assert.equal(p.errosTipicos.find((e) => e.codigo === 'velocidade_em_km_h').valor, 38900); // ½ × 60 × 36² = 38 880
   p = g('sistema-mecanico-energia-mecanica');
-  assert.match(p.enunciado, /0\{,\}2\\,\\mathrm\{kg\}\$ move-se a \$15/);
+  assert.match(p.enunciado, /0\{,\}200\\,\\mathrm\{kg\}\$ move-se a \$15\{,\}0/);
   assert.equal(p.resposta, 34.5); // ½ × 0,2 × 15² + 0,2 × 10 × 6 = 22,5 + 12
   p = g('sistema-mecanico-massa-velocidade');
   assert.match(p.enunciado, /1920\\,\\mathrm\{J\}/);
   assert.equal(p.resposta, 8); // √(2 × 1920 / 60)
   p = g('trabalho-forca-constante');
-  assert.match(p.enunciado, /65\\,\\mathrm\{N\}\$, e faz um ângulo de 60°/);
+  assert.match(p.enunciado, /65\{,\}0\\,\\mathrm\{N\}\$, e faz um ângulo de 60,0°/);
   assert.equal(p.resposta, 32.5); // 65 × 1 × cos 60°
   assert.equal(p.algarismos, undefined); // exata: não pede a.s.
   assert.deepEqual(p.esquema, { id: 'fqa-trabalho', opcoes: { F: 65, d: 1, alfa: 60 } });
@@ -66,12 +66,12 @@ test('snapshots da semente 1', () => {
   assert.match(p.enunciado, /1250\\,\\mathrm\{kg\}\$ segue a \$36/);
   assert.equal(p.resposta, 8.93); // ½ × 1250 × 10² / 7000 = 8,929
   p = g('energia-mecanica-conservacao');
-  assert.match(p.enunciado, /montanha-russa, de \$200\\,\\mathrm\{kg\}\$, passa com velocidade \$8/);
+  assert.match(p.enunciado, /montanha-russa, de \$200\\,\\mathrm\{kg\}\$, passa com velocidade \$8\{,\}00/);
   assert.equal(p.resposta, 23.7); // √(8² + 2 × 10 × 25) = √564
   p = g('energia-mecanica-nao-conservativas');
   assert.equal(p.resposta, -122); // ½ × 5 × 3,5² − (½ × 5 × 1² + 5 × 10 × 3) = −121,9
   p = g('energia-mecanica-ressalto');
-  assert.match(p.enunciado, /1\{,\}65\\,\\mathrm\{m\}\$ sobe, depois de bater no chão, até \$0\{,\}83/);
+  assert.match(p.enunciado, /1\{,\}65\\,\\mathrm\{m\}\$ sobe, depois de bater no chão, até \$0\{,\}830/);
   assert.equal(p.resposta, 49.7); // (1 − 0,83/1,65) × 100
 });
 

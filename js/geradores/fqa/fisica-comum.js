@@ -43,8 +43,24 @@ globalThis.Manual = globalThis.Manual || {};
   // Valores intermédios (regra 15): exatos quando têm até 4 casas decimais, senão com 4 a.s.
   // (folga absoluta de no máximo 1e-7, para que um valor grande como 78 026,666… não passe por exato)
   const ex4 = (v) => Math.abs(v - Math.round(v * 1e4) / 1e4) <= Math.min(1e-7, 1e-9 * Math.max(1, Math.abs(v)));
-  // Dado do enunciado: $2,5\,kg$.
-  const q = (v, u) => '$' + tex(v) + '\\,' + u + '$';
+  // Dado medido do enunciado, sempre com pelo menos 3 a.s. (um resultado pedido com 3 a.s. não pode ter mais a.s. do que
+  // os dados): 1 → 1,00; 65 → 65,0; 0,45 → 0,450; 2,25 → 2,25; 1500 → 1500 (zeros finais de um inteiro contam).
+  // As constantes (g, c, Δh de referência) não passam por aqui: são exatas e escrevem-se com os algarismos que têm.
+  function dado(v) {
+    if (v === 0) return '0';
+    const a = Math.abs(v);
+    let casas = 0; // casas decimais do próprio valor (até 6)
+    while (casas < 6 && Math.abs(Number(a.toFixed(casas)) - a) > 1e-9 * Math.max(1, a)) casas++;
+    const e = Math.floor(Math.log10(Number(a.toPrecision(12))));
+    const [inteira, decimal] = a.toFixed(Math.max(casas, 2 - e)).split('.');
+    const agrupada = inteira.length >= 5 ? inteira.replace(/\B(?=(\d{3})+$)/g, '\\,') : inteira;
+    return (v < 0 ? '-' : '') + agrupada + (decimal ? '{,}' + decimal : '');
+  }
+  // Dado do enunciado com a unidade: $2{,}50\,\mathrm{kg}$.
+  const q = (v, u) => '$' + dado(v) + '\\,' + u + '$';
+  // Ângulo e percentagem dados no texto: 30,0°, 60,0 %.
+  const angulo = (v) => dado(v).replace('{,}', ',') + '°';
+  const percentagem = (v) => dado(v).replace('{,}', ',') + ' %';
   // Número entre parênteses se for negativo (sem sinais duplos nas contas).
   const par = (v) => (v < 0 ? '(' + tex(v) + ')' : tex(v));
   const parN = (v) => (v < 0 ? '(' + texN(v) + ')' : texN(v));
@@ -125,7 +141,7 @@ globalThis.Manual = globalThis.Manual || {};
     }
 
     return {
-      AS3, cient, aAS, exatoAS, ambiguo, asMin, texN, igual, eqN, ex4, exI, texI, eqI, parI, q, par, parN, plural, sobre,
+      AS3, cient, aAS, exatoAS, ambiguo, asMin, texN, igual, eqN, ex4, exI, texI, eqI, parI, dado, q, angulo, percentagem, par, parN, plural, sobre,
       texOp, precisaSci, textoDe, vtDe, explicar, fecharNum, confereN,
     };
   }

@@ -23,7 +23,7 @@ globalThis.Manual = globalThis.Manual || {};
 
   // ---------------------------------------------------------------- números (js/geradores/fqa/fisica-comum.js)
   const {
-    exatoAS, texN, igual, exI, texI, eqI, eqN, q, plural, sobre, confereN, fecharNum,
+    dado, exatoAS, texN, igual, exI, texI, eqI, eqN, q, sobre, confereN, fecharNum,
   } = G.fisicaNumeros.criar({ grandesEmCientifica: true });
 
   const UN = {
@@ -129,7 +129,7 @@ globalThis.Manual = globalThis.Manual || {};
   const RS_ASSOC = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
   const NUM_RES = { 2: 'Duas', 3: 'Três' };
   const listaR = (rs) => {
-    const l = rs.map((R, i) => '$R_' + (i + 1) + ' = ' + tex(R) + '\\,\\Omega$');
+    const l = rs.map((R, i) => '$R_' + (i + 1) + ' = ' + dado(R) + '\\,\\Omega$');
     return l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1];
   };
 
@@ -181,7 +181,7 @@ globalThis.Manual = globalThis.Manual || {};
           u = UN.V;
           const nome = 'R_' + (k + 1);
           ex = {
-            enunciado: inicio + 'em série a uma fonte que mantém $U = ' + tex(U) + '\\,\\mathrm{V}$ nos seus terminais. Calcula a diferença de potencial elétrico nos terminais de $' + nome + '$ (o que marca um voltímetro ligado em paralelo com $' + nome + '$).',
+            enunciado: inicio + 'em série a uma fonte que mantém $U = ' + dado(U) + '\\,\\mathrm{V}$ nos seus terminais. Calcula a diferença de potencial elétrico nos terminais de $' + nome + '$ (o que marca um voltímetro ligado em paralelo com $' + nome + '$).',
             resolucao: [
               { passo: 'Resistência equivalente', porque: 'Em série, a resistência equivalente é a soma das resistências.', calculo: 'R_{eq} = ' + rs.map((R) => tex(R)).join(' + ') + ' = ' + tex(Rs) + '\\,\\Omega' },
               { passo: 'Corrente no circuito', porque: 'Em série, a corrente é a mesma em todas as resistências: $I = U/R_{eq}$.', calculo: 'I = \\dfrac{' + tex(U) + '}{' + tex(Rs) + '}' + eqI(I) + '\\,\\mathrm{A}' },
@@ -204,7 +204,7 @@ globalThis.Manual = globalThis.Manual || {};
           unidade = 'A';
           u = UN.A;
           ex = {
-            enunciado: inicio + 'em paralelo a uma fonte que mantém $U = ' + tex(U) + '\\,\\mathrm{V}$ nos seus terminais. Calcula a corrente que passa na fonte (o que marca um amperímetro no ramo principal).',
+            enunciado: inicio + 'em paralelo a uma fonte que mantém $U = ' + dado(U) + '\\,\\mathrm{V}$ nos seus terminais. Calcula a corrente que passa na fonte (o que marca um amperímetro no ramo principal).',
             resolucao: [passoInv, passoReq, { passo: 'Corrente no ramo principal', porque: '$I = U/R_{eq}$, com a diferença de potencial da fonte aplicada à associação.', calculo: 'I = \\dfrac{' + tex(U) + '}{' + texI(Rp) + '}' + eqN(I, exI(Rp)) + '\\,\\mathrm{A}' }],
           };
           erros = [
@@ -239,7 +239,8 @@ globalThis.Manual = globalThis.Manual || {};
   const APARELHOS = ['Um aquecedor elétrico', 'Um secador de cabelo', 'Um forno elétrico', 'Um ferro de engomar', 'Uma torradeira'];
   const POTENCIAS_W = [400, 600, 800, 1000, 1200, 1500, 1800, 2000, 2200];
   const TEMPOS_MIN = [15, 30, 45, 60, 90, 120, 150, 180];
-  const NOME_TEMPO = (min) => (min % 60 === 0 ? plural(min / 60, 'hora', 'horas') : plural(min, 'minuto', 'minutos'));
+  // Duração dada no enunciado (um dado medido, com 3 a.s.): em horas se for um número inteiro de horas.
+  const NOME_TEMPO = (min) => (min % 60 === 0 ? q(min / 60, UN.h) : q(min, UN.min));
 
   registar({
     subtema: 'circuitos', tipo: 'potencia-energia', nome: 'Potência, efeito Joule e energia elétrica (kWh e J)',
@@ -377,8 +378,8 @@ globalThis.Manual = globalThis.Manual || {};
     if (U < 0.4 * eps) return null;
     return { eps, r, I, rI, U };
   }
-  const epsT = (e) => '$\\varepsilon = ' + tex(e) + '\\,\\mathrm{V}$';
-  const rT = (r) => '$r = ' + tex(r) + '\\,\\Omega$';
+  const epsT = (e) => '$\\varepsilon = ' + dado(e) + '\\,\\mathrm{V}$';
+  const rT = (r) => '$r = ' + dado(r) + '\\,\\Omega$';
   const passoU = (eps, r, I, U) => ({ passo: 'Diferença de potencial nos terminais', porque: 'Num gerador que fornece corrente, parte da energia fica dentro dele (na resistência interna): $U = \\varepsilon - r I$, menor do que $\\varepsilon$.', calculo: 'U = ' + tex(eps) + ' - ' + tex(r) + ' \\times ' + tex(I) + ' = ' + tex(U) + '\\,\\mathrm{V}' });
 
   registar({
@@ -484,7 +485,7 @@ globalThis.Manual = globalThis.Manual || {};
 
   // AL «características de uma pilha»: dois pontos (I, U) da reta de ajuste.
   const FEMS_AL = [1.5, 4.5, 6, 9];
-  const pontoT = (i, I, U) => '$I_' + i + ' = ' + tex(I) + '\\,\\mathrm{A}$ e $U_' + i + ' = ' + tex(U) + '\\,\\mathrm{V}$';
+  const pontoT = (i, I, U) => '$I_' + i + ' = ' + dado(I) + '\\,\\mathrm{A}$ e $U_' + i + ' = ' + dado(U) + '\\,\\mathrm{V}$';
 
   registar({
     subtema: 'gerador', tipo: 'dois-pontos', nome: 'Força eletromotriz, resistência interna e corrente de curto-circuito a partir de dois pontos',
