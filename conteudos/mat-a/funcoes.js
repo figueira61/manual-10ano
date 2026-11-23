@@ -12,7 +12,7 @@ Manual.registarTema('mat-a', {
         'Analisar elementos da evolução histórica do conceito de função e as diversas formas de representação: diagramas, tabelas, gráficos e expressões analíticas.',
         'Identificar domínio, conjunto de chegada, contradomínio, objeto e imagem de uma função em contextos históricos, de modelação, ou abstratos, com recurso a vários tipos de representações (tabelas, gráficos e expressões analíticas).',
       ],
-      minutos: 6,
+      minutos: 9,
       essencial: [
         {
           tipo: 'texto',
@@ -68,6 +68,54 @@ Manual.registarTema('mat-a', {
           tipo: 'erro-frequente',
           texto: 'Não confundas **conjunto de chegada** com **contradomínio**: o contradomínio só tem os valores que são mesmo imagem de algum objeto. E se um objeto tiver duas imagens, a correspondência **não** é uma função (num gráfico: uma reta vertical não pode cortá-lo em dois pontos).',
         },
+        {
+          tipo: 'texto',
+          texto: '**Condições do tipo $f(x) = k$, $f(x) < k$, $f(x) > k$.** Para as resolver a partir do gráfico, traça a reta horizontal $y = k$. As soluções de $f(x) = k$ são as abcissas dos pontos em que o gráfico corta ou toca essa reta. $f(x) > k$ nos objetos em que o gráfico fica **acima** da reta e $f(x) < k$ naqueles em que fica **abaixo**. A resposta é sempre um conjunto de valores de $x$, que se marca no eixo $Ox$.',
+        },
+        {
+          tipo: 'quadro',
+          cabecalho: ['Condição', 'Onde se lê no gráfico', 'Pontos em que $f(x) = k$'],
+          linhas: [
+            ['$f(x) = k$', 'interseções do gráfico com a reta $y = k$', 'são as soluções'],
+            ['$f(x) > k$', 'gráfico acima da reta', 'ficam de fora (parêntese aberto)'],
+            ['$f(x) \\geq k$', 'gráfico acima da reta ou sobre ela', 'entram (parêntese fechado)'],
+            ['$f(x) < k$', 'gráfico abaixo da reta', 'ficam de fora (parêntese aberto)'],
+            ['$f(x) \\leq k$', 'gráfico abaixo da reta ou sobre ela', 'entram (parêntese fechado)'],
+          ],
+        },
+        {
+          tipo: 'texto',
+          texto: '**O papel dos extremos.** Nos pontos em que o gráfico encontra a reta, o parêntese depende do sinal: fechado com $\\leq$ e $\\geq$, aberto com $<$ e $>$. Nos extremos do domínio o parêntese depende só de esse ponto pertencer ao domínio e satisfazer a condição. Se um gráfico de domínio $[-3, 3]$ está abaixo da reta junto de $x = 3$, o intervalo fecha em $3$, mesmo com $<$. Quando o gráfico só **toca** a reta num ponto $a$, a solução pode ter um ponto isolado, que se escreve $\\{a\\}$.',
+        },
+        {
+          tipo: 'texto',
+          texto: '**Sem soluções.** Se a reta $y = k$ fica toda acima do gráfico, nenhum objeto tem imagem maior do que $k$, por isso $f(x) > k$ e $f(x) = k$ são impossíveis. O conjunto-solução é o conjunto vazio, $\\emptyset$.',
+        },
+        {
+          tipo: 'exemplo',
+          enunciado: 'A função $f$, de domínio $[-3, 3]$, tem como gráfico os segmentos que unem $(-3, 2)$, $(-1, -2)$, $(1, 2)$ e $(3, -1)$. Resolve $f(x) = 0$, $f(x) < 0$, $f(x) \\leq 0$, $f(x) \\geq 2$ e $f(x) > 5$.',
+          resolucao: [
+            'Reta $y = 0$ (o eixo $Ox$). O primeiro segmento corta-o a meio, em $x = -2$, e o segundo em $x = 0$.',
+            'O último segmento desce 3 unidades em 2: $f(x) = 2 - \\dfrac{3}{2}(x - 1)$. De $f(x) = 0$ vem $x - 1 = \\dfrac{4}{3}$, ou seja, $x = \\dfrac{7}{3}$.',
+            '$f(x) = 0 \\Leftrightarrow x \\in \\left\\{-2, 0, \\dfrac{7}{3}\\right\\}$.',
+            'O gráfico está abaixo do eixo entre $-2$ e $0$ e de $\\dfrac{7}{3}$ até ao fim do domínio. $f(x) < 0 \\Leftrightarrow x \\in \\left]-2, 0\\right[ \\cup \\left]\\dfrac{7}{3}, 3\\right]$. O $3$ entra porque pertence ao domínio e $f(3) = -1 < 0$.',
+            'Com $\\leq$ os zeros entram: $f(x) \\leq 0 \\Leftrightarrow x \\in [-2, 0] \\cup \\left[\\dfrac{7}{3}, 3\\right]$.',
+            'A reta $y = 2$ só toca o gráfico em $(-3, 2)$ e em $(1, 2)$, e o gráfico nunca fica acima dela: $f(x) \\geq 2 \\Leftrightarrow x \\in \\{-3, 1\\}$.',
+            'O maior valor de $f$ é $2$, por isso $f(x) > 5$ não tem soluções: o conjunto-solução é $\\emptyset$.',
+          ],
+          resultado: 7 / 3,
+          verificar: () => Manual.calc.funcoes.resolverCondicao([{ x: -3, y: 2 }, { x: -1, y: -2 }, { x: 1, y: 2 }, { x: 3, y: -1 }], '<', 0).intervalos[1].a,
+        },
+        {
+          tipo: 'esquema',
+          id: 'condicoes',
+          opcoes: { pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '<', k: 0 },
+          legenda: 'Experimenta: arrasta a reta y = k (ou usa as setas) e muda a condição. Vê os parênteses mudarem de abertos para fechados quando passas de < para ≤. Põe k = 2 com ≥ para obteres dois pontos isolados e k = 5 com > para o conjunto vazio.',
+        },
+        {
+          tipo: 'erro-frequente',
+          texto: 'O conjunto-solução tem valores de $x$, lidos no eixo $Ox$, e não valores de $y$. Numa desigualdade estrita ($<$ ou $>$), os pontos em que $f(x) = k$ **não** entram. E o conjunto-solução não passa dos extremos do domínio: com domínio $[-3, 3]$ não escrevas $+\\infty$.',
+        },
       ],
       resumo: [
         'Função: a cada objeto do domínio corresponde uma única imagem.',
@@ -75,6 +123,7 @@ Manual.registarTema('mat-a', {
         'Representações: diagrama de setas, tabela, gráfico e expressão analítica.',
         'Em $y = f(x)$: $x$ é a variável independente, $y$ a variável dependente.',
         'História: tabelas antigas, Galileu (projéteis), Leibniz (palavra), Euler ($f(x)$), Dirichlet (definição geral).',
+        'Condições $f(x) = k$, $f(x) < k$, $f(x) > k$: traça a reta $y = k$ e lê no eixo $Ox$ onde o gráfico a corta, fica abaixo ou fica acima. Com $\\leq$ e $\\geq$ os pontos em que $f(x) = k$ entram; sem soluções, o conjunto é $\\emptyset$.',
       ],
       quiz: [
         {
