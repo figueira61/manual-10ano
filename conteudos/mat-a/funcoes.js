@@ -70,7 +70,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'texto',
-          texto: '**Condições do tipo $f(x) = k$, $f(x) < k$, $f(x) > k$.** Para as resolver a partir do gráfico, traça a reta horizontal $y = k$. As soluções de $f(x) = k$ são as abcissas dos pontos em que o gráfico corta ou toca essa reta. $f(x) > k$ nos objetos em que o gráfico fica **acima** da reta e $f(x) < k$ naqueles em que fica **abaixo**. A resposta é sempre um conjunto de valores de $x$, que se marca no eixo $Ox$.',
+          texto: '**Condições do tipo $f(x) = k$, $f(x) < k$, $f(x) > k$.** Para as resolver a partir do gráfico, traça a reta horizontal $y = k$. As soluções de $f(x) = k$ são as abcissas dos pontos em que o gráfico corta ou toca essa reta. Tem-se $f(x) > k$ nos objetos em que o gráfico fica **acima** da reta e $f(x) < k$ naqueles em que fica **abaixo**. A resposta é sempre um conjunto de valores de $x$, que se marca no eixo $Ox$.',
         },
         {
           tipo: 'quadro',
@@ -89,7 +89,7 @@ Manual.registarTema('mat-a', {
         },
         {
           tipo: 'texto',
-          texto: '**Sem soluções.** Se a reta $y = k$ fica toda acima do gráfico, nenhum objeto tem imagem maior do que $k$, por isso $f(x) > k$ e $f(x) = k$ são impossíveis. O conjunto-solução é o conjunto vazio, $\\emptyset$.',
+          texto: '**Sem soluções.** Se a reta $y = k$ fica toda acima do gráfico, o gráfico inteiro está abaixo dela. Não há nenhum $x$ do domínio com $f(x) > k$ nem com $f(x) = k$, por isso essas condições são impossíveis. O conjunto-solução é o conjunto vazio, $\\emptyset$.',
         },
         {
           tipo: 'exemplo',
@@ -101,7 +101,7 @@ Manual.registarTema('mat-a', {
             'O gráfico está abaixo do eixo entre $-2$ e $0$ e de $\\dfrac{7}{3}$ até ao fim do domínio. $f(x) < 0 \\Leftrightarrow x \\in \\left]-2, 0\\right[ \\cup \\left]\\dfrac{7}{3}, 3\\right]$. O $3$ entra porque pertence ao domínio e $f(3) = -1 < 0$.',
             'Com $\\leq$ os zeros entram: $f(x) \\leq 0 \\Leftrightarrow x \\in [-2, 0] \\cup \\left[\\dfrac{7}{3}, 3\\right]$.',
             'A reta $y = 2$ só toca o gráfico em $(-3, 2)$ e em $(1, 2)$, e o gráfico nunca fica acima dela: $f(x) \\geq 2 \\Leftrightarrow x \\in \\{-3, 1\\}$.',
-            'O maior valor de $f$ é $2$, por isso $f(x) > 5$ não tem soluções: o conjunto-solução é $\\emptyset$.',
+            'O gráfico inteiro fica abaixo da reta $y = 5$, porque o maior valor de $f$ é $2$. Não há nenhum $x$ do domínio com $f(x) > 5$, por isso o conjunto-solução é $\\emptyset$.',
           ],
           resultado: 7 / 3,
           verificar: () => Manual.calc.funcoes.resolverCondicao([{ x: -3, y: 2 }, { x: -1, y: -2 }, { x: 1, y: 2 }, { x: 3, y: -1 }], '<', 0).intervalos[1].a,
@@ -110,7 +110,7 @@ Manual.registarTema('mat-a', {
           tipo: 'esquema',
           id: 'condicoes',
           opcoes: { pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '<', k: 0 },
-          legenda: 'Experimenta: arrasta a reta y = k (ou usa as setas) e muda a condição. Vê os parênteses mudarem de abertos para fechados quando passas de < para ≤. Põe k = 2 com ≥ para obteres dois pontos isolados e k = 5 com > para o conjunto vazio.',
+          legenda: 'Experimenta: arrasta a reta y = k (ou usa as setas) e muda a condição. Vê os parênteses mudarem de abertos para fechados quando passas de < para ≤. Põe k = 2 com ≥ para obteres dois pontos isolados. Depois sobe a reta até k = 3, acima de todo o gráfico, e escolhe > para obteres o conjunto vazio.',
         },
         {
           tipo: 'erro-frequente',

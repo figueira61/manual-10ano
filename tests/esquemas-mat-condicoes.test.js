@@ -99,3 +99,11 @@ test('condicoes: pontos inválidos caem no exemplo por omissão', () => {
   const { el } = montar({ pontos: [[1, 2], [0, 3]], sinal: '=', k: 0 });
   assert.equal(valor(el, 'Domínio'), '[−3, 3]');
 });
+
+test('condicoes: a legenda do manual dá ∅ com k = 3 e > (k = 3 está ao alcance da pega)', () => {
+  const { el, criados } = montar({ pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '>', k: 0 });
+  const g = pega(criados);
+  for (let i = 0; i < 6; i++) tecla(g, 'PageUp');
+  assert.equal(g.getAttribute('aria-valuenow'), '3');
+  assert.equal(valor(el, 'Conjunto-solução'), '∅ (não há soluções)');
+});
