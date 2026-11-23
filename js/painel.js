@@ -50,6 +50,7 @@ globalThis.Manual = globalThis.Manual || {};
     area_como_perimetro: 'Usou a fórmula do perímetro em vez da da área',
     area_sem_metade: 'Esqueceu de dividir por 2 no cálculo da área',
     area_sobre_perimetro: 'Dividiu a área pelo perímetro em vez do semiperímetro',
+    arredondou_as_quotas: 'Arredondou as quotas proporcionais, e o total não bateu certo',
     arredondou_e_somou_um: 'Arredondou e somou um a mais',
     arredondou_p_para_baixo: 'Arredondou a posição p para baixo',
     assumiu_coincidencia: 'Assumiu que os dois métodos dão o mesmo vencedor',

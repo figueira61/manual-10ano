@@ -10,7 +10,7 @@ const FICHEIROS = [
 const IDS = [
   'maiorias-limiar', 'maiorias-vencedor', 'maiorias-em-falta',
   'borda-pontos', 'borda-vencedor', 'borda-divergencia',
-  'hondt-stlague-hondt-mandatos', 'hondt-stlague-stlague-mandatos', 'hondt-stlague-ultimo-mandato',
+  'hondt-stlague-hondt-mandatos', 'hondt-stlague-stlague-mandatos', 'hondt-stlague-ultimo-mandato', 'hondt-stlague-partilha',
   'salarios-ss', 'salarios-liquido', 'salarios-irs-anual', 'salarios-hora',
   'juros-simples-montante', 'juros-composto-montante', 'juros-capital-inicial',
 ];
@@ -21,7 +21,7 @@ before(() => {
   G = M.geradores;
 });
 
-test('regista os 16 geradores de cidadania, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
+test('regista os 17 geradores de cidadania, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
   const ids = G.todos().filter((d) => d.tema === 'cidadania').map((d) => d.id);
   assert.deepEqual(ids, IDS);
   for (const id of IDS) {
@@ -80,4 +80,89 @@ test('mandatos: só erros reais (sem códigos contagem_*), em numérica e escolh
       }
     }
   }
+});
+
+// ---------------------------------------------------------------- partilha proporcional fora das eleições
+// Palavras do contexto eleitoral («repartidos» não conta: \b antes de «partido»).
+const ELEITORAL = /elei[çc]|\bpartidos?\b|mandat|\bvotos?\b|assembleia/i;
+const distTexto = (nomes, m) => nomes.map((n, i) => n + ' ' + m[i]).join(' – ');
+
+test('partilha: gerador hondt-stlague-partilha com formatos numérica e escolha', () => {
+  const d = G.obter('hondt-stlague-partilha');
+  assert.ok(d, 'gerador em falta');
+  assert.equal(d.subtema, 'hondt-stlague');
+  assert.equal(d.tipo, 'partilha');
+  assert.deepEqual(d.formatos, ['numerica', 'escolha']);
+});
+
+test('partilha: em 500 sementes, soma = total, resposta = calc() pelo método pedido, contexto não eleitoral', () => {
+  const C = M.calc.cidadania;
+  const metodos = new Set();
+  for (const formato of ['numerica', 'escolha']) {
+    for (let s = 1; s <= 500; s++) {
+      const p = G.gerar('hondt-stlague-partilha', s, { formato });
+      const { tamanhos, N, metodo, nomes, item } = p.dados;
+      metodos.add(metodo);
+      assert.ok(metodo === 'hondt' || metodo === 'stlague', 'método ' + metodo);
+      const m = (metodo === 'hondt' ? C.hondt : C.stLague)(tamanhos, N).mandatos;
+      assert.equal(m.reduce((a, b) => a + b, 0), N, formato + ' ' + s);
+      assert.ok(p.enunciado.includes(' ' + N + ' '), 'o total ' + N + ' está no enunciado: ' + p.enunciado);
+      if (formato === 'escolha') assert.equal(p.opcoes[p.correta], distTexto(nomes, m), formato + ' ' + s);
+      else assert.equal(p.resposta, m[p.dados.entidade], formato + ' ' + s);
+      // Contexto não eleitoral: computadores, bolsas, vagas, lugares…
+      assert.match(p.enunciado, /computador|bolsa|vaga|lugar/, p.enunciado);
+      const textos = [p.enunciado].concat(p.opcoes || [], p.errosTipicos.map((e) => e.explicacao), p.resolucao);
+      for (const t of textos) assert.doesNotMatch(t, ELEITORAL, formato + ' ' + s + ': ' + t);
+      assert.ok(typeof item === 'string' && item.length > 0);
+    }
+  }
+  assert.deepEqual([...metodos].sort(), ['hondt', 'stlague']);
+});
+
+test('partilha: erros reais — outro método sempre; arredondar as quotas só quando o total sai errado; nada perto de 0', () => {
+  for (const formato of ['numerica', 'escolha']) {
+    for (let s = 1; s <= 300; s++) {
+      const p = G.gerar('hondt-stlague-partilha', s, { formato });
+      const { tamanhos, N, metodo } = p.dados;
+      const T = tamanhos.reduce((a, b) => a + b, 0);
+      const somaArred = tamanhos.reduce((a, v) => a + Math.round((N * v) / T), 0);
+      const codigos = p.errosTipicos.map((e) => e.codigo);
+      if (codigos.includes('arredondou_as_quotas')) assert.notEqual(somaArred, N, formato + ' ' + s);
+      if (formato === 'escolha') {
+        assert.ok(codigos.includes(metodo === 'hondt' ? 'divisores_impares' : 'divisores_hondt'), formato + ' ' + s + ': ' + codigos);
+      } else {
+        // Regra 7: nenhum erro típico com valor 0 (um «0» escrito não pode ser marcado como erro típico).
+        for (const e of p.errosTipicos) assert.ok(e.valor >= 1, 'erro ' + e.codigo + ' com valor ' + e.valor);
+      }
+    }
+  }
+});
+
+test('partilha: caso fixo (semente 7, escolha) em que Hondt e St. Laguë diferem, e a explicação diz isso', () => {
+  const C = M.calc.cidadania;
+  const p = G.gerar('hondt-stlague-partilha', 7, { formato: 'escolha' });
+  const { tamanhos, N, metodo, nomes } = p.dados;
+  const h = C.hondt(tamanhos, N).mandatos;
+  const sl = C.stLague(tamanhos, N).mandatos;
+  assert.notDeepEqual(h, sl);
+  const outro = metodo === 'hondt' ? sl : h;
+  const e = p.errosTipicos.find((x) => x.codigo === (metodo === 'hondt' ? 'divisores_impares' : 'divisores_hondt'));
+  assert.ok(e, 'falta o erro do outro método');
+  assert.equal(p.opcoes[e.opcao], distTexto(nomes, outro));
+  assert.ok(e.explicacao.includes(distTexto(nomes, outro)), e.explicacao);
+  assert.match(e.explicacao, /distribuição diferente/);
+});
+
+test('partilha: há sementes com arredondamento das quotas (total errado) oferecido como erro', () => {
+  let visto = 0;
+  for (let s = 1; s <= 300; s++) {
+    const p = G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' });
+    const e = p.errosTipicos.find((x) => x.codigo === 'arredondou_as_quotas');
+    if (!e) continue;
+    visto++;
+    const soma = p.opcoes[e.opcao].match(/\d+/g).map(Number).reduce((a, b) => a + b, 0);
+    assert.notEqual(soma, p.dados.N);
+    assert.ok(e.explicacao.includes(p.opcoes[e.opcao]) || e.explicacao.includes(String(soma)), e.explicacao);
+  }
+  assert.ok(visto >= 10, 'só ' + visto + ' sementes com arredondou_as_quotas');
 });

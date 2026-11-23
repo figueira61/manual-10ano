@@ -827,6 +827,200 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
+  // ---------------------------------------------------------------- partilha proporcional fora das eleições
+  // Os mesmos métodos (Hondt, St. Laguë) a repartir objetos por entidades de dimensões diferentes:
+  // a dimensão (professores, alunos, pré-inscrições, trabalhadores) faz o papel dos votos.
+  const CENARIOS_PARTILHA = {
+    computadores: {
+      item: 'computadores', um: 'computador', fem: false, grupo: 'departamento', dimensao: 'professores', dimFem: false,
+      entidades: ['Matemática', 'Ciências', 'Línguas', 'Expressões', 'Humanidades'], min: 5, max: 60, passo: 1,
+      o: (n) => 'o departamento de ' + n, ao: (n) => 'ao departamento de ' + n, de: (n) => 'do departamento de ' + n,
+      abertura: (N, nomes, t) => 'Uma escola recebeu ' + N + ' computadores novos para repartir pelos departamentos de ' + listaPt(nomes) + ', que têm, respetivamente, ' + listaPt(t) + ' professores.',
+    },
+    bolsas: {
+      item: 'bolsas', um: 'bolsa', fem: true, grupo: 'escola', dimensao: 'alunos', dimFem: false,
+      entidades: ['Norte', 'Sul', 'Centro', 'Ribeira', 'Planalto'], min: 60, max: 900, passo: 10,
+      o: (n) => 'a escola ' + n, ao: (n) => 'à escola ' + n, de: (n) => 'da escola ' + n,
+      abertura: (N, nomes, t) => 'Um município tem ' + N + ' bolsas de estudo para repartir pelas escolas ' + listaPt(nomes) + ', que têm, respetivamente, ' + listaPt(t) + ' alunos no ensino secundário.',
+    },
+    vagas: {
+      item: 'vagas', um: 'vaga', fem: true, grupo: 'turno', dimensao: 'pré-inscrições', dimFem: true, fixas: true,
+      entidades: ['Manhã', 'Tarde', 'Noite'], min: 8, max: 90, passo: 1,
+      o: (n) => 'o turno da ' + n.toLowerCase(), ao: (n) => 'ao turno da ' + n.toLowerCase(), de: (n) => 'do turno da ' + n.toLowerCase(),
+      abertura: (N, nomes, t) => 'Um clube de natação abriu ' + N + ' vagas num curso de verão, a repartir pelos turnos da manhã, da tarde e da noite, que tiveram, respetivamente, ' + listaPt(t) + ' pré-inscrições.',
+    },
+    lugares: {
+      item: 'lugares', um: 'lugar', fem: false, grupo: 'empresa', dimensao: 'trabalhadores', dimFem: false,
+      entidades: ['Alfa', 'Beta', 'Gama', 'Delta', 'Sigma'], min: 15, max: 300, passo: 5,
+      o: (n) => 'a empresa ' + n, ao: (n) => 'à empresa ' + n, de: (n) => 'da empresa ' + n,
+      abertura: (N, nomes, t) => 'Um edifício de escritórios tem ' + N + ' lugares de estacionamento para repartir pelas empresas ' + listaPt(nomes) + ', que têm, respetivamente, ' + listaPt(t) + ' trabalhadores.',
+    },
+  };
+  const qtdPartilha = (c) => (k) => fmt(k) + ' ' + (k === 1 ? c.um : c.item);
+  const distPartilha = (nomes, m) => nomes.map((n, i) => n + ' ' + m[i]).join(' – ');
+  const NOME_CURTO = { hondt: 'Hondt', stlague: 'St. Laguë' };
+
+  // Dados sem empates perto do corte (pelo método pedido e pelo outro) e com Hondt ≠ St. Laguë.
+  function dadosPartilha(rng) {
+    const cenario = escolher(rng, Object.keys(CENARIOS_PARTILHA));
+    const c = CENARIOS_PARTILHA[cenario];
+    const nomes = c.fixas ? c.entidades.slice() : baralhar(rng, c.entidades).slice(0, 3);
+    const tamanhos = nomes.map(() => c.passo * inteiro(rng, c.min / c.passo, c.max / c.passo));
+    if (new Set(tamanhos).size !== tamanhos.length) return null;
+    const N = inteiro(rng, 6, 15);
+    const metodo = escolher(rng, ['hondt', 'stlague']);
+    const outro = metodo === 'hondt' ? 'stlague' : 'hondt';
+    const separado = (a, b) => a - b >= 0.01 * a;
+    const q = distribuir(metodo, tamanhos, N + 2).atribuicoes.map((a) => a.quociente);
+    if (!separado(q[N - 2], q[N - 1]) || !separado(q[N - 1], q[N]) || !separado(q[N], q[N + 1])) return null;
+    const qo = distribuir(outro, tamanhos, N + 1).atribuicoes.map((a) => a.quociente);
+    if (!separado(qo[N - 1], qo[N])) return null;
+    const dist = distribuir(metodo, tamanhos, N);
+    const distOutro = distribuir(outro, tamanhos, N).mandatos;
+    if (dist.mandatos.every((k, i) => k === distOutro[i])) return null;
+    return { cenario, c, nomes, tamanhos, N, metodo, outro, dist, distOutro, seguinte: distribuir(metodo, tamanhos, N + 1).atribuicoes[N] };
+  }
+
+  // Erros reais: o outro método, arredondar as quotas (só quando o total sai errado), Hamilton, parar antes, incluir o seguinte.
+  // Cada erro: { codigo, m (distribuição), explicar(textoMostrado) }; o do outro método vem sempre primeiro.
+  function errosPartilha(rng, d) {
+    const { c, tamanhos, N, metodo, outro } = d;
+    const T = soma(tamanhos);
+    const quotas = tamanhos.map((t) => (N * t) / T);
+    const qtd = qtdPartilha(c);
+    const quota = 'quota = ' + N + ' × ' + c.dimensao + ' ÷ ' + fmt(T);
+    const codigoOutro = { hondt: 'divisores_impares', stlague: 'divisores_hondt' }[metodo];
+    const lista = [{
+      codigo: codigoOutro,
+      m: d.distOutro,
+      explicar: (mostrado) => 'No ' + NOME_METODO[metodo] + ' os divisores são ' + (metodo === 'hondt' ? '1, 2, 3, 4, …' : 'os ímpares 1, 3, 5, 7, …') + '; usaste ' +
+        (outro === 'hondt' ? '1, 2, 3, …' : '1, 3, 5, …') + ' (' + NOME_CURTO[outro] + '), que aqui dão ' + mostrado + ': uma distribuição diferente da do ' + NOME_METODO[metodo] + '.',
+    }];
+    const ambiguo = quotas.some((x) => Math.abs(x - Math.floor(x) - 0.5) < 0.01);
+    const arred = quotas.map((x) => Math.round(x));
+    if (!ambiguo && soma(arred) !== N) {
+      lista.push({
+        codigo: 'arredondou_as_quotas', m: arred,
+        explicar: (mostrado) => 'Repartiste em proporção direta (' + quota + ') e arredondaste cada quota: isso dá ' + mostrado +
+          ', mas arredondar todas as quotas dá ' + arred.join(' + ') + ' = ' + qtd(soma(arred)) + ', e são ' + N + '. Arredondar as quotas nem sempre respeita o total.',
+      });
+    }
+    const restos = quotas.map((x) => x - Math.floor(x));
+    const empateRestos = restos.some((r, i) => restos.some((s, j) => j !== i && Math.abs(r - s) < 0.01));
+    const outros = [];
+    if (!empateRestos) {
+      outros.push({
+        codigo: 'proporcional_restos_maiores', m: calc().restosMaiores(tamanhos, N).mandatos,
+        explicar: (mostrado) => 'Repartiste em proporção direta (' + quota + ') e deste o que sobrava aos maiores restos: isso dá ' + mostrado + ', pelo método de Hamilton, não pelo ' + NOME_METODO[metodo] + '.',
+      });
+    }
+    outros.push({
+      codigo: 'parou_um_antes', m: distribuir(metodo, tamanhos, N - 1).mandatos,
+      explicar: (mostrado) => 'Paraste um quociente antes: só repartiste ' + (N - 1) + (c.fem ? ' das ' : ' dos ') + N + ' ' + c.item + ', o que dá ' + mostrado + '.',
+    });
+    outros.push({
+      codigo: 'incluiu_quociente_seguinte', m: distribuir(metodo, tamanhos, N + 1).mandatos,
+      explicar: (mostrado) => 'Incluíste o ' + (N + 1) + '.º quociente, que já fica de fora: assim repartes ' + (N + 1) + ' ' + c.item + ' (' + mostrado + '), e são ' + N + '.',
+    });
+    return lista.concat(baralhar(rng, outros));
+  }
+
+  // Quadro de quocientes com os nomes das entidades nas linhas; os N maiores a negrito.
+  function passosPartilha(d) {
+    const { c, nomes, tamanhos, N, metodo, dist, seguinte } = d;
+    const div = divisorDe(metodo);
+    const colunas = Math.max(...dist.mandatos) + 1;
+    const cab = Array.from({ length: colunas }, (_, k) => '\\div ' + div(k)).join(' & ');
+    const linhas = tamanhos.map((t, i) => txt(nomes[i]) + ' & ' + Array.from({ length: colunas }, (_, k) => {
+      const q = tex(t / div(k), 2);
+      return k < dist.mandatos[i] ? '\\mathbf{' + q + '}' : q;
+    }).join(' & '));
+    const ult = dist.atribuicoes[N - 1];
+    return [
+      {
+        passo: 'Calcular os quocientes',
+        porque: 'No ' + NOME_METODO[metodo] + ' dividem-se ' + (c.dimFem ? 'as ' : 'os ') + c.dimensao + ' de cada ' + c.grupo + ' por ' + (metodo === 'hondt' ? '1, 2, 3, …' : '1, 3, 5, … (os ímpares)') + '; a negrito estão os ' + N + ' maiores quocientes.',
+        calculo: '\\begin{array}{c|' + 'c'.repeat(colunas) + '} & ' + cab + ' \\\\ \\hline ' + linhas.join(' \\\\ ') + ' \\end{array}',
+        bloco: true,
+      },
+      {
+        passo: 'Ver onde fica o corte',
+        porque: (c.fem ? 'As ' : 'Os ') + N + ' ' + c.item + ' vão, ' + (c.fem ? 'uma a uma' : 'um a um') + ', para os ' + N + ' maiores quocientes; o seguinte já não recebe nada.',
+        calculo: 'q_{' + N + '}' + igualOuAprox(ult.quociente, 2) + '\\ (' + txt(nomes[ult.partido]) + ') > q_{' + (N + 1) + '}' + igualOuAprox(seguinte.quociente, 2) + '\\ (' + txt(nomes[seguinte.partido]) + ')',
+      },
+    ];
+  }
+
+  // Verificação pelo método do divisor: com o divisor q_N cada entidade recebe ⌊t/q⌋ (Hondt) ou ⌊(t/q + 1)/2⌋ (St. Laguë).
+  function verificacaoPartilha(d, i) {
+    const { c, nomes, tamanhos, N, metodo } = d;
+    const r = mandatosPorLimiar(tamanhos, N, metodo);
+    const regra = metodo === 'hondt' ? 'a parte inteira de ' + c.dimensao + ' ÷ divisor' : 'a parte inteira de (' + c.dimensao + ' ÷ divisor + 1) ÷ 2';
+    let calculo = definicaoQ(tamanhos, N, metodo, r) + ';\\quad ' + tamanhos.map((t) => parcelaDivisor(t, N, metodo)).join(' + ') + ' = ' + r.mandatos.join(' + ') + ' = ' + soma(r.mandatos);
+    if (i !== null) calculo += ';\\quad ' + txt(nomes[i]) + ' = ' + r.mandatos[i];
+    return {
+      r,
+      verificacao: {
+        passo: 'Confirmar pelo método do divisor: com o divisor ' + (Math.abs(r.qM * 100 - Math.round(r.qM * 100)) < 1e-6 ? '' : '≈ ') + fmt(r.qM, 2) + ' (o ' + N + '.º quociente), cada ' + c.grupo + ' recebe ' + regra + ', e o total dá ' + N,
+        calculo,
+      },
+    };
+  }
+
+  registar({
+    subtema: 'hondt-stlague', tipo: 'partilha', nome: 'Partilha proporcional fora das eleições',
+    formatos: ['numerica', 'escolha'],
+    gerar(semente, { formato, rng }) {
+      return tentar(() => {
+        const d = dadosPartilha(rng);
+        if (!d) return null;
+        const { cenario, c, nomes, tamanhos, N, metodo, dist } = d;
+        const qtd = qtdPartilha(c);
+        const lista = errosPartilha(rng, d);
+        const resolucao = passosPartilha(d);
+        const enunciado = c.abertura(N, nomes, tamanhos.map((t) => fmt(t))) + ' A partilha faz-se pelo ' + NOME_METODO[metodo] + ', aplicado ao número de ' + c.dimensao + ' de cada ' + c.grupo + '.';
+        const dados = { cenario, item: c.item, nomes, tamanhos, N, metodo };
+        const vale = 'vale ' + (c.fem ? 'uma ' : 'um ') + c.um;
+        if (formato === 'escolha') {
+          resolucao.push({ passo: 'Contar ' + (c.fem ? 'as ' : 'os ') + c.item + ' de cada ' + c.grupo, porque: 'Cada quociente a negrito ' + vale + ' para ' + (c.fem ? 'a ' : 'o ') + c.grupo + ' dessa linha.', calculo: nomes.map((n, j) => txt(n) + ' = ' + dist.mandatos[j]).join(',\\ ') });
+          const { r, verificacao } = verificacaoPartilha(d, null);
+          const erros = lista.map((e) => { const t = distPartilha(nomes, e.m); return { codigo: e.codigo, texto: t, explicacao: e.explicar(t) }; });
+          return fecharTexto(rng, {
+            enunciado: enunciado + ' Como ficam ' + (c.fem ? 'repartidas as ' : 'repartidos os ') + N + ' ' + c.item + ' (' + nomes.join(' – ') + ')?',
+            resolucao, verificacao, dados,
+          }, distPartilha(nomes, dist.mandatos), erros, distPartilha(nomes, r.mandatos));
+        }
+        // Numérica: uma entidade em que o outro método dá outro número (≥ 1), para o erro do outro método estar sempre disponível.
+        const comErro = nomes.map((_, j) => j).filter((j) => d.distOutro[j] !== dist.mandatos[j] && d.distOutro[j] >= 1);
+        if (!comErro.length) return null;
+        const i = escolher(rng, comErro);
+        const k = dist.mandatos[i];
+        resolucao.push({ passo: 'Contar ' + (c.fem ? 'as ' : 'os ') + c.item + ' ' + c.de(nomes[i]), porque: 'Cada quociente a negrito na linha de ' + nomes[i] + ' ' + vale + '.', calculo: txt(nomes[i]) + ' = ' + k });
+        const { r, verificacao } = verificacaoPartilha(d, i);
+        verificacao.valor = r.mandatos[i];
+        // Regra 7: nenhum erro típico com valor 0.
+        const erros = lista.filter((e) => e.m[i] >= 1).map((e) => ({ codigo: e.codigo, valor: e.m[i], explicacao: e.explicar(qtd(e.m[i]) + ' ' + c.ao(nomes[i])) }));
+        dados.entidade = i;
+        return fechar(rng, formato, {
+          enunciado: enunciado + (c.fem ? ' Quantas ' : ' Quantos ') + c.item + ' recebe ' + c.o(nomes[i]) + '?',
+          resolucao, dados,
+        }, { resposta: k, tolerancia: 0, unidade: c.item, texto: qtd, erros, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const { cenario, nomes, tamanhos, N, metodo, entidade } = p.dados;
+      const r = mandatosPorLimiar(tamanhos, N, metodo);
+      if (soma(r.mandatos) !== N) return false;
+      if (tamanhos.some((t, j) => mandatosPorDivisor(t, r.qM, metodo) !== r.mandatos[j])) return false;
+      if (p.formato === 'escolha') return p.opcoes[p.correta] === distPartilha(nomes, r.mandatos);
+      return confere(p, r.mandatos[entidade], qtdPartilha(CENARIOS_PARTILHA[cenario]));
+    },
+    limites(p) {
+      const c = CENARIOS_PARTILHA[p.dados.cenario];
+      return !!c && p.dados.N >= 6 && p.dados.N <= 15 && p.dados.tamanhos.every((t) => t >= c.min && t <= c.max);
+    },
+  });
+
   // ---------------------------------------------------------------- salários
   const TAXA_SS = 0.11;
   const AVISO_ILUSTRATIVO = '(Tabela ilustrativa do manual — não é a tabela oficial.)';
