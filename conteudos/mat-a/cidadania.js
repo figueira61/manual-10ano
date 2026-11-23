@@ -261,7 +261,7 @@ Manual.registarTema('mat-a', {
         'Conhecer e aplicar o método de Hondt e o método de St. Laguë.',
         'Identificar vantagens e limitações dos métodos de Hondt e St. Laguë.',
       ],
-      minutos: 6,
+      minutos: 8,
       essencial: [
         {
           tipo: 'texto',
@@ -331,6 +331,37 @@ Manual.registarTema('mat-a', {
           tipo: 'erro-frequente',
           texto: 'Não se dá "um mandato por partido e depois o resto": em cada passo o mandato vai para o **maior quociente** ainda não usado, mesmo que esse partido já tenha mandatos.',
         },
+        {
+          tipo: 'texto',
+          texto: '**Partilha proporcional fora das eleições.** Os mesmos métodos servem para repartir um número inteiro de objetos por grupos de dimensões diferentes: computadores por departamentos, bolsas de estudo por escolas, vagas por turnos. A dimensão de cada grupo (professores, alunos, inscritos) faz o papel dos votos, e cada objeto faz o papel de um mandato.',
+        },
+        {
+          tipo: 'exemplo',
+          enunciado: 'Uma escola recebeu 12 computadores para repartir pelos departamentos de Ciências (36 professores), Línguas (20 professores) e Expressões (9 professores), em proporção ao número de professores. Como fica a partilha pelo método de Hondt? E pelo de St. Laguë?',
+          resolucao: [
+            'Quota de cada departamento (12 × professores ÷ 65): Ciências ≈ 6,65, Línguas ≈ 3,69 e Expressões ≈ 1,66. Não são inteiras, e arredondá-las dá 7 + 4 + 2 = 13 computadores, um a mais do que os 12 que há.',
+            'Hondt (÷ 1, 2, 3, …): os 12 maiores quocientes são 36, 20, 18, 12, 10, 9 (Ciências), 9 (Expressões), 7,2, 6,67, 6, 5,14 e 5. O 13.º seria 4,5, que já não entra.',
+            'Resultado por Hondt: Ciências 7, Línguas 4 e Expressões 1.',
+            'St. Laguë (÷ 1, 3, 5, …): os 12 maiores quocientes são 36, 20, 12, 9, 7,2, 6,67, 5,14, 4 (Ciências), 4 (Línguas), 3,27, 3 e 2,86. O 13.º seria 36 ÷ 13 ≈ 2,77, que já não entra.',
+            'Resultado por St. Laguë: Ciências 6, Línguas 4 e Expressões 2.',
+          ],
+          resultado: 2,
+          verificar: () => Manual.calc.cidadania.stLague([36, 20, 9], 12).mandatos[2],
+        },
+        {
+          tipo: 'quadro',
+          cabecalho: ['Departamento', 'Professores', 'Quota (12 × professores ÷ 65)', 'Hondt', 'St. Laguë'],
+          linhas: [
+            ['Ciências', '36', '≈ 6,65', '7', '6'],
+            ['Línguas', '20', '≈ 3,69', '4', '4'],
+            ['Expressões', '9', '≈ 1,66', '1', '2'],
+            ['**Total**', '65', '12', '12', '12'],
+          ],
+        },
+        {
+          tipo: 'texto',
+          texto: 'Os dois métodos dão partilhas diferentes: Hondt dá mais um computador ao departamento maior (Ciências) e St. Laguë dá mais um ao mais pequeno (Expressões). **Limitações:** com poucos objetos, nenhum método é exatamente proporcional, e métodos diferentes dão resultados diferentes; arredondar as quotas também não serve, porque o total pode não bater certo (aqui dava 13). Por isso, o método tem de ser combinado antes da partilha.',
+        },
       ],
       resumo: [
         'Objetivo: distribuir mandatos de forma (aproximadamente) proporcional aos votos.',
@@ -338,6 +369,7 @@ Manual.registarTema('mat-a', {
         'St. Laguë: divisores $1, 3, 5, \\ldots$',
         'Hondt favorece os grandes partidos; St. Laguë é mais favorável aos pequenos.',
         'Métodos diferentes podem dar distribuições diferentes para a mesma eleição.',
+        'Fora das eleições, os mesmos métodos repartem computadores, bolsas ou vagas: a dimensão de cada grupo faz o papel dos votos.',
       ],
       quiz: [
         {
