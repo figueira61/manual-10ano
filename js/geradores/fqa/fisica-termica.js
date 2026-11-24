@@ -257,7 +257,7 @@ globalThis.Manual = globalThis.Manual || {};
       funcao: 'Transferir a energia para o fluido por condução, através das paredes, para que o fluido em movimento a transporte para fora do coletor.',
       porque: 'Os tubos metálicos estão encostados à placa quente, e o fluido (água) que circula lá dentro leva a energia até ao depósito.' },
     { id: 'isolamento', nome: 'o isolamento térmico', codigo: 'coletor_trocou_com_o_isolamento', mecanismo: 'menos perdas por condução',
-      funcao: 'Reduzir as perdas de energia por condução através do fundo e das paredes laterais da caixa.',
+      funcao: 'Reduzir as perdas de energia por condução através do fundo da caixa.',
       porque: 'É um material mau condutor térmico (lã mineral, espuma), posto entre os tubos e a caixa.' },
   ];
   // O mecanismo de cada peça, procurado no texto da função (verificação por outro caminho).
@@ -278,6 +278,8 @@ globalThis.Manual = globalThis.Manual || {};
     subtema: 'transferencias', tipo: 'coletor', nome: 'Coletor solar: função de cada peça e rendimento (η = E_útil / G A Δt)',
     formatos: ['escolha', 'numerica'],
     gerar(semente, { formato, rng }) {
+      // o caso da numérica sorteia-se fora de tentar: as rejeições do caso rendimento não o tornam mais raro
+      const caso = rng() < 0.5 ? 'rendimento' : 'energia';
       return tentar(() => {
         if (formato === 'escolha') {
           const P = escolher(rng, PECAS_COLETOR);
@@ -309,7 +311,6 @@ globalThis.Manual = globalThis.Manual || {};
         const ts = tmin * 60;
         const GA = A.limpo(Gi * Ar);
         const Einc = A.limpo(GA * ts);
-        const caso = rng() < 0.5 ? 'rendimento' : 'energia';
         const dadosColetor = 'Um coletor solar plano com ' + q(Ar, UN.m2) + ' de área';
         const iluminado = 'recebe radiação solar com uma irradiância de ' + q(Gi, UN.Wm2) + ' durante ' + q(tmin, UN.min);
         const passoInc = { passo: 'Energia da radiação incidente', porque: 'A irradiância é a potência da radiação por unidade de área, por isso a energia que chega ao coletor é $E_{inc} = G A \\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E_{inc} = ' + tex(Gi) + ' \\times ' + tex(Ar) + ' \\times ' + tex(ts) + eqI(Einc) + '\\,\\mathrm{J}' };
@@ -317,7 +318,9 @@ globalThis.Manual = globalThis.Manual || {};
         if (caso === 'rendimento') {
           const cA = cDe('agua');
           const etaAlvo = entre(rng, S.rendimentoColetor[0], S.rendimentoColetor[1], 0.01);
-          const m = entre(rng, 20, 150, 10);
+          // massa a partir da energia incidente (Δθ alvo de 10 a 40 °C), para o caso ser quase sempre aceite
+          const m = Math.round((etaAlvo * Einc) / (cA * entre(rng, 10, 40, 1)) / 5) * 5;
+          if (m < 20 || m > 150) return null;
           const dT = Math.round(((etaAlvo * Einc) / (m * cA)) * 10) / 10;
           if (dT < 10 || dT > 45) return null;
           const ti = entre(rng, 12, 25, 1);
@@ -346,7 +349,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'rendimento_maior_do_que_1', valor: (Einc / Eu) * 100, explicacao: (vt) => 'Calculaste $E_{inc}/E_{\\text{útil}}$ e obtiveste ' + vt((Einc / Eu) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
             { codigo: 'esqueceu_a_area_do_coletor', valor: vArea, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt(vArea, UN.pct) + '. A irradiância é a potência por metro quadrado, e a energia incidente é $G A \\Delta t$.' + alem(vArea) },
             { codigo: 'esqueceu_o_tempo_na_energia_incidente', valor: (Eu / GA) * 100, explicacao: (vt) => 'Esqueceste o tempo e obtiveste ' + vt((Eu / GA) * 100, UN.pct) + '. $G A$ é a potência incidente, em watts, e a energia incidente é $G A \\Delta t$, com $\\Delta t = ' + tex(ts) + '\\,\\mathrm{s}$. Um rendimento nunca passa de 100 %.' },
-            { codigo: 'tempo_em_minutos', valor: (Eu / (GA * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Eu / (GA * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
+            { codigo: 'tempo_em_minutos', valor: (Eu / (GA * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Eu / (GA * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Para obter joules, o tempo tem de estar em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
             { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: vTf, explicacao: (vt) => 'Usaste a temperatura final em vez da variação e obtiveste ' + vt(vTf, UN.pct) + '. A água aquece só $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' + alem(vTf) },
             { codigo: 'deu_a_fracao_dissipada', valor: 100 - exato, explicacao: (vt) => vt(100 - exato, UN.pct) + ' é a fração da energia incidente que não aquece a água (é refletida ou perde-se para o exterior). O rendimento é a fração útil.' },
           ];
@@ -367,11 +370,10 @@ globalThis.Manual = globalThis.Manual || {};
             dados: { caso, G: Gi, A: Ar, tmin, etaP },
           };
           erros = [
-            { codigo: 'deu_a_energia_incidente_em_vez_da_util', valor: Einc, explicacao: (vt) => vt(Einc, UN.J) + ' é toda a energia da radiação que chega ao coletor. Só ' + etaP + ' % dela é útil (aquece a água).' },
+            { codigo: 'deu_a_energia_incidente_em_vez_da_util', valor: Einc, explicacao: (vt) => vt(Einc, UN.J) + ' é toda a energia da radiação que chega ao coletor. Só ' + percentagem(etaP) + ' dela é útil (aquece a água).' },
             { codigo: 'esqueceu_a_area_do_coletor', valor: (etaP * Gi * ts) / 100, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt((etaP * Gi * ts) / 100, UN.J) + ' (é a energia útil por metro quadrado). Multiplica-se ainda por $' + tex(Ar) + '\\,\\mathrm{m^2}$.' },
-            { codigo: 'confundiu_potencia_com_energia', valor: Pu, explicacao: (vt) => vt(Pu) + ' é a potência útil (em watts), não a energia. Multiplica-se pelo tempo, em segundos.' },
-            { codigo: 'tempo_em_minutos', valor: Pu * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(Pu * tmin, UN.J) + '. Em joules o tempo está em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
-            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Einc, explicacao: (vt) => 'Usaste o rendimento como $' + etaP + '$ em vez de $' + tex(etaP / 100) + '$ e obtiveste ' + vt(etaP * Einc, UN.J) + ', mais do que a energia incidente, o que é impossível. A percentagem divide-se por 100.' },
+            { codigo: 'tempo_em_minutos', valor: Pu * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(Pu * tmin, UN.J) + '. Para obter joules, o tempo tem de estar em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
+            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Einc, explicacao: (vt) => 'Usaste o rendimento de ' + percentagem(etaP) + ' como $' + etaP + '$ em vez de $' + tex(etaP / 100) + '$ e obtiveste ' + vt(etaP * Einc, UN.J) + ', mais do que a energia incidente, o que é impossível. A percentagem divide-se por 100.' },
           ];
           verificacao = () => ({ passo: 'Primeiro a potência útil, $P_{\\text{útil}} = \\eta G A$, e só depois o tempo', calculo: 'P_{\\text{útil}} = ' + tex(etaP / 100) + ' \\times ' + tex(GA) + eqI(Pu) + '\\,\\mathrm{W};\\ E_{\\text{útil}} = ' + texI(Pu) + ' \\times ' + tex(ts) + eqN(Pu * ts, exI(Pu)) + '\\,\\mathrm{J}', valor: Pu * ts });
         }
@@ -796,7 +798,7 @@ globalThis.Manual = globalThis.Manual || {};
     { nome: 'Um motor elétrico', forn: 'energia elétrica', util: 'energia mecânica útil', eta: [0.7, 0.95] },
     { nome: 'O motor a gasolina de um automóvel', forn: 'energia (libertada na combustão)', util: 'energia mecânica útil', eta: [0.2, 0.35] },
     { nome: 'Uma lâmpada LED', forn: 'energia elétrica', util: 'energia da luz visível emitida', eta: [0.25, 0.45] },
-    { nome: 'Um coletor solar térmico', forn: 'energia da radiação solar', util: 'energia transferida para a água', eta: [0.4, 0.7] },
+    { nome: 'Um coletor solar térmico', forn: 'energia da radiação solar', util: 'energia transferida para a água', eta: 'solar' }, // gama de Manual.dadosFisica.solar (fontes.solar)
     { nome: 'Uma central termoelétrica', forn: 'energia (libertada na combustão)', util: 'energia elétrica produzida', eta: [0.3, 0.45] },
   ];
 
@@ -807,7 +809,8 @@ globalThis.Manual = globalThis.Manual || {};
       return tentar(() => {
         let ex, exato, erros, verificacao, unidade = '%', u = UN.pct;
         if (contexto === 'rendimento') {
-          const d = escolher(rng, DISPOSITIVOS);
+          const d0 = escolher(rng, DISPOSITIVOS);
+          const d = d0.eta === 'solar' ? Object.assign({}, d0, { eta: D().solar.rendimentoColetor }) : d0;
           const Ef = entre(rng, 1000, 9000, 500);
           const Eu = Math.round((Ef * entre(rng, d.eta[0], d.eta[1], 0.01)) / 10) * 10;
           const eta = Eu / Ef;

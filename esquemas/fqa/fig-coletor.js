@@ -18,7 +18,7 @@ Manual.esquemas = Manual.esquemas || {};
   };
   // Tubos com fluido: tubo em corte longitudinal, com a água (cor-1) lá dentro.
   const tubos = (g, cs) => {
-    g.appendChild(cs('rect', Object.assign({}, TRACO, { x: 50, y: 108, width: 190, height: 12, fill: 'var(--cor-1)', 'fill-opacity': 0.35 })));
+    g.appendChild(cs('rect', Object.assign({}, TRACO, { x: 50, y: 106, width: 190, height: 12, fill: 'var(--cor-1)', 'fill-opacity': 0.35 })));
   };
   // Placa absorsora: placa fina e escura, por cima dos tubos.
   const placa = (g, cs) => {

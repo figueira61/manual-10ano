@@ -356,7 +356,8 @@ test('coletor (numérica): η = E_útil/E_incidente, com E_incidente = G A Δt, 
       assert.ok(Math.abs(p.resposta - eta * 100) <= tolDe(p), p.semente + ': ' + p.resposta + ' vs ' + eta * 100);
       for (const t of [N.q(d.m, '\\mathrm{kg}'), temp(d.ti), temp(d.tf)]) assert.ok(p.enunciado.includes(t), t);
       assert.ok(perto(cod('rendimento_maior_do_que_1').valor, (Einc / Eu) * 100));
-      assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (Eu / (d.G * d.tmin * 60)) * 100));
+      // (η A × 100 % pode coincidir com 1/η × 100 %, e então filtrarErros fica só com a razão invertida)
+      if (cod('esqueceu_a_area_do_coletor')) assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (Eu / (d.G * d.tmin * 60)) * 100));
       assert.ok(perto(cod('esqueceu_o_tempo_na_energia_incidente').valor, (Eu / (d.G * d.A)) * 100));
       for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/, e.codigo);
     } else {
@@ -366,10 +367,21 @@ test('coletor (numérica): η = E_útil/E_incidente, com E_incidente = G A Δt, 
       assert.ok(Math.abs(p.resposta - (d.etaP / 100) * Einc) <= tolDe(p));
       assert.ok(p.resposta < Einc);
       assert.ok(perto(cod('deu_a_energia_incidente_em_vez_da_util').valor, Einc));
-      // (a potência útil, em W, fica a menos de 10 tolerâncias de 0 numa resposta em J e é descartada, regra 7)
       assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (d.etaP / 100) * d.G * d.tmin * 60));
-      if (cod('confundiu_potencia_com_energia')) assert.ok(perto(cod('confundiu_potencia_com_energia').valor, (d.etaP / 100) * d.G * d.A));
     }
   }
   assert.deepEqual([...casos].sort(), ['energia', 'rendimento']);
+});
+
+test('coletor (numérica, fix 1): os dois casos aparecem em ≈ metade das sementes cada um, sem distratores inertes', () => {
+  const conta = { rendimento: 0, energia: 0 };
+  for (const p of itens('transferencias-coletor', 2000, ['numerica'])) {
+    conta[p.dados.caso]++;
+    // a potência útil (≈ 10³ W) ficaria sempre a menos de 10 tolerâncias de 0 numa resposta em J (regra 7): não é oferecida
+    assert.ok(!p.errosTipicos.some((e) => e.codigo === 'confundiu_potencia_com_energia'), String(p.semente));
+  }
+  assert.ok(conta.rendimento >= 900 && conta.energia >= 900, JSON.stringify(conta));
+  const fonte = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'js/geradores/fqa/fisica-termica.js'), 'utf8');
+  assert.ok(!/paredes laterais/.test(fonte), 'o isolamento está só no fundo, como na figura');
+  assert.match(M.dadosFisica.fontes.solar, /consultadas em \d{4}-\d{2}-\d{2}/);
 });

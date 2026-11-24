@@ -35,7 +35,7 @@ Manual.dadosFisica = (function () {
 
   // Radiação solar ao nível do solo num dia de sol (gama de irradiâncias, W m⁻²) e rendimento de um coletor solar plano
   // com cobertura de vidro (gama de frações): ordens de grandeza para exercícios plausíveis, não de um coletor concreto.
-  const solar = { irradiancia: [400, 1000], rendimentoColetor: [0.4, 0.7] };
+  const solar = { irradiancia: [400, 1000], rendimentoColetor: [0.6, 0.75] };
 
   const fontes = {
     constantes: 'g = 10 m s⁻², valor do formulário do IAVE (Informação-Prova de Física e Química A, 715); os enunciados dizem sempre o valor usado.',
@@ -63,11 +63,13 @@ Manual.dadosFisica = (function () {
       + 'emendas A1:2015, A2:2019 e A3:2019; o valor nominal de 230 V vem da IEC 60038:2009 / EN 60038:2011), '
       + 'para a qual remete o Regulamento da Qualidade de Serviço da ERSE nas características da onda de tensão (consultadas em 2026-11-24). Os 230 V são o valor nominal '
       + '(valor eficaz) entre fase e neutro; o site só diz «230 V a 50 Hz», sem o valor eficaz, que fica fora das AE do 10.º ano.',
-    solar: 'Irradiância: 1000 W m⁻² é a irradiância das condições de teste padrão (STC) dos módulos fotovoltaicos (IEC 60904-3), '
-      + 'perto do máximo que chega ao solo com céu limpo e o Sol alto; com o Sol mais baixo ou alguma nebulosidade fica em algumas '
-      + 'centenas de W m⁻² (400 W m⁻² é o mínimo usado nos exercícios). Rendimento de um coletor plano com cobertura de vidro: '
-      + 'cerca de 40 % a 70 % em funcionamento (é maior quando a placa está pouco acima da temperatura do ar e desce quando a '
-      + 'diferença aumenta, porque as perdas crescem), a mesma gama usada para o coletor no gerador de rendimento.',
+    solar: 'Irradiância: o espetro solar de referência AM1.5, usado no ensaio normalizado de células e módulos fotovoltaicos (ASTM G173, IEC 60904-3), '
+      + 'corresponde a cerca de 1000 W m⁻², perto do máximo que chega ao solo com céu limpo e o Sol alto (Wikipédia, «Air mass (solar energy)», '
+      + 'en.wikipedia.org); na Europa a irradiância de um dia de sol vai de cerca de 200 a 1000 W m⁻², conforme a estação e a altura do Sol '
+      + '(Wikipédia, «Sonnenkollektor», de.wikipedia.org). Os exercícios usam 400 a 1000 W m⁻² (dia de sol). Rendimento de um coletor '
+      + 'solar térmico: «typischerweise zwischen 60 und 75 %» (Wikipédia, «Sonnenkollektor», de.wikipedia.org); a tabela de sistemas '
+      + 'com cerca de 2 m² de «Solar water heating» (en.wikipedia.org) dá rendimentos máximos de 0,61 a 0,74 para coletores planos. '
+      + 'O rendimento desce quando a água está muito mais quente do que o ar. Páginas consultadas em 2026-11-24.',
   };
 
   return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, rede, solar, fontes };

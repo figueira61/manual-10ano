@@ -74,8 +74,8 @@ globalThis.Manual = globalThis.Manual || {};
   const MAX500 = F.painelPotenciaMaxima(500);
   const PINC = G0 * PAINEL.area; // potência da radiação incidente, W
 
-  // Coletor solar plano: 2,00 m², irradiância de 800 W m⁻² durante 1,00 h; aquece 50,0 kg de água de 20,0 °C para 33,0 °C.
-  const COL = { A: 2, G: 800, t: 3600, m: 50, ti: 20, tf: 33 };
+  // Coletor solar plano: 2,00 m², irradiância de 800 W m⁻² durante 1,00 h; aquece 50,0 kg de água de 20,0 °C para 37,0 °C.
+  const COL = { A: 2, G: 800, t: 3600, m: 50, ti: 20, tf: 37 };
   COL.Einc = COL.G * COL.A * COL.t; // energia da radiação incidente, J
   COL.Eu = F.calor(COL.m, cA, COL.tf - COL.ti); // energia útil (a que a água recebe), J
   COL.eta = F.rendimento(COL.Eu, COL.Einc);
@@ -191,13 +191,13 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Um coletor solar plano com 2,00 m² de área recebe radiação com uma irradiância de 800 W m⁻² durante 1,00 h e, nesse tempo, aquece 50,0 kg de água de 20,0 °C para 33,0 °C. Calcula o rendimento do coletor ($c_{\\text{água}} = ' + cTex(cA) + unC + '$).',
+            enunciado: 'Um coletor solar plano com 2,00 m² de área recebe radiação com uma irradiância de 800 W m⁻² durante 1,00 h e, nesse tempo, aquece 50,0 kg de água de 20,0 °C para 37,0 °C. Calcula o rendimento do coletor ($c_{\\text{água}} = ' + cTex(cA) + unC + '$).',
             resolucao: [
               'Energia incidente, com $\\Delta t = 1{,}00\\,\\mathrm{h} = 3600\\,\\mathrm{s}$: $E_{\\text{incidente}} = G\\,A\\,\\Delta t = 800 \\times 2{,}00 \\times 3600 = ' + cient(COL.Einc, 3) + '\\,\\mathrm{J}$.',
-              'Energia útil, a que a água recebe: $E_{\\text{útil}} = m c \\Delta\\theta = 50{,}0 \\times ' + cTex(cA) + ' \\times (33{,}0 - 20{,}0) = ' + cient(COL.Eu, 4) + '\\,\\mathrm{J}$.',
-              '$\\eta = \\dfrac{' + cient(COL.Eu, 4) + '}{' + cient(COL.Einc, 3) + '} \\times 100 \\approx ' + dec(COL.eta * 100, 1) + '\\,\\%$. Mais de metade da energia incidente não chega à água: é refletida ou perde-se para o exterior.',
+              'Energia útil, a que a água recebe: $E_{\\text{útil}} = m c \\Delta\\theta = 50{,}0 \\times ' + cTex(cA) + ' \\times (37{,}0 - 20{,}0) = ' + cient(COL.Eu, 4) + '\\,\\mathrm{J}$.',
+              '$\\eta = \\dfrac{' + cient(COL.Eu, 4) + '}{' + cient(COL.Einc, 3) + '} \\times 100 \\approx ' + dec(COL.eta * 100, 1) + '\\,\\%$. O resto da energia incidente não chega à água: é refletida ou perde-se para o exterior.',
             ],
-            resultado: 47.2,
+            resultado: 61.7,
             verificar: () => arred(COL.eta * 100, 1),
           },
         ],
