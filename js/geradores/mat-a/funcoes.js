@@ -434,6 +434,7 @@ globalThis.Manual = globalThis.Manual || {};
   const ESTRITO = { '<': '<=', '>': '>=' };
   const LARGO = { '<=': '<', '>=': '>' };
   const OPOSTO = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' };
+  const COMPLEMENTO = { '<': '>=', '>': '<=', '<=': '>', '>=': '<' };
   // { intervalos: [{a, b, fechadoA, fechadoB}], pontosIsolados } → LaTeX (intervalos e {a}; só pontos: um conjunto).
   // Forma canónica de um conjunto: junta intervalos sobrepostos ou contíguos (]a, b] ∪ [b, c] = ]a, c]) e absorve
   // os pontos isolados que já estão dentro de um intervalo ou que o fecham. Dois conjuntos iguais escrevem-se igual.
@@ -492,12 +493,88 @@ globalThis.Manual = globalThis.Manual || {};
     }
     return { intervalos, pontosIsolados };
   }
+  // Escolhe 3 dos erros típicos de `pool` de modo que a forma das opções não denuncie a certa (regra 3).
+  // Para cada combinação de 3 distratores calcula a probabilidade de acertar de quem escolhe só pela forma,
+  // sem olhar para o gráfico: a opção mais comprida, a mais curta ou nenhuma das duas; o mesmo com a
+  // quantidade de números escritos e com a de pontos (conjuntos finitos); a que contém outra, a contida noutra,
+  // a maior e a menor na inclusão, e a que não se relaciona com nenhuma. Depois joga contra esses palpites
+  // (pesos multiplicativos): fica uma mistura de combinações em que nenhum palpite acerta, em média, mais do
+  // que `limite`, e sorteia-se uma delas. Sem mistura assim devolve null (re-sortear).
+  // Cada distrator traz `sol` (o conjunto) ou `pares` (pontos (x, y): não é um conjunto de números).
+  // Comprimento da opção como a aluna a vê (sem espaços; uma fração ocupa a largura do maior termo, mais 1).
+  const larguraVisivel = (t) => t.replace(/\$/g, '')
+    .replace(/\\dfrac\{(\d+)\}\{(\d+)\}/g, (m, a, b) => '#'.repeat(Math.max(a.length, b.length) + 1))
+    .replace(/\\infty|\\cup|\\emptyset|\\[{}]/g, '#').replace(/ /g, '').length;
+  function semPistas(rng, certa, pool, limite) {
+    const vistos = new Set([chave(certa.texto)]);
+    const cand = pool.filter((e) => { const c = chave(e.texto); if (vistos.has(c)) return false; vistos.add(c); return true; });
+    if (cand.length < 3) return null;
+    const todos = [certa].concat(cand);
+    const ext = [...new Set(todos.flatMap((o) => (o.sol ? o.sol.intervalos.flatMap((i) => [i.a, i.b]).concat(o.sol.pontosIsolados) : [])))]
+      .filter(Number.isFinite).sort((a, b) => a - b);
+    const grelha = [ext[0] - 1, ext[ext.length - 1] + 1].concat(ext, ext.slice(1).map((x, i) => (x + ext[i]) / 2));
+    const dentroDe = (sol, x) => sol.pontosIsolados.includes(x)
+      || sol.intervalos.some((i) => (i.fechadoA ? x >= i.a : x > i.a) && (i.fechadoB ? x <= i.b : x < i.b));
+    for (const o of todos) {
+      o.largura = larguraVisivel(o.texto);
+      o.marca = o.sol ? grelha.map((x) => dentroDe(o.sol, x)) : null;
+      o.numeros = o.sol ? 2 * o.sol.intervalos.length + o.sol.pontosIsolados.length : 2 * o.pares;
+      o.pontos = o.sol ? (o.sol.intervalos.length ? null : o.sol.pontosIsolados.length) : o.pares;
+    }
+    const contem = (A, B) => A !== B && A.marca && B.marca && A.marca.every((s, t) => s || !B.marca[t]);
+    // probabilidade de acertar escolhendo ao acaso entre os candidatos (1/4 se não houver nenhum)
+    const prob = (ops, cands) => (!cands.length ? 0.25 : cands.includes(ops[0]) ? 1 / cands.length : 0);
+    // a maior, a menor e «nem a maior nem a menor» segundo f (opções com f nulo ficam de fora)
+    const extremos = (ops, f) => {
+      const v = ops.filter((o) => f(o) !== null);
+      if (!v.length) return [0.25, 0.25, 0.25];
+      const mx = Math.max(...v.map(f)), mn = Math.min(...v.map(f));
+      return [prob(ops, v.filter((o) => f(o) === mx)), prob(ops, v.filter((o) => f(o) === mn)), prob(ops, ops.filter((o) => f(o) !== mx && f(o) !== mn))];
+    };
+    const palpites = (ops) => {
+      const contemOutra = ops.filter((a) => ops.some((b) => contem(a, b)));
+      const contida = ops.filter((a) => ops.some((b) => contem(b, a)));
+      return [
+        ...extremos(ops, (o) => o.largura), ...extremos(ops, (o) => o.numeros), ...extremos(ops, (o) => o.pontos),
+        prob(ops, contemOutra), prob(ops, contida),
+        prob(ops, contemOutra.filter((a) => !contida.includes(a))), prob(ops, contida.filter((a) => !contemOutra.includes(a))),
+        prob(ops, ops.filter((a) => !contemOutra.includes(a) && !contida.includes(a))),
+      ];
+    };
+    const combos = [];
+    for (let i = 0; i < cand.length; i++) for (let j = i + 1; j < cand.length; j++) for (let l = j + 1; l < cand.length; l++) {
+      const tres = [cand[i], cand[j], cand[l]];
+      combos.push({ tres, p: palpites([certa].concat(tres)) });
+    }
+    // Jogo contra quem adivinha: pesos multiplicativos nos palpites; em cada ronda, a combinação que menos
+    // acerta contra a mistura atual de palpites. As combinações escolhidas formam a mistura de que se sorteia.
+    const nP = combos[0].p.length;
+    let peso = new Array(nP).fill(1);
+    const escolhidas = [];
+    const media = new Array(nP).fill(0);
+    for (let t = 0; t < 60; t++) {
+      let melhor = Infinity, empatadas = [];
+      for (const c of combos) {
+        const s = c.p.reduce((a, x, g) => a + x * peso[g], 0);
+        if (s < melhor - 1e-12) { melhor = s; empatadas = [c]; } else if (s < melhor + 1e-12) empatadas.push(c);
+      }
+      const c = escolher(rng, empatadas);
+      escolhidas.push(c);
+      c.p.forEach((x, g) => { media[g] += x; });
+      peso = peso.map((w, g) => w * Math.exp(1.5 * c.p[g]));
+      const soma = peso.reduce((a, b) => a + b, 0);
+      peso = peso.map((w) => w / soma);
+    }
+    if (Math.max(...media) / escolhidas.length > limite) return null;
+    return escolher(rng, escolhidas).tres.map((e) => ({ codigo: e.codigo, texto: e.texto, explicacao: e.explicacao }));
+  }
+
   // «a, b e c»
   const enumerar = (l) => (l.length < 2 ? l.join('') : l.slice(0, -1).join(', ') + ' e ' + l[l.length - 1]);
   const ptsTex = (P) => enumerar(P.map((p) => '$' + ptTex(p.x, p.y) + '$'));
   const listaX = (xs) => enumerar(xs.map((x) => '$x = ' + texQ(x) + '$'));
 
-  function condicaoGrafico(rng, contexto) {
+  function condicaoGrafico(rng, contexto, limite) {
     const n = inteiro(rng, 4, 5);
     const P = [{ x: inteiro(rng, -6, -3), y: inteiro(rng, -4, 4) }];
     while (P.length < n) {
@@ -518,55 +595,103 @@ globalThis.Manual = globalThis.Manual || {};
     const certo = C.resolverCondicao(P, sg, k);
     const tudo = certo.intervalos.length === 1 && certo.intervalos[0].a === x0 && certo.intervalos[0].b === xn;
     if (vazia(certo) || tudo) return null;
+    // Numa desigualdade, uma solução só com pontos isolados seria a única opção sem intervalos (pista na forma).
+    if (sg !== '=' && !certo.intervalos.length) return null;
 
     const D = '[' + tex(x0) + ', ' + tex(xn) + ']';
     const cond = 'f(x) ' + SIMB_COND[sg] + ' ' + tex(k);
     const fim = ' O conjunto-solução é $' + solTex(certo) + '$.';
     const vertices = new Set(P.map((p) => p.x));
     const meioSeg = zs.filter((z) => !vertices.has(z));
-    const erros = [];
+    // Todos os erros típicos que os dados produzem; semPistas escolhe 3 sem pistas na forma das opções.
+    const pool = [];
+    const juntar = (sol, e) => pool.push(Object.assign({ sol, texto: opCond(sol) }, e));
     if (sg === '=') {
       // Falta uma solução: de preferência a que fica a meio de um segmento (a mais difícil de ler).
       const falta = meioSeg.length ? meioSeg[meioSeg.length - 1] : zs[zs.length - 1];
       const semUma = { intervalos: [], pontosIsolados: zs.filter((z) => z !== falta) };
-      erros.push({ codigo: 'esqueceu_uma_solucao', texto: opCond(semUma), explicacao: 'Em $' + solTex(semUma) + '$ falta $x = ' + texQ(falta) + '$. Aí o gráfico também corta a reta $y = ' + tex(k) + '$, ' + (vertices.has(falta) ? 'num vértice.' : 'a meio de um segmento.') + fim });
+      juntar(semUma, { codigo: 'esqueceu_uma_solucao', explicacao: 'Em $' + solTex(semUma) + '$ falta $x = ' + texQ(falta) + '$. Aí o gráfico também corta a reta $y = ' + tex(k) + '$, ' + (vertices.has(falta) ? 'num vértice.' : 'a meio de um segmento.') + fim });
       const fk = k >= x0 && k <= xn ? fPoli(P, k) : NaN;
       if (ehInteiro(fk)) {
         const S = { intervalos: [], pontosIsolados: [fk] };
-        erros.push({ codigo: 'calculou_imagem', texto: opCond(S), explicacao: 'Escreveste $' + solTex(S) + '$, com a imagem $f(' + tex(k) + ') = ' + tex(fk) + '$. Pede-se o contrário, os objetos $x$ cuja imagem é $' + tex(k) + '$.' + fim });
+        juntar(S, { codigo: 'calculou_imagem', explicacao: 'Escreveste $' + solTex(S) + '$, com a imagem $f(' + tex(k) + ') = ' + tex(fk) + '$. Pede-se o contrário, os objetos $x$ cuja imagem é $' + tex(k) + '$.' + fim });
       }
       const I = { intervalos: [{ a: zs[0], b: zs[zs.length - 1], fechadoA: true, fechadoB: true }], pontosIsolados: [] };
-      erros.push({ codigo: 'intervalo_em_vez_de_pontos', texto: opCond(I), explicacao: 'Escreveste o intervalo $' + solTex(I) + '$, mas entre $' + tex(zs[0]) + '$ e $' + tex(zs[zs.length - 1]) + '$ o gráfico afasta-se da reta. Só nos pontos de interseção é que $f(x) = ' + tex(k) + '$.' + fim });
+      juntar(I, { codigo: 'intervalo_em_vez_de_pontos', explicacao: 'Escreveste o intervalo $' + solTex(I) + '$, mas entre $' + tex(zs[0]) + '$ e $' + tex(zs[zs.length - 1]) + '$ o gráfico afasta-se da reta. Só nos pontos de interseção é que $f(x) = ' + tex(k) + '$.' + fim });
       const K = { intervalos: [], pontosIsolados: [k] };
-      erros.push({ codigo: 'deu_o_valor_de_k', texto: opCond(K), explicacao: 'Escreveste $' + solTex(K) + '$, que é o valor da imagem. As soluções são as abcissas dos pontos em que o gráfico corta a reta $y = ' + tex(k) + '$.' + fim });
+      juntar(K, { codigo: 'deu_o_valor_de_k', explicacao: 'Escreveste $' + solTex(K) + '$, que é o valor da imagem. As soluções são as abcissas dos pontos em que o gráfico corta a reta $y = ' + tex(k) + '$.' + fim });
+      // Os pontos de interseção (x, k) em vez das abcissas.
+      const pts = '\\{' + zs.map((z) => ptTex(z, k)).join(', ') + '\\}';
+      pool.push({ pares: zs.length, texto: '$' + pts + '$', codigo: 'deu_os_pontos_de_intersecao', explicacao: 'Escreveste $' + pts + '$, os pontos em que o gráfico corta a reta $y = ' + tex(k) + '$. Pedem-se só as abcissas desses pontos, os valores de $x$.' + fim });
+      // Os zeros de f (cortes com o eixo Ox) em vez dos cortes com a reta y = k.
+      const Z = C.resolverCondicao(P, '=', 0);
+      if (k !== 0 && !Z.intervalos.length && Z.pontosIsolados.length) {
+        const S = { intervalos: [], pontosIsolados: Z.pontosIsolados };
+        juntar(S, { codigo: 'deu_os_zeros', explicacao: 'Escreveste $' + solTex(S) + '$, os zeros de $f$, onde o gráfico corta o eixo $Ox$ (a reta $y = 0$). Pede-se onde o gráfico corta a reta $y = ' + tex(k) + '$.' + fim });
+      }
+      // Um corte a meio de um segmento lido uma unidade ao lado (o ponto não está marcado no gráfico).
+      // Só uma das leituras, para que a certa não fique «a meio» de duas variantes de si mesma.
+      if (meioSeg.length) {
+        const z = escolher(rng, meioSeg);
+        const i = P.findIndex((p, j) => j + 1 < P.length && p.x < z && P[j + 1].x > z);
+        const lados = [z - 1, z + 1].filter((z2) => z2 >= P[i].x && z2 <= P[i + 1].x && !zs.includes(z2));
+        if (lados.length) {
+          const z2 = escolher(rng, lados);
+          const S = { intervalos: [], pontosIsolados: zs.map((x) => (x === z ? z2 : x)) };
+          juntar(S, { codigo: 'leu_mal_o_corte', explicacao: 'Em $' + solTex(S) + '$ leste mal o corte a meio do segmento de $' + ptTex(P[i].x, P[i].y) + '$ a $' + ptTex(P[i + 1].x, P[i + 1].y) + '$: em $x = ' + tex(z2) + '$ a imagem é $f' + argQ(z2) + ' = ' + texQ(fPoli(P, z2)) + '$, e não $' + tex(k) + '$. O gráfico corta a reta $y = ' + tex(k) + '$ em $x = ' + tex(z) + '$.' + fim });
+        }
+      }
     } else {
       const largo = sg.length === 2;
       const acima = sg[0] === '>';
       const lado = (cima) => (cima ? 'acima' : 'abaixo');
       const nos = ' (' + listaX(zs) + ')';
-      const principais = [];
       const R = C.resolverCondicao(P, OPOSTO[sg], k);
-      if (!vazia(R)) principais.push({ codigo: 'regiao_trocada', texto: opCond(R), explicacao: 'Escolheste $' + solTex(R) + '$, onde o gráfico fica ' + lado(!acima) + ' da reta $y = ' + tex(k) + '$' + (largo ? ' ou sobre ela' : '') + '. Esse é o conjunto-solução de $f(x) ' + SIMB_COND[OPOSTO[sg]] + ' ' + tex(k) + '$. Para $' + cond + '$ procura-se onde o gráfico fica ' + lado(acima) + (largo ? ' da reta ou sobre ela.' : ' da reta.') + fim });
+      if (!vazia(R)) juntar(R, { codigo: 'regiao_trocada', explicacao: 'Escolheste $' + solTex(R) + '$, onde o gráfico fica ' + lado(!acima) + ' da reta $y = ' + tex(k) + '$' + (largo ? ' ou sobre ela' : '') + '. Esse é o conjunto-solução de $f(x) ' + SIMB_COND[OPOSTO[sg]] + ' ' + tex(k) + '$. Para $' + cond + '$ procura-se onde o gráfico fica ' + lado(acima) + (largo ? ' da reta ou sobre ela.' : ' da reta.') + fim });
+      // O contrário da condição: o lado trocado e a igualdade trocada (f(x) < k ↔ f(x) ≥ k).
+      const cmp = COMPLEMENTO[sg];
+      const Q = C.resolverCondicao(P, cmp, k);
+      if (!vazia(Q)) juntar(Q, { codigo: 'deu_o_complementar', explicacao: 'Escolheste $' + solTex(Q) + '$, onde o gráfico fica ' + lado(!acima) + ' da reta $y = ' + tex(k) + '$' + (largo ? '' : ' ou sobre ela') + '. É onde $' + cond + '$ não se verifica: $' + solTex(Q) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[cmp] + ' ' + tex(k) + '$.' + fim });
       const T = { intervalos: certo.intervalos.map((i) => ({ a: i.a, b: i.b, fechadoA: !i.fechadoA, fechadoB: !i.fechadoB })), pontosIsolados: certo.pontosIsolados };
       const tocaDominio = certo.intervalos.some((i) => i.a === x0 || i.b === xn);
-      principais.push({ codigo: 'extremos_trocados', texto: opCond(T), explicacao: 'Em $' + solTex(T) + '$ trocaste os parênteses abertos e fechados. Nos pontos em que $f(x) = ' + tex(k) + '$ o parêntese é ' + (largo ? 'fechado, porque a desigualdade é larga.' : 'aberto, porque a desigualdade é estrita.') + (tocaDominio ? ' Nos extremos do domínio que satisfazem a condição, o parêntese é fechado.' : '') + fim });
+      juntar(T, { codigo: 'extremos_trocados', explicacao: 'Em $' + solTex(T) + '$ trocaste os parênteses abertos e fechados. Nos pontos em que $f(x) = ' + tex(k) + '$ o parêntese é ' + (largo ? 'fechado, porque a desigualdade é larga.' : 'aberto, porque a desigualdade é estrita.') + (tocaDominio ? ' Nos extremos do domínio que satisfazem a condição, o parêntese é fechado.' : '') + fim });
       if (!largo) {
         const W = C.resolverCondicao(P, ESTRITO[sg], k);
-        principais.push({ codigo: 'incluiu_pontos_de_igualdade', texto: opCond(W), explicacao: 'Em $' + solTex(W) + '$ incluíste os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade não serve, por isso esses pontos ficam de fora. $' + solTex(W) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[ESTRITO[sg]] + ' ' + tex(k) + '$.' + fim });
+        juntar(W, { codigo: 'incluiu_pontos_de_igualdade', explicacao: 'Em $' + solTex(W) + '$ incluíste os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade não serve, por isso esses pontos ficam de fora. $' + solTex(W) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[ESTRITO[sg]] + ' ' + tex(k) + '$.' + fim });
       } else {
         const E = C.resolverCondicao(P, LARGO[sg], k);
-        if (!vazia(E)) principais.push({ codigo: 'excluiu_pontos_de_igualdade', texto: opCond(E), explicacao: 'Em $' + solTex(E) + '$ deixaste de fora os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade também serve, por isso esses pontos entram. $' + solTex(E) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[LARGO[sg]] + ' ' + tex(k) + '$.' + fim });
+        if (!vazia(E)) juntar(E, { codigo: 'excluiu_pontos_de_igualdade', explicacao: 'Em $' + solTex(E) + '$ deixaste de fora os pontos em que $f(x) = ' + tex(k) + '$' + nos + '. Com $' + SIMB_COND[sg] + '$ a igualdade também serve, por isso esses pontos entram. $' + solTex(E) + '$ é o conjunto-solução de $f(x) ' + SIMB_COND[LARGO[sg]] + ' ' + tex(k) + '$.' + fim });
       }
-      erros.push(...baralhar(rng, principais));
       if (largo && certo.pontosIsolados.length && certo.intervalos.length) {
         const S = { intervalos: certo.intervalos, pontosIsolados: [] };
-        erros.push({ codigo: 'esqueceu_ponto_isolado', texto: opCond(S), explicacao: 'Em $' + solTex(S) + '$ falta' + (certo.pontosIsolados.length > 1 ? 'm os pontos isolados ' : ' o ponto isolado ') + listaX(certo.pontosIsolados) + ', em que o gráfico só toca a reta $y = ' + tex(k) + '$. Aí $f(x) = ' + tex(k) + '$, que satisfaz $' + cond + '$.' + fim });
+        juntar(S, { codigo: 'esqueceu_ponto_isolado', explicacao: 'Em $' + solTex(S) + '$ falta' + (certo.pontosIsolados.length > 1 ? 'm os pontos isolados ' : ' o ponto isolado ') + listaX(certo.pontosIsolados) + ', em que o gráfico só toca a reta $y = ' + tex(k) + '$. Aí $f(x) = ' + tex(k) + '$, que satisfaz $' + cond + '$.' + fim });
       }
       if (tocaDominio) {
         const S = { intervalos: certo.intervalos.map((i) => ({ a: i.a === x0 ? -Infinity : i.a, b: i.b === xn ? Infinity : i.b, fechadoA: i.a === x0 ? false : i.fechadoA, fechadoB: i.b === xn ? false : i.fechadoB })), pontosIsolados: certo.pontosIsolados };
-        erros.push({ codigo: 'esqueceu_o_dominio', texto: opCond(S), explicacao: 'Em $' + solTex(S) + '$ prolongaste a solução até ao infinito, mas $f$ só está definida em $' + D + '$. O conjunto-solução não sai do domínio.' + fim });
+        juntar(S, { codigo: 'esqueceu_o_dominio', explicacao: 'Em $' + solTex(S) + '$ prolongaste a solução até ao infinito, mas $f$ só está definida em $' + D + '$. O conjunto-solução não sai do domínio.' + fim });
+      }
+      const onde = ', onde o gráfico também fica ' + lado(acima) + ' da reta $y = ' + tex(k) + '$' + (largo ? ' ou sobre ela.' : '.');
+      // Só uma parte da solução: falta um dos intervalos.
+      if (certo.intervalos.length >= 2) {
+        const sai = certo.intervalos[inteiro(rng, 0, certo.intervalos.length - 1)];
+        const S = { intervalos: certo.intervalos.filter((i) => i !== sai), pontosIsolados: certo.pontosIsolados };
+        const saiTex = solTex({ intervalos: [sai], pontosIsolados: [] });
+        juntar(S, { codigo: 'esqueceu_um_intervalo', explicacao: 'Em $' + solTex(S) + '$ falta o intervalo $' + saiTex + '$' + onde + fim });
+      }
+      // Um só intervalo do primeiro ao último corte, por cima de uma parte que não satisfaz a condição.
+      const partes = normalizarSol(certo);
+      const pedacos = partes.intervalos.map((i) => ({ a: i.a, b: i.b, fa: i.fechadoA, fb: i.fechadoB }))
+        .concat(partes.pontosIsolados.map((x) => ({ a: x, b: x, fa: true, fb: true }))).sort((u, v) => u.a - v.a);
+      const buraco = pedacos.findIndex((u, i) => i + 1 < pedacos.length && u.b < pedacos[i + 1].a);
+      if (buraco >= 0) {
+        const pa = pedacos[0], pz = pedacos[pedacos.length - 1];
+        const S = { intervalos: [{ a: pa.a, b: pz.b, fechadoA: pa.fa, fechadoB: pz.fb }], pontosIsolados: [] };
+        const u = pedacos[buraco].b, v = pedacos[buraco + 1].a;
+        juntar(S, { codigo: 'juntou_os_intervalos', explicacao: 'Em $' + solTex(S) + '$ juntaste tudo num só intervalo, mas entre $' + texQ(u) + '$ e $' + texQ(v) + '$ o gráfico fica ' + lado(!acima) + ' da reta $y = ' + tex(k) + '$, e aí a condição não se verifica.' + fim });
       }
     }
+    const erros = semPistas(rng, { sol: certo, texto: opCond(certo) }, pool, limite);
+    if (!erros) return null;
 
     // Resolução: a reta, os pontos com f(x) = k (vértices ou interior de um segmento) e a leitura.
     const cortesTex = meioSeg.map((z) => {
@@ -619,7 +744,10 @@ globalThis.Manual = globalThis.Manual || {};
     subtema: 'generalidades', tipo: 'condicoes', nome: 'Condições f(x) = k, f(x) < k, f(x) > k pelo gráfico',
     formatos: ['escolha'], contextos: ['equacao', 'estrita', 'larga'],
     gerar(semente, { contexto, rng }) {
-      return tentar(() => condicaoGrafico(rng, contexto));
+      // Até 300 tentativas exige-se a mistura sem pistas (≤ 0,36 por palpite); depois aceita-se a melhor que houver,
+      // para que o gerador nunca falhe (acontece em menos de 1 % das sementes).
+      let n = 0;
+      return tentar(() => condicaoGrafico(rng, contexto, n++ < 300 ? 0.36 : 1));
     },
     verificarIndependente(p) {
       const { pontos, sg, k } = p.dados;

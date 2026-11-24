@@ -417,7 +417,30 @@ test('condições: cada distrator é um erro real, com o valor da opção na exp
     const codigos = p.errosTipicos.map((e) => e.codigo);
     if (sg === '<' || sg === '>') assert.ok(!codigos.includes('excluiu_pontos_de_igualdade') && !codigos.includes('esqueceu_ponto_isolado'));
     if (sg === '<=' || sg === '>=') assert.ok(!codigos.includes('incluiu_pontos_de_igualdade'));
-    if (sg === '=') assert.ok(codigos.every((c) => ['esqueceu_uma_solucao', 'calculou_imagem', 'intervalo_em_vez_de_pontos', 'deu_o_valor_de_k'].includes(c)), codigos.join());
+    if (sg === '=') assert.ok(codigos.every((c) => ['esqueceu_uma_solucao', 'calculou_imagem', 'intervalo_em_vez_de_pontos', 'deu_o_valor_de_k', 'deu_os_pontos_de_intersecao', 'deu_os_zeros', 'leu_mal_o_corte'].includes(c)), codigos.join());
+    else assert.ok(!codigos.some((c) => ['deu_os_pontos_de_intersecao', 'deu_os_zeros', 'leu_mal_o_corte'].includes(c)), codigos.join());
+    // os pontos de interseção: (x, k) para cada solução
+    const pts = erro(p, 'deu_os_pontos_de_intersecao');
+    if (pts) assert.equal(p.opcoes[pts.opcao], '$\\{' + lerConjunto(certa(p)).map((x) => '(' + x + ', ' + p.dados.k + ')').join(', ') + '\\}$');
+    // os zeros de f: f(x) = 0 em cada elemento
+    const zer = erro(p, 'deu_os_zeros');
+    if (zer) for (const x of lerConjunto(p.opcoes[zer.opcao])) assert.ok(Math.abs(fDe(p.dados.pontos, x)) < 1e-9, p.opcoes[zer.opcao]);
+    // um corte lido ao lado: o mesmo número de elementos, um só diferente (a uma unidade) e aí f(x) ≠ k
+    const lm = erro(p, 'leu_mal_o_corte');
+    if (lm) {
+      const a = lerConjunto(certa(p)), b = lerConjunto(p.opcoes[lm.opcao]);
+      assert.equal(a.length, b.length);
+      const fora = b.filter((x) => !a.includes(x));
+      assert.equal(fora.length, 1);
+      assert.ok(a.some((x) => Math.abs(x - fora[0]) === 1) && Math.abs(fDe(p.dados.pontos, fora[0]) - p.dados.k) > 1e-9);
+    }
+    // o complementar: cada x do domínio está numa e só numa das duas (certa e complementar)
+    const cmp = erro(p, 'deu_o_complementar');
+    if (cmp) {
+      const A = lerCondicao(certa(p)), B = lerCondicao(p.opcoes[cmp.opcao]);
+      const x0 = p.dados.pontos[0][0], xn = p.dados.pontos[p.dados.pontos.length - 1][0];
+      for (let x = x0; x <= xn + 1e-9; x += 0.25) assert.notEqual(pertence(A, x), pertence(B, x), p.opcoes[cmp.opcao] + ' em ' + x);
+    }
     // incluir os pontos de f(x) = k numa desigualdade estrita dá a solução da larga
     const inc = erro(p, 'incluiu_pontos_de_igualdade');
     if (inc) {
@@ -428,7 +451,8 @@ test('condições: cada distrator é um erro real, com o valor da opção na exp
       void k;
     }
   }
-  for (const c of ['regiao_trocada', 'extremos_trocados', 'incluiu_pontos_de_igualdade', 'excluiu_pontos_de_igualdade', 'esqueceu_uma_solucao', 'intervalo_em_vez_de_pontos']) {
+  for (const c of ['regiao_trocada', 'extremos_trocados', 'incluiu_pontos_de_igualdade', 'excluiu_pontos_de_igualdade', 'esqueceu_uma_solucao', 'intervalo_em_vez_de_pontos',
+    'deu_os_pontos_de_intersecao', 'deu_os_zeros', 'leu_mal_o_corte', 'deu_o_complementar', 'esqueceu_o_dominio', 'esqueceu_um_intervalo']) {
     assert.ok(contagem[c] > 20, c + ': ' + contagem[c]);
   }
 });
@@ -443,18 +467,71 @@ test('condições: o 3 fica fechado no extremo do domínio com <; ∅ e pontos i
 });
 
 test('condições: nenhum par de opções descreve o mesmo conjunto (comparação como conjuntos, não como texto)', () => {
-  const grelha = [];
-  for (let x = -12; x <= 12; x += 0.25) grelha.push(x);
+  const base = [];
+  for (let x = -12; x <= 12; x += 0.25) base.push(x);
   let n = 0;
   for (const p of amostras('generalidades-condicoes', 1500)) {
-    const assinaturas = p.opcoes.map((o) => { const I = lerCondicao(o); return grelha.map((x) => (pertence(I, x) ? '1' : '0')).join(''); });
+    // os extremos e os pontos de todas as opções (há zeros fracionários, como -8/3), mais a grelha de 0,25
+    const grelha = base.concat(p.opcoes.filter((o) => !ehPares(o)).flatMap((o) => lerCondicao(o).flatMap((i) => [i.a, i.b])).filter(Number.isFinite));
+    const assinaturas = p.opcoes.map((o) => { if (ehPares(o)) return o; const I = lerCondicao(o); return grelha.map((x) => (pertence(I, x) ? '1' : '0')).join(''); });
     assert.equal(new Set(assinaturas).size, 4, 'semente ' + p.semente + ' ' + p.contexto + ': ' + p.opcoes.join(' | '));
     // e nenhuma opção tem intervalos contíguos por unir (]a, b] ∪ [b, c])
-    for (const o of p.opcoes) {
+    for (const o of p.opcoes.filter((q) => !ehPares(q))) {
       const I = lerCondicao(o);
       for (let i = 0; i + 1 < I.length; i++) assert.ok(I[i].b < I[i + 1].a || (I[i].b === I[i + 1].a && !I[i].fb && !I[i + 1].fa), 'por unir: ' + o);
     }
     n++;
   }
   assert.equal(n, 4500);
+});
+
+// Quem responde só pela forma das opções (sem olhar para o gráfico). Cada adivinho devolve a probabilidade de
+// acertar num item (empates repartidos ao acaso; 1/4 se não houver candidato).
+// Pontos ordenados «{(a, b), …}» não são conjuntos de números: ficam incomparáveis com os outros.
+const ehPares = (o) => /^\$\\{\(/.test(o);
+function formaDasOpcoes(p) {
+  const I = p.opcoes.map((o) => (ehPares(o) ? null : lerCondicao(o)));
+  // grelha exata: todos os extremos, os pontos médios entre extremos seguidos e um ponto para lá de cada ponta
+  const v = [...new Set(I.flatMap((l) => (l || []).flatMap((i) => [i.a, i.b])).values())].filter(Number.isFinite).sort((a, b) => a - b);
+  const g = [v[0] - 1, v[v.length - 1] + 1].concat(v, v.slice(1).map((x, i) => (x + v[i]) / 2));
+  const ass = I.map((l) => (l ? g.map((x) => pertence(l, x)) : null));
+  const contem = (i, j) => i !== j && ass[i] && ass[j] && ass[i].every((s, t) => s || !ass[j][t]);
+  const elementos = I.map((l, i) => (ehPares(p.opcoes[i]) ? p.opcoes[i].split('), (').length : l.every((x) => x.a === x.b) ? l.length : null));
+  const valores = p.opcoes.map((o) => (o.replace(/\\dfrac\{\d+\}\{\d+\}/g, 'F').match(/\d+|F|\\infty/g) || []).length);
+  return { contem, elementos, valores };
+}
+const I4 = [0, 1, 2, 3];
+const entre = (p, idx) => (idx.length ? (idx.includes(p.correta) ? 1 / idx.length : 0) : 0.25);
+const extremo = (p, v, maior) => {
+  const ok = v.map((x, i) => (x === null ? -1 : i)).filter((i) => i >= 0);
+  if (!ok.length) return 0.25;
+  const alvo = (maior ? Math.max : Math.min)(...ok.map((i) => v[i]));
+  return entre(p, ok.filter((i) => v[i] === alvo));
+};
+const ADIVINHOS_CONDICOES = {
+  'a mais comprida': (p) => extremo(p, p.opcoes.map((o) => o.length), true),
+  'a mais curta': (p) => extremo(p, p.opcoes.map((o) => o.length), false),
+  'a que contém outra': (p) => { const f = formaDasOpcoes(p); return entre(p, I4.filter((i) => I4.some((j) => f.contem(i, j)))); },
+  'a contida noutra': (p) => { const f = formaDasOpcoes(p); return entre(p, I4.filter((i) => I4.some((j) => f.contem(j, i)))); },
+  'a maior (contém outra e não está contida)': (p) => { const f = formaDasOpcoes(p); return entre(p, I4.filter((i) => I4.some((j) => f.contem(i, j)) && !I4.some((j) => f.contem(j, i)))); },
+  'a menor (contida noutra e não contém nenhuma)': (p) => { const f = formaDasOpcoes(p); return entre(p, I4.filter((i) => I4.some((j) => f.contem(j, i)) && !I4.some((j) => f.contem(i, j)))); },
+  'a com mais números escritos': (p) => extremo(p, formaDasOpcoes(p).valores, true),
+  'a com menos números escritos': (p) => extremo(p, formaDasOpcoes(p).valores, false),
+  'a com mais pontos (entre chavetas)': (p) => extremo(p, formaDasOpcoes(p).elementos, true),
+  'a com menos pontos (entre chavetas)': (p) => extremo(p, formaDasOpcoes(p).elementos, false),
+};
+
+test('condições (escolha): responder só pela forma das opções dá ≤ 0,35 em cada contexto (2000 sementes)', () => {
+  const d = G.obter('generalidades-condicoes');
+  const acima = [];
+  for (const contexto of G.contextosDe(d)) {
+    const ps = [];
+    for (let s = 1; s <= 2000; s++) ps.push(G.gerar('generalidades-condicoes', s, { formato: 'escolha', contexto }));
+    for (const [nome, f] of Object.entries(ADIVINHOS_CONDICOES)) {
+      const t = ps.reduce((a, p) => a + f(p), 0) / ps.length;
+      console.log('adivinho por estrutura, condições ' + contexto + ', ' + nome + ': ' + t.toFixed(3));
+      if (t > 0.35) acima.push(contexto + ', ' + nome + ': ' + t.toFixed(3));
+    }
+  }
+  assert.deepEqual(acima, []);
 });
