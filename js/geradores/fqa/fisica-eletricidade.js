@@ -13,7 +13,7 @@ globalThis.Manual = globalThis.Manual || {};
   const Fis = () => Manual.fisica;
   const inteiro = (rng, a, b) => Manual.aleatorio.inteiro(rng, a, b);
   const escolher = (rng, l) => l[inteiro(rng, 0, l.length - 1)];
-  const { tex, fechar, confere, entre } = A;
+  const { tex, fechar, fecharTexto, confere, entre } = A;
   const tentar = (construir) => A.tentar(construir, 'eletricidade');
   const KWH = 1000 * 3600; // J
 
@@ -362,6 +362,135 @@ globalThis.Manual = globalThis.Manual || {};
       const d = p.dados;
       if (d.R !== undefined) return d.R * d.I * d.I <= 300 && d.I <= 1.5;
       return d.P >= 400 && d.P <= 2200 && d.tmin >= 15 && d.tmin <= 180;
+    },
+  });
+
+  // ---------------------------------------------------------------- corrente contínua e corrente alternada
+  // Critério (AE): na corrente contínua o sentido da corrente é sempre o mesmo; na alternada muda periodicamente.
+  // A tomada de casa dá 230 V a 50 Hz (Manual.dadosFisica.rede): muda de sentido 2 × 50 = 100 vezes por segundo.
+  // O alternador de uma central roda em sincronia com a rede (50 Hz). Sem valor eficaz nem amplitude (fora das AE).
+  // escolha: duas fontes, e as 4 opções são sempre as 4 combinações (CC/CA da primeira × CC/CA da segunda), sorteadas
+  // por igual; por isso a estrutura das opções não revela a resposta, só as fontes a decidem.
+  // vf: uma fonte (CC ou CA por igual) e a afirmação diz CC ou CA por igual; nenhuma afirmação é sempre verdadeira.
+  // nome: no enunciado; por: na afirmação «fornecida por …»; o: nas explicações; nota: pormenor da fonte;
+  // e o código do erro de tomar a corrente da fonte pelo outro tipo.
+  const FONTES_CORRENTE = [
+    { id: 'pilha', codigo: 'pilha_como_alternada', nome: 'uma pilha de lanterna', por: 'por uma pilha de lanterna', o: 'a pilha', alternada: false, nota: () => '' },
+    { id: 'bateria', codigo: 'bateria_como_alternada', nome: 'a bateria de um telemóvel', por: 'pela bateria de um telemóvel', o: 'a bateria do telemóvel', alternada: false, nota: () => ' (carrega-se na tomada, através do carregador, mas dá corrente contínua ao telemóvel)' },
+    { id: 'painel', codigo: 'painel_como_alternada', nome: 'um painel fotovoltaico', por: 'por um painel fotovoltaico', o: 'o painel fotovoltaico', alternada: false, nota: () => ' (transforma a energia da radiação solar em energia elétrica)' },
+    { id: 'tomada', codigo: 'tomada_como_continua', nome: 'uma tomada de casa', por: 'por uma tomada de casa', o: 'a tomada', alternada: true, nota: (r) => ' (' + r.tensao + ' V a ' + r.frequencia + ' Hz, por isso a corrente muda de sentido ' + 2 * r.frequencia + ' vezes por segundo)' },
+    { id: 'alternador', codigo: 'alternador_como_continua', nome: 'o alternador de uma central elétrica', por: 'pelo alternador de uma central elétrica', o: 'o alternador', alternada: true, nota: (r) => ' (roda em sincronia com a rede, a ' + r.frequencia + ' Hz, e é esta corrente que chega às tomadas)' },
+  ];
+  const fonteCorrente = (id) => FONTES_CORRENTE.find((f) => f.id === id);
+  const nomeCorrente = (alt) => (alt ? 'alternada' : 'contínua');
+  const sentidoCorrente = (alt) => (alt ? 'muda periodicamente' : 'é sempre o mesmo');
+  // Texto de uma opção de escolha (duas fontes), na linguagem do contexto.
+  function opcaoCorrente(contexto, a1, a2) {
+    if (contexto === 'sentido') {
+      return a1 === a2 ? 'Nas duas, o sentido da corrente ' + sentidoCorrente(a1) + '.'
+        : 'Na primeira, o sentido da corrente ' + sentidoCorrente(a1) + '; na segunda, ' + sentidoCorrente(a2) + '.';
+    }
+    return a1 === a2 ? 'As duas fornecem corrente ' + nomeCorrente(a1) + '.'
+      : 'A primeira fornece corrente ' + nomeCorrente(a1) + ' e a segunda, corrente ' + nomeCorrente(a2) + '.';
+  }
+  // «a pilha fornece corrente contínua, ou seja, o sentido da corrente é sempre o mesmo (…)» (sem «:», para as explicações)
+  const descreverFonte = (f, rede) => f.o + ' fornece corrente ' + nomeCorrente(f.alternada) + ', ou seja, o sentido da corrente ' + sentidoCorrente(f.alternada) + f.nota(rede);
+  // Código do erro de tomar a corrente da fonte pelo outro tipo (um por fonte: cada opção errada tem o seu código).
+  const codigoCorrente = (f) => f.codigo;
+  // Erro de uma opção (mostrado: [CA?, CA?]) face às fontes do item.
+  function erroOpcaoCorrente(fs, mostrado, rede) {
+    const errados = [0, 1].filter((i) => mostrado[i] !== fs[i].alternada);
+    const ord = ['primeira', 'segunda'];
+    if (errados.length === 1) {
+      const i = errados[0];
+      return { codigo: codigoCorrente(fs[i]), explicacao: 'Erraste a ' + ord[i] + ' fonte: ' + descreverFonte(fs[i], rede) + '. Não fornece corrente ' + nomeCorrente(!fs[i].alternada) + '.' };
+    }
+    if (fs[0].alternada === fs[1].alternada) {
+      return { codigo: fs[0].alternada ? 'as_duas_alternadas_como_continuas' : 'as_duas_continuas_como_alternadas', explicacao: 'Erraste as duas fontes: ' + descreverFonte(fs[0], rede) + '; e ' + descreverFonte(fs[1], rede) + '. Nenhuma fornece corrente ' + nomeCorrente(!fs[0].alternada) + '.' };
+    }
+    return { codigo: 'trocou_continua_com_alternada', explicacao: 'Trocaste os dois tipos de corrente: ' + descreverFonte(fs[0], rede) + '; e ' + descreverFonte(fs[1], rede) + '. É ao contrário do que escolheste.' };
+  }
+  // Mudanças de sentido num segundo, contadas no sinal de I(t): constante em CC, sinusoide de frequência f em CA.
+  function mudancasDeSentido(freq) {
+    if (!freq) return 0;
+    const passos = 16 * freq;
+    let n = 0, antes = Math.sign(Math.sin(0.1));
+    for (let k = 1; k <= passos; k++) {
+      const s = Math.sign(Math.sin(2 * Math.PI * freq * (k / passos) + 0.1));
+      if (s !== 0 && s !== antes) { n++; antes = s; }
+    }
+    return n;
+  }
+
+  registar({
+    subtema: 'circuitos', tipo: 'cc-ca', nome: 'Corrente contínua e corrente alternada',
+    formatos: ['escolha', 'vf'], contextos: ['tipo', 'sentido'],
+    fontes: FONTES_CORRENTE,
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const rede = Manual.dadosFisica.rede;
+        const deTipo = (alt) => FONTES_CORRENTE.filter((f) => f.alternada === alt);
+        const criterio = { passo: 'Lembrar o critério', porque: 'Na **corrente contínua** o sentido da corrente é sempre o mesmo; na **corrente alternada** o sentido muda periodicamente.' };
+        const passoVer = 'Contar quantas vezes a corrente muda de sentido num segundo: $0$ na corrente contínua; $2f$ na alternada de frequência $f$, porque em cada ciclo a corrente vai num sentido e depois no oposto';
+        const contagem = (f) => (f.alternada ? '2 \\times ' + rede.frequencia + ' = ' + 2 * rede.frequencia : '0');
+        if (formato === 'escolha') {
+          const a1 = rng() < 0.5, a2 = rng() < 0.5;
+          const f1 = escolher(rng, deTipo(a1));
+          const f2 = escolher(rng, deTipo(a2).filter((f) => f !== f1));
+          const fs = [f1, f2];
+          const certa = opcaoCorrente(contexto, a1, a2);
+          const combos = {};
+          const erros = [];
+          for (const m1 of [false, true]) for (const m2 of [false, true]) {
+            const texto = opcaoCorrente(contexto, m1, m2);
+            combos[A.chave(texto)] = [m1, m2];
+            if (m1 === a1 && m2 === a2) continue;
+            erros.push(Object.assign({ texto }, erroOpcaoCorrente(fs, [m1, m2], rede)));
+          }
+          // a verificação chega à opção pela contagem das mudanças de sentido (n > 0: alternada)
+          const n = fs.map((f) => mudancasDeSentido(f.alternada ? rede.frequencia : 0));
+          return fecharTexto(rng, {
+            enunciado: 'Considera duas fontes de energia elétrica: primeiro, ' + f1.nome + '; depois, ' + f2.nome + '. '
+              + (contexto === 'sentido' ? 'Como é o sentido da corrente que cada uma fornece?' : 'Que tipo de corrente fornece cada uma?'),
+            resolucao: [criterio,
+              { passo: 'Classificar a primeira fonte', porque: maiuscula(descreverFonte(f1, rede)) + '.' },
+              { passo: 'Classificar a segunda fonte', porque: maiuscula(descreverFonte(f2, rede)) + '.' }],
+            dados: { contexto, fontes: [f1.id, f2.id], combos },
+            verificacao: { passo: passoVer + ' ($n_1$ e $n_2$, da primeira e da segunda fonte)', calculo: 'n_{1} = ' + contagem(f1) + ';\\quad n_{2} = ' + contagem(f2), valor: null },
+            esquema: { id: 'fqa-corrente', opcoes: { modo: a1 ? 'ca' : 'cc' } },
+          }, certa, erros, opcaoCorrente(contexto, n[0] > 0, n[1] > 0));
+        }
+        const alt = rng() < 0.5;
+        const f = escolher(rng, deTipo(alt));
+        const diz = rng() < 0.5 ? alt : !alt;
+        const enunciado = contexto === 'sentido'
+          ? 'Na corrente fornecida ' + f.por + ', o sentido da corrente ' + sentidoCorrente(diz) + '.'
+          : maiuscula(f.nome) + ' fornece corrente ' + nomeCorrente(diz) + '.';
+        const correta = diz === alt;
+        const n = mudancasDeSentido(f.alternada ? rede.frequencia : 0);
+        return {
+          enunciado, correta,
+          errosTipicos: correta ? [] : [{ codigo: codigoCorrente(f), explicacao: maiuscula(descreverFonte(f, rede)) + '. Não fornece corrente ' + nomeCorrente(!alt) + '.' }],
+          resolucao: [criterio, { passo: 'Classificar a fonte', porque: maiuscula(descreverFonte(f, rede)) + '.' }],
+          dados: { contexto, fontes: [f.id], afirmacao: { alternada: diz } },
+          verificacao: { passo: passoVer, calculo: 'n = ' + contagem(f), valor: (n > 0) === diz },
+          esquema: { id: 'fqa-corrente', opcoes: { modo: alt ? 'ca' : 'cc' } },
+        };
+      });
+    },
+    verificarIndependente(p) {
+      const freq = Manual.dadosFisica.rede.frequencia;
+      // pelo sinal de I(t): há mudanças de sentido só na corrente alternada
+      const alternada = p.dados.fontes.map((id) => mudancasDeSentido(fonteCorrente(id).alternada ? freq : 0) > 0);
+      if (p.formato === 'vf') return p.correta === (p.dados.afirmacao.alternada === alternada[0]);
+      const v = p.opcoes.map((o) => p.dados.combos[A.chave(o)]);
+      if (v.some((c) => !c)) return false;
+      return v.every((c, i) => (c[0] === alternada[0] && c[1] === alternada[1]) === (i === p.correta));
+    },
+    limites(p) {
+      const fs = p.dados.fontes;
+      if (!fs.every(fonteCorrente)) return false;
+      return p.formato === 'vf' ? fs.length === 1 : fs.length === 2 && fs[0] !== fs[1];
     },
   });
 

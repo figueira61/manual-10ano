@@ -11,7 +11,7 @@ require('../js/painel.js');
 const G = M.geradores;
 
 const IDS = [
-  'circuitos-lei-ohm', 'circuitos-associacao', 'circuitos-potencia-energia',
+  'circuitos-lei-ohm', 'circuitos-associacao', 'circuitos-potencia-energia', 'circuitos-cc-ca',
   'gerador-caracteristica', 'gerador-dois-pontos', 'gerador-balanco',
 ];
 const SUBTEMAS = ['circuitos', 'gerador'];
@@ -137,4 +137,133 @@ test('kWh: o tempo em minutos em vez de horas tem código próprio (tempo_em_min
 
 test('lei de Ohm (tensão): nenhum erro típico passa de 10³ vezes a resposta', () => {
   for (const p of itens('circuitos-lei-ohm', 200)) if (p.contexto === 'tensao') for (const e of p.errosTipicos) assert.ok(Math.abs(e.valor) <= 1000 * p.resposta + 1e-9, e.codigo + ' ' + e.valor);
+});
+
+// ---------------------------------------------------------------- circuitos-cc-ca
+// Classificação de cada fonte (tabela própria do teste, a da brief): CC = contínua, CA = alternada.
+const TIPO_FONTE = { pilha: 'cc', bateria: 'cc', painel: 'cc', tomada: 'ca', alternador: 'ca' };
+// Verdade de uma afirmação sobre as fontes, lida no próprio texto (outro caminho que não o do gerador).
+function verdadeCorrente(texto, tipos) {
+  const diz = (t) => {
+    if (/contínua|sempre o mesmo/.test(t) && !/alternada|muda/.test(t)) return 'cc';
+    if (/alternada|muda/.test(t) && !/contínua|sempre o mesmo/.test(t)) return 'ca';
+    throw new Error('sem leitura: ' + t);
+  };
+  if (tipos.length === 1) return diz(texto) === tipos[0];
+  if (/^(As duas|Nas duas)/.test(texto)) return tipos.every((t) => t === diz(texto));
+  const [a, b] = texto.split(/ e a segunda|; na segunda/);
+  assert.ok(a && b, 'afirmação com duas partes: ' + texto);
+  return diz(a) === tipos[0] && diz(b) === tipos[1];
+}
+// Tapa as fontes (os dados do item), com a preposição e o artigo («pela bateria…» e «por uma pilha…» dão o mesmo X):
+// o que sobra é a estrutura.
+const tapaFontes = (t) => {
+  let r = t;
+  for (const f of G.obter('circuitos-cc-ca').fontes) for (const n of [f.por, f.nome[0].toUpperCase() + f.nome.slice(1), f.nome]) r = r.split(n).join('X');
+  return r;
+};
+
+test('circuitos-cc-ca: formatos escolha e vf, subtema circuitos, tipo cc-ca', () => {
+  const d = G.obter('circuitos-cc-ca');
+  assert.ok(d, 'gerador circuitos-cc-ca existe');
+  assert.deepEqual(d.formatos, ['escolha', 'vf']);
+  assert.equal(d.subtema, 'circuitos');
+  assert.equal(d.tipo, 'cc-ca');
+});
+
+test('circuitos-cc-ca: cada fonte sorteada é classificada certo (pilha, bateria, painel: CC; tomada, alternador: CA)', () => {
+  const vistas = new Set();
+  for (const p of itens('circuitos-cc-ca', 400)) {
+    const tipos = p.dados.fontes.map((f) => TIPO_FONTE[f]);
+    p.dados.fontes.forEach((f) => { assert.ok(f in TIPO_FONTE, f); vistas.add(f); });
+    if (p.formato === 'escolha') {
+      assert.equal(p.dados.fontes.length, 2);
+      assert.notEqual(p.dados.fontes[0], p.dados.fontes[1]);
+      p.opcoes.forEach((o, i) => assert.equal(verdadeCorrente(o, tipos), i === p.correta, p.dados.fontes + ': ' + o));
+    } else {
+      assert.equal(p.dados.fontes.length, 1);
+      const frase = p.enunciado.split(/(?<=\.) /).pop();
+      assert.equal(verdadeCorrente(frase, tipos), p.correta, p.enunciado);
+    }
+  }
+  assert.deepEqual([...vistas].sort(), Object.keys(TIPO_FONTE).sort());
+});
+
+test('circuitos-cc-ca: a tomada (e o alternador) dão 230 V a 50 Hz e mudam de sentido 100 vezes por segundo, sem valor eficaz nem amplitude', () => {
+  let comRede = 0;
+  for (const p of itens('circuitos-cc-ca', 200)) {
+    const txt = [p.enunciado].concat(p.opcoes || [], p.resolucaoDetalhada.map((r) => r.porque + ' ' + (r.calculo || '')), p.errosTipicos.map((e) => e.explicacao), [p.verificacao.passo, p.verificacao.calculo]).join(' ');
+    assert.ok(!/eficaz|amplitude|máxim/i.test(txt), txt);
+    if (p.dados.fontes.includes('tomada')) {
+      comRede++;
+      assert.match(txt, /230\s*V/);
+      assert.match(txt, /50\s*Hz/);
+      assert.match(txt, /100 vezes por segundo/);
+    }
+  }
+  assert.ok(comRede > 50, String(comRede));
+});
+
+test('circuitos-cc-ca: códigos de erro (cada fonte tomada pelo outro tipo, as duas erradas, as duas trocadas)', () => {
+  const codigos = new Set();
+  for (const p of itens('circuitos-cc-ca', 300)) p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+  assert.deepEqual([...codigos].sort(), ['alternador_como_continua', 'as_duas_alternadas_como_continuas', 'as_duas_continuas_como_alternadas',
+    'bateria_como_alternada', 'painel_como_alternada', 'pilha_como_alternada', 'tomada_como_continua', 'trocou_continua_com_alternada']);
+  // o código diz a fonte que se errou (lida na explicação)
+  for (const p of itens('circuitos-cc-ca', 100)) for (const e of p.errosTipicos) {
+    const m = e.codigo.match(/^(pilha|bateria|painel|tomada|alternador)_como_(continua|alternada)$/);
+    if (!m) continue;
+    assert.equal(TIPO_FONTE[m[1]], m[2] === 'alternada' ? 'cc' : 'ca', e.codigo);
+    assert.ok(p.dados.fontes.includes(m[1]), e.codigo + ' em ' + p.dados.fontes);
+  }
+});
+
+// Quem responde só pela estrutura das opções (com as fontes tapadas): aprende em 2000 sementes, por contexto, que
+// opção costuma estar certa em cada conjunto de opções (ou que valor tem cada afirmação), e aplica isso noutras 2000.
+test('circuitos-cc-ca: responder só pela estrutura não ajuda (escolha ≈ 0,25; vf ≈ 0,5)', () => {
+  const d = G.obter('circuitos-cc-ca');
+  for (const formato of d.formatos) {
+    const lista = (a, b) => {
+      const l = [];
+      for (const contexto of G.contextosDe(d)) for (let s = a; s <= b; s++) l.push(G.gerar('circuitos-cc-ca', s, { formato, contexto }));
+      return l;
+    };
+    const chaveDe = (p) => (formato === 'escolha' ? tapaFontes(p.enunciado) + ' || ' + p.opcoes.map(tapaFontes).sort().join(' | ') : tapaFontes(p.enunciado));
+    const certoDe = (p) => (formato === 'escolha' ? tapaFontes(p.opcoes[p.correta]) : String(p.correta));
+    const treino = {};
+    for (const p of lista(1, 2000)) {
+      assert.ok(!/pilha|bateria|painel|tomada|alternador/.test(chaveDe(p)), 'fonte por tapar: ' + chaveDe(p));
+      const t = (treino[chaveDe(p)] = treino[chaveDe(p)] || {});
+      t[certoDe(p)] = (t[certoDe(p)] || 0) + 1;
+    }
+    const teste = lista(2001, 4000);
+    let certos = 0;
+    for (const p of teste) {
+      const t = treino[chaveDe(p)] || {};
+      const palpite = Object.keys(t).sort((x, y) => t[y] - t[x])[0];
+      if (palpite === certoDe(p)) certos++;
+    }
+    const taxa = certos / teste.length;
+    console.log('adivinho por estrutura, circuitos-cc-ca ' + formato + ': ' + taxa.toFixed(3));
+    if (formato === 'escolha') assert.ok(taxa >= 0.2 && taxa <= 0.3, formato + ': ' + taxa.toFixed(3));
+    else assert.ok(taxa <= 0.56, formato + ': ' + taxa.toFixed(3));
+  }
+});
+
+test('circuitos-cc-ca: nenhuma opção ou afirmação é sempre verdadeira ou sempre falsa', () => {
+  const visto = {};
+  for (const p of itens('circuitos-cc-ca', 1000)) {
+    const marca = (texto, v) => { const k = p.formato + ': ' + tapaFontes(texto); (visto[k] = visto[k] || new Set()).add(v); };
+    if (p.formato === 'escolha') p.opcoes.forEach((o, i) => marca(o, i === p.correta));
+    else marca(p.enunciado, p.correta);
+  }
+  for (const [k, v] of Object.entries(visto)) assert.equal(v.size, 2, k);
+});
+
+test('circuitos-cc-ca: o esquema da resposta é fqa-corrente e não há figura no enunciado', () => {
+  for (const p of itens('circuitos-cc-ca', 50)) {
+    assert.equal(p.esquema.id, 'fqa-corrente');
+    assert.ok(['cc', 'ca'].includes(p.esquema.opcoes.modo));
+    assert.equal(p.figuraEnunciado, undefined);
+  }
 });

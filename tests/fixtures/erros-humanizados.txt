@@ -22,6 +22,7 @@ alargada_como_amostra → Tomou a população alargada como se fosse a amostra
 alcool_por_ter_oxigenio → Julgou álcool um composto só por ter oxigénio
 aleatoria_vista_como_enviesada → Julgou enviesada uma amostra aleatória
 alinhado_como_perfeito → Tomou pontos quase alinhados como correlação perfeita
+alternador_como_continua → Julgou que o alternador de uma central fornece corrente contínua
 ambos_os_sentidos_trocados → Trocou ambos os sentidos
 ambos_os_sinais_trocados → Trocou o sinal de h e também o de k
 amostra_como_populacao → Tomou a amostra como se fosse a população
@@ -43,6 +44,8 @@ arredondou_a_menos_algarismos → Arredondou a menos algarismos significativos d
 arredondou_as_quotas → Arredondou as quotas proporcionais, e o total não bateu certo
 arredondou_e_somou_um → Arredondou e somou um a mais
 arredondou_p_para_baixo → Arredondou a posição p para baixo
+as_duas_alternadas_como_continuas → Tomou duas correntes alternadas por contínuas
+as_duas_continuas_como_alternadas → Tomou duas correntes contínuas por alternadas
 associou_a_zona_errada → Associou a série de riscas à zona errada do espectro
 assumiu_coincidencia → Assumiu que os dois métodos dão o mesmo vencedor
 assumiu_divergencia → Assumiu que os dois métodos dão vencedores diferentes
@@ -50,6 +53,7 @@ atomos_iguais_logo_apolar → Julgou apolar a molécula só por ter átomos exte
 atribuiu_o_escurecimento_ao_ar → Atribuiu o escurecimento do sal de prata ao ar e não à luz
 balao_para_medir_o_volume_a_retirar → Usou o balão volumétrico para medir o volume a retirar
 baricentro → Deu o baricentro em vez do circuncentro
+bateria_como_alternada → Julgou que a bateria do telemóvel fornece corrente alternada
 calculadora_em_radianos → Calculou o cosseno com a calculadora em radianos
 calculou_a_concentracao_molar → Calculou a concentração molar em vez da mássica
 calculou_a_percentagem → Calculou a percentagem em vez de partes por milhão
@@ -581,6 +585,7 @@ outro_eixo → Deu o plano perpendicular ao outro eixo
 outro_metodo → Usou o outro método de conversão de votos em mandatos
 p_com_mais_de_seis_eletroes → Pôs mais de seis eletrões num subnível p
 p_inteiro_sem_media → Esqueceu a média quando p é inteiro
+painel_como_alternada → Julgou que um painel fotovoltaico fornece corrente alternada
 par_so_um_valor → Usou só um valor quando há dois ao meio
 paralelo_aumenta_resistencia_equivalente → Achou que mais um ramo em paralelo aumenta a resistência equivalente
 pares_nao_ligantes_logo_polar → Julgou que pares não ligantes tornam a molécula polar
@@ -598,6 +603,7 @@ periodo_a_menos → Contou um período a menos
 periodo_pelo_cerne → Deu o período do gás nobre do cerne
 periodo_pelo_subnivel_3d → Deu o período pelo subnível 3d
 peso_com_trabalho_por_haver_deslocamento → Achou que o peso realiza trabalho só por haver deslocamento
+pilha_como_alternada → Julgou que uma pilha fornece corrente alternada
 piramidal_sem_par_nao_ligante → Deu geometria piramidal sem par não ligante no átomo central
 plano_coordenado → Deu o plano coordenado em vez do plano por P
 ponto_medio_cateto → Deu o ponto médio de um cateto
@@ -768,6 +774,7 @@ terminacao_ino_num_alcano → Usou a terminação -ino num alcano
 termografia_com_luz_visivel → Julgou que a termografia usa a luz visível refletida
 tirou_3d_antes_de_4s → Tirou os eletrões 3d antes dos 4s
 todos_os_reais → Deu ℝ em vez do contradomínio
+tomada_como_continua → Julgou que a tomada de casa fornece corrente contínua
 tomou_a_como_numero_de_neutroes → Tomou o número de massa como número de neutrões
 tomou_a_diferenca_de_alturas_como_percentagem → Tomou a diferença das alturas como percentagem
 tomou_a_energia_dissipada_como_rendimento → Tomou a energia dissipada pelo rendimento
@@ -788,6 +795,7 @@ trocou_as_capacidades_termicas → Trocou as capacidades térmicas mássicas dos
 trocou_as_concentracoes → Trocou as concentrações na diluição
 trocou_as_condicoes → Trocou as condições dos dois ramos
 trocou_as_massas → Trocou as massas no balanço
+trocou_continua_com_alternada → Trocou a corrente contínua com a alternada
 trocou_coordenadas → Trocou as coordenadas
 trocou_eixos → Trocou os eixos
 trocou_emissao_com_absorcao → Trocou emissão com absorção

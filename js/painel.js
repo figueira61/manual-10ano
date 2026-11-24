@@ -912,6 +912,14 @@ globalThis.Manual = globalThis.Manual || {};
     deu_a_potencia_da_radiacao_incidente: 'Deu a potência da radiação incidente em vez da elétrica',
     tempo_em_minutos_em_vez_de_horas: 'Usou o tempo em minutos em vez de horas no cálculo em kWh',
     usou_c_do_gelo_para_a_agua: 'Usou a capacidade térmica mássica do gelo para a água líquida',
+    pilha_como_alternada: 'Julgou que uma pilha fornece corrente alternada',
+    bateria_como_alternada: 'Julgou que a bateria do telemóvel fornece corrente alternada',
+    painel_como_alternada: 'Julgou que um painel fotovoltaico fornece corrente alternada',
+    tomada_como_continua: 'Julgou que a tomada de casa fornece corrente contínua',
+    alternador_como_continua: 'Julgou que o alternador de uma central fornece corrente contínua',
+    as_duas_continuas_como_alternadas: 'Tomou duas correntes contínuas por alternadas',
+    as_duas_alternadas_como_continuas: 'Tomou duas correntes alternadas por contínuas',
+    trocou_continua_com_alternada: 'Trocou a corrente contínua com a alternada',
   };
 
   function humanizarErro(codigo) {
