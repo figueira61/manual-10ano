@@ -511,7 +511,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Níveis de energia do hidrogénio.** Os níveis do modelo de Bohr (vê acima) podem calcular-se para o átomo de hidrogénio. Tal como lá, o estado fundamental é $n = 1$, os outros níveis são estados excitados e a energia $0$ corresponde ao eletrão já separado do átomo ($n = \\infty$).',
+            texto: '**Níveis de energia do hidrogénio.** Os níveis do modelo de Bohr (vê acima) podem calcular-se para o átomo de hidrogénio, com a expressão abaixo.',
           },
           {
             tipo: 'formula',
@@ -598,7 +598,7 @@ globalThis.Manual = globalThis.Manual || {};
           '$E = hf$, $c = \\lambda f$, $E = \\dfrac{hc}{\\lambda}$: maior frequência, menor $\\lambda$, maior energia.',
           'Espectro contínuo (sólido quente); de riscas, de emissão (riscas brilhantes) ou de absorção (riscas escuras).',
           'Modelo de Bohr (1913): órbitas de energia quantizada, negativa e maior longe do núcleo; $n = 1$ é o estado fundamental, $n \\geq 2$ são estados excitados e $n = \\infty$ é a ionização (energia $0$).',
-          'A energia do eletrão é quantizada:$E_n = -\\dfrac{' + EnH + '}{n^2}\\,\\mathrm{J}$ no H. Emissão ao descer, absorção ao subir, $E_{\\text{fotão}} = |\\Delta E|$.',
+          'A energia do eletrão é quantizada: $E_n = -\\dfrac{' + EnH + '}{n^2}\\,\\mathrm{J}$ no H. Emissão ao descer, absorção ao subir, $E_{\\text{fotão}} = |\\Delta E|$.',
           'Séries do H: Lyman (até $n = 1$, UV), Balmer (até $n = 2$, visível), Paschen (até $n = 3$, IV).',
           'Cada elemento tem um espectro próprio: estrelas, química forense e testes de chama.',
         ],

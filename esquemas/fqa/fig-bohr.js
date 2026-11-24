@@ -100,7 +100,7 @@ Manual.esquemas = Manual.esquemas || {};
             explodir: { dx: 16, dy: 0 }, ancora: ancoraNivel(2), desenhar: nivel(2) },
           { id: 'n3', rotulo: 'n = 3 (excitado)', descricao: 'Órbita de energia maior do que a de n = 2: o átomo está num estado excitado. Quanto mais longe do núcleo, maior (menos negativa) é a energia.',
             explodir: { dx: 24, dy: 0 }, ancora: ancoraNivel(3), desenhar: nivel(3) },
-          { id: 'n4', rotulo: 'n = 4 (excitado)', descricao: 'Órbita de energia ainda maior: o átomo está num estado excitado. Os níveis ficam cada vez mais próximos uns dos outros à medida que n aumenta.',
+          { id: 'n4', rotulo: 'n = 4 (excitado)', descricao: 'Órbita de energia ainda maior: o átomo está num estado excitado. Em energia, os níveis ficam cada vez mais próximos uns dos outros à medida que n aumenta (no desenho, sem escala, as órbitas não o mostram).',
             explodir: { dx: 32, dy: 0 }, ancora: ancoraNivel(4), desenhar: nivel(4) },
           { id: 'ninf', rotulo: 'n = ∞ (ionização)', descricao: 'Limite em que o eletrão deixa de estar ligado ao núcleo, com energia 0: o átomo fica ionizado. Todos os níveis do átomo têm energia negativa, abaixo deste.',
             explodir: { dx: 40, dy: 0 }, ancora: ancoraNivel('inf'), desenhar: nivel('inf') },
