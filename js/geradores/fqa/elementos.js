@@ -904,21 +904,26 @@ globalThis.Manual = globalThis.Manual || {};
           extra.push({ codigo: 'nao_descontou_a_massa_do_gobele', x: m1 / nG / M * NA, ex: (tv) => 'Usaste a massa do gobelé com as gotas ($' + texF(m1, 2) + GR + '$) como se fosse a das gotas e obtiveste ' + tv + '; a massa das gotas é a diferença $' + texF(m1, 2) + ' - ' + texF(m0, 2) + ' = ' + mTex + GR + '$.' });
         } else {
           const lo = Math.max(1, Math.ceil(nG * 0.0302 / 0.05 - 1e-9) * 0.05);
-          const hi = Math.floor(Math.min(9.95, nG * 0.0695) / 0.05 + 1e-9) * 0.05;
+          // A proveta já tem um pouco de água (lê-se melhor acima do fundo): o volume das gotas é a diferença das leituras.
+          const hi = Math.floor(Math.min(8.95, nG * 0.0695) / 0.05 + 1e-9) * 0.05;
           const V = rCasas(A.entre(rng, lo, hi, 0.05), 2);
+          const V0 = rCasas(A.entre(rng, 1, Math.min(5, 9.95 - V), 0.05), 2);
+          const V1 = rCasas(V0 + V, 2);
           const Vt = texF(V, 2);
           mTot = Number((rhoL * V / 1000).toPrecision(10));
           mTex = texDec(mTot);
           const vG = V / nG;
-          enunciado = 'Na AL 1.1, contaram-se ' + nG + ' gotas de água que caíram de uma bureta para uma proveta de 10 mL, graduada de 0,1 em 0,1 mL; o volume lido foi $'
-            + Vt + ML + '$. Calcula o número de moléculas de água numa gota ($\\rho(\\mathrm{H_2O}) = ' + rhoL + '\\,\\mathrm{g\\,dm^{-3}}$, ' + dadosEnunciado.slice(1) + '.' + AS3;
+          enunciado = 'Na AL 1.1, uma proveta de 10 mL, graduada de 0,1 em 0,1 mL, tinha água até $' + texF(V0, 2) + ML + '$. Deixaram-se cair ' + nG + ' gotas de água de uma bureta para a proveta e o nível subiu para $'
+            + texF(V1, 2) + ML + '$. Calcula o número de moléculas de água numa gota ($\\rho(\\mathrm{H_2O}) = ' + rhoL + '\\,\\mathrm{g\\,dm^{-3}}$, ' + dadosEnunciado.slice(1) + '.' + AS3;
           resolucao = [
+            { passo: 'Calcular o volume das gotas', porque: 'É a diferença entre a leitura depois das gotas e a leitura inicial.', calculo: 'V = ' + texF(V1, 2) + ' - ' + texF(V0, 2) + ' = ' + Vt + ML },
             { passo: 'Calcular o volume de uma gota', porque: 'As gotas são todas iguais (em média), por isso divide-se o volume lido pelo número de gotas.', calculo: 'V_{\\mathrm{gota}} = \\dfrac{' + Vt + '}{' + nG + '}' + igualRel(vG, aAS(vG, 4)) + tex4(vG) + ML },
             { passo: 'Passar o volume das gotas para decímetros cúbicos', porque: 'A massa volúmica está em $\\mathrm{g\\,dm^{-3}}$ e $1\\,\\mathrm{mL} = 1\\,\\mathrm{cm^3} = 10^{-3}\\,\\mathrm{dm^3}$.', calculo: 'V = ' + Vt + ML + ' = ' + Vt + ' \\times 10^{-3}\\,\\mathrm{dm^{3}}' },
             { passo: 'Calcular a massa das gotas', porque: 'A massa volúmica é a massa por unidade de volume, $\\rho = \\dfrac{m}{V}$, logo $m = \\rho V$.', calculo: 'm = ' + rhoL + ' \\times ' + Vt + ' \\times 10^{-3} = ' + mTex + GR },
           ];
-          dados = { contexto, nGotas: nG, volume: V, volumeGota: vG };
-          extra.push({ codigo: 'usou_ml_como_litro', x: mTot * 1000 / nG / M * NA, ex: (tv) => 'Usaste o volume em mililitros como se estivesse em decímetros cúbicos (litros) e obtiveste ' + tv + '; com $\\rho$ em $\\mathrm{g\\,dm^{-3}}$, o volume passa a $\\mathrm{dm^3}$ ($1\\,\\mathrm{mL} = 10^{-3}\\,\\mathrm{dm^3}$).' });
+          dados = { contexto, nGotas: nG, V0, V1, volume: V, volumeGota: vG };
+          extra.push({ codigo: 'nao_descontou_o_volume_inicial', x: (rhoL * V1 / 1000) / nG / M * NA, ex: (tv) => 'Usaste a leitura final da proveta ($' + texF(V1, 2) + ML + '$) como se fosse o volume das gotas e obtiveste ' + tv + '; o volume das gotas é a diferença $' + texF(V1, 2) + ' - ' + texF(V0, 2) + ' = ' + Vt + ML + '$.' });
+          extra.push({ codigo: 'nao_converteu_ml_em_dm3', x: mTot * 1000 / nG / M * NA, ex: (tv) => 'Usaste o volume em mililitros como se estivesse em decímetros cúbicos (litros) e obtiveste ' + tv + '; com $\\rho$ em $\\mathrm{g\\,dm^{-3}}$, o volume passa a $\\mathrm{dm^3}$ ($1\\,\\mathrm{mL} = 10^{-3}\\,\\mathrm{dm^3}$).' });
           extra.push({ codigo: 'dividiu_o_volume_pela_massa_volumica', x: (V / 1000 / rhoL) / nG / M * NA, ex: (tv) => 'Dividiste o volume pela massa volúmica e obtiveste ' + tv + '; como $\\rho = \\dfrac{m}{V}$, a massa é $m = \\rho V$.' });
         }
         const mg = mTot / nG;
@@ -959,15 +964,27 @@ globalThis.Manual = globalThis.Manual || {};
         } else {
           // Escolha: só erros na escala de uma contagem e sem a mantissa da certa (mL/L e kg são × 10^±3, o mol é < 1).
           // O número de opções abaixo da certa sorteia-se de 0 a 3, para que a posição da certa entre as opções
-          // ordenadas não dê a resposta; Z e «sem M» nunca juntos (diferem × 10, a mesma mantissa).
+          // ordenadas não dê a resposta. Ficam só na numérica os erros cuja razão à certa é um número simples ou do
+          // enunciado (átomos × 3; «não dividiu por N», × N inteiro; «sem M», × 18,02 ≈ 18): o par com essa razão
+          // seria o único e denunciaria a certa (é sempre o menor dos dois).
+          // O H₂ (o erro mais raro) só entra quando são precisos os três de baixo.
           const b = inteiro(rng, 0, 3);
-          const abaixo = baralhar(rng, [E.T, E.O2, E.H2]).slice(0, b);
-          let acima = baralhar(rng, [E.N, rng() < 0.5 ? E.Z : E.Mx, E.A3, E.M2, E.DC].concat(proprios.filter((e) => e.codigo === 'nao_descontou_a_massa_do_gobele')));
-          // Na maior parte dos itens vêm primeiro os erros da mesma ordem de grandeza (Z, átomos): o expoente da certa não a denuncia.
-          if (rng() < 0.7) acima = acima.filter((e) => e === E.Z || e === E.A3).concat(acima.filter((e) => e !== E.Z && e !== E.A3));
+          // Com dois de baixo, HO₂ e O₂ (3 % um do outro) só em metade dos itens: o par mais próximo não fica sempre fora da certa.
+          const umTO = rng() < 0.5 ? E.T : E.O2;
+          const abaixo = b === 3 ? [E.T, E.O2, E.H2] : b === 2 ? (rng() < 0.5 ? [E.T, E.O2] : [umTO, E.H2]) : [umTO].slice(0, b);
+          const leitura = proprios.filter((e) => ['nao_descontou_a_massa_do_gobele', 'nao_descontou_o_volume_inicial'].includes(e.codigo));
+          // Z e «× M» nunca juntos (razão 10 M = 180,2): entra um dos dois; com o H₂, nunca o Z (razão 2,004).
+          let acima = baralhar(rng, [!abaixo.includes(E.H2) && rng() < 0.6 ? E.Z : E.M2, E.DC].concat(leitura));
+          // Na maior parte dos itens vem primeiro o erro da mesma ordem de grandeza (Z): o expoente da certa não a denuncia.
+          if (rng() < 0.7) acima = acima.filter((e) => e === E.Z).concat(acima.filter((e) => e !== E.Z));
           erros = abaixo.concat(acima.slice(0, 3 - b));
-          const mant = [resposta].concat(erros.map((e) => e.valor)).map((v) => cient(v, 3).split(' \\times')[0]);
+          const vals = [resposta].concat(erros.map((e) => e.valor));
+          const mant = vals.map((v) => cient(v, 3).split(' \\times')[0]);
           if (new Set(mant).size < 4) return null;
+          // Nenhum par de opções com razão «notável» (2, 3, 10, 18, 180, 1000, N_A): seria uma pista sem química.
+          // São as razões que os erros produzem entre si: Z com H₂ (2,004), Z com «× M» (10 M = 180,2)…
+          const notavel = (r) => [2, 3, 10, 18, 180, 1000, NA].some((f) => Math.abs(r / f - 1) < 0.01);
+          for (const x of vals) for (const y of vals) if (x < y && notavel(y / x)) return null;
         }
         const Nt = mTot / M * NA;
         const Nt4 = aAS(Nt, 4);

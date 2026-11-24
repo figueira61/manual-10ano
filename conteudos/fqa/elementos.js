@@ -340,7 +340,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Procedimento.** Uma gota sozinha tem massa e volume demasiado pequenos para se medirem bem, por isso mede-se um número grande de gotas, $N_{\\mathrm{gotas}}$, todas iguais (caem da mesma bureta, à mesma velocidade). **Pela massa:** pesa-se o gobelé vazio, deixam-se cair as gotas e pesa-se de novo; a diferença é a massa de todas as gotas. **Pelo volume:** deixam-se cair as gotas numa proveta e lê-se o volume com os olhos ao nível da base do menisco. Em qualquer dos casos, divide-se por $N_{\\mathrm{gotas}}$ para obter os valores de uma gota.',
+            texto: '**Procedimento.** Uma gota sozinha tem massa e volume demasiado pequenos para se medirem bem, por isso mede-se um número grande de gotas, $N_{\\mathrm{gotas}}$, todas iguais (caem da mesma bureta, à mesma velocidade). **Pela massa:** pesa-se o gobelé vazio, deixam-se cair as gotas e pesa-se de novo; a diferença é a massa de todas as gotas. **Pelo volume:** deixam-se cair as gotas numa proveta e lê-se o volume com os olhos ao nível da base do menisco (se a proveta já tinha água, o volume das gotas é a diferença entre as duas leituras). Em qualquer dos casos, divide-se por $N_{\\mathrm{gotas}}$ para obter os valores de uma gota.',
           },
           {
             tipo: 'formula',
@@ -360,7 +360,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Incerteza de leitura e porque se usam muitas gotas.** A balança digital tem incerteza de $\\pm 0{,}01\\,\\mathrm{g}$ e a proveta graduada de 0,1 em 0,1 mL tem $\\pm 0{,}05\\,\\mathrm{mL}$ (metade da menor divisão). A incerteza é a mesma qualquer que seja a quantidade medida, por isso pesa mais em valores pequenos: numa só gota ($\\approx 0{,}05\\,\\mathrm{g}$) seria cerca de 20 % do valor, mas em ' + GOTA.n + ' gotas ($' + dec(GOTA_MT, 2) + '\\,\\mathrm{g}$) é menos de 1 %. Ao dividir pelo número de gotas, a incerteza do valor de uma gota fica tantas vezes menor quanto o número de gotas.',
+            texto: '**Incerteza de leitura e porque se usam muitas gotas.** A balança digital tem incerteza de $\\pm 0{,}01\\,\\mathrm{g}$ e a proveta graduada de 0,1 em 0,1 mL tem $\\pm 0{,}05\\,\\mathrm{mL}$ (metade da menor divisão). A massa das gotas é a diferença de duas pesagens, por isso a sua incerteza pode chegar a $\\pm 0{,}02\\,\\mathrm{g}$. Essa incerteza é a mesma qualquer que seja a quantidade medida, por isso pesa mais em valores pequenos: numa só gota ($\\approx 0{,}05\\,\\mathrm{g}$) seria cerca de 40 % do valor, mas em ' + GOTA.n + ' gotas ($' + dec(GOTA_MT, 2) + '\\,\\mathrm{g}$) fica abaixo de 2 %. Ao dividir pelo número de gotas, a incerteza do valor de uma gota fica tantas vezes menor quanto o número de gotas.',
           },
           {
             tipo: 'erro-frequente',

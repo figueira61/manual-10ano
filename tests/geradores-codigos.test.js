@@ -31,7 +31,8 @@ const PARTILHADOS = {
   rendimento_maior_do_que_1: 'obteve um rendimento acima de 100 % (dividiu ao contrário)',
   deu_a_fracao_dissipada: 'deu a fração dissipada em vez do rendimento',
   nao_dividiu_a_percentagem_por_100: 'usou a percentagem sem a dividir por 100',
-  converteu_minutos_em_segundos_com_3600: 'multiplicou os minutos por 3600 para os passar a segundos',
+  nao_converteu_ml_em_dm3: 'usou o volume em mL onde devia estar em dm³ (concentração, massa volúmica)',
+  converteu_minutos_em_segundos_com_3600:'multiplicou os minutos por 3600 para os passar a segundos',
 };
 
 // Tabela código → ficheiros de geradores que o usam (leitura estática de «codigo: …», incluindo ternários).

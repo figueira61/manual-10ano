@@ -434,6 +434,8 @@ test('mole-gota: todas as opções em notação científica com 3 a.s. (regra 14
     const mant = p.opcoes.map((o) => o.split(' \\times')[0]);
     assert.equal(new Set(mant).size, 4, 'duas opções com a mesma mantissa: ' + p.opcoes);
     for (const e of p.errosTipicos) assert.ok(e.explicacao.includes(p.opcoes[e.opcao]), e.codigo + ': ' + e.explicacao);
+    // × 3 (átomos) e × N (não dividiu) ficam só na numérica: o par com essa razão denunciaria a certa
+    for (const e of p.errosTipicos) assert.ok(!['contou_atomos_em_vez_de_moleculas', 'nao_dividiu_pelo_numero_de_gotas'].includes(e.codigo), e.codigo);
   }
 });
 
@@ -450,12 +452,12 @@ test('mole-gota: erros típicos da brief (não dividir por N, mL como L, esquece
     const certo = (massaTotalGota(d) / d.nGotas) / M_AGUA * NA;
     assert.ok(Math.abs(e('nao_dividiu_pelo_numero_de_gotas').valor / (certo * d.nGotas) - 1) < 0.005);
     assert.ok(Math.abs(e('esqueceu_a_constante_de_avogadro').valor / (certo / NA) - 1) < 0.005);
-    if (d.contexto === 'proveta') assert.ok(Math.abs(e('usou_ml_como_litro').valor / (certo * 1000) - 1) < 0.005);
+    if (d.contexto === 'proveta') assert.ok(Math.abs(e('nao_converteu_ml_em_dm3').valor / (certo * 1000) - 1) < 0.005);
     assert.ok(Q.corrigir(p, String(p.resposta)).certa);
     assert.equal(Q.corrigir(p, String(e('nao_dividiu_pelo_numero_de_gotas').valor)).erroTipico.codigo, 'nao_dividiu_pelo_numero_de_gotas');
   }
-  for (const c of ['nao_dividiu_pelo_numero_de_gotas', 'usou_ml_como_litro', 'esqueceu_a_constante_de_avogadro',
-    'trocou_os_indices', 'usou_a_massa_molar_do_o2', 'usou_a_massa_molar_do_h2', 'nao_descontou_a_massa_do_gobele']) assert.ok(codigos.has(c), c);
+  for (const c of ['nao_dividiu_pelo_numero_de_gotas', 'nao_converteu_ml_em_dm3', 'esqueceu_a_constante_de_avogadro',
+    'trocou_os_indices', 'usou_a_massa_molar_do_o2', 'usou_a_massa_molar_do_h2', 'nao_descontou_a_massa_do_gobele', 'nao_descontou_o_volume_inicial']) assert.ok(codigos.has(c), c);
 });
 
 // Quem responde só pela forma das opções (sem fazer contas): a maior, a menor, a 2.ª, a 3.ª, uma posição fixa,
@@ -488,6 +490,25 @@ test('mole-gota (escolha): responder só pela estrutura das opções dá ≈ 0,2
       return entre(p, s.map((x, i) => (x - mn < 1e-9 ? i : -1)).filter((i) => i >= 0));
     },
   };
+  // Pela razão entre duas opções (sem química): o menor (ou o maior) de um par cuja razão é um fator simples
+  // (3: átomos; 1000: mL/L ou kg; 2; N_A: mol), um inteiro de 2 a 20 (18 ≈ M), ou o número de gotas do enunciado.
+  // (Acima de 20, com opções de 3 a.s., «quase inteira» a 1 % apanha metade das razões ao acaso: deixa de ser pista.)
+  const porRazao = (teste, menor) => (p) => {
+    const v = p.opcoes.map(val);
+    const c = new Set();
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) if (v[i] < v[j] && teste(v[j] / v[i], p)) c.add(menor ? i : j);
+    return c.size ? entre(p, [...c]) : 0.25;
+  };
+  const perto = (f) => (r) => Math.abs(r / f - 1) < 0.01;
+  const razoes = {
+    3: perto(3), 1000: perto(1000), 2: perto(2), 'N_A': perto(NA),
+    'inteira de 2 a 20': (r) => r >= 1.9 && r <= 20.5 && Math.abs(r - Math.round(r)) < 0.01 * r,
+    'número de gotas': (r, p) => Math.abs(r / p.dados.nGotas - 1) < 0.01,
+  };
+  for (const [nome, teste] of Object.entries(razoes)) {
+    adivinhos['menor do par de razão ' + nome] = porRazao(teste, true);
+    adivinhos['maior do par de razão ' + nome] = porRazao(teste, false);
+  }
   for (const [nome, f] of Object.entries(adivinhos)) {
     const t = taxa(ps, f);
     console.log('adivinho por estrutura, mole-gota, ' + nome + ': ' + t.toFixed(3));
