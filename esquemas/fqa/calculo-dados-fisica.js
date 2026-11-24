@@ -54,9 +54,10 @@ Manual.dadosFisica = (function () {
       + 'I0 = Isc/(e^(Uoc/UT) − 1) é fixa, por isso Uoc(G) = UT ln(1 + IL/I0) desce um pouco quando a irradiância baixa '
       + '(≈ −0,23 V a 500 W m⁻² e ≈ −0,76 V a 100 W m⁻²), como num painel real. A 1000 W m⁻² a curva coincide com '
       + 'I = Isc (1 − e^((U − Uoc)/UT)) a menos de I0 (≈ 6 × 10⁻⁹ A). Sem resistências série e paralelo nem efeito da temperatura.',
-    rede: 'Tensão nominal de 230 V e frequência nominal de 50 Hz da rede pública de baixa tensão em Portugal: norma EN 50160 '
-      + '(«Características da tensão fornecida pelas redes de distribuição pública de energia elétrica», NP EN 50160), '
-      + 'para a qual remete o Regulamento da Qualidade de Serviço da ERSE nas características da onda de tensão. Os 230 V são o valor nominal '
+    rede: 'Tensão nominal de 230 V e frequência nominal de 50 Hz da rede pública de baixa tensão em Portugal: norma EN 50160:2010 '
+      + '(«Características da tensão fornecida pelas redes de distribuição pública de energia elétrica», NP EN 50160, com as '
+      + 'emendas A1:2015, A2:2019 e A3:2019; o valor nominal de 230 V vem da IEC 60038:2009 / EN 60038:2011), '
+      + 'para a qual remete o Regulamento da Qualidade de Serviço da ERSE nas características da onda de tensão (consultadas em 2026-11-24). Os 230 V são o valor nominal '
       + '(valor eficaz) entre fase e neutro; o site só diz «230 V a 50 Hz», sem o valor eficaz, que fica fora das AE do 10.º ano.',
   };
 

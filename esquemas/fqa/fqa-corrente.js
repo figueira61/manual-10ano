@@ -5,7 +5,7 @@ Manual.esquemas = Manual.esquemas || {};
 // (e as setas do teclado) para alternar entre as duas. Em CC o sentido da corrente é constante; em CA muda de sentido
 // periodicamente. A frequência da rede vem de Manual.dadosFisica.rede (50 Hz, a tomada de casa dá 230 V): a corrente muda
 // de sentido 2 × 50 = 100 vezes por segundo e o período é 1/50 s = 20 ms. O eixo de I não tem valores: sem valor eficaz
-// nem amplitude, que ficam fora das AE. Opções: { modo: 'cc' | 'ca' }.
+// nem amplitude, que ficam fora das AE. Opções: { modo: 'cc' | 'ca', nota?: texto mostrado por baixo }.
 Manual.esquemas.registar('fqa-corrente', {
   montar(el, opcoes) {
     opcoes = opcoes || {};
@@ -17,6 +17,8 @@ Manual.esquemas.registar('fqa-corrente', {
     const fmt = (v) => Number(v).toLocaleString('pt-PT', { maximumFractionDigits: 1 });
     const f1 = (v) => Math.round(v * 10) / 10;
     const est = { modo: opcoes.modo === 'ca' ? 'ca' : 'cc' };
+    // nota: texto opcional por baixo (p. ex. num item, qual das fontes o gráfico mostra ao abrir)
+    const nota = typeof opcoes.nota === 'string' && opcoes.nota.trim() ? opcoes.nota.trim() : '';
 
     function criar(tag, classe, texto) {
       const e = document.createElement(tag);
@@ -51,7 +53,7 @@ Manual.esquemas.registar('fqa-corrente', {
     botao('Corrente alternada', 'ca');
 
     const L = 320, ALT = 170;
-    const svg = svgEl('svg', { viewBox: '0 0 ' + L + ' ' + ALT, width: '100%', role: 'img', tabindex: '0', class: 'corrente-svg' }, raiz);
+    const svg = svgEl('svg', { viewBox: '0 0 ' + L + ' ' + ALT, width: '100%', role: 'group', tabindex: '0', class: 'corrente-svg' }, raiz);
     svg.style.maxWidth = '460px';
     svg.style.height = 'auto';
     svg.style.display = 'block';
@@ -81,14 +83,16 @@ Manual.esquemas.registar('fqa-corrente', {
       svgEl('path', { d: 'M' + X0 + ' ' + YT + ' V' + YB, fill: 'none', stroke: 'var(--cor-eixos)', 'stroke-width': 1.5 }, svg);
       svgEl('line', { x1: X0, y1: YM, x2: X1, y2: YM, stroke: 'var(--cor-eixos)', 'stroke-width': 1.5 }, svg);
       texto(X0 + 4, 14, 'I', 'start', 10, { 'font-style': 'italic' });
-      texto(X1, YM + 22, 't / ms', 'end', 9);
+      texto(X1, YB + 11, 't / ms', 'end', 9);
       texto(X0 - 4, YM + 3, '0', 'end', 9);
       texto(X0 - 4, YT + 8, '+', 'end', 11);
       texto(X0 - 4, YB, '−', 'end', 11);
       for (let k = 1; k <= 4; k++) {
         const t = (k * T) / 2;
         svgEl('line', { x1: f1(px(t)), y1: YM - 3, x2: f1(px(t)), y2: YM + 3, stroke: 'var(--cor-eixos)', 'stroke-width': 1 }, svg);
-        if (k < 4) texto(f1(px(t)), YM + 13, fmt(t), 'middle', 8);
+        // rótulos do tempo por baixo do gráfico (a curva da CA cruza o eixo junto às marcas), com uma guia tracejada
+        svgEl('line', { x1: f1(px(t)), y1: YM + 3, x2: f1(px(t)), y2: YB, stroke: 'var(--cor-eixos)', 'stroke-width': 0.6, 'stroke-dasharray': '2 3' }, svg);
+        if (k < 4) texto(f1(px(t)), YB + 11, fmt(t), 'middle', 8);
       }
 
       // Curva I(t): reta acima do eixo (CC) ou sinusoide de frequência f (CA).
@@ -110,9 +114,9 @@ Manual.esquemas.registar('fqa-corrente', {
       } else {
         texto(X1, YB + 22, 'sentido constante: I > 0 sempre', 'end', 9);
       }
-      svg.setAttribute('aria-label', ca
+      svg.setAttribute('aria-label', (ca
         ? 'Gráfico da corrente alternada em função do tempo: a corrente muda de sentido ' + mudancas + ' vezes por segundo (' + f + ' Hz), período ' + fmt(T) + ' ms.'
-        : 'Gráfico da corrente contínua em função do tempo: a corrente tem sempre o mesmo sentido.');
+        : 'Gráfico da corrente contínua em função do tempo: a corrente tem sempre o mesmo sentido.') + ' Setas: alternar entre contínua e alternada.');
 
       resumo.textContent = ca
         ? 'Corrente alternada: muda de sentido ' + mudancas + ' vezes por segundo (' + f + ' Hz), como a da tomada de casa.'
@@ -133,6 +137,7 @@ Manual.esquemas.registar('fqa-corrente', {
       zonaTexto.appendChild(criar('p', 'esq-legenda', ca
         ? 'A tomada de casa fornece ' + rede.tensao + ' V a ' + f + ' Hz: em cada ciclo a corrente vai num sentido e depois no oposto, por isso muda de sentido ' + mudancas + ' vezes por segundo.'
         : 'Numa corrente contínua o gráfico I(t) fica sempre do mesmo lado do eixo do tempo: a corrente nunca muda de sentido.'));
+      if (nota) zonaTexto.appendChild(criar('p', 'esq-legenda', nota));
     }
 
     const aoTecla = (ev) => {

@@ -226,3 +226,16 @@ test('fqa-corrente: em CA o gráfico troca de sinal aos 10, 20 e 30 ms (2 perío
     assert.equal(trocas, modo === 'cc' ? 0 : 3, modo);
   }
 });
+
+test('fqa-corrente: rótulos do tempo por baixo do gráfico (longe da curva), SVG em role group com a dica das setas, nota opcional', () => {
+  const { el } = montar('fqa-corrente', { modo: 'ca', nota: 'O gráfico abre na corrente da primeira fonte.' });
+  const svg = el.querySelectorAll('svg')[0];
+  assert.equal(svg.getAttribute('role'), 'group');
+  assert.match(svg.getAttribute('aria-label'), /Setas: alternar/);
+  for (const t of Array.from(el.querySelectorAll('text')).filter((x) => /^(10|20|30|t \/ ms)$/.test(x.textContent))) {
+    assert.ok(Number(t.getAttribute('y')) > 136, t.textContent + ' y = ' + t.getAttribute('y'));
+  }
+  assert.ok(ver(el).includes('O gráfico abre na corrente da primeira fonte.'));
+  const { el: semNota } = montar('fqa-corrente', { modo: 'ca' });
+  assert.ok(!ver(semNota).includes('primeira fonte'));
+});

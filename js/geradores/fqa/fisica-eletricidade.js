@@ -368,7 +368,8 @@ globalThis.Manual = globalThis.Manual || {};
   // ---------------------------------------------------------------- corrente contínua e corrente alternada
   // Critério (AE): na corrente contínua o sentido da corrente é sempre o mesmo; na alternada muda periodicamente.
   // A tomada de casa dá 230 V a 50 Hz (Manual.dadosFisica.rede): muda de sentido 2 × 50 = 100 vezes por segundo.
-  // O alternador de uma central roda em sincronia com a rede (50 Hz). Sem valor eficaz nem amplitude (fora das AE).
+  // O alternador de uma central produz corrente a 50 Hz, em sincronia com a rede (é a corrente que tem 50 Hz, não a
+  // rotação: um alternador de muitos polos roda mais devagar). Sem valor eficaz nem amplitude (fora das AE).
   // escolha: duas fontes, e as 4 opções são sempre as 4 combinações (CC/CA da primeira × CC/CA da segunda), sorteadas
   // por igual; por isso a estrutura das opções não revela a resposta, só as fontes a decidem.
   // vf: uma fonte (CC ou CA por igual) e a afirmação diz CC ou CA por igual; nenhuma afirmação é sempre verdadeira.
@@ -379,7 +380,7 @@ globalThis.Manual = globalThis.Manual || {};
     { id: 'bateria', codigo: 'bateria_como_alternada', nome: 'a bateria de um telemóvel', por: 'pela bateria de um telemóvel', o: 'a bateria do telemóvel', alternada: false, nota: () => ' (carrega-se na tomada, através do carregador, mas dá corrente contínua ao telemóvel)' },
     { id: 'painel', codigo: 'painel_como_alternada', nome: 'um painel fotovoltaico', por: 'por um painel fotovoltaico', o: 'o painel fotovoltaico', alternada: false, nota: () => ' (transforma a energia da radiação solar em energia elétrica)' },
     { id: 'tomada', codigo: 'tomada_como_continua', nome: 'uma tomada de casa', por: 'por uma tomada de casa', o: 'a tomada', alternada: true, nota: (r) => ' (' + r.tensao + ' V a ' + r.frequencia + ' Hz, por isso a corrente muda de sentido ' + 2 * r.frequencia + ' vezes por segundo)' },
-    { id: 'alternador', codigo: 'alternador_como_continua', nome: 'o alternador de uma central elétrica', por: 'pelo alternador de uma central elétrica', o: 'o alternador', alternada: true, nota: (r) => ' (roda em sincronia com a rede, a ' + r.frequencia + ' Hz, e é esta corrente que chega às tomadas)' },
+    { id: 'alternador', codigo: 'alternador_como_continua', nome: 'o alternador de uma central elétrica', por: 'pelo alternador de uma central elétrica', o: 'o alternador', alternada: true, nota: (r) => ' (produz corrente a ' + r.frequencia + ' Hz, em sincronia com a rede, e é esta corrente que chega às tomadas)' },
   ];
   const fonteCorrente = (id) => FONTES_CORRENTE.find((f) => f.id === id);
   const nomeCorrente = (alt) => (alt ? 'alternada' : 'contínua');
@@ -450,14 +451,17 @@ globalThis.Manual = globalThis.Manual || {};
           // a verificação chega à opção pela contagem das mudanças de sentido (n > 0: alternada)
           const n = fs.map((f) => mudancasDeSentido(f.alternada ? rede.frequencia : 0));
           return fecharTexto(rng, {
-            enunciado: 'Considera duas fontes de energia elétrica: primeiro, ' + f1.nome + '; depois, ' + f2.nome + '. '
+            enunciado: 'Considera duas fontes de energia elétrica: a primeira é ' + f1.nome + '; a segunda é ' + f2.nome + '. '
               + (contexto === 'sentido' ? 'Como é o sentido da corrente que cada uma fornece?' : 'Que tipo de corrente fornece cada uma?'),
             resolucao: [criterio,
               { passo: 'Classificar a primeira fonte', porque: maiuscula(descreverFonte(f1, rede)) + '.' },
               { passo: 'Classificar a segunda fonte', porque: maiuscula(descreverFonte(f2, rede)) + '.' }],
             dados: { contexto, fontes: [f1.id, f2.id], combos },
             verificacao: { passo: passoVer + ' ($n_1$ e $n_2$, da primeira e da segunda fonte)', calculo: 'n_{1} = ' + contagem(f1) + ';\\quad n_{2} = ' + contagem(f2), valor: null },
-            esquema: { id: 'fqa-corrente', opcoes: { modo: a1 ? 'ca' : 'cc' } },
+            // o gráfico abre na corrente da primeira fonte; a nota diz qual é e o que mostra o outro botão
+            esquema: { id: 'fqa-corrente', opcoes: { modo: a1 ? 'ca' : 'cc', nota: a1 === a2
+              ? 'As duas fontes fornecem corrente ' + nomeCorrente(a1) + ', a que o gráfico mostra.'
+              : 'O gráfico abre na corrente da primeira fonte (' + nomeCorrente(a1) + '). Carrega em «Corrente ' + nomeCorrente(a2) + '» para ver a da segunda.' } },
           }, certa, erros, opcaoCorrente(contexto, n[0] > 0, n[1] > 0));
         }
         const alt = rng() < 0.5;
@@ -479,9 +483,14 @@ globalThis.Manual = globalThis.Manual || {};
       });
     },
     verificarIndependente(p) {
-      const freq = Manual.dadosFisica.rede.frequencia;
-      // pelo sinal de I(t): há mudanças de sentido só na corrente alternada
-      const alternada = p.dados.fontes.map((id) => mudancasDeSentido(fonteCorrente(id).alternada ? freq : 0) > 0);
+      // Outro caminho (regra 5), só com objetos do item: (1) a origem física de cada fonte do item (dados.fontes), sem a
+      // marca «alternada» da tabela do gerador; pilhas e baterias (reação química) e painéis (efeito fotovoltaico) dão
+      // sempre o mesmo sentido, a rede e os alternadores (rotação de uma bobina num campo magnético) invertem-no;
+      // (2) a contagem n mostrada na verificação do item tem de dizer o mesmo (n > 0 só na alternada).
+      const ORIGEM = { pilha: 'quimica', bateria: 'quimica', painel: 'fotovoltaica', tomada: 'rede', alternador: 'rotacao' };
+      const alternada = p.dados.fontes.map((id) => ORIGEM[id] === 'rede' || ORIGEM[id] === 'rotacao');
+      const ns = [...String(p.verificacao.calculo).matchAll(/n(?:_\{\d\})? = ([^;]*?)(?:;|$)/g)].map((m) => Number(m[1].split('=').pop().trim()));
+      if (ns.length !== alternada.length || ns.some((n, i) => !Number.isFinite(n) || (n > 0) !== alternada[i])) return false;
       if (p.formato === 'vf') return p.correta === (p.dados.afirmacao.alternada === alternada[0]);
       const v = p.opcoes.map((o) => p.dados.combos[A.chave(o)]);
       if (v.some((c) => !c)) return false;

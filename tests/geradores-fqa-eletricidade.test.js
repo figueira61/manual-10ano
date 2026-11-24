@@ -267,3 +267,35 @@ test('circuitos-cc-ca: o esquema da resposta é fqa-corrente e não há figura n
     assert.equal(p.figuraEnunciado, undefined);
   }
 });
+
+test('circuitos-cc-ca: o alternador produz corrente a 50 Hz (não «roda a 50 Hz»); o enunciado diz «a primeira / a segunda» como as opções', () => {
+  for (const p of itens('circuitos-cc-ca', 200)) {
+    const txt = [p.enunciado].concat(p.resolucaoDetalhada.map((r) => r.porque), p.errosTipicos.map((e) => e.explicacao)).join(' ');
+    assert.ok(!/roda/.test(txt), txt);
+    if (p.dados.fontes.includes('alternador')) assert.match(txt, /produz corrente a 50 Hz/);
+    if (p.formato === 'escolha') assert.match(p.enunciado, /a primeira é .*; a segunda é /);
+  }
+});
+
+test('circuitos-cc-ca: no escolha, a nota do esquema diz qual das fontes o gráfico mostra', () => {
+  for (const p of itens('circuitos-cc-ca', 100, ['escolha'])) {
+    const [a1, a2] = p.dados.fontes.map((f) => TIPO_FONTE[f]);
+    const nota = p.esquema.opcoes.nota;
+    assert.equal(p.esquema.opcoes.modo, a1);
+    if (a1 === a2) assert.match(nota, /^As duas fontes/);
+    else assert.match(nota, /primeira fonte .*«Corrente (contínua|alternada)» para ver a da segunda/);
+  }
+});
+
+test('circuitos-cc-ca: verificarIndependente recusa um item adulterado (resposta, afirmação ou contagem trocadas)', () => {
+  const d = G.obter('circuitos-cc-ca');
+  for (const p of itens('circuitos-cc-ca', 40)) {
+    assert.equal(d.verificarIndependente(p), true);
+    const q = JSON.parse(JSON.stringify(p));
+    if (q.formato === 'vf') q.correta = !q.correta; else q.correta = (q.correta + 1) % 4;
+    assert.equal(d.verificarIndependente(q), false, 'resposta trocada');
+    const r = JSON.parse(JSON.stringify(p));
+    r.verificacao.calculo = r.verificacao.calculo.replace(/= 0(?=;|$)/, '= 9').replace(/= 100/, '= 0');
+    assert.equal(d.verificarIndependente(r), false, 'contagem trocada: ' + r.verificacao.calculo);
+  }
+});
