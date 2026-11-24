@@ -356,8 +356,7 @@ test('coletor (numérica): η = E_útil/E_incidente, com E_incidente = G A Δt, 
       assert.ok(Math.abs(p.resposta - eta * 100) <= tolDe(p), p.semente + ': ' + p.resposta + ' vs ' + eta * 100);
       for (const t of [N.q(d.m, '\\mathrm{kg}'), temp(d.ti), temp(d.tf)]) assert.ok(p.enunciado.includes(t), t);
       assert.ok(perto(cod('rendimento_maior_do_que_1').valor, (Einc / Eu) * 100));
-      // (η A × 100 % pode coincidir com 1/η × 100 %, e então filtrarErros fica só com a razão invertida)
-      if (cod('esqueceu_a_area_do_coletor')) assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (Eu / (d.G * d.tmin * 60)) * 100));
+      assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (Eu / (d.G * d.tmin * 60)) * 100));
       assert.ok(perto(cod('esqueceu_o_tempo_na_energia_incidente').valor, (Eu / (d.G * d.A)) * 100));
       for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/, e.codigo);
     } else {
@@ -384,4 +383,14 @@ test('coletor (numérica, fix 1): os dois casos aparecem em ≈ metade das semen
   const fonte = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'js/geradores/fqa/fisica-termica.js'), 'utf8');
   assert.ok(!/paredes laterais/.test(fonte), 'o isolamento está só no fundo, como na figura');
   assert.match(M.dadosFisica.fontes.solar, /consultadas em \d{4}-\d{2}-\d{2}/);
+});
+
+test('coletor (numérica, fix 2): esquecer a área é sempre oferecido como erro típico, nos dois casos (2000 sementes)', () => {
+  for (const p of itens('transferencias-coletor', 2000, ['numerica'])) {
+    assert.ok(p.errosTipicos.some((e) => e.codigo === 'esqueceu_a_area_do_coletor'), p.dados.caso + ' ' + p.semente);
+  }
+  // rendimento médio de trabalho (não o máximo η₀): a gama de dadosFisica e o enunciado dizem-no
+  assert.deepEqual(M.dadosFisica.solar.rendimentoColetor, [0.4, 0.7]);
+  assert.match(M.dadosFisica.fontes.solar, /η = η₀ − a₁ ΔT\/G/);
+  for (const p of itens('transferencias-coletor', 50, ['numerica'])) assert.match(p.enunciado, /rendimento médio/);
 });

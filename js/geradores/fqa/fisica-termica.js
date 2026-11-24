@@ -334,11 +334,11 @@ globalThis.Manual = globalThis.Manual || {};
           u = UN.pct;
           const ok = exI(Eu) && exI(Einc);
           ex = {
-            enunciado: dadosColetor + ' ' + iluminado + '. Nesse tempo, aquece ' + q(m, UN.kg) + ' de água de ' + temp(ti) + ' para ' + temp(tf) + ' ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$). Calcula o rendimento do coletor, em percentagem.',
+            enunciado: dadosColetor + ' ' + iluminado + '. Nesse tempo, aquece ' + q(m, UN.kg) + ' de água de ' + temp(ti) + ' para ' + temp(tf) + ' ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$). Calcula o rendimento médio do coletor nesse intervalo de tempo, em percentagem.',
             resolucao: [
               passoInc,
               { passo: 'Energia útil', porque: 'É a energia que a água recebe ao aquecer, $E_{\\text{útil}} = m c \\Delta\\theta$.', calculo: '\\Delta\\theta = ' + tex(tf) + ' - ' + tex(ti) + ' = ' + tex(dT) + '\\,' + UN.C + ';\\ E_{\\text{útil}} = ' + tex(m) + ' \\times ' + cTex(cA) + ' \\times ' + tex(dT) + eqI(Eu) + '\\,\\mathrm{J}' },
-              { passo: 'Rendimento', porque: '$\\eta = E_{\\text{útil}}/E_{inc}$. Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$.', calculo: '\\eta = \\dfrac{' + texI(Eu) + '}{' + texI(Einc) + '} \\times 100' + eqN(exato, ok) + '\\,\\%' },
+              { passo: 'Rendimento', porque: '$\\eta = E_{\\text{útil}}/E_{inc}$ é o rendimento médio nesse tempo. Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$.', calculo: '\\eta = \\dfrac{' + texI(Eu) + '}{' + texI(Einc) + '} \\times 100' + eqN(exato, ok) + '\\,\\%' },
             ],
             dados: { caso, G: Gi, A: Ar, tmin, m, ti, tf },
           };
@@ -362,7 +362,7 @@ globalThis.Manual = globalThis.Manual || {};
           unidade = 'J';
           u = UN.J;
           ex = {
-            enunciado: dadosColetor + ' e rendimento de ' + percentagem(etaP) + ' ' + iluminado + '. Calcula a energia útil, a que é transferida para a água, nesse tempo.',
+            enunciado: dadosColetor + ', com um rendimento médio de ' + percentagem(etaP) + ' nestas condições, ' + iluminado + '. Calcula a energia útil, a que é transferida para a água, nesse tempo.',
             resolucao: [
               passoInc,
               { passo: 'Energia útil', porque: 'O rendimento é a fração da energia incidente que é útil, $E_{\\text{útil}} = \\eta\\,E_{inc}$ (por isso é sempre menor do que a incidente).', calculo: 'E_{\\text{útil}} = ' + tex(etaP / 100) + ' \\times ' + texI(Einc) + eqN(Eu, exI(Einc)) + '\\,\\mathrm{J}' },
@@ -378,7 +378,9 @@ globalThis.Manual = globalThis.Manual || {};
           verificacao = () => ({ passo: 'Primeiro a potência útil, $P_{\\text{útil}} = \\eta G A$, e só depois o tempo', calculo: 'P_{\\text{útil}} = ' + tex(etaP / 100) + ' \\times ' + tex(GA) + eqI(Pu) + '\\,\\mathrm{W};\\ E_{\\text{útil}} = ' + texI(Pu) + ' \\times ' + tex(ts) + eqN(Pu * ts, exI(Pu)) + '\\,\\mathrm{J}', valor: Pu * ts });
         }
         ex.esquema = { id: 'fig-coletor' };
-        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+        const r = fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+        // esquecer a área é o erro principal do brief: re-sorteia-se quando coincide com outro (p. ex. η A × 100 = 100/η)
+        return r && r.errosTipicos.some((e) => e.codigo === 'esqueceu_a_area_do_coletor') ? r : null;
       });
     },
     verificarIndependente(p) {
@@ -851,7 +853,7 @@ globalThis.Manual = globalThis.Manual || {};
           };
           erros = [
             { codigo: 'deu_energia_util_em_vez_de_dissipada', valor: Ef * eta, explicacao: (vt) => vt(Ef * eta, UN.J) + ' é a energia útil (' + etaP + ' %). A dissipada é o resto, ' + (100 - etaP) + ' % da energia fornecida.' },
-            { codigo: 'tempo_em_minutos', valor: P * tmin * (1 - eta), explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(P * tmin * (1 - eta), UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+            { codigo: 'tempo_em_minutos', valor: P * tmin * (1 - eta), explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(P * tmin * (1 - eta), UN.J) + '. Para obter joules, o tempo tem de estar em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
             { codigo: 'deu_a_energia_fornecida', valor: Ef, explicacao: (vt) => vt(Ef, UN.J) + ' é toda a energia fornecida. Só ' + (100 - etaP) + ' % dela é dissipada.' },
             { codigo: 'confundiu_potencia_com_energia', valor: P * (1 - eta), explicacao: (vt) => vt(P * (1 - eta)) + ' é a potência dissipada (em watts), não a energia. Multiplica-se pelo tempo.' },
           ];
@@ -884,7 +886,7 @@ globalThis.Manual = globalThis.Manual || {};
             { codigo: 'deu_a_fracao_dissipada', valor: (1 - eta) * 100, explicacao: (vt) => vt((1 - eta) * 100, UN.pct) + ' é a fração da energia fornecida que não aqueceu a água (aqueceu a chaleira e o ar). O rendimento é a fração útil.' },
             { codigo: 'converteu_minutos_em_segundos_com_3600', valor: (Qu / (P * tmin * 3600)) * 100, explicacao: (vt) => 'Passaste os minutos a segundos multiplicando por 3600 e obtiveste ' + vt((Qu / (P * tmin * 3600)) * 100, UN.pct) + '. Um minuto tem 60 s ($3600\\,\\mathrm{s}$ é uma hora).' },
             { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: ((m * cA * tf) / Ef) * 100, explicacao: (vt) => 'Usaste a temperatura final em vez da variação e obtiveste ' + vt(((m * cA * tf) / Ef) * 100, UN.pct) + '. A água aquece só $' + tex(tf - ti) + '\\,{}^{\\circ}\\mathrm{C}$, e o rendimento nunca passa de 100 %.' },
-            { codigo: 'tempo_em_minutos', valor: (Qu / (P * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Qu / (P * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos.' },
+            { codigo: 'tempo_em_minutos', valor: (Qu / (P * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Qu / (P * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Para obter joules, o tempo tem de estar em segundos.' },
           ];
           verificacao = () => ({ passo: 'Pelas potências: potência útil média $E_{\\text{útil}}/\\Delta t$ comparada com a potência da chaleira', calculo: '\\dfrac{' + texI(Qu) + '}{' + tex(ts) + '}' + eqI(Qu / ts, exI(Qu)) + '\\,\\mathrm{W};\\ \\dfrac{' + texI(Qu / ts) + '}{' + tex(P) + '} \\times 100' + eqN((Qu / ts / P) * 100, exI(Qu / ts)) + '\\,\\%', valor: Fis().rendimento(Fis().calor(m, cA, tf - ti), Ef) * 100 });
         }

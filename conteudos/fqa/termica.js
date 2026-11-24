@@ -187,11 +187,11 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: 'O **rendimento** do coletor é a fração da energia da radiação incidente que fica na água, $\\eta = \\dfrac{E_{\\text{útil}}}{E_{\\text{incidente}}}$. A irradiância $G$ é a potência da radiação por unidade de área, por isso $E_{\\text{incidente}} = G\\,A\\,\\Delta t$ (área $A$, tempo $\\Delta t$ em segundos). Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$.',
+            texto: 'O **rendimento** do coletor é a fração da energia da radiação incidente que fica na água, $\\eta = \\dfrac{E_{\\text{útil}}}{E_{\\text{incidente}}}$. A irradiância $G$ é a potência da radiação por unidade de área, por isso $E_{\\text{incidente}} = G\\,A\\,\\Delta t$ (área $A$, tempo $\\Delta t$ em segundos). Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$. O rendimento desce quando a água fica muito mais quente do que o ar, porque as perdas para o exterior aumentam; por isso, num aquecimento, calcula-se um **rendimento médio**, tipicamente entre 40 % e 70 %.',
           },
           {
             tipo: 'exemplo',
-            enunciado: 'Um coletor solar plano com 2,00 m² de área recebe radiação com uma irradiância de 800 W m⁻² durante 1,00 h e, nesse tempo, aquece 50,0 kg de água de 20,0 °C para 37,0 °C. Calcula o rendimento do coletor ($c_{\\text{água}} = ' + cTex(cA) + unC + '$).',
+            enunciado: 'Um coletor solar plano com 2,00 m² de área recebe radiação com uma irradiância de 800 W m⁻² durante 1,00 h e, nesse tempo, aquece 50,0 kg de água de 20,0 °C para 37,0 °C. Calcula o rendimento médio do coletor nesse tempo ($c_{\\text{água}} = ' + cTex(cA) + unC + '$).',
             resolucao: [
               'Energia incidente, com $\\Delta t = 1{,}00\\,\\mathrm{h} = 3600\\,\\mathrm{s}$: $E_{\\text{incidente}} = G\\,A\\,\\Delta t = 800 \\times 2{,}00 \\times 3600 = ' + cient(COL.Einc, 3) + '\\,\\mathrm{J}$.',
               'Energia útil, a que a água recebe: $E_{\\text{útil}} = m c \\Delta\\theta = 50{,}0 \\times ' + cTex(cA) + ' \\times (37{,}0 - 20{,}0) = ' + cient(COL.Eu, 4) + '\\,\\mathrm{J}$.',

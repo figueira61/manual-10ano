@@ -34,8 +34,9 @@ Manual.dadosFisica = (function () {
   const rede = { tensao: 230, frequencia: 50 };
 
   // Radiação solar ao nível do solo num dia de sol (gama de irradiâncias, W m⁻²) e rendimento de um coletor solar plano
-  // com cobertura de vidro (gama de frações): ordens de grandeza para exercícios plausíveis, não de um coletor concreto.
-  const solar = { irradiancia: [400, 1000], rendimentoColetor: [0.6, 0.75] };
+  // com cobertura de vidro (gama de frações): rendimento médio de trabalho, não o máximo η₀; ordens de grandeza para exercícios
+  // plausíveis, não de um coletor concreto.
+  const solar = { irradiancia: [400, 1000], rendimentoColetor: [0.4, 0.7] };
 
   const fontes = {
     constantes: 'g = 10 m s⁻², valor do formulário do IAVE (Informação-Prova de Física e Química A, 715); os enunciados dizem sempre o valor usado.',
@@ -67,9 +68,15 @@ Manual.dadosFisica = (function () {
       + 'corresponde a cerca de 1000 W m⁻², perto do máximo que chega ao solo com céu limpo e o Sol alto (Wikipédia, «Air mass (solar energy)», '
       + 'en.wikipedia.org); na Europa a irradiância de um dia de sol vai de cerca de 200 a 1000 W m⁻², conforme a estação e a altura do Sol '
       + '(Wikipédia, «Sonnenkollektor», de.wikipedia.org). Os exercícios usam 400 a 1000 W m⁻² (dia de sol). Rendimento de um coletor '
-      + 'solar térmico: «typischerweise zwischen 60 und 75 %» (Wikipédia, «Sonnenkollektor», de.wikipedia.org); a tabela de sistemas '
-      + 'com cerca de 2 m² de «Solar water heating» (en.wikipedia.org) dá rendimentos máximos de 0,61 a 0,74 para coletores planos. '
-      + 'O rendimento desce quando a água está muito mais quente do que o ar. Páginas consultadas em 2026-11-24.',
+      + 'plano: o rendimento MÁXIMO, η₀ (água à temperatura do ar, sem perdas térmicas), é de 0,61 a 0,74 na tabela de sistemas com '
+      + 'cerca de 2 m² de «Solar water heating» (en.wikipedia.org; «typischerweise zwischen 60 und 75 %» em «Sonnenkollektor»). Em '
+      + 'funcionamento o rendimento desce com a diferença de temperatura ΔT entre a água e o ar, segundo a curva de eficiência dos '
+      + 'ensaios de coletores, η = η₀ − a₁ ΔT/G (desprezando o termo em ΔT²), com a₁ ≈ 3 a 4 W m⁻² K⁻¹ num coletor plano (valor '
+      + 'típico, não lido numa fonte primária: não consegui consultar a EN ISO 9806, fichas Solar Keymark nem Duffie & Beckman). '
+      + 'Nas condições dos exercícios (ΔT/G de cerca de 0,01 a 0,06 m² K W⁻¹: a água 10 a 40 K acima do ar com G de 700 a '
+      + '1000 W m⁻², ou menos acima com G mais baixa) isto dá η ≈ 0,74 − 0,03 ≈ 0,7 a 0,61 − 0,24 ≈ 0,4: a gama 0,4 a 0,7 é a de um '
+      + 'rendimento médio ao longo do aquecimento. '
+      + 'Páginas consultadas em 2026-11-24.',
   };
 
   return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, rede, solar, fontes };
