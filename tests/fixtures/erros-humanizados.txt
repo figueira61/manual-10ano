@@ -293,6 +293,8 @@ emparelhou_os_eletroes_3d → Emparelhou eletrões em orbitais 3d degeneradas (r
 endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
 energia_desaparece_na_degradacao → Achou que a energia desaparece quando se degrada
+energia_diminui_com_n → Julgou que a energia do eletrão diminui com n
+energia_dos_niveis_positiva → Julgou positiva a energia do eletrão no átomo
 energia_mecanica_conserva_se_sempre → Achou que a energia mecânica se conserva sempre
 epg_sem_nivel_de_referencia → Esqueceu que a energia potencial gravítica depende do nível de referência
 equilibrio_a_temperatura_do_corpo_frio → Achou que o equilíbrio térmico fica à temperatura do corpo mais frio
@@ -369,6 +371,7 @@ esqueceu_ultimo_escalao → Esqueceu o último escalão
 esqueceu_um_candidato → Esqueceu os votos de um candidato
 esqueceu_uma_solucao → Esqueceu uma das soluções de f(x) = k
 esqueceu_valor_base → Esqueceu o valor base
+excitado_como_fundamental → Tomou um estado excitado pelo estado fundamental
 excitado_como_impossivel → Julgou impossível uma configuração de um estado excitado
 excitado_julgado_de_outro_atomo → Julgou de outro átomo a configuração de um estado excitado
 excluiu_extremo → Excluiu o extremo em «no máximo»
@@ -435,6 +438,7 @@ inverteu_o_fator_de_diluicao → Inverteu o fator de diluição
 inverteu_quebradas_e_formadas → Fez formadas − quebradas (sinal de ΔH trocado)
 inverteu_razao → Inverteu a razão
 ionica_entre_nao_metais → Julgou iónica a ligação entre não metais
+ionizacao_como_excitacao → Tomou a ionização por um estado excitado
 irs_depois_ss → Aplicou o IRS depois de descontar a Segurança Social
 isotopos_com_os_mesmos_neutroes → Julgou que isótopos têm o mesmo número de neutrões
 juro_composto → Usou juro composto em vez de juro simples

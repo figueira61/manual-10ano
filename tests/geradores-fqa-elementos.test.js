@@ -14,7 +14,7 @@ const D = M.dadosQuimicos;
 const IDS = [
   'atomo-particulas', 'atomo-isotopos', 'atomo-escala', 'atomo-figura',
   'mole-massa-atomica', 'mole-quantidade', 'mole-atomos', 'mole-algarismos-incerteza',
-  'espectros-energia-foton', 'espectros-zona', 'espectros-transicao-h', 'espectros-classificar-transicao',
+  'espectros-energia-foton', 'espectros-zona', 'espectros-bohr', 'espectros-transicao-h', 'espectros-classificar-transicao',
   'configuracao-escrever', 'configuracao-contar', 'configuracao-identificar',
   'tabela-periodica-posicao', 'tabela-periodica-comparar', 'tabela-periodica-iao', 'tabela-periodica-picnometro',
 ];
@@ -28,7 +28,7 @@ function* itens(id, sementes) {
   }
 }
 
-test('regista os 19 geradores de elementos, ≥ 3 por subtema, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
+test('regista os 20 geradores de elementos, ≥ 3 por subtema, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
   assert.deepEqual(defs().map((d) => d.id), IDS);
   for (const sub of SUBTEMAS) assert.ok(G.doSubtema('fqa', sub).length >= 3, sub);
   for (const d of defs()) {
@@ -267,4 +267,54 @@ test('ião mais provável: nenhuma opção com carga de módulo maior do que 3 (
   for (const p of itens('tabela-periodica-iao', 100)) {
     for (const t of [p.enunciado].concat(p.opcoes || [])) for (const m of t.matchAll(/\^\{(\d*)[+-]\}/g)) assert.ok(Number(m[1] || 1) <= 3, t);
   }
+});
+
+// ---------------------------------------------------------------- espectros-bohr
+// Verdade de uma afirmação sobre a transição ni → nf, lida no próprio texto (outro caminho que não o do gerador).
+const INF = 'inf';
+function verdadeBohr(texto, ni, nf) {
+  const sobe = nf === INF || nf > ni;
+  if (/absorve/.test(texto)) return sobe;
+  if (/emite/.test(texto)) return !sobe;
+  if (/estado fundamental/.test(texto)) return nf === 1;
+  if (/estado excitado/.test(texto)) return nf !== INF && nf >= 2;
+  if (/ionizado/.test(texto)) return nf === INF;
+  if (/energia do eletrão aumenta/.test(texto)) return sobe;
+  if (/energia do eletrão diminui/.test(texto)) return !sobe;
+  if (/é negativa/.test(texto)) return true;
+  if (/é positiva/.test(texto)) return false;
+  throw new Error('afirmação sem leitura: ' + texto);
+}
+
+test('espectros-bohr: formatos escolha e vf, subtema espectros, tipo bohr', () => {
+  const d = G.obter('espectros-bohr');
+  assert.ok(d, 'gerador espectros-bohr existe');
+  assert.deepEqual(d.formatos, ['escolha', 'vf']);
+  assert.equal(d.subtema, 'espectros');
+  assert.equal(d.tipo, 'bohr');
+});
+
+test('espectros-bohr: em 500 sementes a resposta é coerente com a transição sorteada', () => {
+  const vistos = new Set();
+  for (const p of itens('espectros-bohr', 500)) {
+    const { ni, nf } = p.dados;
+    assert.ok(Number.isInteger(ni) && ni >= 1 && ni <= 4, 'ni ' + ni);
+    assert.ok(nf === INF || (Number.isInteger(nf) && nf >= 1 && nf <= 4 && nf !== ni), 'nf ' + nf);
+    vistos.add(nf === INF ? 'ionizacao' : nf > ni ? 'sobe' : 'desce');
+    if (nf === 1) vistos.add('fundamental');
+    if (p.formato === 'escolha') {
+      p.opcoes.forEach((o, i) => assert.equal(verdadeBohr(o, ni, nf), i === p.correta, ni + ' → ' + nf + ': ' + o));
+    } else {
+      const frase = p.enunciado.split(/(?<=\$\.) /).pop();
+      assert.equal(verdadeBohr(frase, ni, nf), p.correta, ni + ' → ' + nf + ': ' + p.enunciado);
+    }
+  }
+  assert.deepEqual([...vistos].sort(), ['desce', 'fundamental', 'ionizacao', 'sobe']);
+});
+
+test('espectros-bohr: os erros típicos são os da brief (absorção/emissão, n = 1 excitado, energia positiva ou a diminuir com n)', () => {
+  const codigos = new Set();
+  for (const p of itens('espectros-bohr', 300)) p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+  for (const c of ['trocou_emissao_com_absorcao', 'fundamental_como_excitado', 'excitado_como_fundamental',
+    'ionizacao_como_excitacao', 'energia_diminui_com_n', 'energia_dos_niveis_positiva']) assert.ok(codigos.has(c), c);
 });
