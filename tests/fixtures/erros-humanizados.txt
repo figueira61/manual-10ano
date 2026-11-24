@@ -294,7 +294,6 @@ endotermica_liberta → Julgou que uma reação endotérmica liberta energia
 energia_de_ionizacao_diminui_ao_longo_do_periodo → Julgou que a energia de ionização diminui ao longo do período
 energia_desaparece_na_degradacao → Achou que a energia desaparece quando se degrada
 energia_diminui_com_n → Julgou que a energia do eletrão diminui com n
-energia_dos_niveis_positiva → Julgou positiva a energia do eletrão no átomo
 energia_mecanica_conserva_se_sempre → Achou que a energia mecânica se conserva sempre
 epg_sem_nivel_de_referencia → Esqueceu que a energia potencial gravítica depende do nível de referência
 equilibrio_a_temperatura_do_corpo_frio → Achou que o equilíbrio térmico fica à temperatura do corpo mais frio
@@ -371,6 +370,7 @@ esqueceu_ultimo_escalao → Esqueceu o último escalão
 esqueceu_um_candidato → Esqueceu os votos de um candidato
 esqueceu_uma_solucao → Esqueceu uma das soluções de f(x) = k
 esqueceu_valor_base → Esqueceu o valor base
+excitacao_como_ionizacao → Tomou um estado excitado pela ionização
 excitado_como_fundamental → Tomou um estado excitado pelo estado fundamental
 excitado_como_impossivel → Julgou impossível uma configuração de um estado excitado
 excitado_julgado_de_outro_atomo → Julgou de outro átomo a configuração de um estado excitado
@@ -451,6 +451,7 @@ kwh_como_3600_joules → Usou 1 kWh = 3600 J
 lado_trocado → Escolheu o lado errado do zero
 lambda_no_ponto → Multiplicou λ pelo ponto em vez de pelo vetor
 letra_do_plano → Escolheu a letra errada na equação do plano
+leu_a_transicao_ao_contrario → Leu a transição ao contrário
 leu_acumulada → Leu a frequência acumulada em vez da absoluta
 leu_o_angulo_no_desenho → Leu o ângulo no desenho plano da molécula
 ligacao_de_hidrogenio_com_h_ligado_a_c → Viu ligações de hidrogénio com H ligado ao carbono
@@ -805,6 +806,7 @@ trocou_o_sinal_do_expoente → Trocou o sinal do expoente
 trocou_os_volumes_na_diluicao → Trocou os volumes na diluição (ci·Vf = cf·Vi)
 trocou_periodo_com_grupo → Trocou o período com o grupo
 trocou_q1_q3 → Trocou Q1 com Q3
+trocou_sentido_e_estado_final → Trocou o sentido da transição e o estado final
 trocou_sinal → Trocou o sinal
 trocou_variaveis → Trocou as variáveis
 ultimo_menos_primeiro → Subtraiu o último valor ao primeiro

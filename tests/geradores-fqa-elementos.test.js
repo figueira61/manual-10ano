@@ -274,16 +274,17 @@ test('ião mais provável: nenhuma opção com carga de módulo maior do que 3 (
 const INF = 'inf';
 function verdadeBohr(texto, ni, nf) {
   const sobe = nf === INF || nf > ni;
-  if (/absorve/.test(texto)) return sobe;
-  if (/emite/.test(texto)) return !sobe;
-  if (/estado fundamental/.test(texto)) return nf === 1;
-  if (/estado excitado/.test(texto)) return nf !== INF && nf >= 2;
-  if (/ionizado/.test(texto)) return nf === INF;
-  if (/energia do eletrão aumenta/.test(texto)) return sobe;
-  if (/energia do eletrão diminui/.test(texto)) return !sobe;
-  if (/é negativa/.test(texto)) return true;
-  if (/é positiva/.test(texto)) return false;
-  throw new Error('afirmação sem leitura: ' + texto);
+  // Cada afirmação pode juntar o sentido e o estado final: é verdadeira se todas as partes o forem.
+  const partes = [];
+  if (/absorve/.test(texto)) partes.push(sobe);
+  if (/emite/.test(texto)) partes.push(!sobe);
+  if (/estado fundamental/.test(texto)) partes.push(nf === 1);
+  if (/estado excitado/.test(texto)) partes.push(nf !== INF && nf >= 2);
+  if (/ionizado/.test(texto)) partes.push(nf === INF);
+  if (/energia do eletrão aumenta/.test(texto)) partes.push(sobe);
+  if (/energia do eletrão diminui/.test(texto)) partes.push(!sobe);
+  if (!partes.length) throw new Error('afirmação sem leitura: ' + texto);
+  return partes.every(Boolean);
 }
 
 test('espectros-bohr: formatos escolha e vf, subtema espectros, tipo bohr', () => {
@@ -312,9 +313,72 @@ test('espectros-bohr: em 500 sementes a resposta é coerente com a transição s
   assert.deepEqual([...vistos].sort(), ['desce', 'fundamental', 'ionizacao', 'sobe']);
 });
 
-test('espectros-bohr: os erros típicos são os da brief (absorção/emissão, n = 1 excitado, energia positiva ou a diminuir com n)', () => {
+test('espectros-bohr: os erros típicos são os da brief (absorção/emissão, n = 1 excitado, energia a diminuir com n)', () => {
   const codigos = new Set();
   for (const p of itens('espectros-bohr', 300)) p.errosTipicos.forEach((e) => codigos.add(e.codigo));
   for (const c of ['trocou_emissao_com_absorcao', 'fundamental_como_excitado', 'excitado_como_fundamental',
-    'ionizacao_como_excitacao', 'energia_diminui_com_n', 'energia_dos_niveis_positiva']) assert.ok(codigos.has(c), c);
+    'ionizacao_como_excitacao', 'excitacao_como_ionizacao', 'trocou_sentido_e_estado_final', 'leu_a_transicao_ao_contrario', 'energia_diminui_com_n']) assert.ok(codigos.has(c), c);
+});
+
+// Quem responde só pela estrutura das opções (sem ler a transição): aprende em 2000 sementes, por contexto,
+// que texto (com os números tapados) costuma estar certo em cada conjunto de opções, e aplica isso noutras 2000.
+test('espectros-bohr: responder só pela estrutura das opções não ajuda (escolha ≤ 0,35; vf ≤ 0,6)', () => {
+  const tapar = (t) => t.replace(/\$[^$]*\$/g, '$X$');
+  const d = G.obter('espectros-bohr');
+  for (const formato of d.formatos) {
+    const treino = {};
+    const itensDe = (a, b) => {
+      const l = [];
+      for (const contexto of G.contextosDe(d)) for (let s = a; s <= b; s++) l.push(G.gerar('espectros-bohr', s, { formato, contexto }));
+      return l;
+    };
+    const chaveDe = (p) => (formato === 'escolha' ? p.opcoes.map(tapar).sort().join(' | ') : tapar(p.enunciado));
+    const certoDe = (p) => (formato === 'escolha' ? tapar(p.opcoes[p.correta]) : String(p.correta));
+    for (const p of itensDe(1, 2000)) {
+      const t = (treino[chaveDe(p)] = treino[chaveDe(p)] || {});
+      t[certoDe(p)] = (t[certoDe(p)] || 0) + 1;
+    }
+    const teste = itensDe(2001, 4000);
+    let certos = 0;
+    for (const p of teste) {
+      const t = treino[chaveDe(p)] || {};
+      const palpite = Object.keys(t).sort((x, y) => t[y] - t[x])[0];
+      if (palpite === certoDe(p)) certos++;
+    }
+    const taxa = certos / teste.length;
+    console.log('adivinho por estrutura, ' + formato + ': ' + taxa.toFixed(3));
+    assert.ok(taxa <= (formato === 'escolha' ? 0.35 : 0.6), formato + ': ' + taxa.toFixed(3));
+  }
+});
+
+test('espectros-bohr: nenhuma opção ou afirmação é sempre verdadeira ou sempre falsa', () => {
+  const tapar = (t) => t.replace(/\$[^$]*\$/g, '$X$');
+  const visto = {};
+  for (const p of itens('espectros-bohr', 1000)) {
+    const marca = (texto, v) => { const k = p.formato + ': ' + tapar(texto); (visto[k] = visto[k] || new Set()).add(v); };
+    if (p.formato === 'escolha') p.opcoes.forEach((o, i) => marca(o, i === p.correta));
+    else marca(p.enunciado, p.correta);
+  }
+  for (const [k, v] of Object.entries(visto)) assert.equal(v.size, 2, k);
+});
+
+test('espectros-bohr: na absorção, n = ∞ sai em cerca de 1/3 dos itens', () => {
+  let inf = 0, n = 0;
+  for (const formato of ['escolha', 'vf']) for (let s = 1; s <= 1500; s++) {
+    const p = G.gerar('espectros-bohr', s, { formato, contexto: 'absorcao' });
+    n++;
+    if (p.dados.nf === INF) inf++;
+  }
+  assert.ok(inf / n > 0.25 && inf / n < 0.42, String(inf / n));
+});
+
+test('espectros-bohr: «=» só para E₁ e E₂ (exatos a 3 a.s.), «≈» para E₃ e E₄', () => {
+  const vistos = new Set();
+  for (const p of itens('espectros-bohr', 200)) {
+    for (const m of p.verificacao.calculo.matchAll(/E_\{(\d)\} (=|\\approx) /g)) {
+      assert.equal(m[2], Number(m[1]) <= 2 ? '=' : '\\approx', m[0]);
+      vistos.add(m[1]);
+    }
+  }
+  assert.deepEqual([...vistos].sort(), ['1', '2', '3', '4']);
 });

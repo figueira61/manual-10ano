@@ -1084,112 +1084,114 @@ globalThis.Manual = globalThis.Manual || {};
     return [a, b];
   }
 
-  // Modelo de Bohr (conceitos): sentido da transição, estado final, variação e sinal da energia do eletrão.
+  // Modelo de Bohr (conceitos): sentido da transição (absorção/emissão) e estado em que o átomo fica.
   // Níveis n = 1 a 4 e n = ∞ (ionização, energia 0). Convenção do site: E < 0 no átomo, 0 com o eletrão removido.
+  // escolha: as 4 opções são sempre as 4 combinações possíveis (sentido × estado final), por isso a estrutura das
+  // opções não revela a resposta; só a transição a decide. vf: só afirmações cuja verdade depende da transição.
   const INF_N = 'inf';
   const nBohr = (n) => (n === INF_N ? '\\infty' : String(n));
   const sobeBohr = (ni, nf) => nf === INF_N || nf > ni;
   const estadoBohr = (nf) => (nf === INF_N ? 'I' : nf === 1 ? 'F' : 'E');
-  const TEXTO_ESTADO = {
-    F: 'No fim, o átomo fica no estado fundamental.',
-    E: 'No fim, o átomo fica num estado excitado.',
-    I: 'No fim, o átomo fica ionizado (o eletrão deixa de estar ligado ao núcleo).',
-  };
-  // Afirmação de cada tipo, verdadeira (v = true) ou falsa, com o erro típico que leva à falsa.
-  function afirmacaoBohr(tipo, v, ni, nf) {
-    const sobe = sobeBohr(ni, nf);
-    const nfT = '$n = ' + nBohr(nf) + '$';
-    if (tipo === 'sentido') {
-      const absorve = v ? sobe : !sobe;
-      return {
-        texto: absorve ? 'O átomo absorve energia.' : 'O átomo emite energia.', afirma: { absorve },
-        erro: { codigo: 'trocou_emissao_com_absorcao', explicacao: sobe
-          ? 'O eletrão sobe de nível (afasta-se do núcleo): fica com mais energia, por isso o átomo absorve energia, não a emite.'
-          : 'O eletrão desce de nível (aproxima-se do núcleo): fica com menos energia, e o átomo emite essa diferença de energia, não a absorve.' },
-      };
-    }
-    if (tipo === 'estado') {
-      const certo = estadoBohr(nf);
-      const falso = certo === 'E' ? 'F' : 'E';
-      const estado = v ? certo : falso;
-      const erro = {
-        F: { codigo: 'fundamental_como_excitado', explicacao: 'Com o eletrão em $n = 1$, o nível de menor energia, o átomo fica no estado fundamental, não num estado excitado.' },
-        E: { codigo: 'excitado_como_fundamental', explicacao: 'O estado fundamental é só o de $n = 1$; com o eletrão em ' + nfT + ' o átomo fica num estado excitado, não no estado fundamental.' },
-        I: { codigo: 'ionizacao_como_excitacao', explicacao: 'Em $n = \\infty$ o eletrão já não está ligado ao núcleo (energia 0): o átomo fica ionizado, não num estado excitado.' },
-      }[certo];
-      return { texto: TEXTO_ESTADO[estado], afirma: { estado }, erro };
-    }
-    if (tipo === 'energia') {
-      const aumenta = v ? sobe : !sobe;
-      return {
-        texto: aumenta ? 'A energia do eletrão aumenta.' : 'A energia do eletrão diminui.', afirma: { aumenta },
-        erro: { codigo: 'energia_diminui_com_n', explicacao: 'A energia do eletrão é maior (menos negativa) quanto maior for $n$, até 0 em $n = \\infty$. Ao '
-          + (sobe ? 'subir' : 'descer') + ' de nível, a energia ' + (sobe ? 'aumenta, não diminui.' : 'diminui, não aumenta.') },
-      };
-    }
-    // sinal: a energia do eletrão no nível inicial (sempre finito) é negativa.
-    return {
-      texto: 'No nível $n = ' + ni + '$, a energia do eletrão é ' + (v ? 'negativa' : 'positiva') + '.', afirma: { negativa: v },
-      erro: { codigo: 'energia_dos_niveis_positiva', explicacao: 'No átomo, a energia do eletrão é sempre negativa; o valor 0 corresponde ao eletrão separado do átomo ($n = \\infty$). Em $n = ' + ni + '$ é negativa, não positiva.' },
-    };
+  const FIM_BOHR = { F: 'fica no estado fundamental', E: 'fica num estado excitado', I: 'fica ionizado' };
+  const NOME_ESTADO = { F: 'no estado fundamental', E: 'num estado excitado', I: 'ionizado' };
+  // As 4 combinações possíveis: absorver leva a um estado excitado ou à ionização; emitir, ao fundamental ou a um excitado.
+  const COMBOS_BOHR = [[true, 'E'], [true, 'I'], [false, 'F'], [false, 'E']];
+  const textoCombo = (absorve, estado) => 'O átomo ' + (absorve ? 'absorve' : 'emite') + ' energia e ' + FIM_BOHR[estado] + '.';
+  // Transições: emissão com os 6 pares uniformes; absorção com n = ∞ em 1/3 dos casos e os 6 pares finitos no resto.
+  const PARES_SOBE = [[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]];
+  const PARES_DESCE = [[2, 1], [3, 1], [3, 2], [4, 1], [4, 2], [4, 3]];
+  // Erro de estado (mesmo sentido, estado final trocado), pelo estado certo e pelo mostrado.
+  function erroEstadoBohr(certo, mostrado, nfT) {
+    if (certo === 'F') return { codigo: 'fundamental_como_excitado', explicacao: 'Com o eletrão em $n = 1$, o nível de menor energia, o átomo fica no estado fundamental, não num estado excitado.' };
+    if (certo === 'I') return { codigo: 'ionizacao_como_excitacao', explicacao: 'Em $n = \\infty$ o eletrão já não está ligado ao núcleo (energia 0): o átomo fica ionizado, não num estado excitado.' };
+    if (mostrado === 'F') return { codigo: 'excitado_como_fundamental', explicacao: 'O estado fundamental é só o de $n = 1$; com o eletrão em ' + nfT + ' o átomo fica num estado excitado, não no estado fundamental.' };
+    return { codigo: 'excitacao_como_ionizacao', explicacao: 'Em ' + nfT + ' o eletrão continua ligado ao núcleo (a energia ainda é negativa): o átomo fica num estado excitado, não ionizado. Só fica ionizado em $n = \\infty$.' };
   }
-  const TIPOS_BOHR = ['sentido', 'estado', 'energia', 'sinal'];
 
   registar({
-    subtema: 'espectros', tipo: 'bohr', nome: 'Modelo de Bohr: absorção, emissão, estados e energia do eletrão',
+    subtema: 'espectros', tipo: 'bohr', nome: 'Modelo de Bohr: absorção, emissão e estados do átomo',
     formatos: ['escolha', 'vf'], contextos: ['absorcao', 'emissao'],
     gerar(semente, { formato, contexto, rng }) {
       return tentar(() => {
         let ni, nf;
         if (contexto === 'absorcao') {
-          ni = inteiro(rng, 1, 4);
-          const finais = [];
-          for (let n = ni + 1; n <= 4; n++) finais.push(n);
-          finais.push(INF_N);
-          nf = escolher(rng, finais);
-        } else {
-          ni = inteiro(rng, 2, 4);
-          nf = inteiro(rng, 1, ni - 1);
-        }
+          if (rng() < 1 / 3) { ni = inteiro(rng, 1, 4); nf = INF_N; } else [ni, nf] = escolher(rng, PARES_SOBE);
+        } else [ni, nf] = escolher(rng, PARES_DESCE);
         const sobe = sobeBohr(ni, nf);
         const est = estadoBohr(nf);
         const nfT = '$n = ' + nBohr(nf) + '$';
         const preambulo = 'No modelo de Bohr, o eletrão de um átomo de hidrogénio passa do nível $n = ' + ni + '$ para o nível ' + nfT + '.';
         const resolucao = [
           { passo: 'Ver o sentido da transição', porque: sobe
-            ? 'O eletrão sobe de nível, afasta-se do núcleo e fica com mais energia: o átomo tem de absorver energia.'
-            : 'O eletrão desce de nível, aproxima-se do núcleo e fica com menos energia: o átomo emite a diferença de energia (um fotão).' },
+            ? 'O eletrão sobe de nível, afasta-se do núcleo e fica com mais energia (menos negativa): o átomo tem de absorver energia.'
+            : 'O eletrão desce de nível, aproxima-se do núcleo e fica com menos energia (mais negativa): o átomo emite a diferença de energia (um fotão).' },
           { passo: 'Identificar o estado final', porque: est === 'F'
             ? 'Com o eletrão em $n = 1$, o nível de menor energia, o átomo fica no estado fundamental.'
             : est === 'E' ? 'Com o eletrão em ' + nfT + ' (acima de $n = 1$), o átomo fica num estado excitado.'
-              : 'Em $n = \\infty$ o eletrão deixa de estar ligado ao núcleo: o átomo fica ionizado.' },
-          { passo: 'Lembrar o sinal da energia', porque: 'A energia do eletrão no átomo é negativa e aumenta (fica menos negativa) com $n$; o valor 0 corresponde a $n = \\infty$, o eletrão removido.' },
+              : 'Em $n = \\infty$ o eletrão deixa de estar ligado ao núcleo (energia 0): o átomo fica ionizado.' },
         ];
-        // Verificação pelas energias E_n = EnH/n² (0 em n = ∞).
+        // Verificação pelas energias E_n = EnH/n² (0 em n = ∞); «=» quando o valor mostrado é exato.
         const En = (n) => (n === INF_N ? 0 : K().EnH / (n * n));
-        const EnT = (n) => (n === INF_N ? 'E_{\\infty} = 0' : 'E_{' + n + '} \\approx ' + cient(En(n), 3) + '\\,\\mathrm{J}');
+        const EnT = (n) => (n === INF_N ? 'E_{\\infty} = 0'
+          : 'E_{' + n + '}' + (Math.abs(En(n) - aAS(En(n), 3)) <= 1e-9 * Math.abs(En(n)) ? ' = ' : ' \\approx ') + cient(En(n), 3) + '\\,\\mathrm{J}');
         const ver = {
           passo: 'Comparar as energias dos dois níveis, com $E_n = -\\dfrac{' + texEnH() + '}{n^2}\\,\\mathrm{J}$ e $E_{\\infty} = 0$',
           calculo: EnT(ni) + (sobe ? ' < ' : ' > ') + EnT(nf) + ',\\quad \\Delta E' + (sobe ? ' > 0' : ' < 0'),
         };
         const esquema = { id: 'fig-bohr' };
         if (formato === 'escolha') {
-          const tipoCerto = escolher(rng, TIPOS_BOHR);
-          const certa = afirmacaoBohr(tipoCerto, true, ni, nf);
-          const falsas = TIPOS_BOHR.filter((t) => t !== tipoCerto).map((t) => afirmacaoBohr(t, false, ni, nf));
-          const afirmacoes = {};
-          [certa].concat(falsas).forEach((a) => { afirmacoes[chave(a.texto)] = a.afirma; });
-          const erros = falsas.map((a) => Object.assign({ texto: a.texto }, a.erro));
+          const certa = textoCombo(sobe, est);
+          const combos = {};
+          const erros = [];
+          COMBOS_BOHR.forEach(([absorve, estado]) => {
+            const texto = textoCombo(absorve, estado);
+            combos[chave(texto)] = { absorve, estado };
+            if (absorve === sobe && estado === est) return;
+            let erro;
+            if (estado === est) {
+              erro = { codigo: 'trocou_emissao_com_absorcao', explicacao: sobe
+                ? 'O eletrão sobe de nível: fica com mais energia, por isso o átomo absorve energia, não a emite.'
+                : 'O eletrão desce de nível: fica com menos energia, e o átomo emite essa diferença de energia, não a absorve.' };
+            } else if (absorve === sobe) {
+              erro = erroEstadoBohr(est, estado, nfT);
+            } else if (estado === estadoBohr(ni)) {
+              // Descreve a transição inversa (de n = nf para n = ni).
+              erro = { codigo: 'leu_a_transicao_ao_contrario', explicacao: 'Essa é a transição ao contrário, de ' + nfT + ' para $n = ' + ni
+                + '$. Aqui o eletrão vai de $n = ' + ni + '$ para ' + nfT + ', por isso o átomo ' + (sobe ? 'absorve' : 'emite')
+                + ' energia e fica ' + NOME_ESTADO[est] + '.' };
+            } else {
+              erro = { codigo: 'trocou_sentido_e_estado_final', explicacao: 'Trocaste o sentido e o estado final: o eletrão '
+                + (sobe ? 'sobe' : 'desce') + ' de nível, por isso o átomo ' + (sobe ? 'absorve' : 'emite') + ' energia (não a '
+                + (sobe ? 'emite' : 'absorve') + '), e em ' + nfT + ' fica ' + NOME_ESTADO[est] + ', não ' + NOME_ESTADO[estado] + '.' };
+            }
+            erros.push(Object.assign({ texto }, erro));
+          });
           return fecharTexto(rng, {
-            enunciado: preambulo + ' Qual das afirmações é verdadeira?', resolucao,
-            dados: { ni, nf, contexto, afirmacoes }, verificacao: Object.assign({ valor: null }, ver), esquema,
-          }, certa.texto, erros, certa.texto);
+            enunciado: preambulo + ' O que acontece?', resolucao,
+            dados: { ni, nf, contexto, combos }, verificacao: Object.assign({ valor: null }, ver), esquema,
+          }, certa, erros, certa);
         }
-        const tipo = escolher(rng, TIPOS_BOHR);
-        const v1 = afirmacaoBohr(tipo, true, ni, nf);
-        const v0 = afirmacaoBohr(tipo, false, ni, nf);
-        const v = vfDe(rng, preambulo + ' ' + v1.texto, preambulo + ' ' + v0.texto, v0.erro);
-        const dados = { ni, nf, contexto, afirmacao: (v.correta ? v1 : v0).afirma };
+        // vf: o sentido (absorve/emite ou a energia aumenta/diminui), equilibrado entre verdadeiro e falso,
+        // ou «fica num estado excitado» (verdadeiro em cerca de metade das transições).
+        const tipo = escolher(rng, ['sentido', 'energia', 'estado']);
+        let v, afirmacao;
+        if (tipo === 'estado') {
+          const correta = est === 'E';
+          v = { enunciado: preambulo + ' No fim, o átomo ' + FIM_BOHR.E + '.', correta, errosTipicos: correta ? [] : [erroEstadoBohr(est, 'E', nfT)] };
+          afirmacao = { estado: 'E' };
+        } else if (tipo === 'sentido') {
+          const frase = (absorve) => preambulo + ' O átomo ' + (absorve ? 'absorve' : 'emite') + ' energia.';
+          v = vfDe(rng, frase(sobe), frase(!sobe), { codigo: 'trocou_emissao_com_absorcao', explicacao: sobe
+            ? 'O eletrão sobe de nível: fica com mais energia, por isso o átomo absorve energia, não a emite.'
+            : 'O eletrão desce de nível: fica com menos energia, e o átomo emite essa diferença de energia, não a absorve.' });
+          afirmacao = { absorve: v.correta ? sobe : !sobe };
+        } else {
+          const frase = (aumenta) => preambulo + ' A energia do eletrão ' + (aumenta ? 'aumenta' : 'diminui') + '.';
+          v = vfDe(rng, frase(sobe), frase(!sobe), { codigo: 'energia_diminui_com_n', explicacao: 'A energia do eletrão é negativa e tanto maior (menos negativa) quanto maior for $n$, até 0 em $n = \\infty$. Ao '
+            + (sobe ? 'subir' : 'descer') + ' de nível, a energia ' + (sobe ? 'aumenta, não diminui.' : 'diminui, não aumenta.') });
+          afirmacao = { aumenta: v.correta ? sobe : !sobe };
+        }
+        const dados = { ni, nf, contexto, afirmacao };
         return Object.assign({ resolucao, dados, esquema }, v, { verificacao: Object.assign({}, ver, { valor: v.correta }) });
       });
     },
@@ -1199,16 +1201,14 @@ globalThis.Manual = globalThis.Manual || {};
       const E = (n) => (n === INF_N ? 0 : K().EnH / (n * n));
       const aumenta = E(nf) > E(ni);
       const estado = E(nf) === 0 ? 'I' : E(nf) === K().EnH ? 'F' : 'E';
-      const verdade = (a) => {
-        if ('absorve' in a) return a.absorve === aumenta;
-        if ('estado' in a) return a.estado === estado;
-        if ('aumenta' in a) return a.aumenta === aumenta;
-        return a.negativa === (E(ni) < 0);
-      };
-      if (p.formato === 'vf') return p.correta === verdade(p.dados.afirmacao);
-      const v = p.opcoes.map((o) => p.dados.afirmacoes[chave(o)]);
-      if (v.some((a) => !a)) return false;
-      return v.every((a, i) => verdade(a) === (i === p.correta));
+      if (p.formato === 'vf') {
+        const a = p.dados.afirmacao;
+        const verdade = 'absorve' in a ? a.absorve === aumenta : 'aumenta' in a ? a.aumenta === aumenta : a.estado === estado;
+        return p.correta === verdade;
+      }
+      const v = p.opcoes.map((o) => p.dados.combos[chave(o)]);
+      if (v.some((c) => !c)) return false;
+      return v.every((c, i) => (c.absorve === aumenta && c.estado === estado) === (i === p.correta));
     },
     limites(p) {
       const { ni, nf, contexto } = p.dados;
