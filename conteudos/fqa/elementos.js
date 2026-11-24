@@ -29,6 +29,12 @@ globalThis.Manual = globalThis.Manual || {};
   // energia de remoção (kJ/mol nos dados) em MJ/mol, com 3 algarismos significativos
   const MJ = (kJ) => (kJ / 1000).toPrecision(3).replace('.', ',');
   const NA = cient(K.NA, 3);
+  // AL 1.1 (gota de água): 25 gotas pesadas num gobelé, vazio e com as gotas (massas com 4 algarismos significativos).
+  const GOTA = { n: 25, m0: 48.37, m1: 49.62 };
+  const M_AGUA = Q.massaMolar({ H: 2, O: 1 });
+  const GOTA_MT = Math.round((GOTA.m1 - GOTA.m0) * 100) / 100; // 1,25 g
+  const GOTA_MG = GOTA_MT / GOTA.n; // 0,0500 g (exato)
+  const GOTA_N4 = Number((GOTA_MG / M_AGUA).toPrecision(4)); // n com 4 algarismos significativos
   const h = cient(K.h, 3);
   const c = cient(K.c, 3);
   const EnH = cient(-K.EnH, 3); // 2,18 × 10^-18 (o sinal escreve-se no texto)
@@ -328,6 +334,38 @@ globalThis.Manual = globalThis.Manual || {};
             resultado: 0.792,
             verificar: () => Number((18.62 / 23.5).toFixed(3)),
           },
+          {
+            tipo: 'texto',
+            texto: '**AL 1.1 — Volume e número de moléculas de uma gota de água.** **Objetivo:** medir o volume e a massa de uma gota de água e calcular quantas moléculas tem. **Material:** bureta (ou conta-gotas), gobelé pequeno, balança digital ($\\pm 0{,}01\\,\\mathrm{g}$), proveta de 10 mL graduada de 0,1 em 0,1 mL, água destilada.',
+          },
+          {
+            tipo: 'texto',
+            texto: '**Procedimento.** Uma gota sozinha tem massa e volume demasiado pequenos para se medirem bem, por isso mede-se um número grande de gotas, $N_{\\mathrm{gotas}}$, todas iguais (caem da mesma bureta, à mesma velocidade). **Pela massa:** pesa-se o gobelé vazio, deixam-se cair as gotas e pesa-se de novo; a diferença é a massa de todas as gotas. **Pelo volume:** deixam-se cair as gotas numa proveta e lê-se o volume com os olhos ao nível da base do menisco. Em qualquer dos casos, divide-se por $N_{\\mathrm{gotas}}$ para obter os valores de uma gota.',
+          },
+          {
+            tipo: 'formula',
+            texto: '$m_{\\mathrm{gota}} = \\dfrac{m_{\\mathrm{total}}}{N_{\\mathrm{gotas}}}$, $V_{\\mathrm{gota}} = \\dfrac{m_{\\mathrm{gota}}}{\\rho}$, $n = \\dfrac{m_{\\mathrm{gota}}}{M}$ e o número de moléculas é $N = n \\times N_A$. Na proveta lê-se $V$ e calcula-se a massa com $m = \\rho V$ ($\\rho(\\mathrm{H_2O}) = ' + dec(D.massaVolumicaAgua, 3) + '\\,\\mathrm{g\\,cm^{-3}} = ' + Math.round(D.massaVolumicaAgua * 1000) + '\\,\\mathrm{g\\,dm^{-3}}$, a 20 °C).',
+          },
+          {
+            tipo: 'exemplo',
+            enunciado: 'Deixaram-se cair ' + GOTA.n + ' gotas de água num gobelé. O gobelé vazio tinha $' + dec(GOTA.m0, 2) + '\\,\\mathrm{g}$ e, com as gotas, $' + dec(GOTA.m1, 2) + '\\,\\mathrm{g}$. Calcula o volume de uma gota e o número de moléculas de água que tem ($\\rho = ' + dec(D.massaVolumicaAgua, 3) + '\\,\\mathrm{g\\,cm^{-3}}$, $A_r(\\mathrm{H}) = ' + Ar('H') + '$, $A_r(\\mathrm{O}) = ' + Ar('O') + '$, $N_A = ' + NA + '\\,\\mathrm{mol^{-1}}$).',
+            resolucao: [
+              'Massa das gotas: $m = ' + dec(GOTA.m1, 2) + ' - ' + dec(GOTA.m0, 2) + ' = ' + dec(GOTA_MT, 2) + '\\,\\mathrm{g}$; massa de uma gota: $m_{\\mathrm{gota}} = \\dfrac{' + dec(GOTA_MT, 2) + '}{' + GOTA.n + '} = ' + dec(GOTA_MG, 4) + '\\,\\mathrm{g}$.',
+              'Volume de uma gota: $V_{\\mathrm{gota}} = \\dfrac{' + dec(GOTA_MG, 4) + '}{' + dec(D.massaVolumicaAgua, 3) + '} \\approx ' + dec(GOTA_MG / D.massaVolumicaAgua, 4) + '\\,\\mathrm{cm^3} = ' + dec(GOTA_MG / D.massaVolumicaAgua, 4) + '\\,\\mathrm{mL}$.',
+              'Quantidade de matéria: $n = \\dfrac{' + dec(GOTA_MG, 4) + '}{' + dec(M_AGUA, 2) + '} \\approx ' + cient(GOTA_N4, 4) + '\\,\\mathrm{mol}$.',
+              'Número de moléculas: $N = ' + cient(GOTA_N4, 4) + ' \\times ' + NA + ' \\approx ' + cient(Q.entidades(GOTA_N4), 3) + '$. Uma gota de água tem cerca de $10^{21}$ moléculas.',
+            ],
+            resultado: 1.67,
+            verificar: () => Number((Q.entidades(Q.nDeMassa((GOTA.m1 - GOTA.m0) / GOTA.n, Q.massaMolar({ H: 2, O: 1 }))) / 1e21).toFixed(2)),
+          },
+          {
+            tipo: 'texto',
+            texto: '**Incerteza de leitura e porque se usam muitas gotas.** A balança digital tem incerteza de $\\pm 0{,}01\\,\\mathrm{g}$ e a proveta graduada de 0,1 em 0,1 mL tem $\\pm 0{,}05\\,\\mathrm{mL}$ (metade da menor divisão). A incerteza é a mesma qualquer que seja a quantidade medida, por isso pesa mais em valores pequenos: numa só gota ($\\approx 0{,}05\\,\\mathrm{g}$) seria cerca de 20 % do valor, mas em ' + GOTA.n + ' gotas ($' + dec(GOTA_MT, 2) + '\\,\\mathrm{g}$) é menos de 1 %. Ao dividir pelo número de gotas, a incerteza do valor de uma gota fica tantas vezes menor quanto o número de gotas.',
+          },
+          {
+            tipo: 'erro-frequente',
+            texto: 'Não te esqueças de dividir pelo número de gotas: sem isso, obténs as moléculas de todas as gotas juntas. Na proveta, com $\\rho$ em $\\mathrm{g\\,dm^{-3}}$, passa o volume para $\\mathrm{dm^3}$ ($1\\,\\mathrm{mL} = 10^{-3}\\,\\mathrm{dm^3}$); usar os mililitros como se fossem litros dá um resultado 1000 vezes maior. E não pares em $n$: um valor em mol (perto de $10^{-3}$) é a quantidade de matéria, falta multiplicar por $N_A$.',
+          },
         ],
         resumo: [
           'Unidade de massa atómica: $\\dfrac{1}{12}$ da massa de um átomo de carbono-12.',
@@ -336,6 +374,7 @@ globalThis.Manual = globalThis.Manual || {};
           '$N = n \\times N_A$, com $N_A = ' + NA + '\\,\\mathrm{mol^{-1}}$; $m = n \\times M$, com $M$ em $\\mathrm{g\\,mol^{-1}}$.',
           'Incerteza de leitura: metade da menor divisão (analógico) ou uma unidade do último algarismo (digital).',
           'Produto e quociente: tantos algarismos significativos quantos os do dado com menos.',
+          'AL 1.1: mede-se a massa (ou o volume) de muitas gotas e divide-se pelo número de gotas; $N = \\dfrac{m_{\\mathrm{gota}}}{M} \\times N_A$, cerca de $10^{21}$ moléculas numa gota de água.',
         ],
         quiz: [
           {
