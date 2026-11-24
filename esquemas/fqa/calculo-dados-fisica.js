@@ -33,6 +33,10 @@ Manual.dadosFisica = (function () {
   // Rede elétrica de baixa tensão (a tomada de casa): tensão nominal em V, frequência nominal em Hz.
   const rede = { tensao: 230, frequencia: 50 };
 
+  // Radiação solar ao nível do solo num dia de sol (gama de irradiâncias, W m⁻²) e rendimento de um coletor solar plano
+  // com cobertura de vidro (gama de frações): ordens de grandeza para exercícios plausíveis, não de um coletor concreto.
+  const solar = { irradiancia: [400, 1000], rendimentoColetor: [0.4, 0.7] };
+
   const fontes = {
     constantes: 'g = 10 m s⁻², valor do formulário do IAVE (Informação-Prova de Física e Química A, 715); os enunciados dizem sempre o valor usado.',
     capacidadeTermicaMassica: 'Água (4,18 × 10³) e gelo (2,1 × 10³ J kg⁻¹ °C⁻¹): valores de referência habituais nos manuais e exames portugueses '
@@ -59,7 +63,12 @@ Manual.dadosFisica = (function () {
       + 'emendas A1:2015, A2:2019 e A3:2019; o valor nominal de 230 V vem da IEC 60038:2009 / EN 60038:2011), '
       + 'para a qual remete o Regulamento da Qualidade de Serviço da ERSE nas características da onda de tensão (consultadas em 2026-11-24). Os 230 V são o valor nominal '
       + '(valor eficaz) entre fase e neutro; o site só diz «230 V a 50 Hz», sem o valor eficaz, que fica fora das AE do 10.º ano.',
+    solar: 'Irradiância: 1000 W m⁻² é a irradiância das condições de teste padrão (STC) dos módulos fotovoltaicos (IEC 60904-3), '
+      + 'perto do máximo que chega ao solo com céu limpo e o Sol alto; com o Sol mais baixo ou alguma nebulosidade fica em algumas '
+      + 'centenas de W m⁻² (400 W m⁻² é o mínimo usado nos exercícios). Rendimento de um coletor plano com cobertura de vidro: '
+      + 'cerca de 40 % a 70 % em funcionamento (é maior quando a placa está pouco acima da temperatura do ar e desce quando a '
+      + 'diferença aumenta, porque as perdas crescem), a mesma gama usada para o coletor no gerador de rendimento.',
   };
 
-  return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, rede, fontes };
+  return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, rede, solar, fontes };
 })();

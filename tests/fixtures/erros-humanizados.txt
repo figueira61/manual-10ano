@@ -77,6 +77,10 @@ classe_do_valor_mais_frequente → Deu a classe do valor mais repetido em vez da
 cobrou_todas_as_horas → Cobrou todas as horas, e não só as que ultrapassam o limite
 codigo_numerico_como_quantitativa → Tomou um código numérico por variável quantitativa
 coeficiente_trocado → Multiplicou x pelo coeficiente errado
+coletor_trocou_com_a_placa → No coletor solar, trocou a função de uma peça com a da placa absorsora
+coletor_trocou_com_o_isolamento → No coletor solar, trocou a função de uma peça com a do isolamento térmico
+coletor_trocou_com_o_vidro → No coletor solar, trocou a função de uma peça com a da cobertura de vidro
+coletor_trocou_com_os_tubos → No coletor solar, trocou a função de uma peça com a dos tubos com fluido
 comparou_distancia_com_r2 → Comparou a distância com r² em vez de r
 completou_o_nivel_ganhando_eletroes → Completou o nível ganhando eletrões em vez de os perder
 comprimento_independente_da_ordem → Achou que o comprimento da ligação não depende do número de pares partilhados
@@ -194,6 +198,7 @@ deu_a_energia_antes_da_colisao → Deu a energia mecânica antes da colisão em 
 deu_a_energia_apos_o_ressalto → Deu a energia mecânica depois do ressalto em vez da dissipada
 deu_a_energia_cinetica_final → Deu a energia cinética final em vez da sua variação
 deu_a_energia_fornecida → Deu a energia fornecida em vez da dissipada
+deu_a_energia_incidente_em_vez_da_util → Deu a energia da radiação incidente em vez da energia útil
 deu_a_energia_potencial → Deu a energia potencial gravítica em vez da energia cinética
 deu_a_energia_potencial_final → Deu a energia potencial gravítica final em vez da sua variação
 deu_a_fracao_conservada → Deu a fração da energia mecânica que se mantém em vez da dissipada
@@ -314,6 +319,7 @@ escolheu_ortocentro → Escolheu o ortocentro
 esqueceu_2_no_denominador → Esqueceu o 2 no denominador
 esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_altura_de_lancamento → Esqueceu a altura do ponto de lançamento
+esqueceu_a_area_do_coletor → Esqueceu a área do coletor na energia incidente
 esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
 esqueceu_a_corrente_na_queda → Escreveu a queda de tensão interna como r, sem a corrente
 esqueceu_a_energia_cinetica → Esqueceu a variação da energia cinética na energia mecânica
@@ -353,6 +359,7 @@ esqueceu_o_meio_na_energia_cinetica → Esqueceu o ½ na energia cinética
 esqueceu_o_papel_do_cloro → Esqueceu o papel do radical cloro
 esqueceu_o_ponto → Esqueceu de somar o ponto
 esqueceu_o_quadrado_da_velocidade → Esqueceu que a energia cinética depende do quadrado da velocidade
+esqueceu_o_tempo_na_energia_incidente → Esqueceu o tempo na energia incidente (usou a potência)
 esqueceu_o_trabalho_do_atrito → Esqueceu o trabalho da força de atrito na soma dos trabalhos
 esqueceu_o_trabalho_na_primeira_lei → Esqueceu o trabalho na Primeira Lei
 esqueceu_os_coeficientes → Esqueceu os coeficientes da equação ao contar as ligações

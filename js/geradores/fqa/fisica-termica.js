@@ -242,6 +242,163 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
+  // Coletor solar plano: cada peça com a sua função (o mecanismo certo), escrita à mão.
+  // Sem pistas na forma das opções: as funções estão todas no infinitivo e não nomeiam nenhuma das quatro peças, os nomes
+  // das opções são curtos (sem «com fluido») e as quatro opções são sempre as mesmas, só muda a peça (ou a função) pedida.
+  // A verificação reencontra a resposta pelo mecanismo (CRIT_COLETOR), não pela tabela.
+  const PECAS_COLETOR = [
+    { id: 'vidro', nome: 'a cobertura de vidro', codigo: 'coletor_trocou_com_o_vidro', mecanismo: 'menos perdas por convecção e por radiação infravermelha',
+      funcao: 'Deixar passar a luz visível e reduzir as perdas de energia por convecção e por radiação infravermelha (efeito de estufa).',
+      porque: 'O vidro é transparente à luz visível, mas deixa passar pouco do infravermelho emitido pela placa quente, e abriga do vento o ar por cima da placa.' },
+    { id: 'placa', nome: 'a placa escura', codigo: 'coletor_trocou_com_a_placa', mecanismo: 'absorção da radiação',
+      funcao: 'Absorver a radiação solar, o que aumenta a sua energia interna e a sua temperatura.',
+      porque: 'Uma superfície escura e baça absorve a maior parte da radiação que recebe e reflete pouca.' },
+    { id: 'tubos', nome: 'os tubos', codigo: 'coletor_trocou_com_os_tubos', mecanismo: 'condução para o fluido, que transporta a energia',
+      funcao: 'Transferir a energia para o fluido por condução, através das paredes, para que o fluido em movimento a transporte para fora do coletor.',
+      porque: 'Os tubos metálicos estão encostados à placa quente, e o fluido (água) que circula lá dentro leva a energia até ao depósito.' },
+    { id: 'isolamento', nome: 'o isolamento térmico', codigo: 'coletor_trocou_com_o_isolamento', mecanismo: 'menos perdas por condução',
+      funcao: 'Reduzir as perdas de energia por condução através do fundo e das paredes laterais da caixa.',
+      porque: 'É um material mau condutor térmico (lã mineral, espuma), posto entre os tubos e a caixa.' },
+  ];
+  // O mecanismo de cada peça, procurado no texto da função (verificação por outro caminho).
+  const CRIT_COLETOR = {
+    vidro: /luz visível[\s\S]*convecção e por radiação infravermelha/i,
+    placa: /absorver a radiação solar/i,
+    tubos: /fluido por condução[\s\S]*transporte/i,
+    isolamento: /reduzir as perdas de energia por condução/i,
+  };
+  const pecaColetor = (id) => PECAS_COLETOR.find((x) => x.id === id);
+  const nomePlural = (n) => artigo(n) === 'os' || artigo(n) === 'as';
+  const serve = (n) => (nomePlural(n) ? 'servem' : 'serve');
+  const minuscula = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+  const OPCOES_FUNCAO = () => PECAS_COLETOR.map((x) => x.funcao);
+  const OPCOES_PECA = () => PECAS_COLETOR.map((x) => maiuscula(x.nome));
+
+  registar({
+    subtema: 'transferencias', tipo: 'coletor', nome: 'Coletor solar: função de cada peça e rendimento (η = E_útil / G A Δt)',
+    formatos: ['escolha', 'numerica'],
+    gerar(semente, { formato, rng }) {
+      return tentar(() => {
+        if (formato === 'escolha') {
+          const P = escolher(rng, PECAS_COLETOR);
+          const direcao = rng() < 0.5 ? 'funcao' : 'peca';
+          const resolucao = [
+            { passo: 'Seguir o caminho da energia no coletor', porque: 'A radiação solar atravessa o vidro e é absorvida pela placa escura, que aquece. Da placa, a energia passa por condução, através das paredes dos tubos, para o fluido, que a transporta para fora do coletor. O vidro e o isolamento reduzem as perdas para o exterior.' },
+            { passo: 'Concluir', porque: maiuscula(P.nome) + ' ' + serve(P.nome) + ' para ' + minuscula(P.funcao) + ' ' + P.porque },
+          ];
+          const verificacao = { passo: 'Confirmar pelo mecanismo de cada peça (absorver, conduzir e transportar, reduzir perdas)', calculo: '\\text{' + P.mecanismo + '}' };
+          const outras = PECAS_COLETOR.filter((x) => x !== P);
+          const ex = { resolucao, dados: { direcao, peca: P.id }, verificacao, esquema: { id: 'fig-coletor' } };
+          if (direcao === 'funcao') {
+            ex.enunciado = 'Num coletor solar plano, para que ' + serve(P.nome) + ' ' + P.nome + '?';
+            const erros = outras.map((Y) => ({ codigo: Y.codigo, texto: Y.funcao, explicacao: 'Essa é a função ' + doDe(Y.nome) + '. ' + maiuscula(P.nome) + ' ' + serve(P.nome) + ' para ' + minuscula(P.funcao) + ' ' + P.porque }));
+            const valor = OPCOES_FUNCAO().find((t) => CRIT_COLETOR[P.id].test(t));
+            return fecharTexto(rng, ex, P.funcao, erros, valor);
+          }
+          ex.enunciado = 'Num coletor solar plano, qual destas peças serve para ' + minuscula(P.funcao).replace(/\.$/, '?');
+          const erros = outras.map((Y) => ({ codigo: Y.codigo, texto: maiuscula(Y.nome), explicacao: maiuscula(Y.nome) + ' ' + serve(Y.nome) + ' para ' + minuscula(Y.funcao) + ' A função pedida é a ' + doDe(P.nome) + '. ' + P.porque }));
+          const valor = OPCOES_PECA()[PECAS_COLETOR.findIndex((x) => CRIT_COLETOR[x.id].test(ex.enunciado))];
+          return fecharTexto(rng, ex, maiuscula(P.nome), erros, valor);
+        }
+        // numérica: rendimento a partir do aquecimento da água, ou energia útil a partir do rendimento (regra 16: G e η
+        // nas gamas de Manual.dadosFisica.solar; a água aquece 10–45 °C e não passa de 70 °C)
+        const S = D().solar;
+        const Gi = entre(rng, S.irradiancia[0], S.irradiancia[1], 50);
+        const Ar = entre(rng, 1.5, 2.5, 0.1);
+        const tmin = escolher(rng, [30, 40, 45, 60, 90, 120]);
+        const ts = tmin * 60;
+        const GA = A.limpo(Gi * Ar);
+        const Einc = A.limpo(GA * ts);
+        const caso = rng() < 0.5 ? 'rendimento' : 'energia';
+        const dadosColetor = 'Um coletor solar plano com ' + q(Ar, UN.m2) + ' de área';
+        const iluminado = 'recebe radiação solar com uma irradiância de ' + q(Gi, UN.Wm2) + ' durante ' + q(tmin, UN.min);
+        const passoInc = { passo: 'Energia da radiação incidente', porque: 'A irradiância é a potência da radiação por unidade de área, por isso a energia que chega ao coletor é $E_{inc} = G A \\Delta t$, com o tempo em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).', calculo: 'E_{inc} = ' + tex(Gi) + ' \\times ' + tex(Ar) + ' \\times ' + tex(ts) + eqI(Einc) + '\\,\\mathrm{J}' };
+        let ex, exato, erros, verificacao, unidade, u;
+        if (caso === 'rendimento') {
+          const cA = cDe('agua');
+          const etaAlvo = entre(rng, S.rendimentoColetor[0], S.rendimentoColetor[1], 0.01);
+          const m = entre(rng, 20, 150, 10);
+          const dT = Math.round(((etaAlvo * Einc) / (m * cA)) * 10) / 10;
+          if (dT < 10 || dT > 45) return null;
+          const ti = entre(rng, 12, 25, 1);
+          const tf = A.limpo(ti + dT);
+          if (tf > 70) return null;
+          const Eu = A.limpo(m * cA * dT);
+          const eta = Eu / Einc;
+          if (eta < S.rendimentoColetor[0] || eta > S.rendimentoColetor[1]) return null;
+          exato = eta * 100;
+          unidade = '%';
+          u = UN.pct;
+          const ok = exI(Eu) && exI(Einc);
+          ex = {
+            enunciado: dadosColetor + ' ' + iluminado + '. Nesse tempo, aquece ' + q(m, UN.kg) + ' de água de ' + temp(ti) + ' para ' + temp(tf) + ' ($c_{\\text{água}} = ' + cTex(cA) + '\\,' + UN.cU + '$). Calcula o rendimento do coletor, em percentagem.',
+            resolucao: [
+              passoInc,
+              { passo: 'Energia útil', porque: 'É a energia que a água recebe ao aquecer, $E_{\\text{útil}} = m c \\Delta\\theta$.', calculo: '\\Delta\\theta = ' + tex(tf) + ' - ' + tex(ti) + ' = ' + tex(dT) + '\\,' + UN.C + ';\\ E_{\\text{útil}} = ' + tex(m) + ' \\times ' + cTex(cA) + ' \\times ' + tex(dT) + eqI(Eu) + '\\,\\mathrm{J}' },
+              { passo: 'Rendimento', porque: '$\\eta = E_{\\text{útil}}/E_{inc}$. Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$.', calculo: '\\eta = \\dfrac{' + texI(Eu) + '}{' + texI(Einc) + '} \\times 100' + eqN(exato, ok) + '\\,\\%' },
+            ],
+            dados: { caso, G: Gi, A: Ar, tmin, m, ti, tf },
+          };
+          const alem = (v) => (v > 100 ? ' Um rendimento nunca passa de 100 %.' : '');
+          const vArea = (Eu / (Gi * ts)) * 100;
+          const vTf = ((m * cA * tf) / Einc) * 100;
+          erros = [
+            { codigo: 'rendimento_maior_do_que_1', valor: (Einc / Eu) * 100, explicacao: (vt) => 'Calculaste $E_{inc}/E_{\\text{útil}}$ e obtiveste ' + vt((Einc / Eu) * 100, UN.pct) + ': dividiste ao contrário. O rendimento nunca passa de 100 %.' },
+            { codigo: 'esqueceu_a_area_do_coletor', valor: vArea, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt(vArea, UN.pct) + '. A irradiância é a potência por metro quadrado, e a energia incidente é $G A \\Delta t$.' + alem(vArea) },
+            { codigo: 'esqueceu_o_tempo_na_energia_incidente', valor: (Eu / GA) * 100, explicacao: (vt) => 'Esqueceste o tempo e obtiveste ' + vt((Eu / GA) * 100, UN.pct) + '. $G A$ é a potência incidente, em watts, e a energia incidente é $G A \\Delta t$, com $\\Delta t = ' + tex(ts) + '\\,\\mathrm{s}$. Um rendimento nunca passa de 100 %.' },
+            { codigo: 'tempo_em_minutos', valor: (Eu / (GA * tmin)) * 100, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt((Eu / (GA * tmin)) * 100, UN.pct) + ', mais de 100 %, o que é impossível. Em joules o tempo está em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
+            { codigo: 'usou_temperatura_final_em_vez_da_variacao', valor: vTf, explicacao: (vt) => 'Usaste a temperatura final em vez da variação e obtiveste ' + vt(vTf, UN.pct) + '. A água aquece só $' + tex(dT) + '\\,{}^{\\circ}\\mathrm{C}$.' + alem(vTf) },
+            { codigo: 'deu_a_fracao_dissipada', valor: 100 - exato, explicacao: (vt) => vt(100 - exato, UN.pct) + ' é a fração da energia incidente que não aquece a água (é refletida ou perde-se para o exterior). O rendimento é a fração útil.' },
+          ];
+          verificacao = () => ({ passo: 'Pelas potências: a potência útil média $E_{\\text{útil}}/\\Delta t$ comparada com a potência incidente $G A$', calculo: '\\dfrac{' + texI(Eu) + '}{' + tex(ts) + '}' + eqI(Eu / ts, exI(Eu)) + '\\,\\mathrm{W};\\ \\dfrac{' + texI(Eu / ts) + '}{' + tex(GA) + '} \\times 100' + eqN((Eu / ts / GA) * 100, exI(Eu) && exI(Eu / ts)) + '\\,\\%', valor: Fis().rendimento(Fis().calor(m, cA, tf - ti), Gi * Ar * ts) * 100 });
+        } else {
+          const etaP = entre(rng, S.rendimentoColetor[0] * 100, S.rendimentoColetor[1] * 100, 1);
+          const Eu = A.limpo((etaP * Einc) / 100);
+          const Pu = A.limpo((etaP * GA) / 100);
+          exato = Eu;
+          unidade = 'J';
+          u = UN.J;
+          ex = {
+            enunciado: dadosColetor + ' e rendimento de ' + percentagem(etaP) + ' ' + iluminado + '. Calcula a energia útil, a que é transferida para a água, nesse tempo.',
+            resolucao: [
+              passoInc,
+              { passo: 'Energia útil', porque: 'O rendimento é a fração da energia incidente que é útil, $E_{\\text{útil}} = \\eta\\,E_{inc}$ (por isso é sempre menor do que a incidente).', calculo: 'E_{\\text{útil}} = ' + tex(etaP / 100) + ' \\times ' + texI(Einc) + eqN(Eu, exI(Einc)) + '\\,\\mathrm{J}' },
+            ],
+            dados: { caso, G: Gi, A: Ar, tmin, etaP },
+          };
+          erros = [
+            { codigo: 'deu_a_energia_incidente_em_vez_da_util', valor: Einc, explicacao: (vt) => vt(Einc, UN.J) + ' é toda a energia da radiação que chega ao coletor. Só ' + etaP + ' % dela é útil (aquece a água).' },
+            { codigo: 'esqueceu_a_area_do_coletor', valor: (etaP * Gi * ts) / 100, explicacao: (vt) => 'Esqueceste a área e obtiveste ' + vt((etaP * Gi * ts) / 100, UN.J) + ' (é a energia útil por metro quadrado). Multiplica-se ainda por $' + tex(Ar) + '\\,\\mathrm{m^2}$.' },
+            { codigo: 'confundiu_potencia_com_energia', valor: Pu, explicacao: (vt) => vt(Pu) + ' é a potência útil (em watts), não a energia. Multiplica-se pelo tempo, em segundos.' },
+            { codigo: 'tempo_em_minutos', valor: Pu * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(Pu * tmin, UN.J) + '. Em joules o tempo está em segundos ($' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$).' },
+            { codigo: 'nao_dividiu_a_percentagem_por_100', valor: etaP * Einc, explicacao: (vt) => 'Usaste o rendimento como $' + etaP + '$ em vez de $' + tex(etaP / 100) + '$ e obtiveste ' + vt(etaP * Einc, UN.J) + ', mais do que a energia incidente, o que é impossível. A percentagem divide-se por 100.' },
+          ];
+          verificacao = () => ({ passo: 'Primeiro a potência útil, $P_{\\text{útil}} = \\eta G A$, e só depois o tempo', calculo: 'P_{\\text{útil}} = ' + tex(etaP / 100) + ' \\times ' + tex(GA) + eqI(Pu) + '\\,\\mathrm{W};\\ E_{\\text{útil}} = ' + texI(Pu) + ' \\times ' + tex(ts) + eqN(Pu * ts, exI(Pu)) + '\\,\\mathrm{J}', valor: Pu * ts });
+        }
+        ex.esquema = { id: 'fig-coletor' };
+        return fecharNum(rng, formato, ex, exato, { erros, unidade, u, verificacao });
+      });
+    },
+    verificarIndependente(p) {
+      const d = p.dados;
+      if (p.formato === 'escolha') {
+        if (d.direcao === 'funcao') return CRIT_COLETOR[d.peca].test(p.opcoes[p.correta]) && p.opcoes.filter((o) => Object.values(CRIT_COLETOR).some((re) => re.test(o))).length === 4;
+        return CRIT_COLETOR[d.peca].test(p.enunciado) && p.opcoes[p.correta] === maiuscula(pecaColetor(d.peca).nome);
+      }
+      if (d.caso === 'rendimento') return confereN(p, ((d.m * cDe('agua') * (d.tf - d.ti)) / (d.tmin * 60) / (d.G * d.A)) * 100, UN.pct);
+      return confereN(p, ((d.etaP * d.G) / 100) * d.A * d.tmin * 60, UN.J);
+    },
+    limites(p) {
+      const d = p.dados;
+      if (p.formato === 'escolha') return !!pecaColetor(d.peca) && ['funcao', 'peca'].includes(d.direcao);
+      const S = Manual.dadosFisica.solar;
+      const Einc = d.G * d.A * d.tmin * 60;
+      const eta = d.caso === 'rendimento' ? (d.m * cDe('agua') * (d.tf - d.ti)) / Einc : d.etaP / 100;
+      return d.G >= S.irradiancia[0] && d.G <= S.irradiancia[1] && eta >= S.rendimentoColetor[0] - 1e-9 && eta <= S.rendimentoColetor[1] + 1e-9
+        && (d.caso !== 'rendimento' || (d.tf > d.ti && d.tf <= 70));
+    },
+  });
+
   // ================================================================ balancos
   // Valores de referência em LaTeX com os algarismos que têm (4180 → 4,18 × 10³; 2100 → 2,1 × 10³; 900 → 900).
   const cTex = (c) => (c >= 1000 ? cient(c, String(c).replace(/0+$/, '').length) : tex(c));

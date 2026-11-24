@@ -11,7 +11,7 @@ require('../js/painel.js');
 const G = M.geradores;
 
 const IDS = [
-  'transferencias-mecanismo', 'transferencias-equilibrio', 'transferencias-infravermelho',
+  'transferencias-mecanismo', 'transferencias-equilibrio', 'transferencias-infravermelho', 'transferencias-coletor',
   'balancos-calor', 'balancos-fase', 'balancos-mistura', 'balancos-primeira-lei',
   'rendimento-energia', 'rendimento-painel-maximo', 'rendimento-painel',
 ];
@@ -264,4 +264,112 @@ test('capacidade térmica mássica (escolha): opções em notação normal, sem 
     for (const o of p.opcoes) assert.ok(!/\\times 10\^/.test(o), o);
     for (const e of p.errosTipicos) assert.ok(Math.abs(e.valor) < 1e4, e.codigo + ' ' + e.valor);
   }
+});
+
+// ---------------------------------------------------------------- coletor solar (transferencias-coletor)
+// Critérios de cada peça (o mecanismo certo), lidos no texto da função: vidro → luz visível, convecção e infravermelho
+// (efeito de estufa); placa escura → absorve radiação; tubos → condução para o fluido, que a transporta; isolamento → condução.
+const CRIT_COLETOR = {
+  vidro: (t) => /luz visível/i.test(t) && /convecção/.test(t) && /radiação infravermelha/.test(t) && /estufa/.test(t),
+  placa: (t) => /absorver a radiação solar/i.test(t),
+  tubos: (t) => /condução/.test(t) && /fluido/.test(t) && /transport/.test(t),
+  isolamento: (t) => /reduzir as perdas de energia por condução/i.test(t),
+};
+const NOME_COLETOR = { vidro: /vidro/, placa: /placa/, tubos: /tubos/, isolamento: /isolamento/ };
+
+test('coletor: gerador transferencias-coletor com os formatos escolha e numérica, e a figura fig-coletor', () => {
+  const d = G.obter('transferencias-coletor');
+  assert.ok(d);
+  assert.deepEqual(d.formatos, ['escolha', 'numerica']);
+  for (const p of itens('transferencias-coletor', 10)) assert.deepEqual(p.esquema, { id: 'fig-coletor' });
+});
+
+test('coletor (escolha): cada peça com o mecanismo certo, nas duas direções (função da peça, peça da função)', () => {
+  const vistas = { funcao: {}, peca: {} };
+  for (const p of itens('transferencias-coletor', 400, ['escolha'])) {
+    const d = p.dados;
+    assert.equal(p.opcoes.length, 4);
+    vistas[d.direcao][d.peca] = (vistas[d.direcao][d.peca] || 0) + 1;
+    const certa = p.opcoes[p.correta];
+    if (d.direcao === 'funcao') {
+      assert.match(p.enunciado, NOME_COLETOR[d.peca]);
+      assert.ok(CRIT_COLETOR[d.peca](certa), d.peca + ': ' + certa);
+      // cada opção é a função de exatamente uma peça, e as erradas não servem para a peça pedida
+      for (const o of p.opcoes) assert.equal(Object.keys(CRIT_COLETOR).filter((k) => CRIT_COLETOR[k](o)).length, 1, o);
+      p.opcoes.filter((o) => o !== certa).forEach((o) => assert.ok(!CRIT_COLETOR[d.peca](o), o));
+    } else {
+      assert.ok(CRIT_COLETOR[d.peca](p.enunciado), p.enunciado);
+      assert.equal(Object.keys(CRIT_COLETOR).filter((k) => CRIT_COLETOR[k](p.enunciado)).length, 1, p.enunciado);
+      assert.match(certa, NOME_COLETOR[d.peca]);
+      for (const o of p.opcoes) assert.equal(Object.keys(NOME_COLETOR).filter((k) => NOME_COLETOR[k].test(o)).length, 1, o);
+    }
+    for (const e of p.errosTipicos) assert.match(e.codigo, /^coletor_trocou_com_(o_vidro|a_placa|os_tubos|o_isolamento)$/);
+  }
+  for (const dir of ['funcao', 'peca']) for (const k of Object.keys(CRIT_COLETOR)) assert.ok(vistas[dir][k] >= 30, dir + ' ' + k + ': ' + vistas[dir][k]);
+});
+
+test('coletor (escolha): sem pistas na estrutura, quem adivinha pela forma das opções acerta ≈ 25 % (2000 sementes)', () => {
+  const ps = [...itens('transferencias-coletor', 2000, ['escolha'])];
+  const palavras = (t) => new Set((t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[a-z]{4,}/g) || []));
+  const argmax = (xs) => xs.indexOf(Math.max(...xs));
+  const argmin = (xs) => xs.indexOf(Math.min(...xs));
+  const comuns = (p) => { const e = palavras(p.enunciado); return p.opcoes.map((o) => [...palavras(o)].filter((w) => e.has(w)).length); };
+  const adivinhos = {
+    'mais longa': (p) => argmax(p.opcoes.map((o) => o.length)),
+    'mais curta': (p) => argmin(p.opcoes.map((o) => o.length)),
+    primeira: () => 0,
+    'última': (p) => p.opcoes.length - 1,
+    'mais palavras do enunciado': (p) => argmax(comuns(p)),
+    'menos palavras do enunciado': (p) => argmin(comuns(p)),
+  };
+  for (const [nome, f] of Object.entries(adivinhos)) {
+    const taxa = ps.filter((p) => f(p) === p.correta).length / ps.length;
+    assert.ok(taxa > 0.2 && taxa < 0.3, nome + ': ' + taxa);
+  }
+  // nenhuma opção é certa (ou errada) só por ser quem é: cada texto é certo em ≈ 1/4 das vezes em que aparece
+  const conta = new Map();
+  for (const p of ps) p.opcoes.forEach((o, i) => { const c = conta.get(o) || [0, 0]; c[0]++; if (i === p.correta) c[1]++; conta.set(o, c); });
+  for (const [o, [n, certas]] of conta) assert.ok(certas / n > 0.18 && certas / n < 0.32, o + ': ' + certas + '/' + n);
+});
+
+test('coletor (numérica): η = E_útil/E_incidente, com E_incidente = G A Δt, nunca acima de 100 % e com os dados do enunciado', () => {
+  const N = G.fisicaNumeros.criar();
+  const cA = M.dadosFisica.capacidadeTermicaMassica.agua;
+  const S = M.dadosFisica.solar;
+  const casos = new Set();
+  const temp = (t) => '$' + N.dado(t) + '\\,{}^{\\circ}\\mathrm{C}$';
+  for (const p of itens('transferencias-coletor', 400, ['numerica'])) {
+    const d = p.dados;
+    casos.add(d.caso);
+    const Einc = d.G * d.A * d.tmin * 60;
+    assert.ok(d.G >= S.irradiancia[0] && d.G <= S.irradiancia[1], 'G = ' + d.G);
+    assert.ok(d.A >= 1 && d.A <= 3, 'A = ' + d.A);
+    for (const t of [N.q(d.G, '\\mathrm{W\\,m^{-2}}'), N.q(d.A, '\\mathrm{m^2}'), N.q(d.tmin, '\\mathrm{min}')]) assert.ok(p.enunciado.includes(t), t + ' :: ' + p.enunciado);
+    const cod = (c) => p.errosTipicos.find((e) => e.codigo === c);
+    const perto = (a, b) => Math.abs(a - b) <= 0.006 * Math.abs(b);
+    if (d.caso === 'rendimento') {
+      const Eu = d.m * cA * (d.tf - d.ti);
+      const eta = Eu / Einc;
+      assert.ok(eta >= S.rendimentoColetor[0] - 1e-9 && eta <= S.rendimentoColetor[1] + 1e-9, 'η = ' + eta);
+      assert.ok(d.tf > d.ti && d.tf <= 70, d.ti + ' → ' + d.tf);
+      assert.ok(p.resposta > 0 && p.resposta <= 100);
+      assert.ok(Math.abs(p.resposta - eta * 100) <= tolDe(p), p.semente + ': ' + p.resposta + ' vs ' + eta * 100);
+      for (const t of [N.q(d.m, '\\mathrm{kg}'), temp(d.ti), temp(d.tf)]) assert.ok(p.enunciado.includes(t), t);
+      assert.ok(perto(cod('rendimento_maior_do_que_1').valor, (Einc / Eu) * 100));
+      assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (Eu / (d.G * d.tmin * 60)) * 100));
+      assert.ok(perto(cod('esqueceu_o_tempo_na_energia_incidente').valor, (Eu / (d.G * d.A)) * 100));
+      for (const e of p.errosTipicos) if (e.valor > 100) assert.match(e.explicacao, /100 %/, e.codigo);
+    } else {
+      assert.equal(d.caso, 'energia');
+      assert.ok(d.etaP >= S.rendimentoColetor[0] * 100 && d.etaP <= S.rendimentoColetor[1] * 100);
+      assert.ok(p.enunciado.includes(N.percentagem(d.etaP)));
+      assert.ok(Math.abs(p.resposta - (d.etaP / 100) * Einc) <= tolDe(p));
+      assert.ok(p.resposta < Einc);
+      assert.ok(perto(cod('deu_a_energia_incidente_em_vez_da_util').valor, Einc));
+      // (a potência útil, em W, fica a menos de 10 tolerâncias de 0 numa resposta em J e é descartada, regra 7)
+      assert.ok(perto(cod('esqueceu_a_area_do_coletor').valor, (d.etaP / 100) * d.G * d.tmin * 60));
+      if (cod('confundiu_potencia_com_energia')) assert.ok(perto(cod('confundiu_potencia_com_energia').valor, (d.etaP / 100) * d.G * d.A));
+    }
+  }
+  assert.deepEqual([...casos].sort(), ['energia', 'rendimento']);
 });
