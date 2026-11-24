@@ -427,7 +427,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Explicar, a partir de informação selecionada, algumas aplicações da espectroscopia atómica (por exemplo, identificação de elementos químicos nas estrelas, determinação de quantidades vestigiais em química forense).',
           'Identificar, experimentalmente, elementos químicos em amostras desconhecidas de vários sais, usando testes de chama, comunicando as conclusões.',
         ],
-        minutos: 12,
+        minutos: 15,
         essencial: [
           {
             tipo: 'texto',
@@ -476,7 +476,42 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Quantização da energia.** No átomo, o eletrão só pode ter certos valores de energia: os **níveis de energia**, numerados por $n = 1, 2, 3, \\dots$ No átomo de hidrogénio, o **estado fundamental** corresponde ao eletrão no nível $n = 1$; os outros níveis correspondem a **estados excitados**. A energia $0$ corresponde ao eletrão já separado do átomo.',
+            texto: '**Modelo de Bohr.** Para explicar as riscas do hidrogénio, Niels Bohr propôs em 1913 um modelo de átomo baseado em **postulados**, afirmações aceites sem demonstração e justificadas pelo acordo com os resultados experimentais. No modelo de Bohr, o eletrão move-se à volta do núcleo em **órbitas circulares** e só são permitidas certas órbitas, cada uma com uma energia bem definida: a energia do eletrão está **quantizada**.',
+          },
+          {
+            tipo: 'definicao',
+            texto: 'Cada órbita permitida corresponde a um **nível de energia**, numerado por $n = 1, 2, 3, \\dots$ A energia do eletrão no átomo é **negativa** e é tanto **maior** (menos negativa) quanto mais longe do núcleo estiver a órbita. O valor $0$ corresponde a $n = \\infty$: o eletrão deixou de estar ligado ao núcleo.',
+          },
+          {
+            tipo: 'texto',
+            texto: 'O eletrão só muda de órbita (faz uma **transição**) se o átomo **absorver** ou **emitir** energia com um valor bem definido, igual à diferença de energia entre os dois níveis. Para subir de nível, o átomo absorve energia; ao descer, emite-a, por exemplo como um fotão.',
+          },
+          {
+            tipo: 'quadro',
+            cabecalho: ['Situação', 'Nível do eletrão', 'Nome'],
+            linhas: [
+              ['Eletrão no nível de menor energia', '$n = 1$', '**estado fundamental** (o mais estável)'],
+              ['Eletrão num nível de energia maior', '$n = 2, 3, 4, \\dots$', '**estado excitado**'],
+              ['O eletrão volta a um nível mais baixo', 'desce de nível', '**desexcitação** (com emissão de energia)'],
+              ['O eletrão sai do átomo', '$n = \\infty$ (energia $0$)', '**ionização** (o átomo passa a ião positivo)'],
+            ],
+          },
+          {
+            tipo: 'texto',
+            texto: 'Um átomo pode ser **excitado** por **aquecimento** (como nos testes de chama), por **colisões** com outros átomos, por **descargas elétricas** (como nos tubos de gás e nos letreiros luminosos) ou por **absorção de fotões**. Um átomo excitado desexcita-se depressa e emite a energia em excesso.',
+          },
+          {
+            tipo: 'esquema',
+            id: 'fig-bohr',
+            legenda: 'Toca na figura para separar as partes e ver o nome de cada uma: o núcleo, as órbitas $n = 1$ a $n = 4$, o limite $n = \\infty$ (ionização) e as transições de absorção e de emissão. O desenho não está à escala.',
+          },
+          {
+            tipo: 'erro-frequente',
+            texto: 'O estado fundamental é só o de $n = 1$; $n = 2$ já é um estado excitado. E a energia do eletrão no átomo nunca é positiva: é negativa e aumenta com $n$, até $0$ em $n = \\infty$. Hoje sabe-se que os eletrões **não** descrevem órbitas bem definidas, mas a ideia de **níveis de energia** do modelo de Bohr continua válida e explica os espectros de riscas.',
+          },
+          {
+            tipo: 'texto',
+            texto: '**Níveis de energia do hidrogénio.** Os níveis do modelo de Bohr (vê acima) podem calcular-se para o átomo de hidrogénio. Tal como lá, o estado fundamental é $n = 1$, os outros níveis são estados excitados e a energia $0$ corresponde ao eletrão já separado do átomo ($n = \\infty$).',
           },
           {
             tipo: 'formula',
@@ -562,7 +597,8 @@ globalThis.Manual = globalThis.Manual || {};
           'Por ordem crescente de energia dos fotões: rádio, micro-ondas, IV, visível, UV, X, gama.',
           '$E = hf$, $c = \\lambda f$, $E = \\dfrac{hc}{\\lambda}$: maior frequência, menor $\\lambda$, maior energia.',
           'Espectro contínuo (sólido quente); de riscas, de emissão (riscas brilhantes) ou de absorção (riscas escuras).',
-          'A energia do eletrão é quantizada: $E_n = -\\dfrac{' + EnH + '}{n^2}\\,\\mathrm{J}$ no H. Emissão ao descer, absorção ao subir, $E_{\\text{fotão}} = |\\Delta E|$.',
+          'Modelo de Bohr (1913): órbitas de energia quantizada, negativa e maior longe do núcleo; $n = 1$ é o estado fundamental, $n \\geq 2$ são estados excitados e $n = \\infty$ é a ionização (energia $0$).',
+          'A energia do eletrão é quantizada:$E_n = -\\dfrac{' + EnH + '}{n^2}\\,\\mathrm{J}$ no H. Emissão ao descer, absorção ao subir, $E_{\\text{fotão}} = |\\Delta E|$.',
           'Séries do H: Lyman (até $n = 1$, UV), Balmer (até $n = 2$, visível), Paschen (até $n = 3$, IV).',
           'Cada elemento tem um espectro próprio: estrelas, química forense e testes de chama.',
         ],
