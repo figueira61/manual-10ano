@@ -74,6 +74,12 @@ globalThis.Manual = globalThis.Manual || {};
   const MAX500 = F.painelPotenciaMaxima(500);
   const PINC = G0 * PAINEL.area; // potência da radiação incidente, W
 
+  // Coletor solar plano: 2,00 m², irradiância de 800 W m⁻² durante 1,00 h; aquece 50,0 kg de água de 20,0 °C para 33,0 °C.
+  const COL = { A: 2, G: 800, t: 3600, m: 50, ti: 20, tf: 33 };
+  COL.Einc = COL.G * COL.A * COL.t; // energia da radiação incidente, J
+  COL.Eu = F.calor(COL.m, cA, COL.tf - COL.ti); // energia útil (a que a água recebe), J
+  COL.eta = F.rendimento(COL.Eu, COL.Einc);
+
   Manual.registarTema('fqa', {
     id: 'termica',
     titulo: 'Energia, fenómenos térmicos e radiação',
@@ -89,7 +95,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Identificar a temperatura como a propriedade que determina se um sistema está ou não em equilíbrio térmico com outros e reconhecer que o aumento da temperatura de um sistema implica, em geral, um aumento da energia cinética média das suas partículas.',
           'Identificar calor como a energia transferida espontaneamente entre sistemas a diferentes temperaturas.',
         ],
-        minutos: 14,
+        minutos: 18,
         essencial: [
           {
             tipo: 'definicao',
@@ -170,6 +176,30 @@ globalThis.Manual = globalThis.Manual || {};
               ['Garrafa-termo', 'o vácuo entre as paredes impede a condução e a convecção; as paredes espelhadas refletem a radiação'],
             ],
           },
+          {
+            tipo: 'texto',
+            texto: '**Coletor solar.** Um coletor solar plano aproveita a radiação do Sol para aquecer água, e em cada peça há um mecanismo de transferência de energia. A **cobertura de vidro** deixa passar a luz visível e reduz as perdas por **convecção** (abriga do vento o ar por cima da placa) e por **radiação infravermelha**, porque deixa passar pouco do infravermelho emitido pela placa quente (**efeito de estufa**). A **placa absorsora**, escura e baça, **absorve** a radiação solar e aquece. Da placa, a energia passa por **condução**, através das paredes dos **tubos**, para o fluido (água), que a **transporta** para fora do coletor, até ao depósito. O **isolamento térmico**, por baixo, reduz as perdas por **condução** através da caixa.',
+          },
+          {
+            tipo: 'esquema',
+            id: 'fig-coletor',
+            legenda: 'Coletor solar plano, em corte: toca na figura para separar as peças e ver o mecanismo de cada uma (cobertura de vidro, placa absorsora, tubos com fluido, isolamento térmico, caixa, entrada e saída de água).',
+          },
+          {
+            tipo: 'texto',
+            texto: 'O **rendimento** do coletor é a fração da energia da radiação incidente que fica na água, $\\eta = \\dfrac{E_{\\text{útil}}}{E_{\\text{incidente}}}$. A irradiância $G$ é a potência da radiação por unidade de área, por isso $E_{\\text{incidente}} = G\\,A\\,\\Delta t$ (área $A$, tempo $\\Delta t$ em segundos). Parte da radiação é refletida e parte da energia perde-se para o exterior, por isso $\\eta < 100\\,\\%$.',
+          },
+          {
+            tipo: 'exemplo',
+            enunciado: 'Um coletor solar plano com 2,00 m² de área recebe radiação com uma irradiância de 800 W m⁻² durante 1,00 h e, nesse tempo, aquece 50,0 kg de água de 20,0 °C para 33,0 °C. Calcula o rendimento do coletor ($c_{\\text{água}} = ' + cTex(cA) + unC + '$).',
+            resolucao: [
+              'Energia incidente, com $\\Delta t = 1{,}00\\,\\mathrm{h} = 3600\\,\\mathrm{s}$: $E_{\\text{incidente}} = G\\,A\\,\\Delta t = 800 \\times 2{,}00 \\times 3600 = ' + cient(COL.Einc, 3) + '\\,\\mathrm{J}$.',
+              'Energia útil, a que a água recebe: $E_{\\text{útil}} = m c \\Delta\\theta = 50{,}0 \\times ' + cTex(cA) + ' \\times (33{,}0 - 20{,}0) = ' + cient(COL.Eu, 4) + '\\,\\mathrm{J}$.',
+              '$\\eta = \\dfrac{' + cient(COL.Eu, 4) + '}{' + cient(COL.Einc, 3) + '} \\times 100 \\approx ' + dec(COL.eta * 100, 1) + '\\,\\%$. Mais de metade da energia incidente não chega à água: é refletida ou perde-se para o exterior.',
+            ],
+            resultado: 47.2,
+            verificar: () => arred(COL.eta * 100, 1),
+          },
         ],
         resumo: [
           'Sistema isolado: não troca energia nem matéria; fechado: só energia; aberto: energia e matéria.',
@@ -178,6 +208,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Calor: energia transferida espontaneamente do mais quente para o mais frio, até ao equilíbrio térmico. Não está "contido" num corpo.',
           'Condução (colisões, sem transporte de matéria), convecção (correntes num fluido), radiação (também no vazio).',
           'Todos os corpos emitem radiação; à temperatura ambiente, sobretudo infravermelho (termografia, termómetros de IV).',
+          'Coletor solar: o vidro deixa passar a luz visível e reduz as perdas por convecção e por radiação infravermelha (efeito de estufa); a placa escura absorve a radiação; dos tubos a energia passa por condução para o fluido, que a transporta; o isolamento reduz a condução. $\\eta = E_{\\text{útil}}/(G\\,A\\,\\Delta t)$.',
         ],
         quiz: [
           {
