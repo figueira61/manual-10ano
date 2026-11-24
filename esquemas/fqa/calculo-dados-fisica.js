@@ -30,6 +30,9 @@ Manual.dadosFisica = (function () {
     painel: { Isc: 0.5, Uoc: 6, UT: 0.33, area: 0.016, irradianciaReferencia: 1000 },
   };
 
+  // Rede elétrica de baixa tensão (a tomada de casa): tensão nominal em V, frequência nominal em Hz.
+  const rede = { tensao: 230, frequencia: 50 };
+
   const fontes = {
     constantes: 'g = 10 m s⁻², valor do formulário do IAVE (Informação-Prova de Física e Química A, 715); os enunciados dizem sempre o valor usado.',
     capacidadeTermicaMassica: 'Água (4,18 × 10³) e gelo (2,1 × 10³ J kg⁻¹ °C⁻¹): valores de referência habituais nos manuais e exames portugueses '
@@ -51,7 +54,11 @@ Manual.dadosFisica = (function () {
       + 'I0 = Isc/(e^(Uoc/UT) − 1) é fixa, por isso Uoc(G) = UT ln(1 + IL/I0) desce um pouco quando a irradiância baixa '
       + '(≈ −0,23 V a 500 W m⁻² e ≈ −0,76 V a 100 W m⁻²), como num painel real. A 1000 W m⁻² a curva coincide com '
       + 'I = Isc (1 − e^((U − Uoc)/UT)) a menos de I0 (≈ 6 × 10⁻⁹ A). Sem resistências série e paralelo nem efeito da temperatura.',
+    rede: 'Tensão nominal de 230 V e frequência nominal de 50 Hz da rede pública de baixa tensão em Portugal: norma EN 50160 '
+      + '(«Características da tensão fornecida pelas redes de distribuição pública de energia elétrica», NP EN 50160), '
+      + 'para a qual remete o Regulamento da Qualidade de Serviço da ERSE nas características da onda de tensão. Os 230 V são o valor nominal '
+      + '(valor eficaz) entre fase e neutro; o site só diz «230 V a 50 Hz», sem o valor eficaz, que fica fora das AE do 10.º ano.',
   };
 
-  return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, fontes };
+  return { constantes, capacidadeTermicaMassica, entalpiaMassica, temperaturas, modelos, rede, fontes };
 })();

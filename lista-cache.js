@@ -30,6 +30,7 @@ self.LISTA_CACHE = [
   "esquemas/fqa/fqa-atomo.js",
   "esquemas/fqa/fqa-circuito.js",
   "esquemas/fqa/fqa-configuracao.js",
+  "esquemas/fqa/fqa-corrente.js",
   "esquemas/fqa/fqa-diluicao.js",
   "esquemas/fqa/fqa-energia-distancia.js",
   "esquemas/fqa/fqa-energias.js",
@@ -138,4 +139,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = 'f7d5001999';
+self.VERSAO_CACHE = '864b827cf8';

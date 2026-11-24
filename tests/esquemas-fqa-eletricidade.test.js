@@ -167,3 +167,62 @@ test('fig-circuito: tem as 6 partes e descreve o papel do amperímetro e do volt
   assert.match(fonte, /amperímetro liga-se em série e mede a corrente/);
   assert.match(fonte, /voltímetro liga-se em paralelo com o componente/);
 });
+
+// ---------------------------------------------------------------- fqa-corrente (corrente contínua e alternada)
+test('fqa-corrente: monta e desmonta sem ouvintes, nos dois modos', () => {
+  ciclo('fqa-corrente');
+  ciclo('fqa-corrente', { modo: 'ca' });
+});
+
+test('fqa-corrente: em CC o sentido é constante, em texto e no gráfico (sem passar por I = 0)', () => {
+  const { el } = montar('fqa-corrente', { modo: 'cc' });
+  assert.match(resumo(el).textContent, /^Corrente contínua: sentido constante/);
+  assert.match(valor(el, 'Sentido da corrente'), /^constante/);
+  assert.equal(valor(el, 'Mudanças de sentido por segundo'), '0');
+  const graf = Array.from(el.querySelectorAll('path')).find((p) => p.classes && p.classes.has('grafico-i'));
+  assert.ok(graf, 'gráfico I(t)');
+  assert.ok(!/NaN|Infinity|undefined/.test(ver(el)));
+});
+
+test('fqa-corrente: em CA muda de sentido 100 vezes por segundo (50 Hz, da rede em Manual.dadosFisica)', () => {
+  const { el, M } = montar('fqa-corrente', { modo: 'ca' });
+  assert.equal(M.dadosFisica.rede.frequencia, 50);
+  assert.equal(M.dadosFisica.rede.tensao, 230);
+  assert.match(resumo(el).textContent, /^Corrente alternada: muda de sentido 100 vezes por segundo \(50 Hz\)/);
+  assert.equal(valor(el, 'Mudanças de sentido por segundo'), '100');
+  assert.match(valor(el, 'Período'), /^20 ms/);
+  assert.ok(ver(el).includes('230 V') && ver(el).includes('50 Hz'), 'a tomada de casa: 230 V a 50 Hz');
+  assert.ok(!/eficaz|amplitude/i.test(ver(el)), 'sem valor eficaz nem amplitude (fora das AE)');
+  assert.ok(!/NaN|Infinity|undefined/.test(ver(el)));
+});
+
+test('fqa-corrente: os botões e o teclado alternam entre CC e CA; aria-pressed e um só aria-live', () => {
+  const { el } = montar('fqa-corrente', {});
+  assert.match(resumo(el).textContent, /^Corrente contínua/);
+  botao(el, 'Corrente alternada');
+  assert.match(resumo(el).textContent, /^Corrente alternada/);
+  const bs = Array.from(el.querySelectorAll('button'));
+  assert.equal(bs.find((b) => b.textContent.includes('alternada')).getAttribute('aria-pressed'), 'true');
+  assert.equal(bs.find((b) => b.textContent.includes('contínua')).getAttribute('aria-pressed'), 'false');
+  const svg = el.querySelectorAll('svg')[0];
+  svg.dispatch('keydown', { key: 'ArrowLeft', preventDefault() {} });
+  assert.match(resumo(el).textContent, /^Corrente contínua/);
+  svg.dispatch('keydown', { key: 'ArrowRight', preventDefault() {} });
+  assert.match(resumo(el).textContent, /^Corrente alternada/);
+  const vivos = Array.from(el.querySelectorAll('p')).filter((p) => p.getAttribute('aria-live'));
+  assert.equal(vivos.length, 1);
+  assert.ok(!/\n/.test(vivos[0].textContent));
+});
+
+test('fqa-corrente: em CA o gráfico troca de sinal aos 10, 20 e 30 ms (2 períodos); tudo dentro do viewBox', () => {
+  for (const modo of ['cc', 'ca']) {
+    const { el } = montar('fqa-corrente', { modo });
+    dentroDoViewBox(el, modo);
+    const graf = Array.from(el.querySelectorAll('path')).find((p) => p.classes && p.classes.has('grafico-i'));
+    const eixo = Number(graf.getAttribute('data-eixo'));
+    const ys = (graf.getAttribute('d').match(/[ML][^ML]*/g) || []).map((s) => Number(s.slice(1).trim().split(/[\s,]+/)[1]));
+    const lados = ys.map((y) => Math.sign(eixo - y)).filter((s) => s !== 0);
+    const trocas = lados.filter((s, i) => i > 0 && s !== lados[i - 1]).length;
+    assert.equal(trocas, modo === 'cc' ? 0 : 3, modo);
+  }
+});
