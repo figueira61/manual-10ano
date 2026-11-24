@@ -30,10 +30,21 @@ const tecla = (g, key, extra) => g.dispatch('keydown', Object.assign({ key, prev
 
 test('condicoes: exemplo do manual, f(x) < 0, com a solução em texto', () => {
   const { el } = montar({ pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '<', k: 0 });
-  assert.equal(valor(el, 'Conjunto-solução'), ']−2, 0[ ∪ ]7/3, 3]');
-  assert.equal(valor(el, 'f(x) = 0'), 'x = −2, x = 0, x = 7/3');
-  assert.equal(valor(el, 'Domínio'), '[−3, 3]');
-  assert.match(valor(el, 'Gráfico de f'), /\(−3, 2\), \(−1, −2\), \(1, 2\), \(3, −1\)/);
+  assert.equal(valor(el, 'Conjunto-solução'), ']−2; 0[ ∪ ]7/3; 3]');
+  assert.equal(valor(el, 'f(x) = 0'), 'x = −2; x = 0; x = 7/3');
+  assert.equal(valor(el, 'Domínio'), '[−3; 3]');
+  assert.match(valor(el, 'Gráfico de f'), /\(−3; 2\), \(−1; −2\), \(1; 2\), \(3; −1\)/);
+});
+
+// Com vírgula decimal, a vírgula não pode separar os extremos nem as coordenadas: « ; », como nos outros esquemas.
+test('condicoes: com k = 0,5 os números decimais leem-se (separador «;»)', () => {
+  const { el, criados } = montar({ pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '<', k: 0.5 });
+  assert.equal(valor(el, 'Conjunto-solução de f(x) < 0,5'), ']−2,25; 0,25[ ∪ ]2; 3]');
+  assert.equal(valor(el, 'f(x) = 0,5'), 'x = −2,25; x = 0,25; x = 2');
+  const svg = criados.find((e) => e.tagName === 'SVG' || e.tagName === 'svg');
+  assert.match(svg.getAttribute('aria-label'), /\]−2,25; 0,25\[ ∪ \]2; 3\]/);
+  const { el: el2 } = montar({ pontos: [[-3, 2], [-1, -2], [1, 2], [3, -1]], sinal: '<', k: 0.5, modo: 'enunciado' });
+  assert.equal(valor(el2, 'Domínio'), '[−3; 3]');
 });
 
 test('condicoes: a reta y = k muda com o teclado e a condição com a lista', () => {
@@ -97,7 +108,7 @@ test('condicoes: tudo dentro do viewBox e destruir remove os ouvintes', () => {
 
 test('condicoes: pontos inválidos caem no exemplo por omissão', () => {
   const { el } = montar({ pontos: [[1, 2], [0, 3]], sinal: '=', k: 0 });
-  assert.equal(valor(el, 'Domínio'), '[−3, 3]');
+  assert.equal(valor(el, 'Domínio'), '[−3; 3]');
 });
 
 test('condicoes: a legenda do manual dá ∅ com k = 3 e > (k = 3 está ao alcance da pega)', () => {

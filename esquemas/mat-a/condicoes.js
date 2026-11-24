@@ -46,9 +46,10 @@ Manual.esquemas.registar('condicoes', {
       }
       return '≈ ' + T.num(r);
     }
-    const ptTxt = (p) => '(' + numTxt(p.x) + ', ' + numTxt(p.y) + ')';
+    // Separador «; » nos pontos e nos intervalos (há vírgula decimal: ]−2,25; 0,25[), como nos outros esquemas.
+    const ptTxt = (p) => '(' + numTxt(p.x) + '; ' + numTxt(p.y) + ')';
     function conjuntoTxt(sol) {
-      const partes = sol.intervalos.map((i) => ({ x: i.a, t: (i.fechadoA ? '[' : ']') + numTxt(i.a) + ', ' + numTxt(i.b) + (i.fechadoB ? ']' : '[') }))
+      const partes = sol.intervalos.map((i) => ({ x: i.a, t: (i.fechadoA ? '[' : ']') + numTxt(i.a) + '; ' + numTxt(i.b) + (i.fechadoB ? ']' : '[') }))
         .concat(sol.pontosIsolados.map((x) => ({ x, t: '{' + numTxt(x) + '}' })))
         .sort((a, b) => a.x - b.x);
       return partes.length ? partes.map((p) => p.t).join(' ∪ ') : '∅ (não há soluções)';
@@ -178,11 +179,11 @@ Manual.esquemas.registar('condicoes', {
       N.desenharSegmento(ref, gReta, [CAIXA.xmin, k], [CAIXA.xmax, k], { cor: 'var(--cor-2)', largura: 2, tracejado: true });
       const linhas = [
         ['Gráfico de f', 'segmentos que unem ' + pontos.map(ptTxt).join(', ')],
-        ['Domínio', '[' + numTxt(pontos[0].x) + ', ' + numTxt(pontos[pontos.length - 1].x) + ']'],
+        ['Domínio', '[' + numTxt(pontos[0].x) + '; ' + numTxt(pontos[pontos.length - 1].x) + ']'],
         ['Reta', 'y = ' + numTxt(k)],
       ];
       if (enunciado) {
-        ref.svg.setAttribute('aria-label', 'Gráfico de f, de domínio [' + numTxt(pontos[0].x) + ', ' + numTxt(pontos[pontos.length - 1].x) + '], formado pelos segmentos que unem ' + pontos.map(ptTxt).join(', ') + ', e reta y = ' + numTxt(k) + '.');
+        ref.svg.setAttribute('aria-label', 'Gráfico de f, de domínio [' + numTxt(pontos[0].x) + '; ' + numTxt(pontos[pontos.length - 1].x) + '], formado pelos segmentos que unem ' + pontos.map(ptTxt).join(', ') + ', e reta y = ' + numTxt(k) + '.');
         painel.definir(linhas);
         return;
       }
@@ -213,7 +214,7 @@ Manual.esquemas.registar('condicoes', {
       const pts = iguais.pontosIsolados.map(numTxt);
       linhas.push(['f(x) = ' + numTxt(k), iguais.intervalos.length
         ? 'em ' + conjuntoTxt(iguais)
-        : pts.length ? 'x = ' + pts.join(', x = ') : 'nenhum ponto (a reta não corta o gráfico)']);
+        : pts.length ? 'x = ' + pts.join('; x = ') : 'nenhum ponto (a reta não corta o gráfico)']);
       linhas.push(['Conjunto-solução de ' + cond, conjuntoTxt(sol)]);
       painel.definir(linhas);
     }
