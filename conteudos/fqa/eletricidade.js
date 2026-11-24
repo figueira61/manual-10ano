@@ -9,6 +9,7 @@ globalThis.Manual = globalThis.Manual || {};
   const D = Manual.dadosFisica;
   const F = Manual.fisica;
   const PILHA = D.modelos.pilha;
+  const REDE = D.rede; // tomada de casa: 230 V a 50 Hz
 
   // número com vírgula decimal em KaTeX ({,})
   const dec = (x, casas) => x.toFixed(casas).replace('.', '{,}');
@@ -57,7 +58,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Montar circuitos elétricos, associando componentes elétricos em série e em paralelo, e, a partir de medições, caracterizá-los quanto à corrente elétrica que os percorre e à diferença de potencial elétrico aos seus terminais.',
           'Aplicar a definição de potência a sistemas elétricos e, em particular, ao efeito de Joule.',
         ],
-        minutos: 16,
+        minutos: 19,
         essencial: [
           {
             tipo: 'definicao',
@@ -148,6 +149,37 @@ globalThis.Manual = globalThis.Manual || {};
             texto: '**Medições.** O **amperímetro** liga-se **em série** com o componente (a corrente tem de passar por ele) e tem resistência muito pequena. O **voltímetro** liga-se **em paralelo**, aos terminais do componente, e tem resistência muito grande. Num multímetro, escolhe-se a grandeza e começa-se pela escala maior; o resultado escreve-se com a incerteza de leitura do aparelho.',
           },
           {
+            tipo: 'texto',
+            texto: '**Corrente contínua e corrente alternada.** As correntes elétricas distinguem-se pelo **sentido** da corrente, que pode manter-se ou mudar ao longo do tempo.',
+          },
+          {
+            tipo: 'definicao',
+            texto: 'Numa **corrente contínua** (CC) o sentido da corrente é sempre o mesmo. Numa **corrente alternada** (CA) o sentido da corrente muda periodicamente: a corrente percorre o circuito ora num sentido, ora no sentido oposto.',
+          },
+          {
+            tipo: 'quadro',
+            cabecalho: ['', 'Corrente contínua (CC)', 'Corrente alternada (CA)'],
+            linhas: [
+              ['Sentido da corrente', 'sempre o mesmo', 'muda periodicamente'],
+              ['Gráfico $I$ em função de $t$', 'sempre do mesmo lado do eixo do tempo', 'ora de um lado, ora do outro lado do eixo do tempo'],
+              ['Exemplos de fontes', 'pilhas, baterias (do telemóvel, do automóvel), painéis fotovoltaicos', 'tomadas de casa, alternadores das centrais elétricas'],
+            ],
+          },
+          {
+            tipo: 'texto',
+            texto: 'A **tomada de casa** fornece uma tensão de ' + REDE.tensao + ' V a ' + REDE.frequencia + ' Hz. A frequência de ' + REDE.frequencia + ' Hz quer dizer que a corrente faz ' + REDE.frequencia + ' ciclos por segundo; em cada ciclo vai num sentido e depois no oposto, por isso **muda de sentido ' + 2 * REDE.frequencia + ' vezes por segundo**. É a corrente produzida pelos alternadores das centrais elétricas, que chega às casas pela rede elétrica.',
+          },
+          {
+            tipo: 'esquema',
+            id: 'fqa-corrente',
+            opcoes: { modo: 'ca' },
+            legenda: 'Alterna entre corrente contínua e corrente alternada (com os botões ou com as setas do teclado) e compara os gráficos da corrente em função do tempo: em CC a corrente tem sempre o mesmo sentido; em CA, a ' + REDE.frequencia + ' Hz, muda de sentido ' + 2 * REDE.frequencia + ' vezes por segundo.',
+          },
+          {
+            tipo: 'erro-frequente',
+            texto: 'A bateria do telemóvel **carrega-se** na tomada, mas **fornece corrente contínua**: o carregador transforma a corrente alternada da tomada em corrente contínua. O mesmo se passa com o painel fotovoltaico, que fornece corrente contínua, embora a energia que produz possa ir parar à rede, onde a corrente é alternada.',
+          },
+          {
             tipo: 'definicao',
             texto: 'A **potência** $P$ é a energia transferida por unidade de tempo, $P = \\dfrac{E}{\\Delta t}$, em watts ($1\\,\\mathrm{W} = 1\\,\\mathrm{J\\,s^{-1}}$). Num componente elétrico, $P = U I$.',
           },
@@ -190,6 +222,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Série: $I$ igual, $U$ reparte-se, $R_{eq} = R_1 + R_2$.',
           'Paralelo: $U$ igual, $I$ divide-se, $1/R_{eq} = 1/R_1 + 1/R_2$ ($R_{eq}$ menor do que a menor).',
           'Amperímetro em série; voltímetro em paralelo.',
+          'Corrente contínua: o sentido da corrente é sempre o mesmo (pilhas, baterias, painéis fotovoltaicos). Corrente alternada: o sentido muda periodicamente; a tomada dá ' + REDE.tensao + ' V a ' + REDE.frequencia + ' Hz, e a corrente muda de sentido ' + 2 * REDE.frequencia + ' vezes por segundo.',
           '$P = U I$; efeito Joule: $P = R I^2 = U^2/R$; $E = P\\,\\Delta t$; $1\\,\\mathrm{kWh} = 3{,}6 \\times 10^6\\,\\mathrm{J}$.',
         ],
         quiz: [
