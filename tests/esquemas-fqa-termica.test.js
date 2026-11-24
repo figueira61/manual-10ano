@@ -39,11 +39,12 @@ const vivos = (el) => Array.from(el.querySelectorAll('p')).filter((p) => p.getAt
 const setas = (el) => Array.from(el.querySelectorAll('line')).filter((l) => l.classes.has('seta'));
 
 // Todos os elementos desenhados (texto estimado por caracteres) ficam dentro do viewBox.
-function dentroDoViewBox(el, ctx, dims) {
+// desvio: deslocamento da parte (vista explodida), somado a cada coordenada.
+function dentroDoViewBox(el, ctx, dims, desvio = { dx: 0, dy: 0 }) {
   const svg = el.querySelectorAll('svg')[0];
   const [, , W, H] = dims || svg.getAttribute('viewBox').split(' ').map(Number);
-  const x = (v, o) => assert.ok(v >= 0 && v <= W, ctx + ' ' + o + ' x = ' + v);
-  const y = (v, o) => assert.ok(v >= 0 && v <= H, ctx + ' ' + o + ' y = ' + v);
+  const x = (v, o) => assert.ok(v + desvio.dx >= 0 && v + desvio.dx <= W, ctx + ' ' + o + ' x = ' + (v + desvio.dx));
+  const y = (v, o) => assert.ok(v + desvio.dy >= 0 && v + desvio.dy <= H, ctx + ' ' + o + ' y = ' + (v + desvio.dy));
   const n = (e, k) => Number(e.getAttribute(k));
   Array.from(el.querySelectorAll('line')).forEach((l) => { x(n(l, 'x1'), 'line'); x(n(l, 'x2'), 'line'); y(n(l, 'y1'), 'line'); y(n(l, 'y2'), 'line'); });
   Array.from(el.querySelectorAll('rect')).forEach((r) => {
@@ -316,4 +317,54 @@ test('fig-painel: o voltímetro está em paralelo com o painel e o amperímetro 
   assert.deepEqual(fp[2][0], [rx, ry]);
   // o amperímetro não está ligado aos terminais do voltímetro: mede só a corrente da carga
   assert.ok(Math.abs(Number(amp.getAttribute('cy')) - Number(volt.getAttribute('cy'))) > r(amp));
+});
+
+// ---------------------------------------------------------------- coletor solar (fig-coletor)
+const ROTULOS_COLETOR = ['Cobertura de vidro', 'Placa absorsora', 'Tubos com fluido', 'Isolamento térmico', 'Caixa', 'Entrada de água fria', 'Saída de água quente'];
+
+test('fig-coletor: monta e desmonta sem ouvintes, com as 7 partes legendadas', () => {
+  ciclo('fig-coletor', {});
+  const { el } = montar('fig-coletor', {});
+  const partes = Array.from(el.querySelectorAll('g')).filter((g) => g.classes.has('figura-parte'));
+  assert.equal(partes.length, 7);
+  assert.deepEqual(partes.map((g) => g.getAttribute('aria-label').replace(/, parte \d+$/, '')), ROTULOS_COLETOR);
+  const itensLista = Array.from(el.querySelectorAll('button')).filter((b) => b.classes.has('figura-item')).map((b) => b.textContent);
+  assert.deepEqual(itensLista, ROTULOS_COLETOR.map((r, i) => (i + 1) + '. ' + r));
+});
+
+test('fig-coletor: cada descrição diz o mecanismo certo de cada peça', () => {
+  const { el } = montar('fig-coletor', {});
+  const descricao = (rotulo) => {
+    Array.from(el.querySelectorAll('button')).find((b) => b.textContent.endsWith('. ' + rotulo)).click();
+    return Array.from(el.querySelectorAll('p')).find((p) => p.classes.has('figura-descricao')).textContent;
+  };
+  const vidro = descricao('Cobertura de vidro');
+  assert.match(vidro, /luz visível/);
+  assert.match(vidro, /convecção/);
+  assert.match(vidro, /radiação infravermelha/);
+  assert.match(vidro, /efeito de estufa/);
+  assert.match(descricao('Placa absorsora'), /escura[\s\S]*absorve[\s\S]*radiação/);
+  const tubos = descricao('Tubos com fluido');
+  assert.match(tubos, /condução/);
+  assert.match(tubos, /fluido[\s\S]*transporta/);
+  assert.match(descricao('Isolamento térmico'), /reduz as perdas de energia por condução/);
+  assert.match(descricao('Entrada de água fria'), /fria/);
+  assert.match(descricao('Saída de água quente'), /aquecida/);
+});
+
+test('fig-coletor: tudo dentro da figura (290 × 190), montada e com as partes separadas', () => {
+  const { el, montado } = montar('fig-coletor', {});
+  const partes = () => Array.from(el.querySelectorAll('g')).filter((g) => g.classes.has('figura-parte'));
+  partes().forEach((g) => dentroDoViewBox(g, 'montada ' + g.getAttribute('aria-label'), [0, 0, 290, 190]));
+  botao(el, 'Separar as partes');
+  assert.equal(montado.estado(), 'explodida');
+  let mexidas = 0;
+  partes().forEach((g) => {
+    const m = String(g.style.transform).match(/translate\((-?[\d.]+)px, (-?[\d.]+)px\)/);
+    assert.ok(m, g.style.transform);
+    const desvio = { dx: Number(m[1]), dy: Number(m[2]) };
+    if (desvio.dx || desvio.dy) mexidas++;
+    dentroDoViewBox(g, 'separada ' + g.getAttribute('aria-label'), [0, 0, 290, 190], desvio);
+  });
+  assert.ok(mexidas >= 5, 'só ' + mexidas + ' partes se afastam');
 });

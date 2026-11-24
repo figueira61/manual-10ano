@@ -23,6 +23,7 @@ self.LISTA_CACHE = [
   "esquemas/fqa/fig-bohr.js",
   "esquemas/fqa/fig-calorimetro.js",
   "esquemas/fqa/fig-circuito.js",
+  "esquemas/fqa/fig-coletor.js",
   "esquemas/fqa/fig-material-solucao.js",
   "esquemas/fqa/fig-painel.js",
   "esquemas/fqa/fig-picnometro.js",
@@ -139,4 +140,4 @@ self.LISTA_CACHE = [
   "vendor/supabase/LICENSE.txt",
   "vendor/supabase/supabase.js"
 ];
-self.VERSAO_CACHE = '13b635a7cb';
+self.VERSAO_CACHE = 'cb3db7ba9b';
