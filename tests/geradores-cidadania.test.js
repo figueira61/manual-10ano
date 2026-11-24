@@ -119,7 +119,8 @@ test('partilha: em 500 sementes, soma = total, resposta = calc() pelo método pe
   assert.deepEqual([...metodos].sort(), ['hondt', 'stlague']);
 });
 
-test('partilha: erros reais — outro método sempre; arredondar as quotas só quando o total sai errado; nada perto de 0', () => {
+test('partilha: erros reais — outro método (sempre na numérica, quase sempre na escolha); arredondar as quotas só quando o total sai errado; nada perto de 0', () => {
+  let comOutro = 0;
   for (const formato of ['numerica', 'escolha']) {
     for (let s = 1; s <= 300; s++) {
       const p = G.gerar('hondt-stlague-partilha', s, { formato });
@@ -128,14 +129,17 @@ test('partilha: erros reais — outro método sempre; arredondar as quotas só q
       const somaArred = tamanhos.reduce((a, v) => a + Math.round((N * v) / T), 0);
       const codigos = p.errosTipicos.map((e) => e.codigo);
       if (codigos.includes('arredondou_as_quotas')) assert.notEqual(somaArred, N, formato + ' ' + s);
+      const outro = codigos.includes(metodo === 'hondt' ? 'divisores_impares' : 'divisores_hondt');
       if (formato === 'escolha') {
-        assert.ok(codigos.includes(metodo === 'hondt' ? 'divisores_impares' : 'divisores_hondt'), formato + ' ' + s + ': ' + codigos);
+        if (outro) comOutro++;
       } else {
+        assert.ok(outro, formato + ' ' + s + ': ' + codigos);
         // Regra 7: nenhum erro típico com valor 0 (um «0» escrito não pode ser marcado como erro típico).
         for (const e of p.errosTipicos) assert.ok(e.valor >= 1, 'erro ' + e.codigo + ' com valor ' + e.valor);
       }
     }
   }
+  assert.ok(comOutro >= 0.8 * 300, 'escolha com o outro método: ' + comOutro + '/300');
 });
 
 test('partilha: caso fixo (semente 7, escolha) em que Hondt e St. Laguë diferem, e a explicação diz isso', () => {
@@ -153,16 +157,94 @@ test('partilha: caso fixo (semente 7, escolha) em que Hondt e St. Laguë diferem
   assert.match(e.explicacao, /distribuição diferente/);
 });
 
-test('partilha: há sementes com arredondamento das quotas (total errado) oferecido como erro', () => {
+// Na numérica conta só o valor de uma entidade, por isso arredondar as quotas raramente se distingue (≈ 1 em 400).
+test('partilha (numérica): há sementes com arredondamento das quotas (total errado) oferecido como erro', () => {
   let visto = 0;
-  for (let s = 1; s <= 300; s++) {
-    const p = G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' });
+  for (let s = 1; s <= 2000; s++) {
+    const p = G.gerar('hondt-stlague-partilha', s, { formato: 'numerica' });
     const e = p.errosTipicos.find((x) => x.codigo === 'arredondou_as_quotas');
     if (!e) continue;
     visto++;
-    const soma = p.opcoes[e.opcao].match(/\d+/g).map(Number).reduce((a, b) => a + b, 0);
-    assert.notEqual(soma, p.dados.N);
-    assert.ok(e.explicacao.includes(p.opcoes[e.opcao]) || e.explicacao.includes(String(soma)), e.explicacao);
+    assert.ok(e.explicacao.includes(String(e.valor)), e.explicacao);
   }
-  assert.ok(visto >= 10, 'só ' + visto + ' sementes com arredondou_as_quotas');
+  assert.ok(visto >= 2, 'só ' + visto + ' sementes com arredondou_as_quotas');
+});
+
+// "Norte 3 – Sul 5 – Centro 2" → [3, 5, 2]
+const lerPartilha = (o) => o.split(' – ').map((x) => Number(x.match(/(\d+)$/)[1]));
+
+test('partilha (escolha): todas as opções repartem exatamente N, com erros reais que respeitam o total', () => {
+  const C = M.calc.cidadania;
+  const codigos = {};
+  const metodos = { hondt: 0, stlague: 0 };
+  // Maiores quocientes com outra sequência de divisores (para conferir saltou_o_divisor_1).
+  const porDivisores = (t, n, div) => {
+    const m = t.map(() => 0);
+    for (let k = 0; k < n; k++) {
+      let j = 0;
+      for (let i = 1; i < t.length; i++) if (t[i] / div(m[i]) > t[j] / div(m[j])) j = i;
+      m[j]++;
+    }
+    return m;
+  };
+  for (let s = 1; s <= 2000; s++) {
+    const p = G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' });
+    const { tamanhos, N, metodo } = p.dados;
+    metodos[metodo]++;
+    const h = (metodo === 'hondt' ? C.hondt : C.stLague)(tamanhos, N);
+    for (const o of p.opcoes) assert.equal(lerPartilha(o).reduce((a, b) => a + b, 0), N, 'semente ' + s + ': ' + o);
+    for (const e of p.errosTipicos) {
+      codigos[e.codigo] = (codigos[e.codigo] || 0) + 1;
+      assert.ok(e.explicacao.includes(p.opcoes[e.opcao]), e.codigo + ': ' + e.explicacao);
+      const m = lerPartilha(p.opcoes[e.opcao]);
+      if (e.codigo === 'proporcional_restos_maiores') assert.deepEqual(m, C.restosMaiores(tamanhos, N).mandatos);
+      if (e.codigo === 'um_por_partido') assert.deepEqual(m, (metodo === 'hondt' ? C.hondt : C.stLague)(tamanhos, N - tamanhos.length).mandatos.map((x) => x + 1));
+      if (e.codigo === 'saltou_o_divisor_1') assert.deepEqual(m, porDivisores(tamanhos, N, metodo === 'hondt' ? (k) => k + 2 : (k) => 2 * k + 3));
+      if (e.codigo === 'deu_as_sobras_ao_maior') {
+        const T = tamanhos.reduce((a, b) => a + b, 0);
+        const g = tamanhos.indexOf(Math.max(...tamanhos));
+        m.forEach((x, i) => { if (i !== g) assert.equal(x, Math.floor((N * tamanhos[i]) / T)); });
+      }
+      if (e.codigo === 'trocou_o_ultimo_quociente') {
+        // a certa com um só item mudado: sai de quem tem o N.º quociente, vai para quem tem o (N + 1).º
+        const dif = m.map((x, i) => x - h.mandatos[i]);
+        assert.deepEqual(dif.filter((x) => x !== 0).sort(), [-1, 1]);
+      }
+    }
+  }
+  // o método sorteia-se por semente: metade e metade
+  assert.ok(metodos.hondt > 900 && metodos.stlague > 900, JSON.stringify(metodos));
+  for (const c of ['divisores_impares', 'divisores_hondt', 'um_por_partido', 'saltou_o_divisor_1', 'deu_as_sobras_ao_maior', 'trocou_o_ultimo_quociente']) assert.ok(codigos[c] > 200, c + ': ' + codigos[c]);
+  assert.ok(codigos.proporcional_restos_maiores > 10, 'proporcional_restos_maiores: ' + codigos.proporcional_restos_maiores);
+  for (const c of ['arredondou_as_quotas', 'parou_um_antes', 'incluiu_quociente_seguinte']) assert.equal(codigos[c], undefined, c);
+});
+
+// Quem não calcula quocientes: elimina as opções com o total errado e escolhe pela regra de bolso
+// «o Hondt dá mais aos grandes, o St. Laguë dá mais aos pequenos» (empates repartidos ao acaso).
+test('partilha (escolha): soma + «Hondt favorece os grandes» acerta ≤ 0,35 (2000 sementes)', () => {
+  const ps = [];
+  for (let s = 1; s <= 2000; s++) ps.push(G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' }));
+  const regra = (alvo, maisNoHondt) => (p) => {
+    const { tamanhos, N, metodo } = p.dados;
+    const g = tamanhos.indexOf(alvo === 'maior' ? Math.max(...tamanhos) : Math.min(...tamanhos));
+    const ok = p.opcoes.map((o, i) => ({ i, m: lerPartilha(o) })).filter((x) => x.m.reduce((a, b) => a + b, 0) === N);
+    const quer = (metodo === 'hondt') === maisNoHondt ? Math.max : Math.min;
+    const alvoV = quer(...ok.map((x) => x.m[g]));
+    const cand = ok.filter((x) => x.m[g] === alvoV).map((x) => x.i);
+    return cand.includes(p.correta) ? 1 / cand.length : 0;
+  };
+  const adivinhos = {
+    'Hondt: mais ao maior; St. Laguë: menos ao maior': regra('maior', true),
+    'Hondt: menos ao menor; St. Laguë: mais ao menor': regra('menor', false),
+  };
+  const acima = [];
+  for (const [nome, f] of Object.entries(adivinhos)) {
+    for (const metodo of ['hondt', 'stlague', null]) {
+      const q = ps.filter((p) => metodo === null || p.dados.metodo === metodo);
+      const t = q.reduce((a, p) => a + f(p), 0) / q.length;
+      console.log('adivinho por estrutura, partilha ' + (metodo || 'todos') + ', ' + nome + ': ' + t.toFixed(3));
+      if (t > 0.35) acima.push((metodo || 'todos') + ', ' + nome + ': ' + t.toFixed(3));
+    }
+  }
+  assert.deepEqual(acima, []);
 });

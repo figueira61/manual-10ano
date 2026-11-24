@@ -588,6 +588,22 @@ globalThis.Manual = globalThis.Manual || {};
   const NOME_METODO = { hondt: 'método de Hondt', stlague: 'método de St. Laguë' };
   const divisorDe = (metodo) => (metodo === 'hondt' ? (k) => k + 1 : (k) => 2 * k + 1);
   const distribuir = (metodo, votos, M) => (metodo === 'hondt' ? calc().hondt(votos, M) : calc().stLague(votos, M));
+  // Maiores quocientes com uma sequência de divisores qualquer (para erros como saltar o divisor 1):
+  // { mandatos, quocientes } com os M quocientes atribuídos, por ordem (empate: o menor leva, como em calc()).
+  function porDivisores(votos, M, divisor) {
+    const mandatos = votos.map(() => 0);
+    const quocientes = [];
+    for (let k = 0; k < M; k++) {
+      let j = 0;
+      for (let i = 1; i < votos.length; i++) {
+        const qi = votos[i] / divisor(mandatos[i]), qj = votos[j] / divisor(mandatos[j]);
+        if (qi > qj + 1e-9 || (Math.abs(qi - qj) <= 1e-9 && votos[i] < votos[j])) j = i;
+      }
+      quocientes.push(votos[j] / divisor(mandatos[j]));
+      mandatos[j]++;
+    }
+    return { mandatos, quocientes };
+  }
 
   // Votos de 4 partidos e M mandatos sem empates perto da fronteira:
   // (M−1).º, M.º e (M+1).º quocientes separados por pelo menos 1 voto e 1 %.
@@ -861,14 +877,14 @@ globalThis.Manual = globalThis.Manual || {};
   const NOME_CURTO = { hondt: 'Hondt', stlague: 'St. Laguë' };
 
   // Dados sem empates perto do corte (pelo método pedido e pelo outro) e com Hondt ≠ St. Laguë.
-  function dadosPartilha(rng) {
+  function dadosPartilha(rng, metodoFixo) {
     const cenario = escolher(rng, Object.keys(CENARIOS_PARTILHA));
     const c = CENARIOS_PARTILHA[cenario];
     const nomes = c.fixas ? c.entidades.slice() : baralhar(rng, c.entidades).slice(0, 3);
     const tamanhos = nomes.map(() => c.passo * inteiro(rng, c.min / c.passo, c.max / c.passo));
     if (new Set(tamanhos).size !== tamanhos.length) return null;
     const N = inteiro(rng, 6, 15);
-    const metodo = escolher(rng, ['hondt', 'stlague']);
+    const metodo = metodoFixo || escolher(rng, ['hondt', 'stlague']);
     const outro = metodo === 'hondt' ? 'stlague' : 'hondt';
     const separado = (a, b) => a - b >= 0.01 * a;
     const q = distribuir(metodo, tamanhos, N + 2).atribuicoes.map((a) => a.quociente);
@@ -914,6 +930,42 @@ globalThis.Manual = globalThis.Manual || {};
         explicar: (mostrado) => 'Repartiste em proporção direta (' + quota + ') e deste o que sobrava aos maiores restos: isso dá ' + mostrado + ', pelo método de Hamilton, não pelo ' + NOME_METODO[metodo] + '.',
       });
     }
+    // Dar primeiro um a cada grupo e só depois repartir os restantes pelo método (total certo).
+    const nG = tamanhos.length;
+    const qUm = distribuir(metodo, tamanhos, N - nG + 1).atribuicoes.map((a) => a.quociente);
+    if (N - nG >= 1 && qUm[N - nG - 1] - qUm[N - nG] >= 0.01 * qUm[N - nG - 1]) {
+      outros.push({
+        codigo: 'um_por_partido', m: distribuir(metodo, tamanhos, N - nG).mandatos.map((x) => x + 1),
+        explicar: (mostrado) => 'Deste primeiro ' + (c.fem ? 'uma' : 'um') + ' ' + c.um + ' a cada ' + c.grupo + ' e só depois repartiste ' + (c.fem ? 'as ' : 'os ') + (N - nG) + ' ' + c.item + ' que sobravam: isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' não há nada garantido à partida: cada ' + c.um + ' vai para o maior quociente.',
+      });
+    }
+    // Deixar de fora a coluna ÷ 1 (começar a dividir por 2 no Hondt, por 3 no St. Laguë): total certo.
+    const salta = porDivisores(tamanhos, N + 1, (k) => divisorDe(metodo)(k + 1));
+    if (salta.quocientes[N - 1] - salta.quocientes[N] >= 0.01 * salta.quocientes[N - 1]) {
+      outros.push({
+        codigo: 'saltou_o_divisor_1', m: porDivisores(tamanhos, N, (k) => divisorDe(metodo)(k + 1)).mandatos,
+        explicar: (mostrado) => 'Começaste a dividir por ' + (metodo === 'hondt' ? '2 (2, 3, 4, …)' : '3 (3, 5, 7, …)') + ' e deixaste de fora a coluna ÷ 1: isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' os divisores começam em 1 (' + (metodo === 'hondt' ? '1, 2, 3, …' : '1, 3, 5, …') + '), e ' + (c.dimFem ? 'as ' : 'os ') + c.dimensao + ' de cada ' + c.grupo + ' (÷ 1) também entram na comparação.',
+      });
+    }
+    // Proporção direta, arredondar para baixo e dar o que sobra ao maior grupo (total certo).
+    const baixo = quotas.map((x) => Math.floor(x + 1e-9));
+    const sobra = N - soma(baixo);
+    const gMaior = tamanhos.indexOf(Math.max(...tamanhos));
+    if (sobra >= 1) {
+      outros.push({
+        codigo: 'deu_as_sobras_ao_maior', m: baixo.map((x, i) => (i === gMaior ? x + sobra : x)),
+        explicar: (mostrado) => 'Repartiste em proporção direta (' + quota + '), arredondaste para baixo e deste ' + (sobra === 1 ? (c.fem ? 'a ' : 'o ') + c.um + ' que sobrava ' : (c.fem ? 'as ' : 'os ') + qtd(sobra) + ' que sobravam ') + c.ao(d.nomes[gMaior]) + ', que tem mais ' + c.dimensao + ': isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' cada ' + c.um + ' vai para o maior quociente.',
+      });
+    }
+    // Trocar os dois últimos quocientes na comparação: o N.º vai para quem tem o (N + 1).º (total certo).
+    const ultimo = d.dist.atribuicoes[N - 1], seg = d.seguinte;
+    if (ultimo.partido !== seg.partido) {
+      const aprox = (q) => (Math.abs(q * 100 - Math.round(q * 100)) < 1e-6 ? '' : '≈ ') + fmt(q, 2);
+      outros.push({
+        codigo: 'trocou_o_ultimo_quociente', m: d.dist.mandatos.map((x, i) => x - (i === ultimo.partido ? 1 : 0) + (i === seg.partido ? 1 : 0)),
+        explicar: (mostrado) => 'Trocaste os dois últimos quocientes, o que dá ' + mostrado + '. O ' + N + '.º maior quociente é ' + aprox(ultimo.quociente) + ' (' + d.nomes[ultimo.partido] + '); o seguinte, ' + aprox(seg.quociente) + ' (' + d.nomes[seg.partido] + '), já fica de fora. Por isso, ' + (c.fem ? 'a última ' : 'o último ') + c.um + ' vai ' + c.ao(d.nomes[ultimo.partido]) + ', e não ' + c.ao(d.nomes[seg.partido]) + '.',
+      });
+    }
     outros.push({
       codigo: 'parou_um_antes', m: distribuir(metodo, tamanhos, N - 1).mandatos,
       explicar: (mostrado) => 'Paraste um quociente antes: só repartiste ' + (N - 1) + (c.fem ? ' das ' : ' dos ') + N + ' ' + c.item + ', o que dá ' + mostrado + '.',
@@ -923,6 +975,46 @@ globalThis.Manual = globalThis.Manual || {};
       explicar: (mostrado) => 'Incluíste o ' + (N + 1) + '.º quociente, que já fica de fora: assim repartes ' + (N + 1) + ' ' + c.item + ' (' + mostrado + '), e são ' + N + '.',
     });
     return lista.concat(baralhar(rng, outros));
+  }
+
+  // Escolha: o outro método e mais 2 erros com o total certo. Quem não calcula pode usar a regra de bolso
+  // «o Hondt dá mais aos grandes, o St. Laguë aos pequenos» (no maior ou no menor grupo); para cada par de
+  // distratores calcula-se quanto essa regra acertaria (empates repartidos) e sorteia-se entre os pares em
+  // que acerta menos. null se não houver 2 distratores distintos além do outro método.
+  function escolhaPartilha(rng, d, cands, limite) {
+    const { tamanhos, metodo, dist } = d;
+    const chaveM = (m) => m.join(',');
+    const vistos = new Set([chaveM(dist.mandatos)]);
+    const unicos = cands.filter((e) => { const k = chaveM(e.m); if (vistos.has(k)) return false; vistos.add(k); return true; });
+    if (unicos.length < 3) return null;
+    const gMaior = tamanhos.indexOf(Math.max(...tamanhos)), gMenor = tamanhos.indexOf(Math.min(...tamanhos));
+    // palpites pelo maior e pelo menor grupo: a opção que lhe dá mais, a que lhe dá menos e «nem uma nem outra»
+    const palpites = (ms) => [gMaior, gMenor].flatMap((g) => {
+      const v = ms.map((m) => m[g]);
+      const mx = Math.max(...v), mn = Math.min(...v);
+      const prob = (f) => { const n = v.filter(f).length; return !n ? 0.25 : f(v[0]) ? 1 / n : 0; };
+      return [prob((x) => x === mx), prob((x) => x === mn), prob((x) => x !== mx && x !== mn)];
+    });
+    const pares = [];
+    const u = unicos;
+    for (let i = 0; i < u.length; i++) for (let j = i + 1; j < u.length; j++) for (let l = j + 1; l < u.length; l++) {
+      pares.push({ tres: [u[i], u[j], u[l]], p: palpites([dist.mandatos, u[i].m, u[j].m, u[l].m]) });
+    }
+    // Jogo contra os palpites (pesos multiplicativos): mistura de pares em que nenhum palpite acerta muito.
+    let peso = pares[0].p.map(() => 1);
+    const media = peso.map(() => 0), escolhidos = [];
+    for (let t = 0; t < 40; t++) {
+      const s = pares.map((x) => x.p.reduce((a, v, g) => a + v * peso[g], 0));
+      const mn = Math.min(...s);
+      const x = escolher(rng, pares.filter((_, i) => s[i] <= mn + 1e-12));
+      escolhidos.push(x);
+      x.p.forEach((v, g) => { media[g] += v; });
+      peso = peso.map((w, g) => w * Math.exp(1.5 * x.p[g]));
+      const tot = peso.reduce((a, b) => a + b, 0);
+      peso = peso.map((w) => w / tot);
+    }
+    if (Math.max(...media) / escolhidos.length > limite) return null;
+    return escolher(rng, escolhidos).tres;
   }
 
   // Quadro de quocientes com os nomes das entidades nas linhas; os N maiores a negrito.
@@ -971,8 +1063,13 @@ globalThis.Manual = globalThis.Manual || {};
     subtema: 'hondt-stlague', tipo: 'partilha', nome: 'Partilha proporcional fora das eleições',
     formatos: ['numerica', 'escolha'],
     gerar(semente, { formato, rng }) {
-      return tentar(() => {
-        const d = dadosPartilha(rng);
+      // Escolha: o método sorteia-se uma vez por semente (os dados com 3 erros de total certo são mais raros no
+      // Hondt, e re-sortear o método enviesaria a proporção). Nas primeiras 150 escolhas exige-se que nenhum
+      // palpite pelo maior ou pelo menor grupo passe de 1/2; depois aceita-se o que houver.
+      const metodoFixo = formato === 'escolha' ? escolher(rng, ['hondt', 'stlague']) : null;
+      let n = 0;
+      const construir = () => {
+        const d = dadosPartilha(rng, metodoFixo);
         if (!d) return null;
         const { cenario, c, nomes, tamanhos, N, metodo, dist } = d;
         const qtd = qtdPartilha(c);
@@ -984,7 +1081,10 @@ globalThis.Manual = globalThis.Manual || {};
         if (formato === 'escolha') {
           resolucao.push({ passo: 'Contar ' + (c.fem ? 'as ' : 'os ') + c.item + ' de cada ' + c.grupo, porque: 'Cada quociente a negrito ' + vale + ' para ' + (c.fem ? 'a ' : 'o ') + c.grupo + ' dessa linha.', calculo: nomes.map((n, j) => txt(n) + ' = ' + dist.mandatos[j]).join(',\\ ') });
           const { r, verificacao } = verificacaoPartilha(d, null);
-          const erros = lista.map((e) => { const t = distPartilha(nomes, e.m); return { codigo: e.codigo, texto: t, explicacao: e.explicar(t) }; });
+          // Só erros que repartem exatamente N (a soma não elimina nenhuma opção), escolhidos sem pista de método.
+          const tres = escolhaPartilha(rng, d, lista.filter((e) => soma(e.m) === N), n++ < 150 ? 0.5 : 1);
+          if (!tres) return null;
+          const erros = tres.map((e) => { const t = distPartilha(nomes, e.m); return { codigo: e.codigo, texto: t, explicacao: e.explicar(t) }; });
           return fecharTexto(rng, {
             enunciado: enunciado + ' Como ficam ' + (c.fem ? 'repartidas as ' : 'repartidos os ') + N + ' ' + c.item + ' (' + nomes.join(' – ') + ')?',
             resolucao, verificacao, dados,
@@ -1005,7 +1105,9 @@ globalThis.Manual = globalThis.Manual || {};
           enunciado: enunciado + (c.fem ? ' Quantas ' : ' Quantos ') + c.item + ' recebe ' + c.o(nomes[i]) + '?',
           resolucao, dados,
         }, { resposta: k, tolerancia: 0, unidade: c.item, texto: qtd, erros, verificacao });
-      });
+      };
+      // Cada tentativa experimenta até 8 conjuntos de dados (no Hondt, só cerca de 1 em 7 tem 3 erros de total certo).
+      return tentar(() => { for (let k = 0; k < 8; k++) { const r = construir(); if (r) return r; } return null; });
     },
     verificarIndependente(p) {
       const { cenario, nomes, tamanhos, N, metodo, entidade } = p.dados;

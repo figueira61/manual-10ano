@@ -225,6 +225,7 @@ deu_a_terminacao_ano → Deu a terminação -ano a um hidrocarboneto insaturado
 deu_a_terminacao_eno → Deu a terminação -eno sem haver ligação dupla
 deu_a_terminacao_ino → Deu a terminação -ino sem haver ligação tripla
 deu_a_variacao_de_temperatura → Deu a variação de temperatura em vez da temperatura final
+deu_as_sobras_ao_maior → Repartiu em proporção e deu o que sobrava ao maior grupo
 deu_energia_util_em_vez_de_dissipada → Deu a energia útil em vez da dissipada
 deu_lambda_em_metros → Deu o comprimento de onda em metros em vez de nanómetros
 deu_n_em_vez_da_massa → Deu a quantidade de matéria em vez da massa
@@ -690,6 +691,7 @@ reta_ab → Deu a reta AB em vez da mediatriz
 reta_duas_condicoes → Deu uma reta em vez de um plano
 reta_paralela_ao_eixo → Deu a reta paralela ao eixo em vez do plano
 rodou_90 → Rodou 90° em vez de dar meia-volta
+saltou_o_divisor_1 → Começou a dividir pelo 2.º divisor (sem a coluna ÷ 1)
 seguiu_o_desenho_no_plano → Seguiu o desenho no plano em vez da geometria no espaço
 segundo_com_absoluta → Deu maioria absoluta ao segundo mais votado
 segundo_com_simples → Deu maioria simples ao segundo mais votado
@@ -830,6 +832,7 @@ trocou_o_sentido_do_espectro → Trocou o sentido do espectro
 trocou_o_significado_do_sinal → Trocou o significado do sinal de ΔH
 trocou_o_sinal_da_carga → Trocou o sinal da carga do ião
 trocou_o_sinal_do_expoente → Trocou o sinal do expoente
+trocou_o_ultimo_quociente → Trocou os dois últimos quocientes na comparação
 trocou_os_indices → Trocou os índices da fórmula na massa molar
 trocou_os_volumes_na_diluicao → Trocou os volumes na diluição (ci·Vf = cf·Vi)
 trocou_periodo_com_grupo → Trocou o período com o grupo
@@ -838,7 +841,7 @@ trocou_sentido_e_estado_final → Trocou o sentido da transição e o estado fin
 trocou_sinal → Trocou o sinal
 trocou_variaveis → Trocou as variáveis
 ultimo_menos_primeiro → Subtraiu o último valor ao primeiro
-um_por_partido → Deu primeiro um mandato a cada partido
+um_por_partido → Deu primeiro um a cada partido (ou grupo) antes de aplicar o método
 um_sexto → Deu um sexto da mediana em vez de um terço
 um_terco → Deu um terço da mediana em vez de dois terços
 um_terco_do_vertice → Andou só um terço da mediana a partir do vértice
