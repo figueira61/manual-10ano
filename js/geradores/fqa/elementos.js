@@ -858,6 +858,139 @@ globalThis.Manual = globalThis.Manual || {};
     },
   });
 
+  // ---------------------------------------------------------------- AL 1.1: volume e número de moléculas de uma gota de água
+  // Balança: pesa-se o gobelé vazio e com N gotas. Proveta: lê-se o volume de N gotas e usa-se ρ (em g dm⁻³, para que
+  // o volume tenha de passar de mL a dm³). Os números de gotas evitam 10, 30 e 100 (× N daria a mantissa de outra opção).
+  const AGUA = SUBSTANCIAS[0];
+  const GOTAS = { balanca: [20, 25, 40, 50], proveta: [50, 60, 75, 80, 120] };
+  // Comparação relativa (os valores vão de 10⁻²⁷ a 10²⁶; igualOuAprox é absoluta): «=» só quando o mostrado é o exato.
+  const igualRel = (exato, mostrado) => (Math.abs(exato - mostrado) <= 1e-12 * Math.abs(exato) ? ' = ' : ' \\approx ');
+  // Decimal exato, sem zeros de calculadora (4,8403), e valor intermédio com 4 algarismos significativos.
+  const texDec = (v) => String(Number(v.toPrecision(10))).replace('.', '{,}');
+  const tex4 = (v) => texAS(v, 4);
+  const tGota = (v) => '$' + cient(v, 3) + '$';
+  const MOL = '\\,\\mathrm{mol}';
+  const GR = '\\,\\mathrm{g}';
+  const ML = '\\,\\mathrm{mL}';
+
+  registar({
+    subtema: 'mole', tipo: 'gota', nome: 'AL 1.1: volume e número de moléculas de uma gota de água',
+    formatos: ['numerica', 'escolha'], contextos: ['balanca', 'proveta'],
+    gerar(semente, { formato, contexto, rng }) {
+      return tentar(() => {
+        const rho = D().massaVolumicaAgua; // g cm⁻³ = g mL⁻¹
+        const rhoL = Math.round(rho * 1000); // g dm⁻³
+        const NA = K().NA;
+        const NAtex = cient(NA, 3);
+        const M = massaMolar(AGUA);
+        const Mt = texF(M, 2);
+        const H = el('H').massaAtomica;
+        const O = el('O').massaAtomica;
+        const nG = escolher(rng, GOTAS[contexto]);
+        const dadosEnunciado = '(' + dadosAr(AGUA) + ', $N_A = ' + NAtex + '\\,\\mathrm{mol^{-1}}$)';
+        let mTot, mTex, enunciado, resolucao, dados;
+        const extra = []; // erros típicos que só existem num dos procedimentos
+        if (contexto === 'balanca') {
+          const lo = Math.max(1, Math.ceil(nG * 3.02) / 100);
+          const hi = Math.floor(nG * 6.95) / 100;
+          const m0 = A.entre(rng, 30, 60, 0.01);
+          const m1 = rCasas(m0 + A.entre(rng, lo, hi, 0.01), 2);
+          mTot = rCasas(m1 - m0, 2);
+          mTex = texF(mTot, 2);
+          enunciado = 'Na AL 1.1, deixaram-se cair ' + nG + ' gotas de água de uma bureta para um gobelé, numa balança digital. O gobelé vazio tinha $'
+            + texF(m0, 2) + GR + '$ e, com as ' + nG + ' gotas, $' + texF(m1, 2) + GR + '$. Calcula o número de moléculas de água numa gota ' + dadosEnunciado + '.' + AS3;
+          resolucao = [{ passo: 'Calcular a massa das gotas', porque: 'É a diferença entre a pesagem do gobelé com as gotas e a do gobelé vazio.', calculo: 'm = ' + texF(m1, 2) + ' - ' + texF(m0, 2) + ' = ' + mTex + GR }];
+          dados = { contexto, nGotas: nG, m0, m1, volumeGota: (m1 - m0) / nG / rho };
+          extra.push({ codigo: 'nao_descontou_a_massa_do_gobele', x: m1 / nG / M * NA, ex: (tv) => 'Usaste a massa do gobelé com as gotas ($' + texF(m1, 2) + GR + '$) como se fosse a das gotas e obtiveste ' + tv + '; a massa das gotas é a diferença $' + texF(m1, 2) + ' - ' + texF(m0, 2) + ' = ' + mTex + GR + '$.' });
+        } else {
+          const lo = Math.max(1, Math.ceil(nG * 0.0302 / 0.05 - 1e-9) * 0.05);
+          const hi = Math.floor(Math.min(9.95, nG * 0.0695) / 0.05 + 1e-9) * 0.05;
+          const V = rCasas(A.entre(rng, lo, hi, 0.05), 2);
+          const Vt = texF(V, 2);
+          mTot = Number((rhoL * V / 1000).toPrecision(10));
+          mTex = texDec(mTot);
+          const vG = V / nG;
+          enunciado = 'Na AL 1.1, contaram-se ' + nG + ' gotas de água que caíram de uma bureta para uma proveta de 10 mL, graduada de 0,1 em 0,1 mL; o volume lido foi $'
+            + Vt + ML + '$. Calcula o número de moléculas de água numa gota ($\\rho(\\mathrm{H_2O}) = ' + rhoL + '\\,\\mathrm{g\\,dm^{-3}}$, ' + dadosEnunciado.slice(1) + '.' + AS3;
+          resolucao = [
+            { passo: 'Calcular o volume de uma gota', porque: 'As gotas são todas iguais (em média), por isso divide-se o volume lido pelo número de gotas.', calculo: 'V_{\\mathrm{gota}} = \\dfrac{' + Vt + '}{' + nG + '}' + igualRel(vG, aAS(vG, 4)) + tex4(vG) + ML },
+            { passo: 'Passar o volume das gotas para decímetros cúbicos', porque: 'A massa volúmica está em $\\mathrm{g\\,dm^{-3}}$ e $1\\,\\mathrm{mL} = 1\\,\\mathrm{cm^3} = 10^{-3}\\,\\mathrm{dm^3}$.', calculo: 'V = ' + Vt + ML + ' = ' + Vt + ' \\times 10^{-3}\\,\\mathrm{dm^{3}}' },
+            { passo: 'Calcular a massa das gotas', porque: 'A massa volúmica é a massa por unidade de volume, $\\rho = \\dfrac{m}{V}$, logo $m = \\rho V$.', calculo: 'm = ' + rhoL + ' \\times ' + Vt + ' \\times 10^{-3} = ' + mTex + GR },
+          ];
+          dados = { contexto, nGotas: nG, volume: V, volumeGota: vG };
+          extra.push({ codigo: 'usou_ml_como_litro', x: mTot * 1000 / nG / M * NA, ex: (tv) => 'Usaste o volume em mililitros como se estivesse em decímetros cúbicos (litros) e obtiveste ' + tv + '; com $\\rho$ em $\\mathrm{g\\,dm^{-3}}$, o volume passa a $\\mathrm{dm^3}$ ($1\\,\\mathrm{mL} = 10^{-3}\\,\\mathrm{dm^3}$).' });
+          extra.push({ codigo: 'dividiu_o_volume_pela_massa_volumica', x: (V / 1000 / rhoL) / nG / M * NA, ex: (tv) => 'Dividiste o volume pela massa volúmica e obtiveste ' + tv + '; como $\\rho = \\dfrac{m}{V}$, a massa é $m = \\rho V$.' });
+        }
+        const mg = mTot / nG;
+        const exato = mg / M * NA;
+        if (ambiguo(exato, 3)) return null;
+        const resposta = aAS(exato, 3);
+        // Passos com os valores mostrados: cada conta bate certo com os operandos escritos (regra 15).
+        const mg4 = aAS(mg, 4);
+        const n4 = aAS(mg4 / M, 4);
+        if (aAS(n4 * NA, 3) !== resposta) return null;
+        resolucao.push(
+          { passo: 'Calcular a massa de uma gota', porque: 'Pesar (ou medir) muitas gotas e dividir pelo número de gotas dá a massa média de uma gota com muito menos incerteza relativa.', calculo: 'm_{\\mathrm{gota}} = \\dfrac{' + mTex + '}{' + nG + '}' + igualRel(mg, mg4) + tex4(mg4) + GR },
+          passoM(AGUA),
+          { passo: 'Converter a massa de uma gota em quantidade de matéria', porque: 'O número de moléculas obtém-se a partir de $n$, e $n = \\dfrac{m}{M}$.', calculo: 'n = \\dfrac{' + tex4(mg4) + '}{' + Mt + '}' + igualRel(mg4 / M, n4) + tex4(n4) + MOL },
+          { passo: 'Multiplicar pela constante de Avogadro', porque: 'Uma mole tem $N_A$ moléculas: $N = n \\times N_A$.', calculo: 'N = ' + tex4(n4) + ' \\times ' + NAtex + igualRel(n4 * NA, resposta) + cient(resposta, 3) },
+        );
+        const err = ({ codigo }, x, ex) => ({ codigo, valor: aAS(x, 3), explicacao: ex(tGota(aAS(x, 3))) });
+        const comM = (Mm) => mg / Mm * NA;
+        const E = {
+          N: err({ codigo: 'nao_dividiu_pelo_numero_de_gotas' }, mTot / M * NA, (tv) => 'Não dividiste pelo número de gotas e obtiveste ' + tv + ', o número de moléculas das ' + nG + ' gotas juntas; numa gota há ' + nG + ' vezes menos.'),
+          mol: err({ codigo: 'esqueceu_a_constante_de_avogadro' }, mg / M, (tv) => tv + ' é a quantidade de matéria de uma gota, em mol; falta multiplicar por $N_A$ para chegar ao número de moléculas.'),
+          divNA: err({ codigo: 'dividiu_pela_constante_de_avogadro' }, mg / M / NA, (tv) => 'Dividiste por $N_A$ e obtiveste ' + tv + '; o número de moléculas é $N = n \\times N_A$.'),
+          Z: err({ codigo: 'usou_z_em_vez_da_massa_atomica' }, comM(massaComZ(AGUA)), (tv) => 'Usaste os números atómicos ($M = 2 \\times 1 + 8 = ' + massaComZ(AGUA) + '$) e obtiveste ' + tv + '; a massa molar soma as massas atómicas relativas, $M(\\mathrm{H_2O}) = ' + Mt + '\\,\\mathrm{g\\,mol^{-1}}$.'),
+          I: err({ codigo: 'esqueceu_o_indice' }, comM(massaSemIndices(AGUA)), (tv) => 'Esqueceste o índice do hidrogénio ($M = ' + Ar('H') + ' + ' + Ar('O') + ' = ' + texF(massaSemIndices(AGUA), 2) + '$) e obtiveste ' + tv + '; a molécula de água tem 2 átomos de H, $M = ' + Mt + '\\,\\mathrm{g\\,mol^{-1}}$.'),
+          T: err({ codigo: 'trocou_os_indices' }, comM(rCasas(H + 2 * O, 2)), (tv) => 'Trocaste os índices ($M = ' + Ar('H') + ' + 2 \\times ' + Ar('O') + ' = ' + texF(rCasas(H + 2 * O, 2), 2) + '$, a massa molar de $\\mathrm{HO_2}$) e obtiveste ' + tv + '; a água tem 2 átomos de H e 1 de O, $M = ' + Mt + '\\,\\mathrm{g\\,mol^{-1}}$.'),
+          O2: err({ codigo: 'usou_a_massa_molar_do_o2' }, comM(rCasas(2 * H + 2 * O, 2)), (tv) => 'Usaste $' + texF(2 * O, 2) + '$ para o oxigénio, que é a massa molar do $\\mathrm{O_2}$ ($M = 2 \\times ' + Ar('H') + ' + ' + texF(2 * O, 2) + ' = ' + texF(rCasas(2 * H + 2 * O, 2), 2) + '$), e obtiveste ' + tv + '; a molécula de água tem um só átomo de O.'),
+          H2: err({ codigo: 'usou_a_massa_molar_do_h2' }, comM(rCasas(4 * H + O, 2)), (tv) => 'Usaste $' + texF(2 * H, 2) + '$ (a massa molar do $\\mathrm{H_2}$) para cada átomo de H ($M = 2 \\times ' + texF(2 * H, 2) + ' + ' + Ar('O') + ' = ' + texF(rCasas(4 * H + O, 2), 2) + '$) e obtiveste ' + tv + '; cada átomo de H conta com $A_r = ' + Ar('H') + '$.'),
+          A3: err({ codigo: 'contou_atomos_em_vez_de_moleculas' }, exato * somaIndices(AGUA), (tv) => tv + ' é o número de átomos (3 por molécula de água); pede-se o número de moléculas.'),
+          Mx: err({ codigo: 'nao_converteu_massa_em_quantidade' }, mg * NA, (tv) => 'Multiplicaste a massa de uma gota, em gramas, por $N_A$ e obtiveste ' + tv + '; primeiro converte-se a massa em quantidade de matéria, $n = \\dfrac{m}{M}$.'),
+          M2: err({ codigo: 'multiplicou_massa_pela_massa_molar' }, mg * M * NA, (tv) => 'Multiplicaste a massa pela massa molar e obtiveste ' + tv + '; a quantidade de matéria é $n = \\dfrac{m}{M}$, e não $m \\times M$.'),
+          DC: err({ codigo: 'dividiu_ao_contrario' }, M / mg * NA, (tv) => 'Calculaste $\\dfrac{M}{m}$ em vez de $\\dfrac{m}{M}$ e obtiveste ' + tv + '.'),
+          K: err({ codigo: 'converteu_a_massa_para_quilogramas' }, exato / 1000, (tv) => 'Passaste a massa para quilogramas, mas com a massa molar em $\\mathrm{g\\,mol^{-1}}$, e obtiveste ' + tv + '; com $M$ em $\\mathrm{g\\,mol^{-1}}$, a massa fica em gramas.'),
+        };
+        const proprios = extra.map((e) => err(e, e.x, e.ex));
+        let erros;
+        if (formato === 'numerica') {
+          erros = [E.N].concat(proprios, [E.mol, E.divNA, E.I, E.Z, E.T, E.O2, E.H2, E.A3, E.Mx, E.M2, E.DC, E.K]);
+        } else {
+          // Escolha: só erros na escala de uma contagem e sem a mantissa da certa (mL/L e kg são × 10^±3, o mol é < 1).
+          // O número de opções abaixo da certa sorteia-se de 0 a 3, para que a posição da certa entre as opções
+          // ordenadas não dê a resposta; Z e «sem M» nunca juntos (diferem × 10, a mesma mantissa).
+          const b = inteiro(rng, 0, 3);
+          const abaixo = baralhar(rng, [E.T, E.O2, E.H2]).slice(0, b);
+          let acima = baralhar(rng, [E.N, rng() < 0.5 ? E.Z : E.Mx, E.A3, E.M2, E.DC].concat(proprios.filter((e) => e.codigo === 'nao_descontou_a_massa_do_gobele')));
+          // Na maior parte dos itens vêm primeiro os erros da mesma ordem de grandeza (Z, átomos): o expoente da certa não a denuncia.
+          if (rng() < 0.7) acima = acima.filter((e) => e === E.Z || e === E.A3).concat(acima.filter((e) => e !== E.Z && e !== E.A3));
+          erros = abaixo.concat(acima.slice(0, 3 - b));
+          const mant = [resposta].concat(erros.map((e) => e.valor)).map((v) => cient(v, 3).split(' \\times')[0]);
+          if (new Set(mant).size < 4) return null;
+        }
+        const Nt = mTot / M * NA;
+        const Nt4 = aAS(Nt, 4);
+        if (aAS(Nt4 / nG, 3) !== resposta) return null;
+        return fechar(rng, formato, { enunciado, resolucao, dados }, {
+          resposta, unidade: 'moléculas', algarismos: 3, texto: tGota, erros,
+          toleranciaRelativa: A.tolMeiaUnidade(resposta, 3) / resposta, // relativa: valores de 10²¹ (e erros perto de 0, em mol)
+          verificacao: { passo: 'Contar primeiro as moléculas de todas as gotas e só depois dividir pelo número de gotas', calculo: 'N_{\\mathrm{total}} = \\dfrac{' + mTex + '}{' + Mt + '} \\times ' + NAtex + ' \\approx ' + cient(Nt4, 4) + ';\\quad N = \\dfrac{' + cient(Nt4, 4) + '}{' + nG + '} \\approx ' + cient(resposta, 3), valor: resposta },
+        });
+      });
+    },
+    verificarIndependente(p) {
+      // Outro caminho: massa total pela massa volúmica em g mL⁻¹ (sem passar a dm³) e M somada átomo a átomo.
+      const d = p.dados;
+      const mTot = d.contexto === 'balanca' ? d.m1 - d.m0 : D().massaVolumicaAgua * d.volume;
+      return confere(p, aAS(mTot * K().NA / (d.nGotas * massaAtomoAAtomo(AGUA)), 3), tGota);
+    },
+    limites(p) {
+      const d = p.dados;
+      return GOTAS[d.contexto].includes(d.nGotas) && d.volumeGota >= 0.03 && d.volumeGota <= 0.07;
+    },
+  });
+
   // ================================================================ espectros
   const texH = () => cient(K().h, 3);
   const texC = () => cient(K().c, 3);

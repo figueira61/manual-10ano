@@ -172,6 +172,7 @@ conveccao_em_vez_de_conducao → Indicou convecção onde a energia passa por co
 conveccao_em_vez_de_radiacao → Indicou convecção onde a energia passa por radiação
 conveccao_no_vazio → Achou que há convecção no vazio
 conveniencia → Julgou aleatória uma amostra por conveniência
+converteu_a_massa_para_quilogramas → Passou a massa para quilogramas com a massa molar em g/mol
 converteu_m_em_nm_ao_contrario → Converteu de metros para nanómetros no sentido errado
 converteu_minutos_em_segundos_com_3600 → Converteu minutos em segundos multiplicando por 3600
 converteu_nm_como_micrometro → Usou 1 nm = 10⁻⁶ m
@@ -270,6 +271,7 @@ dividiu_n_menos_1 → Dividiu a soma por n − 1 para obter a média
 dividiu_n_pelo_volume_molar → Dividiu a quantidade de matéria pelo volume molar em vez de multiplicar
 dividiu_o_deltah_pela_quantidade → Dividiu o ΔH pela quantidade em vez de multiplicar
 dividiu_o_volume_molar_por_n → Dividiu o volume molar pela quantidade de matéria
+dividiu_o_volume_pela_massa_volumica → Dividiu o volume pela massa volúmica em vez de multiplicar
 dividiu_pela_altura → Dividiu o trabalho pela altura em vez do comprimento do plano
 dividiu_pela_altura_do_ressalto → Dividiu pela altura do ressalto em vez da altura de queda
 dividiu_pela_constante_de_avogadro → Dividiu pela constante de Avogadro em vez de multiplicar
@@ -321,6 +323,7 @@ esqueceu_a → Esqueceu de multiplicar pelo fator antes de somar
 esqueceu_a_altura_de_lancamento → Esqueceu a altura do ponto de lançamento
 esqueceu_a_area_do_coletor → Esqueceu a área do coletor na energia incidente
 esqueceu_a_area_do_painel → Esqueceu a área do painel na potência incidente
+esqueceu_a_constante_de_avogadro → Deu a quantidade de matéria em vez do número de moléculas
 esqueceu_a_corrente_na_queda → Escreveu a queda de tensão interna como r, sem a corrente
 esqueceu_a_energia_cinetica → Esqueceu a variação da energia cinética na energia mecânica
 esqueceu_a_fusao_no_balanco → Esqueceu a fusão no balanço energético
@@ -542,11 +545,13 @@ nao_converteu_massa_em_quantidade → Usou a massa sem a converter em quantidade
 nao_converteu_mg_e_kg → Não pôs as massas na mesma unidade
 nao_converteu_ml_em_dm3 → Não converteu mL em dm³
 nao_converteu_nm_em_m → Não converteu os nanómetros em metros
+nao_descontou_a_massa_do_gobele → Não descontou a massa do gobelé vazio
 nao_dividiu → Não fez a divisão final
 nao_dividiu_a_percentagem_por_100 → Não dividiu a percentagem por 100
 nao_dividiu_centro → Não dividiu por 2 a soma das coordenadas do centro
 nao_dividiu_coeficientes → Não dividiu os coeficientes por 2
 nao_dividiu_pela_concentracao_inicial → Não dividiu pela concentração inicial
+nao_dividiu_pelo_numero_de_gotas → Não dividiu pelo número de gotas
 nao_dividiu_por_100 → Não dividiu as abundâncias por 100
 nao_dividiu_por_14 → Usou o salário anual como se fosse mensal
 nao_dividiu_por_2 → Não dividiu por 2
@@ -818,6 +823,7 @@ trocou_o_sentido_do_espectro → Trocou o sentido do espectro
 trocou_o_significado_do_sinal → Trocou o significado do sinal de ΔH
 trocou_o_sinal_da_carga → Trocou o sinal da carga do ião
 trocou_o_sinal_do_expoente → Trocou o sinal do expoente
+trocou_os_indices → Trocou os índices da fórmula na massa molar
 trocou_os_volumes_na_diluicao → Trocou os volumes na diluição (ci·Vf = cf·Vi)
 trocou_periodo_com_grupo → Trocou o período com o grupo
 trocou_q1_q3 → Trocou Q1 com Q3
@@ -843,6 +849,8 @@ usou_a_massa_atomica_do_o → Usou a massa atómica do oxigénio em vez da molar
 usou_a_massa_do_picnometro_com_metal → Usou a massa do picnómetro com o metal sem tirar o picnómetro
 usou_a_massa_do_solvente → Usou a massa do solvente em vez da massa da solução
 usou_a_massa_em_vez_de_n → Usou a massa em vez da quantidade de matéria
+usou_a_massa_molar_do_h2 → Usou a massa molar do H₂ para cada átomo de hidrogénio
+usou_a_massa_molar_do_o2 → Usou a massa molar do O₂ para o átomo de oxigénio
 usou_a_regra_das_casas_decimais → Usou a regra das casas decimais num quociente
 usou_a_ultima_casa_da_leitura → Usou a última casa da leitura como incerteza
 usou_as_massas_em_vez_de_n → Usou as massas em vez das quantidades de matéria
@@ -856,6 +864,7 @@ usou_h → Usou a abcissa do vértice em vez da ordenada
 usou_h_sobre_a_energia → Calculou λ = h/E sem a velocidade da luz
 usou_h_sobre_lambda → Calculou E = h/λ sem a velocidade da luz
 usou_metade_da_divisao_num_digital → Usou metade da divisão num instrumento digital
+usou_ml_como_litro → Usou o volume em mililitros como se fosse em litros
 usou_n_em_vez_de_n_ao_quadrado → Usou n em vez de n² na energia dos níveis
 usou_o_angulo_com_a_vertical → Usou o ângulo com a vertical em vez do ângulo com o deslocamento
 usou_o_angulo_ideal_dos_pares → Usou o ângulo ideal sem a repulsão dos pares não ligantes

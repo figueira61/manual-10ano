@@ -13,7 +13,7 @@ const D = M.dadosQuimicos;
 
 const IDS = [
   'atomo-particulas', 'atomo-isotopos', 'atomo-escala', 'atomo-figura',
-  'mole-massa-atomica', 'mole-quantidade', 'mole-atomos', 'mole-algarismos-incerteza',
+  'mole-massa-atomica', 'mole-quantidade', 'mole-atomos', 'mole-algarismos-incerteza', 'mole-gota',
   'espectros-energia-foton', 'espectros-zona', 'espectros-bohr', 'espectros-transicao-h', 'espectros-classificar-transicao',
   'configuracao-escrever', 'configuracao-contar', 'configuracao-identificar',
   'tabela-periodica-posicao', 'tabela-periodica-comparar', 'tabela-periodica-iao', 'tabela-periodica-picnometro',
@@ -28,7 +28,7 @@ function* itens(id, sementes) {
   }
 }
 
-test('regista os 20 geradores de elementos, ≥ 3 por subtema, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
+test('regista os 21 geradores de elementos, ≥ 3 por subtema, cada um com ≥ 2 formatos ou ≥ 2 contextos', () => {
   assert.deepEqual(defs().map((d) => d.id), IDS);
   for (const sub of SUBTEMAS) assert.ok(G.doSubtema('fqa', sub).length >= 3, sub);
   for (const d of defs()) {
@@ -381,4 +381,146 @@ test('espectros-bohr: «=» só para E₁ e E₂ (exatos a 3 a.s.), «≈» para
     }
   }
   assert.deepEqual([...vistos].sort(), ['1', '2', '3', '4']);
+});
+
+// ---------------------------------------------------------------- mole-gota (AL 1.1)
+const NA = D.constantes.NA;
+const M_AGUA = 2 * D.elementos.H.massaAtomica + D.elementos.O.massaAtomica;
+// Massa total das gotas, calculada a partir dos dados do enunciado (balança: diferença de pesagens; proveta: ρ V).
+const massaTotalGota = (d) => (d.contexto === 'balanca' ? d.m1 - d.m0 : D.massaVolumicaAgua * d.volume);
+
+test('mole-gota: formatos numerica e escolha, subtema mole, contextos balanca e proveta', () => {
+  const d = G.obter('mole-gota');
+  assert.ok(d, 'gerador mole-gota existe');
+  assert.deepEqual(d.formatos, ['numerica', 'escolha']);
+  assert.equal(d.subtema, 'mole');
+  assert.deepEqual(G.contextosDe(d), ['balanca', 'proveta']);
+  assert.equal(D.massaVolumicaAgua, 0.998);
+  assert.match(D.fontes.massaVolumicaAgua, /CRC/);
+});
+
+test('mole-gota: em 500 sementes, gota de 0,03–0,07 mL, 10²¹–3 × 10²¹ moléculas, resposta = (m_total / N) / M × N_A', () => {
+  const vistos = new Set();
+  for (const p of itens('mole-gota', 500)) {
+    const d = p.dados;
+    vistos.add(d.contexto);
+    const mTotal = massaTotalGota(d);
+    const vGota = d.contexto === 'balanca' ? mTotal / d.nGotas / D.massaVolumicaAgua : d.volume / d.nGotas;
+    assert.ok(vGota >= 0.03 && vGota <= 0.07, 'volume ' + vGota);
+    assert.ok(Math.abs(d.volumeGota - vGota) < 1e-9, d.volumeGota + ' ' + vGota);
+    const N = (mTotal / d.nGotas) / M_AGUA * NA;
+    assert.ok(N >= 1e21 && N <= 3e21, 'moléculas ' + N);
+    const certo = Number(N.toPrecision(3));
+    // os dados medidos têm 3 algarismos significativos ou mais (regra 17)
+    assert.ok(mTotal >= 1 - 1e-9, 'massa ' + mTotal);
+    if (d.contexto === 'proveta') assert.ok(d.volume >= 1, 'volume ' + d.volume);
+    if (p.formato === 'numerica') {
+      assert.equal(p.resposta, certo);
+      assert.equal(p.algarismos, 3);
+      assert.ok(p.toleranciaRelativa > 0 && p.tolerancia === undefined);
+    } else {
+      assert.equal(p.opcoes[p.correta], '$' + M.formatar.cientifico(certo, 3) + '$');
+    }
+  }
+  assert.deepEqual([...vistos].sort(), ['balanca', 'proveta']);
+});
+
+test('mole-gota: todas as opções em notação científica com 3 a.s. (regra 14), e cada explicação repete a opção', () => {
+  const forma = /^\$\d\{,\}\d\d \\times 10\^\{-?\d+\}\$$/;
+  for (const p of itens('mole-gota', 300)) {
+    if (p.formato !== 'escolha') continue;
+    assert.equal(p.opcoes.length, 4);
+    for (const o of p.opcoes) assert.match(o, forma);
+    const mant = p.opcoes.map((o) => o.split(' \\times')[0]);
+    assert.equal(new Set(mant).size, 4, 'duas opções com a mesma mantissa: ' + p.opcoes);
+    for (const e of p.errosTipicos) assert.ok(e.explicacao.includes(p.opcoes[e.opcao]), e.codigo + ': ' + e.explicacao);
+  }
+});
+
+test('mole-gota: erros típicos da brief (não dividir por N, mL como L, esquecer N_A) e nenhum perto de 0', () => {
+  const Q = M.quiz;
+  const A = M.aprendizagem;
+  const codigos = new Set();
+  for (const p of itens('mole-gota', 200)) {
+    p.errosTipicos.forEach((e) => codigos.add(e.codigo));
+    if (p.formato !== 'numerica') continue;
+    assert.equal(A.detetarErro(Object.assign({ tipo: 'numerica' }, p), '0'), null);
+    const e = (c) => p.errosTipicos.find((x) => x.codigo === c);
+    const d = p.dados;
+    const certo = (massaTotalGota(d) / d.nGotas) / M_AGUA * NA;
+    assert.ok(Math.abs(e('nao_dividiu_pelo_numero_de_gotas').valor / (certo * d.nGotas) - 1) < 0.005);
+    assert.ok(Math.abs(e('esqueceu_a_constante_de_avogadro').valor / (certo / NA) - 1) < 0.005);
+    if (d.contexto === 'proveta') assert.ok(Math.abs(e('usou_ml_como_litro').valor / (certo * 1000) - 1) < 0.005);
+    assert.ok(Q.corrigir(p, String(p.resposta)).certa);
+    assert.equal(Q.corrigir(p, String(e('nao_dividiu_pelo_numero_de_gotas').valor)).erroTipico.codigo, 'nao_dividiu_pelo_numero_de_gotas');
+  }
+  for (const c of ['nao_dividiu_pelo_numero_de_gotas', 'usou_ml_como_litro', 'esqueceu_a_constante_de_avogadro',
+    'trocou_os_indices', 'usou_a_massa_molar_do_o2', 'usou_a_massa_molar_do_h2', 'nao_descontou_a_massa_do_gobele']) assert.ok(codigos.has(c), c);
+});
+
+// Quem responde só pela forma das opções (sem fazer contas): a maior, a menor, a 2.ª, a 3.ª, uma posição fixa,
+// a que partilha a mantissa com outra, a do par mais próximo, a mais central (em escala logarítmica).
+test('mole-gota (escolha): responder só pela estrutura das opções dá ≈ 0,25 (2000 sementes por contexto)', () => {
+  const ps = [...itens('mole-gota', 2000)].filter((p) => p.formato === 'escolha');
+  const val = (o) => Number(o.replace(/[${}]/g, '').replace(',', '.').replace(' \\times 10^', 'e'));
+  const taxa = (lista, f) => lista.reduce((s, p) => s + f(p), 0) / lista.length;
+  // cada adivinho devolve a probabilidade de acertar (empates repartidos ao acaso)
+  const entre = (p, idx) => (idx.includes(p.correta) ? 1 / idx.length : 0);
+  const posto = (k) => (p) => { const v = p.opcoes.map(val); const s = v.slice().sort((a, b) => a - b); return v[p.correta] === s[k] ? 1 : 0; };
+  const adivinhos = {
+    'a menor': posto(0), 'a 2.ª': posto(1), 'a 3.ª': posto(2), 'a maior': posto(3),
+    primeira: (p) => (p.correta === 0 ? 1 : 0), 'última': (p) => (p.correta === 3 ? 1 : 0),
+    'mantissa repetida': (p) => {
+      const m = p.opcoes.map((o) => o.split(' \\times')[0]);
+      const rep = m.map((x, i) => (m.filter((y) => y === x).length > 1 ? i : -1)).filter((i) => i >= 0);
+      return rep.length ? entre(p, rep) : 0.25;
+    },
+    'par mais próximo': (p) => {
+      const l = p.opcoes.map((o) => Math.log10(val(o)));
+      let b = [Infinity];
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) if (Math.abs(l[i] - l[j]) < b[0]) b = [Math.abs(l[i] - l[j]), i, j];
+      return entre(p, [b[1], b[2]]);
+    },
+    'mais central': (p) => {
+      const l = p.opcoes.map((o) => Math.log10(val(o)));
+      const s = l.map((x) => l.reduce((a, y) => a + Math.abs(x - y), 0));
+      const mn = Math.min(...s);
+      return entre(p, s.map((x, i) => (x - mn < 1e-9 ? i : -1)).filter((i) => i >= 0));
+    },
+  };
+  for (const [nome, f] of Object.entries(adivinhos)) {
+    const t = taxa(ps, f);
+    console.log('adivinho por estrutura, mole-gota, ' + nome + ': ' + t.toFixed(3));
+    assert.ok(t > 0.19 && t < 0.31, nome + ': ' + t.toFixed(3));
+  }
+  // por contexto, o posto da certa entre as opções ordenadas também fica perto de 1/4
+  for (const contexto of ['balanca', 'proveta']) {
+    const q = ps.filter((p) => p.contexto === contexto);
+    for (let k = 0; k < 4; k++) {
+      const t = taxa(q, posto(k));
+      assert.ok(t > 0.19 && t < 0.31, contexto + ' posto ' + k + ': ' + t.toFixed(3));
+    }
+  }
+});
+
+test('mole-gota: a aritmética mostrada bate certo («=» só quando é exato)', () => {
+  const num = (t) => Number(t.replace(/\{,\}/g, '.'));
+  let quocientes = 0;
+  for (const p of itens('mole-gota', 200)) {
+    for (const r of p.resolucaoDetalhada) {
+      const c = r.calculo || '';
+      const sub = c.match(/= ([\d{},]+) - ([\d{},]+) (=|\\approx) ([\d{},]+)/);
+      if (sub) {
+        assert.equal(sub[3], ' = '.trim());
+        assert.ok(Math.abs(num(sub[1]) - num(sub[2]) - num(sub[4])) < 1e-9, c);
+      }
+      for (const q of c.matchAll(/\\dfrac\{([\d{},]+)\}\{([\d{},]+)\} (=|\\approx) ([\d{},]+)/g)) {
+        quocientes++;
+        const exato = num(q[1]) / num(q[2]);
+        assert.equal(q[3] === '=', Math.abs(exato - num(q[4])) <= 1e-12 * exato, c);
+        assert.ok(Math.abs(exato / num(q[4]) - 1) < 5e-4, c);
+      }
+    }
+  }
+  assert.ok(quocientes > 200, String(quocientes));
 });

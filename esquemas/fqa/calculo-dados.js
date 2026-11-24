@@ -172,7 +172,12 @@ Manual.dadosQuimicos = (function () {
     { gas: 'CH4', nome: 'metano', percentagem: 0.000194 },
   ];
 
+  // Massa volúmica da água líquida a 20 °C, em g cm⁻³ (= g mL⁻¹; × 1000 dá g dm⁻³), com 3 algarismos significativos.
+  const massaVolumicaAgua = 0.998;
+
   const fontes = {
+    massaVolumicaAgua: 'D. R. Lide (ed.), CRC Handbook of Chemistry and Physics, 85.ª ed., CRC Press, 2004, p. 6-15 (Properties of '
+      + 'water in the range 0–100 °C): 0,99821 g cm⁻³ a 20 °C, arredondado a 3 algarismos significativos (0,998 g cm⁻³ = 998 g dm⁻³).',
     atmosfera: 'NASA, Earth Fact Sheet (NSSDC, D. R. Williams; consultada em 2026-11-16), "Atmospheric composition (by volume, '
       + 'dry air)": N2 78,08 %, O2 20,95 %, Ar 9340 ppm, CO2 420 ppm, CH4 1,94 ppm; convertidos para percentagem em volume.',
     energiasRemocao: 'Na, átomo livre: 1s = 1079,1 eV (R. L. Martin, E. R. Davidson, M. S. Banna, B. Wallbank, D. C. Frost '
@@ -208,5 +213,5 @@ Manual.dadosQuimicos = (function () {
     excecoesEIGrupo: 'Derivada dos valores de ei1 (NIST): EI(Ga) = 579 kJ/mol > EI(Al) = 578 kJ/mol.',
   };
 
-  return { elementos, isotopos, nuclideosEstaveis, nuclideosRadioativos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, atmosfera, fontes };
+  return { elementos, isotopos, nuclideosEstaveis, nuclideosRadioativos, ligacoes, constantes, espectro, riscas, energiasRemocao, excecoesEI, excecoesEIGrupo, atmosfera, massaVolumicaAgua, fontes };
 })();
