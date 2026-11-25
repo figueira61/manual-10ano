@@ -524,6 +524,21 @@ test('mole-gota (escolha): responder só pela estrutura das opções dá ≈ 0,2
   }
 });
 
+// Minor 3 da revisão final: escolher a opção cujo expoente de 10 é o mais frequente entre as 4 (registado: 0,331).
+test('mole-gota (escolha): o adivinho do expoente mais frequente fica ≤ 0,35 (2000 sementes por contexto)', () => {
+  const ps = [...itens('mole-gota', 2000)].filter((p) => p.formato === 'escolha');
+  const exp = (o) => { const m = o.match(/10\^\{?(-?\d+)\}?/); return m ? Number(m[1]) : 0; };
+  const t = ps.reduce((a, p) => {
+    const e = p.opcoes.map(exp);
+    const freq = e.map((x) => e.filter((y) => y === x).length);
+    const mx = Math.max(...freq);
+    const cand = freq.map((f, i) => (f === mx ? i : -1)).filter((i) => i >= 0);
+    return a + (cand.includes(p.correta) ? 1 / cand.length : 0);
+  }, 0) / ps.length;
+  console.log('adivinho por estrutura, mole-gota, expoente mais frequente: ' + t.toFixed(3));
+  assert.ok(t <= 0.35, t.toFixed(3));
+});
+
 test('mole-gota: a aritmética mostrada bate certo («=» só quando é exato)', () => {
   const num = (t) => Number(t.replace(/\{,\}/g, '.'));
   let quocientes = 0;
