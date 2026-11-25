@@ -64,7 +64,8 @@ globalThis.Manual = globalThis.Manual || {};
   // Número com um número fixo de casas decimais (mantém os zeros finais): em LaTeX e em texto.
   const texF = (v, casas) => (v < 0 ? '-' : '') + Math.abs(v).toFixed(casas).replace('.', '{,}');
   const fx = (v, casas) => (v < 0 ? '−' : '') + Math.abs(v).toFixed(casas).replace('.', ',');
-  const igualOuAprox = (exato, mostrado) => (Math.abs(exato - mostrado) <= 1e-12 * Math.max(1, Math.abs(exato)) ? ' = ' : ' \\approx ');
+  // Tolerância relativa pura: também serve para constantes pequenas (≈ 10⁻¹⁹), sem «=» falso.
+  const igualOuAprox = (exato, mostrado) => (Math.abs(exato - mostrado) <= 1e-12 * Math.max(Math.abs(exato), 1e-300) ? ' = ' : ' \\approx ');
 
   // ---------------------------------------------------------------- elementos, espécies e notações
   const el = (s) => D().elementos[s];
