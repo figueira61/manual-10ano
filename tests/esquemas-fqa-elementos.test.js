@@ -386,3 +386,12 @@ test('fig-bohr: separada (e junta), tudo o que se desenha fica dentro da viewBox
   assert.ok(el.querySelectorAll('div')[0].classes.has('figura-explodida'));
   assert.ok(M.figura);
 });
+
+test('fqa-espectro: os rótulos «400 nm» e «700 nm» ficam dentro do viewBox (âncora no início e no fim)', () => {
+  const { el } = montar('fqa-espectro', {});
+  const rotulos = Array.from(el.querySelectorAll('text')).filter((t) => /^\d{3} nm$/.test(t.textContent));
+  const ancora = (nm) => rotulos.filter((t) => t.textContent === nm).map((t) => t.getAttribute('text-anchor'));
+  const primeiro = rotulos[0].textContent, ultimo = rotulos[rotulos.length - 1].textContent;
+  assert.ok(ancora(primeiro).length >= 2 && ancora(primeiro).every((a) => a === 'start'), primeiro + ': ' + ancora(primeiro));
+  assert.ok(ancora(ultimo).length >= 2 && ancora(ultimo).every((a) => a === 'end'), ultimo + ': ' + ancora(ultimo));
+});

@@ -15,6 +15,8 @@ Manual.esquemas.registar('fqa-espectro', {
     const vis = D.espectro.find((z) => z.zona === 'visivel');
     const VMIN = Math.round(vis.min * 1e9), VMAX = Math.round(vis.max * 1e9), VSPAN = VMAX - VMIN; // limites do visível, em nm
     const TICKS = [VMIN, VMIN + 100, VMIN + 200, VMAX];
+    // os rótulos das pontas alinham para dentro (centrados, «400 nm» e «700 nm» sairiam do viewBox)
+    const ancoraTick = (nm) => (nm === VMIN ? 'start' : nm === VMAX ? 'end' : 'middle');
     const NOMES = { gama: 'Raios gama', X: 'Raios X', UV: 'Ultravioleta', visivel: 'Visível', IV: 'Infravermelho', 'micro-ondas': 'Micro-ondas', radio: 'Ondas de rádio' };
     const fmtNum = (v, d) => Number(v).toLocaleString('pt-PT', { maximumFractionDigits: d });
 
@@ -101,7 +103,7 @@ Manual.esquemas.registar('fqa-espectro', {
     TICKS.forEach((nm) => {
       const x = 20 + ((nm - VMIN) / VSPAN) * 260;
       svgEl('line', { x1: x, y1: 84, x2: x, y2: 88, stroke: 'var(--cor-eixos)', 'stroke-width': 0.8 }, svg);
-      const t = svgEl('text', { x, y: 98, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svg);
+      const t = svgEl('text', { x, y: 98, 'text-anchor': ancoraTick(nm), 'font-size': 9, fill: 'var(--cor-eixos)' }, svg);
       t.textContent = nm + ' nm';
     });
     const t0 = svgEl('text', { x: 150, y: 62, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--texto)' }, svg);
@@ -174,7 +176,7 @@ Manual.esquemas.registar('fqa-espectro', {
         svgEl('line', { class: 'risca', x1: x, y1: 4, x2: x, y2: 34, stroke: emissao ? cor(l.nm) : '#111', 'stroke-width': 2 }, svgR);
       });
       TICKS.forEach((nm) => {
-        const t = svgEl('text', { x: 10 + ((nm - VMIN) / VSPAN) * 280, y: 46, 'text-anchor': 'middle', 'font-size': 9, fill: 'var(--cor-eixos)' }, svgR);
+        const t = svgEl('text', { x: 10 + ((nm - VMIN) / VSPAN) * 280, y: 46, 'text-anchor': ancoraTick(nm), 'font-size': 9, fill: 'var(--cor-eixos)' }, svgR);
         t.textContent = nm + ' nm';
       });
       const nome = est.elemento === 'H' ? 'hidrogénio' : D.riscas[est.elemento].nome.toLowerCase();
