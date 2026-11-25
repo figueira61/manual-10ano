@@ -178,7 +178,7 @@ globalThis.Manual = globalThis.Manual || {};
           },
           {
             tipo: 'texto',
-            texto: '**Coletor solar.** Um coletor solar plano aproveita a radiação do Sol para aquecer água, e em cada peça há um mecanismo de transferência de energia. A **cobertura de vidro** deixa passar a luz visível e reduz as perdas por **convecção** (abriga do vento o ar por cima da placa) e por **radiação infravermelha**, porque deixa passar pouco do infravermelho emitido pela placa quente (**efeito de estufa**). A **placa absorsora**, escura e baça, **absorve** a radiação solar e aquece. Da placa, a energia passa por **condução**, através das paredes dos **tubos**, para o fluido (água), que a **transporta** para fora do coletor, até ao depósito. O **isolamento térmico**, por baixo, reduz as perdas por **condução** através da caixa.',
+            texto: '**Coletor solar.** Um coletor solar plano aproveita a radiação do Sol para aquecer água, e em cada peça há um mecanismo de transferência de energia. A **cobertura de vidro** deixa passar a luz visível e reduz as perdas por **convecção** (abriga do vento o ar por cima da placa) e por **radiação infravermelha**, porque deixa passar pouco do infravermelho emitido pela placa quente (**efeito de estufa**). A **placa absorsora**, escura e baça, **absorve** a radiação solar e aquece. Da placa, a energia passa por **condução**, através das paredes dos **tubos**, para o fluido (água), que a **transporta** por **convecção** para fora do coletor, até ao depósito (num coletor de termossifão, a água aquecida, menos densa, sobe sozinha para o depósito). O **isolamento térmico**, por baixo, reduz as perdas por **condução** através da caixa.',
           },
           {
             tipo: 'esquema',
@@ -208,7 +208,7 @@ globalThis.Manual = globalThis.Manual || {};
           'Calor: energia transferida espontaneamente do mais quente para o mais frio, até ao equilíbrio térmico. Não está "contido" num corpo.',
           'Condução (colisões, sem transporte de matéria), convecção (correntes num fluido), radiação (também no vazio).',
           'Todos os corpos emitem radiação; à temperatura ambiente, sobretudo infravermelho (termografia, termómetros de IV).',
-          'Coletor solar: o vidro deixa passar a luz visível e reduz as perdas por convecção e por radiação infravermelha (efeito de estufa); a placa escura absorve a radiação; dos tubos a energia passa por condução para o fluido, que a transporta; o isolamento reduz a condução. $\\eta = E_{\\text{útil}}/(G\\,A\\,\\Delta t)$.',
+          'Coletor solar: o vidro deixa passar a luz visível e reduz as perdas por convecção e por radiação infravermelha (efeito de estufa); a placa escura absorve a radiação; dos tubos a energia passa por condução para o fluido, que a transporta por convecção; o isolamento reduz a condução. $\\eta = E_{\\text{útil}}/(G\\,A\\,\\Delta t)$.',
         ],
         quiz: [
           {

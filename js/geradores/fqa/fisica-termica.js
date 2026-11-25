@@ -253,9 +253,9 @@ globalThis.Manual = globalThis.Manual || {};
     { id: 'placa', nome: 'a placa escura', codigo: 'coletor_trocou_com_a_placa', mecanismo: 'absorção da radiação',
       funcao: 'Absorver a radiação solar, o que aumenta a sua energia interna e a sua temperatura.',
       porque: 'Uma superfície escura e baça absorve a maior parte da radiação que recebe e reflete pouca.' },
-    { id: 'tubos', nome: 'os tubos', codigo: 'coletor_trocou_com_os_tubos', mecanismo: 'condução para o fluido, que transporta a energia',
-      funcao: 'Transferir a energia para o fluido por condução, através das paredes, para que o fluido em movimento a transporte para fora do coletor.',
-      porque: 'Os tubos metálicos estão encostados à placa quente, e o fluido (água) que circula lá dentro leva a energia até ao depósito.' },
+    { id: 'tubos', nome: 'os tubos', codigo: 'coletor_trocou_com_os_tubos', mecanismo: 'condução para o fluido, que a transporta por convecção',
+      funcao: 'Transferir a energia para o fluido por condução, através das paredes, para que o fluido em movimento a transporte para fora do coletor, por convecção.',
+      porque: 'Os tubos metálicos estão encostados à placa quente, e o fluido (água) que circula lá dentro leva a energia até ao depósito: é convecção, porque é o próprio fluido que se desloca.' },
     { id: 'isolamento', nome: 'o isolamento térmico', codigo: 'coletor_trocou_com_o_isolamento', mecanismo: 'menos perdas por condução',
       funcao: 'Reduzir as perdas de energia por condução através do fundo da caixa.',
       porque: 'É um material mau condutor térmico (lã mineral, espuma), posto entre os tubos e a caixa.' },
@@ -285,7 +285,7 @@ globalThis.Manual = globalThis.Manual || {};
           const P = escolher(rng, PECAS_COLETOR);
           const direcao = rng() < 0.5 ? 'funcao' : 'peca';
           const resolucao = [
-            { passo: 'Seguir o caminho da energia no coletor', porque: 'A radiação solar atravessa o vidro e é absorvida pela placa escura, que aquece. Da placa, a energia passa por condução, através das paredes dos tubos, para o fluido, que a transporta para fora do coletor. O vidro e o isolamento reduzem as perdas para o exterior.' },
+            { passo: 'Seguir o caminho da energia no coletor', porque: 'A radiação solar atravessa o vidro e é absorvida pela placa escura, que aquece. Da placa, a energia passa por condução, através das paredes dos tubos, para o fluido, que a transporta por convecção para fora do coletor. O vidro e o isolamento reduzem as perdas para o exterior.' },
             { passo: 'Concluir', porque: maiuscula(P.nome) + ' ' + serve(P.nome) + ' para ' + minuscula(P.funcao) + ' ' + P.porque },
           ];
           const verificacao = { passo: 'Confirmar pelo mecanismo de cada peça (absorver, conduzir e transportar, reduzir perdas)', calculo: '\\text{' + P.mecanismo + '}' };

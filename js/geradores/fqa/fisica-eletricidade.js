@@ -290,7 +290,7 @@ globalThis.Manual = globalThis.Manual || {};
             };
             erros = [
               { codigo: 'confundiu_potencia_com_energia', valor: P, explicacao: (vt) => vt(P) + ' é a potência dissipada (em watts), não a energia. A energia é a potência vezes o tempo: $E = P\\,\\Delta t$.' },
-              { codigo: 'tempo_em_minutos', valor: P * tmin, explicacao: (vt) => 'Multiplicaste pelo tempo em minutos e obtiveste ' + vt(P * tmin, UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+              { codigo: 'tempo_em_minutos', valor: P * tmin, explicacao: (vt) => 'Multiplicaste pelo tempo em minutos e obtiveste ' + vt(P * tmin, UN.J) + '. Para obter joules, o tempo tem de estar em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
               { codigo: 'esqueceu_quadrado_da_corrente', valor: R * I * ts, explicacao: (vt) => 'Usaste $R I \\Delta t$ e obtiveste ' + vt(R * I * ts, UN.J) + '. A potência dissipada é $R I^2$: a corrente é elevada ao quadrado.' },
             ];
             verificacao = () => {
@@ -341,7 +341,7 @@ globalThis.Manual = globalThis.Manual || {};
               dados: { contexto, P, tmin },
             };
             erros = [
-              { codigo: 'tempo_em_minutos', valor: P * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(P * tmin, UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+              { codigo: 'tempo_em_minutos', valor: P * tmin, explicacao: (vt) => 'Usaste o tempo em minutos e obtiveste ' + vt(P * tmin, UN.J) + '. Para obter joules, o tempo tem de estar em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
               { codigo: 'kwh_como_3600_joules', valor: Ekwh * 3600, explicacao: (vt) => 'Passaste os kWh a joules com $1\\,\\mathrm{kWh} = 3600\\,\\mathrm{J}$ e obtiveste ' + vt(Ekwh * 3600, UN.J) + '. Mas $3600\\,\\mathrm{J}$ é $1\\,\\mathrm{W\\,h}$; $1\\,\\mathrm{kWh} = 3{,}6 \\times 10^{6}\\,\\mathrm{J}$.' },
               { codigo: 'converteu_minutos_em_segundos_com_3600', valor: P * tmin * 3600, explicacao: (vt) => 'Passaste os minutos a segundos multiplicando por 3600 e obtiveste ' + vt(P * tmin * 3600, UN.J) + '. Um minuto tem 60 s ($3600\\,\\mathrm{s}$ é uma hora).' },
             ];
@@ -460,7 +460,7 @@ globalThis.Manual = globalThis.Manual || {};
             verificacao: { passo: passoVer + ' ($n_1$ e $n_2$, da primeira e da segunda fonte)', calculo: 'n_{1} = ' + contagem(f1) + ';\\quad n_{2} = ' + contagem(f2), valor: null },
             // o gráfico abre na corrente da primeira fonte; a nota diz qual é e o que mostra o outro botão
             esquema: { id: 'fqa-corrente', opcoes: { modo: a1 ? 'ca' : 'cc', nota: a1 === a2
-              ? 'As duas fontes fornecem corrente ' + nomeCorrente(a1) + ', a que o gráfico mostra.'
+              ? 'As duas fontes fornecem corrente ' + nomeCorrente(a1) + ', a que o gráfico mostra ao abrir.'
               : 'O gráfico abre na corrente da primeira fonte (' + nomeCorrente(a1) + '). Carrega em «Corrente ' + nomeCorrente(a2) + '» para ver a da segunda.' } },
           }, certa, erros, opcaoCorrente(contexto, n[0] > 0, n[1] > 0));
         }
@@ -759,7 +759,7 @@ globalThis.Manual = globalThis.Manual || {};
             ],
           };
           erros = [
-            { codigo: 'tempo_em_minutos', valor: Pd * tmin, explicacao: (vt) => 'Multiplicaste pelo tempo em minutos e obtiveste ' + vt(Pd * tmin, UN.J) + '. Em joules o tempo está em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
+            { codigo: 'tempo_em_minutos', valor: Pd * tmin, explicacao: (vt) => 'Multiplicaste pelo tempo em minutos e obtiveste ' + vt(Pd * tmin, UN.J) + '. Para obter joules, o tempo tem de estar em segundos: $' + tex(tmin) + '\\,\\mathrm{min} = ' + tex(ts) + '\\,\\mathrm{s}$.' },
             { codigo: 'esqueceu_quadrado_da_corrente', valor: rI * ts, explicacao: (vt) => 'Usaste $r I \\Delta t$ e obtiveste ' + vt(rI * ts, UN.J) + '. A potência dissipada na resistência interna é $r I^2$.' },
             { codigo: 'confundiu_energia_total_com_dissipada', valor: Pt * ts, explicacao: (vt) => vt(Pt * ts, UN.J) + ' é a energia total fornecida pelo gerador, $\\varepsilon I \\Delta t$. Dentro dele só se dissipa $r I^2 \\Delta t$.' },
             { codigo: 'confundiu_potencia_com_energia', valor: Pd, explicacao: (vt) => vt(Pd) + ' é a potência dissipada (em watts), não a energia. Multiplica-se pelo tempo: $E = P_d\\,\\Delta t$.' },

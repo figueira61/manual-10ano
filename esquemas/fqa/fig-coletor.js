@@ -50,7 +50,7 @@ Manual.esquemas = Manual.esquemas || {};
             explodir: { dx: 0, dy: -40 }, ancora: { x: 145, y: 57 }, desenhar: vidro },
           { id: 'placa', rotulo: 'Placa absorsora', descricao: 'Placa metálica escura (preta e baça), que absorve a maior parte da radiação solar que chega; a sua energia interna aumenta e ela aquece.',
             explodir: { dx: 0, dy: -18 }, ancora: { x: 145, y: 103 }, desenhar: placa },
-          { id: 'tubos', rotulo: 'Tubos com fluido', descricao: 'Tubos metálicos encostados à placa, por onde circula um fluido (água). A energia passa da placa quente para o fluido por condução, através das paredes dos tubos, e o fluido em movimento transporta-a para fora do coletor.',
+          { id: 'tubos', rotulo: 'Tubos com fluido', descricao: 'Tubos metálicos encostados à placa, por onde circula um fluido (água). A energia passa da placa quente para o fluido por condução, através das paredes dos tubos, e o fluido em movimento transporta-a para fora do coletor, por convecção.',
             explodir: { dx: 0, dy: 0 }, ancora: { x: 145, y: 114 }, desenhar: tubos },
           { id: 'isolamento', rotulo: 'Isolamento térmico', descricao: 'Camada de material mau condutor térmico (lã mineral, espuma) por baixo dos tubos: reduz as perdas de energia por condução através do fundo da caixa.',
             explodir: { dx: 0, dy: 34 }, ancora: { x: 145, y: 135 }, desenhar: isolamento },
