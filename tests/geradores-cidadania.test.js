@@ -199,7 +199,8 @@ test('partilha (escolha): todas as opções repartem exatamente N, com erros rea
       const m = lerPartilha(p.opcoes[e.opcao]);
       if (e.codigo === 'proporcional_restos_maiores') assert.deepEqual(m, C.restosMaiores(tamanhos, N).mandatos);
       if (e.codigo === 'um_por_partido') assert.deepEqual(m, (metodo === 'hondt' ? C.hondt : C.stLague)(tamanhos, N - tamanhos.length).mandatos.map((x) => x + 1));
-      if (e.codigo === 'saltou_o_divisor_1') assert.deepEqual(m, porDivisores(tamanhos, N, metodo === 'hondt' ? (k) => k + 2 : (k) => 2 * k + 3));
+      // saltar a coluna ÷ 1 só no Hondt (2, 3, 4, …): no St. Laguë não é uma prática conhecida
+      if (e.codigo === 'saltou_o_divisor_1') { assert.equal(metodo, 'hondt'); assert.deepEqual(m, porDivisores(tamanhos, N, (k) => k + 2)); }
       if (e.codigo === 'deu_as_sobras_ao_maior') {
         const T = tamanhos.reduce((a, b) => a + b, 0);
         const g = tamanhos.indexOf(Math.max(...tamanhos));
@@ -221,9 +222,27 @@ test('partilha (escolha): todas as opções repartem exatamente N, com erros rea
 
 // Quem não calcula quocientes: elimina as opções com o total errado e escolhe pela regra de bolso
 // «o Hondt dá mais aos grandes, o St. Laguë dá mais aos pequenos» (empates repartidos ao acaso).
-test('partilha (escolha): soma + «Hondt favorece os grandes» acerta ≤ 0,35 (2000 sementes)', () => {
+// Também os palpites sem método: mais, menos ou «nem um nem outro» ao maior e ao menor grupo, e o medoide
+// (a opção mais parecida com as outras, em distância L1 e em Hamming). ≥ 1500 sementes por método.
+test('partilha (escolha): soma + regra de bolso, «nem/nem» e medoide acertam ≤ 0,35 (3200 sementes)', () => {
   const ps = [];
-  for (let s = 1; s <= 2000; s++) ps.push(G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' }));
+  for (let s = 1; s <= 3200; s++) ps.push(G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' }));
+  for (const m of ['hondt', 'stlague']) assert.ok(ps.filter((p) => p.dados.metodo === m).length >= 1500, m);
+  const entre = (p, c) => (c.length ? (c.includes(p.correta) ? 1 / c.length : 0) : 0.25);
+  const porGrupo = (qual, tipo) => (p) => {
+    const t = p.dados.tamanhos;
+    const g = t.indexOf(qual === 'maior' ? Math.max(...t) : Math.min(...t));
+    const v = p.opcoes.map((o) => lerPartilha(o)[g]);
+    const a = Math.max(...v), b = Math.min(...v);
+    const f = tipo === 'mais' ? (x) => x === a : tipo === 'menos' ? (x) => x === b : (x) => x !== a && x !== b;
+    return entre(p, v.map((x, i) => (f(x) ? i : -1)).filter((i) => i >= 0));
+  };
+  const medoide = (dist) => (p) => {
+    const ms = p.opcoes.map(lerPartilha);
+    const s = ms.map((a) => ms.reduce((t, b) => t + a.reduce((u, x, i) => u + dist(x, b[i]), 0), 0));
+    const mn = Math.min(...s);
+    return entre(p, s.map((x, i) => (x === mn ? i : -1)).filter((i) => i >= 0));
+  };
   const regra = (alvo, maisNoHondt) => (p) => {
     const { tamanhos, N, metodo } = p.dados;
     const g = tamanhos.indexOf(alvo === 'maior' ? Math.max(...tamanhos) : Math.min(...tamanhos));
@@ -236,7 +255,10 @@ test('partilha (escolha): soma + «Hondt favorece os grandes» acerta ≤ 0,35 (
   const adivinhos = {
     'Hondt: mais ao maior; St. Laguë: menos ao maior': regra('maior', true),
     'Hondt: menos ao menor; St. Laguë: mais ao menor': regra('menor', false),
+    'medoide (L1)': medoide((x, y) => Math.abs(x - y)),
+    'medoide (Hamming)': medoide((x, y) => (x !== y ? 1 : 0)),
   };
+  for (const q of ['maior', 'menor']) for (const t of ['mais', 'menos', 'nem']) adivinhos[t + ' ao ' + q + ' grupo'] = porGrupo(q, t);
   const acima = [];
   for (const [nome, f] of Object.entries(adivinhos)) {
     for (const metodo of ['hondt', 'stlague', null]) {

@@ -880,10 +880,10 @@ globalThis.Manual = globalThis.Manual || {};
   function dadosPartilha(rng, metodoFixo) {
     const cenario = escolher(rng, Object.keys(CENARIOS_PARTILHA));
     const c = CENARIOS_PARTILHA[cenario];
-    const nomes = c.fixas ? c.entidades.slice() : baralhar(rng, c.entidades).slice(0, 3);
+    const nomes = c.fixas ? c.entidades.slice() : baralhar(rng, c.entidades).slice(0, 4);
     const tamanhos = nomes.map(() => c.passo * inteiro(rng, c.min / c.passo, c.max / c.passo));
     if (new Set(tamanhos).size !== tamanhos.length) return null;
-    const N = inteiro(rng, 6, 15);
+    const N = inteiro(rng, 8, 16);
     const metodo = metodoFixo || escolher(rng, ['hondt', 'stlague']);
     const outro = metodo === 'hondt' ? 'stlague' : 'hondt';
     const separado = (a, b) => a - b >= 0.01 * a;
@@ -939,12 +939,13 @@ globalThis.Manual = globalThis.Manual || {};
         explicar: (mostrado) => 'Deste primeiro ' + (c.fem ? 'uma' : 'um') + ' ' + c.um + ' a cada ' + c.grupo + ' e só depois repartiste ' + (c.fem ? 'as ' : 'os ') + (N - nG) + ' ' + c.item + ' que sobravam: isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' não há nada garantido à partida: cada ' + c.um + ' vai para o maior quociente.',
       });
     }
-    // Deixar de fora a coluna ÷ 1 (começar a dividir por 2 no Hondt, por 3 no St. Laguë): total certo.
+    // Só no Hondt: deixar de fora a coluna ÷ 1 e começar a dividir por 2 (total certo). No St. Laguë (3, 5, 7…)
+    // não corresponde a nenhuma prática conhecida, por isso não se oferece.
     const salta = porDivisores(tamanhos, N + 1, (k) => divisorDe(metodo)(k + 1));
-    if (salta.quocientes[N - 1] - salta.quocientes[N] >= 0.01 * salta.quocientes[N - 1]) {
+    if (metodo === 'hondt' && salta.quocientes[N - 1] - salta.quocientes[N] >= 0.01 * salta.quocientes[N - 1]) {
       outros.push({
         codigo: 'saltou_o_divisor_1', m: porDivisores(tamanhos, N, (k) => divisorDe(metodo)(k + 1)).mandatos,
-        explicar: (mostrado) => 'Começaste a dividir por ' + (metodo === 'hondt' ? '2 (2, 3, 4, …)' : '3 (3, 5, 7, …)') + ' e deixaste de fora a coluna ÷ 1: isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' os divisores começam em 1 (' + (metodo === 'hondt' ? '1, 2, 3, …' : '1, 3, 5, …') + '), e ' + (c.dimFem ? 'as ' : 'os ') + c.dimensao + ' de cada ' + c.grupo + ' (÷ 1) também entram na comparação.',
+        explicar: (mostrado) => 'Começaste a dividir por 2 (2, 3, 4, …) e deixaste de fora a coluna ÷ 1: isso dá ' + mostrado + '. No ' + NOME_METODO[metodo] + ' os divisores começam em 1 (1, 2, 3, …), e ' + (c.dimFem ? 'as ' : 'os ') + c.dimensao + ' de cada ' + c.grupo + ' (÷ 1) também entram na comparação.',
       });
     }
     // Proporção direta, arredondar para baixo e dar o que sobra ao maior grupo (total certo).
@@ -989,14 +990,22 @@ globalThis.Manual = globalThis.Manual || {};
     if (unicos.length < 3) return null;
     const gMaior = tamanhos.indexOf(Math.max(...tamanhos)), gMenor = tamanhos.indexOf(Math.min(...tamanhos));
     // palpites pelo maior e pelo menor grupo: a opção que lhe dá mais, a que lhe dá menos e «nem uma nem outra»
+    // e o medoide: a opção mais parecida com as outras (menor soma das distâncias L1 entre repartições)
+    const medoide = (ms) => {
+      const s = ms.map((a) => ms.reduce((t, b) => t + a.reduce((u, x, i) => u + Math.abs(x - b[i]), 0), 0));
+      const mn = Math.min(...s);
+      const n = s.filter((x) => x === mn).length;
+      return s[0] === mn ? 1 / n : 0;
+    };
     const palpites = (ms) => [gMaior, gMenor].flatMap((g) => {
       const v = ms.map((m) => m[g]);
       const mx = Math.max(...v), mn = Math.min(...v);
       const prob = (f) => { const n = v.filter(f).length; return !n ? 0.25 : f(v[0]) ? 1 / n : 0; };
       return [prob((x) => x === mx), prob((x) => x === mn), prob((x) => x !== mx && x !== mn)];
-    });
+    }).concat(medoide(ms));
     const pares = [];
     const u = unicos;
+    const codOutro = { hondt: 'divisores_impares', stlague: 'divisores_hondt' }[metodo];
     for (let i = 0; i < u.length; i++) for (let j = i + 1; j < u.length; j++) for (let l = j + 1; l < u.length; l++) {
       pares.push({ tres: [u[i], u[j], u[l]], p: palpites([dist.mandatos, u[i].m, u[j].m, u[l].m]) });
     }
@@ -1004,7 +1013,8 @@ globalThis.Manual = globalThis.Manual || {};
     let peso = pares[0].p.map(() => 1);
     const media = peso.map(() => 0), escolhidos = [];
     for (let t = 0; t < 40; t++) {
-      const s = pares.map((x) => x.p.reduce((a, v, g) => a + v * peso[g], 0));
+      // pequena preferência pelos trios com o outro método (o distrator mais importante), sem pesar mais do que os palpites
+      const s = pares.map((x) => x.p.reduce((a, v, g) => a + v * peso[g], 0) - (x.tres.some((e) => e.codigo === codOutro) ? 0.1 : 0));
       const mn = Math.min(...s);
       const x = escolher(rng, pares.filter((_, i) => s[i] <= mn + 1e-12));
       escolhidos.push(x);
@@ -1065,7 +1075,7 @@ globalThis.Manual = globalThis.Manual || {};
     gerar(semente, { formato, rng }) {
       // Escolha: o método sorteia-se uma vez por semente (os dados com 3 erros de total certo são mais raros no
       // Hondt, e re-sortear o método enviesaria a proporção). Nas primeiras 150 escolhas exige-se que nenhum
-      // palpite pelo maior ou pelo menor grupo passe de 1/2; depois aceita-se o que houver.
+      // palpite (pelo maior ou pelo menor grupo, ou o medoide) passe de 0,4; depois aceita-se o que houver.
       const metodoFixo = formato === 'escolha' ? escolher(rng, ['hondt', 'stlague']) : null;
       let n = 0;
       const construir = () => {
@@ -1082,7 +1092,7 @@ globalThis.Manual = globalThis.Manual || {};
           resolucao.push({ passo: 'Contar ' + (c.fem ? 'as ' : 'os ') + c.item + ' de cada ' + c.grupo, porque: 'Cada quociente a negrito ' + vale + ' para ' + (c.fem ? 'a ' : 'o ') + c.grupo + ' dessa linha.', calculo: nomes.map((n, j) => txt(n) + ' = ' + dist.mandatos[j]).join(',\\ ') });
           const { r, verificacao } = verificacaoPartilha(d, null);
           // Só erros que repartem exatamente N (a soma não elimina nenhuma opção), escolhidos sem pista de método.
-          const tres = escolhaPartilha(rng, d, lista.filter((e) => soma(e.m) === N), n++ < 150 ? 0.5 : 1);
+          const tres = escolhaPartilha(rng, d, lista.filter((e) => soma(e.m) === N), n++ < 150 ? 0.4 : 1);
           if (!tres) return null;
           const erros = tres.map((e) => { const t = distPartilha(nomes, e.m); return { codigo: e.codigo, texto: t, explicacao: e.explicar(t) }; });
           return fecharTexto(rng, {
@@ -1106,7 +1116,7 @@ globalThis.Manual = globalThis.Manual || {};
           resolucao, dados,
         }, { resposta: k, tolerancia: 0, unidade: c.item, texto: qtd, erros, verificacao });
       };
-      // Cada tentativa experimenta até 8 conjuntos de dados (no Hondt, só cerca de 1 em 7 tem 3 erros de total certo).
+      // Cada tentativa experimenta até 8 conjuntos de dados (nem todos têm 3 erros distintos de total certo).
       return tentar(() => { for (let k = 0; k < 8; k++) { const r = construir(); if (r) return r; } return null; });
     },
     verificarIndependente(p) {
@@ -1119,7 +1129,7 @@ globalThis.Manual = globalThis.Manual || {};
     },
     limites(p) {
       const c = CENARIOS_PARTILHA[p.dados.cenario];
-      return !!c && p.dados.N >= 6 && p.dados.N <= 15 && p.dados.tamanhos.every((t) => t >= c.min && t <= c.max);
+      return !!c && p.dados.N >= 8 && p.dados.N <= 16 && p.dados.tamanhos.every((t) => t >= c.min && t <= c.max);
     },
   });
 
