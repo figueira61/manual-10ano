@@ -139,7 +139,7 @@ globalThis.Manual = globalThis.Manual || {};
     dividiu_so_a_raiz: 'Dividiu só a raiz, e não o resto',
     dividiu_so_por_a: 'Dividiu por a em vez de por 2a',
     divisores_hondt: 'Usou os divisores do método de Hondt',
-    divisores_impares: 'Usou os divisores do método de Sainte-Laguë',
+    divisores_impares: 'Usou os divisores do método de St. Laguë',
     dobro_em_vez_de_quadrado: 'Calculou o quadrado como o dobro',
     dois_tercos: 'Deu dois terços da mediana em vez de um terço',
     dois_tercos_dos_votos: 'Exigiu dois terços dos votos',
