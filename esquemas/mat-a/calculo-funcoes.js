@@ -150,7 +150,3 @@ Manual.calc.funcoes = (function () {
 
   return { afim, quadratica, canonicaParaGeral, inequacao2, avaliarRamos, resolverCondicao };
 })();
-
-// Interface do plano da Fase 3C: o mesmo solucionador em Manual.funcoes.
-Manual.funcoes = Manual.funcoes || {};
-Manual.funcoes.resolverCondicao = Manual.calc.funcoes.resolverCondicao;

@@ -149,6 +149,7 @@ test('resolverCondicao: os complementares cobrem o domínio; troço sobre y = k;
   assert.throws(() => F.resolverCondicao(toque, '!=', 0), Error);
 });
 
-test('resolverCondicao também em Manual.funcoes (interface do plano)', () => {
-  assert.equal(globalThis.Manual.funcoes.resolverCondicao, F.resolverCondicao);
+test('resolverCondicao só em Manual.calc.funcoes (sem o alias Manual.funcoes, que não tinha consumidores)', () => {
+  assert.equal(globalThis.Manual.funcoes, undefined);
+  assert.equal(typeof globalThis.Manual.calc.funcoes.resolverCondicao, 'function');
 });
