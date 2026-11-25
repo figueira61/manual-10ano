@@ -257,6 +257,22 @@ test('partilha (escolha): soma + regra de bolso, «nem/nem» e medoide acertam �
     'Hondt: menos ao menor; St. Laguë: mais ao menor': regra('menor', false),
     'medoide (L1)': medoide((x, y) => Math.abs(x - y)),
     'medoide (Hamming)': medoide((x, y) => (x !== y ? 1 : 0)),
+    // os dois mais próximos (L1) e, entre eles, a regra do resumo: Hondt dá mais ao maior, St. Laguë mais ao menor
+    'par mais próximo + regra de bolso': (p) => {
+      const ms = p.opcoes.map(lerPartilha);
+      const t = p.dados.tamanhos;
+      const g = t.indexOf(p.dados.metodo === 'hondt' ? Math.max(...t) : Math.min(...t));
+      const d = (a, b) => a.reduce((u, x, i) => u + Math.abs(x - b[i]), 0);
+      let mn = Infinity, pares = [];
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+        const x = d(ms[i], ms[j]);
+        if (x < mn) { mn = x; pares = [[i, j]]; } else if (x === mn) pares.push([i, j]);
+      }
+      return pares.reduce((s, [i, j]) => {
+        const c = ms[i][g] > ms[j][g] ? [i] : ms[j][g] > ms[i][g] ? [j] : [i, j];
+        return s + (c.includes(p.correta) ? 1 / c.length : 0);
+      }, 0) / pares.length;
+    },
   };
   for (const q of ['maior', 'menor']) for (const t of ['mais', 'menos', 'nem']) adivinhos[t + ' ao ' + q + ' grupo'] = porGrupo(q, t);
   const acima = [];
@@ -269,4 +285,15 @@ test('partilha (escolha): soma + regra de bolso, «nem/nem» e medoide acertam �
     }
   }
   assert.deepEqual(acima, []);
+});
+
+test('partilha (escolha): todos os cenários aparecem (≥ 10 % cada), com 4 grupos e razão maior/menor ≤ 8', () => {
+  const n = {};
+  for (let s = 1; s <= 1000; s++) {
+    const p = G.gerar('hondt-stlague-partilha', s, { formato: 'escolha' });
+    n[p.dados.cenario] = (n[p.dados.cenario] || 0) + 1;
+    assert.equal(p.dados.tamanhos.length, 4);
+    assert.ok(Math.max(...p.dados.tamanhos) <= 8 * Math.min(...p.dados.tamanhos), p.dados.tamanhos.join());
+  }
+  for (const c of ['computadores', 'bolsas', 'vagas', 'lugares']) assert.ok((n[c] || 0) >= 100, c + ': ' + n[c]);
 });

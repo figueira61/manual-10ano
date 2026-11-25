@@ -861,9 +861,9 @@ globalThis.Manual = globalThis.Manual || {};
     },
     vagas: {
       item: 'vagas', um: 'vaga', fem: true, grupo: 'turno', dimensao: 'pré-inscrições', dimFem: true, fixas: true,
-      entidades: ['Manhã', 'Tarde', 'Noite'], min: 8, max: 90, passo: 1,
+      entidades: ['Manhã', 'Hora de almoço', 'Tarde', 'Noite'], min: 8, max: 90, passo: 1,
       o: (n) => 'o turno da ' + n.toLowerCase(), ao: (n) => 'ao turno da ' + n.toLowerCase(), de: (n) => 'do turno da ' + n.toLowerCase(),
-      abertura: (N, nomes, t) => 'Um clube de natação abriu ' + N + ' vagas num curso de verão, a repartir pelos turnos da manhã, da tarde e da noite, que tiveram, respetivamente, ' + listaPt(t) + ' pré-inscrições.',
+      abertura: (N, nomes, t) => 'Um clube de natação abriu ' + N + ' vagas num curso de verão, a repartir pelos turnos da manhã, da hora de almoço, da tarde e da noite, que tiveram, respetivamente, ' + listaPt(t) + ' pré-inscrições.',
     },
     lugares: {
       item: 'lugares', um: 'lugar', fem: false, grupo: 'empresa', dimensao: 'trabalhadores', dimFem: false,
@@ -883,6 +883,8 @@ globalThis.Manual = globalThis.Manual || {};
     const nomes = c.fixas ? c.entidades.slice() : baralhar(rng, c.entidades).slice(0, 4);
     const tamanhos = nomes.map(() => c.passo * inteiro(rng, c.min / c.passo, c.max / c.passo));
     if (new Set(tamanhos).size !== tamanhos.length) return null;
+    // Grupos de dimensões comparáveis (razão ≤ 8): senão o menor fica quase sempre com 0.
+    if (Math.max(...tamanhos) > 8 * Math.min(...tamanhos)) return null;
     const N = inteiro(rng, 8, 16);
     const metodo = metodoFixo || escolher(rng, ['hondt', 'stlague']);
     const outro = metodo === 'hondt' ? 'stlague' : 'hondt';
@@ -997,12 +999,29 @@ globalThis.Manual = globalThis.Manual || {};
       const n = s.filter((x) => x === mn).length;
       return s[0] === mn ? 1 / n : 0;
     };
+    // e o par mais próximo (L1) seguido da regra de bolso do resumo: dentro do par, o Hondt é a que dá mais ao
+    // maior grupo e o St. Laguë a que dá mais ao menor (empates repartidos). É o atalho de «os dois métodos
+    // diferem num só objeto»; sem este palpite, a preferência pelo outro método abria-o.
+    const parMaisProximo = (ms) => {
+      const d = (a, b) => a.reduce((u, x, i) => u + Math.abs(x - b[i]), 0);
+      let mn = Infinity, pares = [];
+      for (let i = 0; i < ms.length; i++) for (let j = i + 1; j < ms.length; j++) {
+        const x = d(ms[i], ms[j]);
+        if (x < mn) { mn = x; pares = [[i, j]]; } else if (x === mn) pares.push([i, j]);
+      }
+      const g = metodo === 'hondt' ? gMaior : gMenor;
+      // probabilidade média de acertar sorteando um dos pares mais próximos e, nele, a opção da regra
+      return pares.reduce((t, [i, j]) => {
+        const c = ms[i][g] > ms[j][g] ? [i] : ms[j][g] > ms[i][g] ? [j] : [i, j];
+        return t + (c.includes(0) ? 1 / c.length : 0);
+      }, 0) / pares.length;
+    };
     const palpites = (ms) => [gMaior, gMenor].flatMap((g) => {
       const v = ms.map((m) => m[g]);
       const mx = Math.max(...v), mn = Math.min(...v);
       const prob = (f) => { const n = v.filter(f).length; return !n ? 0.25 : f(v[0]) ? 1 / n : 0; };
       return [prob((x) => x === mx), prob((x) => x === mn), prob((x) => x !== mx && x !== mn)];
-    }).concat(medoide(ms));
+    }).concat(medoide(ms), parMaisProximo(ms));
     const pares = [];
     const u = unicos;
     const codOutro = { hondt: 'divisores_impares', stlague: 'divisores_hondt' }[metodo];
